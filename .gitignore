@@ -1,0 +1,23 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+
+# Node / Vue
+node_modules/
+dist/
+build/
+
+# Java / Spring Boot
+target/
+*.log
+
+# Flutter / Android
+build/
+*.apk
+
+# Environment / secrets
+.env
+*.pem
