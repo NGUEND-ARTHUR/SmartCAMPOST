@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: smartcampost-backend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/smartcampost?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Douala
+    username: root
+    password: "Arthur@237"   # quotes OK for @
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      pool-name: SmartPool
+
+  jpa:
+    hibernate:
+      ddl-auto: update        # use "validate" in production
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+  ai:
+    openai:
+      # DO NOT hardcode keys in source. Use an env var:
+      api-key: ${OPENAI_API_KEY:}   # leave empty default locally if you prefer
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace
