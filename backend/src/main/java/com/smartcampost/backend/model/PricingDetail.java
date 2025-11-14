@@ -26,7 +26,7 @@ public class PricingDetail {
     @JoinColumn(name = "tariff_id", nullable = false)
     private Tariff tariff;
 
-    @Column(name = "applied_price", nullable = false, precision = 12, scale = 2)
+    @Column(name = "applied_price", nullable = false)
     private Double appliedPrice;
 
     @Column(name = "applied_at", nullable = false)

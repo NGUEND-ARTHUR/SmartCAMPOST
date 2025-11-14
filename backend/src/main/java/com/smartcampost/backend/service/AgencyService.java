@@ -15,6 +15,4 @@ public interface AgencyService {
     AgencyResponse getAgency(UUID agencyId);
 
     AgencyResponse updateAgency(UUID agencyId, AgencyRequest request);
-
-    void deleteAgency(UUID agencyId);  // optional but useful
 }

@@ -43,13 +43,13 @@ public class Parcel {
     @JoinColumn(name = "destination_agency_id")
     private Agency destinationAgency;
 
-    @Column(name = "weight", nullable = false, precision = 10, scale = 3)
+    @Column(name = "weight", nullable = false)
     private Double weight;
 
     @Column(name = "dimensions", length = 50)
     private String dimensions;
 
-    @Column(name = "declared_value", precision = 12, scale = 2)
+    @Column(name = "declared_value")
     private Double declaredValue;
 
     @Column(name = "is_fragile", nullable = false)

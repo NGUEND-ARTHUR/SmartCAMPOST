@@ -25,7 +25,7 @@ public class Invoice {
     @Column(name = "invoice_number", nullable = false, length = 50, unique = true)
     private String invoiceNumber;
 
-    @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
+    @Column(name = "total_amount", nullable = false)
     private Double totalAmount;
 
     @Column(name = "issued_at", nullable = false)

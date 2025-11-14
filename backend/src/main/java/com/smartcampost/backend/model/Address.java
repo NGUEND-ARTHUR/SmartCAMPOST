@@ -37,9 +37,9 @@ public class Address {
     @Column(name = "country", nullable = false, length = 100)
     private String country;
 
-    @Column(name = "latitude", precision = 9, scale = 6)
+    @Column(name = "latitude")
     private BigDecimal latitude;
 
-    @Column(name = "longitude", precision = 9, scale = 6)
+    @Column(name = "longitude")
     private BigDecimal longitude;
 }
