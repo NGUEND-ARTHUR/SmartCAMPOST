@@ -24,7 +24,7 @@ public class Payment {
     @JoinColumn(name = "parcel_id", nullable = false)
     private Parcel parcel;
 
-    @Column(name = "amount", nullable = false, precision = 12, scale = 2)
+    @Column(name = "amount", nullable = false)
     private Double amount;
 
     @Column(name = "currency", nullable = false, length = 10)

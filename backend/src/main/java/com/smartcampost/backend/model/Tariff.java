@@ -31,6 +31,6 @@ public class Tariff {
     @Column(name = "weight_bracket", nullable = false, length = 30)
     private String weightBracket;
 
-    @Column(name = "base_price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "base_price", nullable = false)
     private Double basePrice;
 }
