@@ -3,6 +3,7 @@ package com.smartcampost.backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -37,8 +38,8 @@ public class Address {
     private String country;
 
     @Column(name = "latitude", precision = 9, scale = 6)
-    private Double latitude;
+    private BigDecimal latitude;
 
     @Column(name = "longitude", precision = 9, scale = 6)
-    private Double longitude;
+    private BigDecimal longitude;
 }
