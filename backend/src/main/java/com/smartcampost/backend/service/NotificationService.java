@@ -1,20 +1,16 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.Notification;
-import com.smartcampost.backend.model.enums.NotificationChannel;
+import com.smartcampost.backend.dto.notification.NotificationResponse;
+import com.smartcampost.backend.dto.notification.NotificationSendRequest;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface NotificationService {
 
-    Notification sendParcelNotification(UUID parcelId,
-                                        UUID clientId,
-                                        NotificationChannel channel,
-                                        String templateCode,
-                                        Object templateData);
+    NotificationResponse sendNotification(NotificationSendRequest request);
 
-    List<Notification> getNotificationsForParcel(UUID parcelId);
+    List<NotificationResponse> listByParcel(UUID parcelId);
 
-    List<Notification> getNotificationsForClient(UUID clientId);
+    List<NotificationResponse> listByClient(UUID clientId);
 }

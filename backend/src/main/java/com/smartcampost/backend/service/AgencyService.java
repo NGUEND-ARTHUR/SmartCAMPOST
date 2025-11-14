@@ -1,17 +1,20 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.Agency;
+import com.smartcampost.backend.dto.agency.AgencyRequest;
+import com.smartcampost.backend.dto.agency.AgencyResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface AgencyService {
 
-    Agency createAgency(Agency agency);
+    AgencyResponse createAgency(AgencyRequest request);
 
-    Agency updateAgency(UUID agencyId, Agency agency);
+    List<AgencyResponse> listAgencies();
 
-    Agency getAgency(UUID agencyId);
+    AgencyResponse getAgency(UUID agencyId);
 
-    List<Agency> listAgencies();
+    AgencyResponse updateAgency(UUID agencyId, AgencyRequest request);
+
+    void deleteAgency(UUID agencyId);  // optional but useful
 }

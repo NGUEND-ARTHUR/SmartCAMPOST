@@ -1,17 +1,20 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.ScanEvent;
+import com.smartcampost.backend.dto.scan.ScanEventCreateRequest;
+import com.smartcampost.backend.dto.scan.ScanEventResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface ScanEventService {
 
-    ScanEvent recordEvent(UUID parcelId,
-                          UUID agencyId,
-                          UUID staffOrAgentId,
-                          String eventType,
-                          String locationNote);
+    /**
+     * Enregistrer un nouvel événement de scan pour un colis.
+     */
+    ScanEventResponse recordScanEvent(ScanEventCreateRequest request);
 
-    List<ScanEvent> getTimelineForParcel(UUID parcelId);
+    /**
+     * Récupérer l’historique des scans pour un colis donné.
+     */
+    List<ScanEventResponse> getHistoryForParcel(UUID parcelId);
 }

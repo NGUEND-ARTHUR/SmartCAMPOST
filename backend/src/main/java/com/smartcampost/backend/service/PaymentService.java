@@ -1,23 +1,25 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.Payment;
-import com.smartcampost.backend.model.enums.CurrencyCode;
-import com.smartcampost.backend.model.enums.PaymentMethod;
+import com.smartcampost.backend.dto.payment.PaymentInitRequest;
+import com.smartcampost.backend.dto.payment.PaymentResponse;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 public interface PaymentService {
 
-    Payment initiatePayment(UUID parcelId,
-                            BigDecimal amount,
-                            CurrencyCode currency,
-                            PaymentMethod method);
+    /**
+     * Initie un paiement pour un colis.
+     */
+    PaymentResponse initiatePayment(PaymentInitRequest request);
 
-    Payment markAsPaid(UUID paymentId, String externalRef);
+    /**
+     * Complète un paiement (callback après succès/échec du provider).
+     */
+    PaymentResponse completePayment(UUID paymentId, boolean success, String externalRef);
 
-    Payment markAsFailed(UUID paymentId, String reason);
-
-    List<Payment> listPaymentsForParcel(UUID parcelId);
+    /**
+     * Liste tous les paiements liés à un colis.
+     */
+    List<PaymentResponse> listPaymentsForParcel(UUID parcelId);
 }
