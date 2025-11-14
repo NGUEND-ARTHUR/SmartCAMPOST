@@ -1,15 +1,18 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.Agent;
+import com.smartcampost.backend.dto.agent.AgentRequest;
+import com.smartcampost.backend.dto.agent.AgentResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface AgentService {
 
-    Agent registerAgent(Agent agent);
+    AgentResponse createAgent(AgentRequest request);
 
-    Agent getAgent(UUID agentId);
+    List<AgentResponse> listAgents();
 
-    List<Agent> listAgentsByAgency(UUID agencyId);
+    AgentResponse getAgent(UUID agentId);
+
+    void changeStatus(UUID agentId, String status);
 }
