@@ -7,6 +7,7 @@ import com.smartcampost.backend.dto.tariff.TariffResponse;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.PricingDetail;
 import com.smartcampost.backend.model.Tariff;
+import com.smartcampost.backend.model.enums.ServiceType;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PricingDetailRepository;
 import com.smartcampost.backend.repository.TariffRepository;
@@ -29,9 +30,12 @@ public class TariffPricingServiceImpl implements TariffPricingService {
 
     @Override
     public TariffResponse createTariff(TariffRequest request) {
+        // convert String → enum
+        ServiceType serviceTypeEnum = ServiceType.valueOf(request.getServiceType().toUpperCase());
+
         Tariff tariff = Tariff.builder()
                 .id(UUID.randomUUID())
-                .serviceType(request.getServiceType())
+                .serviceType(serviceTypeEnum)
                 .originZone(request.getOriginZone())
                 .destinationZone(request.getDestinationZone())
                 .weightBracket(request.getWeightBracket())
@@ -59,23 +63,25 @@ public class TariffPricingServiceImpl implements TariffPricingService {
 
     @Override
     public TariffQuoteResponse quotePrice(TariffQuoteRequest request) {
-        // logique simple : on cherche un tarif exact
+        // String → enum for query
+        ServiceType serviceTypeEnum = ServiceType.valueOf(request.getServiceType().toUpperCase());
+
         Tariff tariff = tariffRepository
                 .findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
-                        request.getServiceType(),
+                        serviceTypeEnum,
                         request.getOriginZone(),
                         request.getDestinationZone(),
                         request.getWeightBracket()
                 )
                 .orElseThrow(() -> new IllegalArgumentException("No tariff found for quote"));
 
-        BigDecimal price = tariff.getPrice();
+        BigDecimal price = tariff.getPrice(); // make sure Tariff has getPrice()
 
         TariffQuoteResponse response = new TariffQuoteResponse();
         response.setTariffId(tariff.getId());
         response.setPrice(price);
 
-        // si un parcelId est fourni, on enregistre le pricing_detail
+        // if a parcelId is provided, store PricingDetail
         if (request.getParcelId() != null) {
             Parcel parcel = parcelRepository.findById(request.getParcelId())
                     .orElseThrow(() -> new IllegalArgumentException("Parcel not found: " + request.getParcelId()));
@@ -84,7 +90,7 @@ public class TariffPricingServiceImpl implements TariffPricingService {
                     .id(UUID.randomUUID())
                     .parcel(parcel)
                     .tariff(tariff)
-                    .appliedPrice(price)
+                    .appliedPrice(price.doubleValue()) // BigDecimal → Double for builder
                     .build();
 
             pricingDetailRepository.save(detail);
@@ -96,7 +102,8 @@ public class TariffPricingServiceImpl implements TariffPricingService {
     private TariffResponse toResponse(Tariff tariff) {
         TariffResponse dto = new TariffResponse();
         dto.setId(tariff.getId());
-        dto.setServiceType(tariff.getServiceType());
+        // enum → String for API
+        dto.setServiceType(tariff.getServiceType().name());
         dto.setOriginZone(tariff.getOriginZone());
         dto.setDestinationZone(tariff.getDestinationZone());
         dto.setWeightBracket(tariff.getWeightBracket());
