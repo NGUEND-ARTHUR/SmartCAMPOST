@@ -2,11 +2,11 @@ package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.dto.pickup.PickupRequestCreateRequest;
 import com.smartcampost.backend.dto.pickup.PickupRequestResponse;
-import com.smartcampost.backend.model.Agent;
+import com.smartcampost.backend.model.Courier;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.PickupRequest;
-import com.smartcampost.backend.model.enums.PickupState;
-import com.smartcampost.backend.repository.AgentRepository;
+import com.smartcampost.backend.model.enums.PickupRequestState;
+import com.smartcampost.backend.repository.CourierRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PickupRequestRepository;
 import com.smartcampost.backend.service.PickupRequestService;
@@ -21,7 +21,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
 
     private final PickupRequestRepository pickupRequestRepository;
     private final ParcelRepository parcelRepository;
-    private final AgentRepository agentRepository;
+    private final CourierRepository courierRepository;
 
     @Override
     public PickupRequestResponse createPickupRequest(PickupRequestCreateRequest request) {
@@ -31,9 +31,9 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         PickupRequest pickup = PickupRequest.builder()
                 .id(UUID.randomUUID())
                 .parcel(parcel)
-                .requestedDate(request.getRequestedDate())
+                .requestedDate(request.getRequestedDate())     // ✅ LocalDate -> LocalDate
                 .timeWindow(request.getTimeWindow())
-                .state(PickupState.REQUESTED)
+                .state(PickupRequestState.REQUESTED)           // ✅ matches entity enum
                 .comment(request.getComment())
                 .build();
 
@@ -52,11 +52,12 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     public void assignCourier(UUID pickupId, UUID courierId) {
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
                 .orElseThrow(() -> new IllegalArgumentException("Pickup not found: " + pickupId));
-        Agent courier = agentRepository.findById(courierId)
+
+        Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() -> new IllegalArgumentException("Courier not found: " + courierId));
 
-        pickup.setCourier(courier);
-        pickup.setState(PickupState.ASSIGNED);
+        pickup.setCourier(courier);                        // Courier type
+        pickup.setState(PickupRequestState.ASSIGNED);      // entity enum
         pickupRequestRepository.save(pickup);
     }
 
@@ -64,7 +65,8 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     public void updatePickupState(UUID pickupId, String state) {
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
                 .orElseThrow(() -> new IllegalArgumentException("Pickup not found: " + pickupId));
-        PickupState newState = PickupState.valueOf(state.toUpperCase());
+
+        PickupRequestState newState = PickupRequestState.valueOf(state.toUpperCase());
         pickup.setState(newState);
         pickupRequestRepository.save(pickup);
     }
@@ -73,11 +75,13 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         PickupRequestResponse dto = new PickupRequestResponse();
         dto.setId(pickup.getId());
         dto.setParcelId(pickup.getParcel().getId());
-        dto.setRequestedDate(pickup.getRequestedDate());
+        dto.setRequestedDate(pickup.getRequestedDate());   // ✅ LocalDate -> LocalDate
         dto.setTimeWindow(pickup.getTimeWindow());
-        dto.setState(pickup.getState());
+        dto.setState(pickup.getState());                   // PickupRequestState -> PickupRequestState
         dto.setComment(pickup.getComment());
-        dto.setCourierId(pickup.getCourier() != null ? pickup.getCourier().getId() : null);
+        dto.setCourierId(
+                pickup.getCourier() != null ? pickup.getCourier().getId() : null
+        );
         return dto;
     }
 }
