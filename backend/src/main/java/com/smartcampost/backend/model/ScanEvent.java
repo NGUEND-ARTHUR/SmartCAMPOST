@@ -35,8 +35,8 @@ public class ScanEvent {
     @Column(name = "event_type", nullable = false, length = 40)
     private ScanEventType eventType;
 
-    @Column(name = "event_time", nullable = false)
-    private Instant eventTime;
+    @Column(name = "timestamp", nullable = false)
+    private Instant timestamp;
 
     @Column(name = "location_note", length = 255)
     private String locationNote;
