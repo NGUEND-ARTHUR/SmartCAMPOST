@@ -4,33 +4,36 @@ import com.smartcampost.backend.model.enums.ServiceType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
 @Table(name = "tariff")
-@Data
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Tariff {
 
     @Id
-    @Column(name = "tariff_id", columnDefinition = "CHAR(36)")
+    @Column(nullable = false, updatable = false)
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "service_type", nullable = false, length = 20)
+    @Column(nullable = false)
     private ServiceType serviceType;
 
-    @Column(name = "origin_zone", nullable = false, length = 50)
+    @Column(nullable = false)
     private String originZone;
 
-    @Column(name = "destination_zone", nullable = false, length = 50)
+    @Column(nullable = false)
     private String destinationZone;
 
-    @Column(name = "weight_bracket", nullable = false, length = 30)
+    @Column(nullable = false)
     private String weightBracket;
 
-    @Column(name = "base_price", nullable = false)
-    private Double basePrice;
+    // 🔹 THIS is what was missing:
+    @Column(nullable = false)
+    private BigDecimal price;
 }
