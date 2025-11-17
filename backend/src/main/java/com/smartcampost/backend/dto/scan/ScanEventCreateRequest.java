@@ -1,5 +1,6 @@
 package com.smartcampost.backend.dto.scan;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.UUID;
@@ -7,10 +8,15 @@ import java.util.UUID;
 @Data
 public class ScanEventCreateRequest {
 
+    @NotNull
     private UUID parcelId;
-    private UUID agencyId;      // optional
-    private UUID agentId;       // optional
 
-    private String eventType;   // "CREATED", "IN_TRANSIT", "ARRIVED_HUB", ...
-    private String locationNote; // "Yaoundé Hub, Dock 3", GPS note, etc.
+    private UUID agencyId;
+
+    private UUID agentId;
+
+    @NotNull
+    private String eventType;      // ex : "CREATED", "IN_TRANSIT", "DELIVERED"
+
+    private String locationNote;
 }

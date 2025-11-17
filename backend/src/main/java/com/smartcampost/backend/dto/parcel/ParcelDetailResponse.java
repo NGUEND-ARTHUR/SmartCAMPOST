@@ -2,49 +2,34 @@ package com.smartcampost.backend.dto.parcel;
 
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
-import com.smartcampost.backend.model.enums.ServiceType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ParcelDetailResponse {
 
-    private UUID parcelId;
+    private UUID id;
     private String trackingRef;
-
     private UUID clientId;
-
-    // Sender address (flattened – easy to show in UI)
     private UUID senderAddressId;
-    private String senderFullName;
-    private String senderPhone;
-    private String senderCity;
-    private String senderRegion;
-    private String senderCountry;
-
-    // Recipient address (flattened)
     private UUID recipientAddressId;
-    private String recipientFullName;
-    private String recipientPhone;
-    private String recipientCity;
-    private String recipientRegion;
-    private String recipientCountry;
 
-    // Parcel info
-    private BigDecimal weight;
+    private Double weight;
     private String dimensions;
-    private BigDecimal declaredValue;
+    private Double declaredValue;
     private boolean fragile;
 
-    private ServiceType serviceType;
+    private String serviceType;
     private DeliveryOption deliveryOption;
     private ParcelStatus status;
 
     private Instant createdAt;
-    private Instant lastUpdatedAt;
 }

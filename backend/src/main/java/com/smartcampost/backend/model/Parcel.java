@@ -1,5 +1,6 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ServiceType;
 import jakarta.persistence.*;
@@ -61,7 +62,7 @@ public class Parcel {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_option", nullable = false, length = 20)
-    private DeliveryOption deliveryOption;
+    private DeliveryOption deliveryOption;   // 👉 now using global enum
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
@@ -72,10 +73,4 @@ public class Parcel {
 
     @Column(name = "expected_delivery_at")
     private Instant expectedDeliveryAt;
-
-    // small inner enum just for AGENGY/HOME
-    public enum DeliveryOption {
-        AGENCY,
-        HOME
-    }
 }

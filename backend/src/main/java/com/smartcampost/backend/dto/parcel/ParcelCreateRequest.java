@@ -1,39 +1,40 @@
 package com.smartcampost.backend.dto.parcel;
 
 import com.smartcampost.backend.model.enums.DeliveryOption;
-import com.smartcampost.backend.model.enums.ServiceType;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
 public class ParcelCreateRequest {
 
+    @NotNull
     private UUID clientId;
 
-    // Sender
-    private String senderFullName;
-    private String senderPhone;
-    private String senderCity;
-    private String senderRegion;
-    private String senderCountry;
-    private String senderLabel;
+    @NotNull
+    private UUID senderAddressId;
 
-    // Recipient
-    private String recipientFullName;
-    private String recipientPhone;
-    private String recipientCity;
-    private String recipientRegion;
-    private String recipientCountry;
-    private String recipientLabel;
+    @NotNull
+    private UUID recipientAddressId;
 
-    // Parcel info
-    private BigDecimal weight;
+    // Tu peux aussi le laisser nullable si tu veux le générer côté backend
+    @NotBlank
+    private String trackingRef;
+
+    @NotNull
+    private Double weight;
+
     private String dimensions;
-    private BigDecimal declaredValue;
+
+    private Double declaredValue;
+
     private boolean fragile;
 
-    private ServiceType serviceType;        // STANDARD, EXPRESS...
-    private DeliveryOption deliveryOption;  // AGENCY, HOME
+    @NotBlank
+    private String serviceType;
+
+    @NotNull
+    private DeliveryOption deliveryOption;
 }

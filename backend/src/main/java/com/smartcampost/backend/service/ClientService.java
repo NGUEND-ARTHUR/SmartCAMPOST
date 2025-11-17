@@ -1,15 +1,28 @@
 package com.smartcampost.backend.service;
 
+import com.smartcampost.backend.dto.client.ClientRequest;
+import com.smartcampost.backend.dto.client.ClientResponse;
 import com.smartcampost.backend.model.Client;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface ClientService {
 
-    Client getClient(UUID clientId);
+    ClientResponse createClient(ClientRequest request);
 
-    Client updateProfile(UUID clientId, String fullName, String email, String preferredLanguage);
+    ClientResponse getClient(UUID clientId);
 
-    List<Client> searchByPhoneOrName(String query);
+    ClientResponse updateProfile(UUID clientId,
+                                 String fullName,
+                                 String email,
+                                 String preferredLanguage);
+
+    /**
+     * Utilisé par la logique métier : retrouve un client par téléphone,
+     * ou le crée s'il n'existe pas encore.
+     */
+    Client findOrCreateByPhone(String fullName,
+                               String phone,
+                               String email,
+                               String preferredLanguage);
 }

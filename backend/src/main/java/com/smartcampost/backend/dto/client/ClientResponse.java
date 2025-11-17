@@ -1,22 +1,24 @@
-package com.smartcampost.backend.dto.agent;
+package com.smartcampost.backend.dto.client;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * DTO renvoyé au frontend quand on expose un client.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AgentResponse {
+public class ClientResponse {
+
     private UUID id;
     private String fullName;
-    private String staffNumber;
     private String phone;
-    private String status;     // String pour exposer l'enum en texte
-    private Instant createdAt;
+    private String email;
+    private String preferredLanguage;
 }

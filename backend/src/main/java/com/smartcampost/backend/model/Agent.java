@@ -19,13 +19,8 @@ public class Agent {
     @Column(name = "agent_id", columnDefinition = "CHAR(36)")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id")
-    private Agency agency;   // nullable
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "staff_id", nullable = false, unique = true)
-    private Staff staff;
+    @Column(name = "full_name", nullable = false, length = 150)
+    private String fullName;
 
     @Column(name = "staff_number", nullable = false, length = 50, unique = true)
     private String staffNumber;
@@ -40,5 +35,10 @@ public class Agent {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 }

@@ -10,12 +10,11 @@ import java.util.UUID;
 @Builder
 public class ScanEventResponse {
 
-    private UUID scanId;
+    private UUID id;
     private UUID parcelId;
     private UUID agencyId;
     private UUID agentId;
-
     private String eventType;
-    private String locationNote;
     private Instant timestamp;
+    private String locationNote;
 }

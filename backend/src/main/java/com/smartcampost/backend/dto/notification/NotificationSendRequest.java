@@ -17,7 +17,7 @@ public class NotificationSendRequest {
     private UUID clientId;
 
     @NotNull
-    private NotificationChannel channel;  // SMS, PUSH
+    private NotificationChannel channel;
 
     @NotBlank
     private String message;
