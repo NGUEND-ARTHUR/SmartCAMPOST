@@ -30,6 +30,20 @@ public class Client {
     @Column(name = "preferred_language", length = 10)
     private String preferredLanguage;
 
+    // 🔐 mot de passe hashé pour login Client
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 }

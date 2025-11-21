@@ -40,4 +40,8 @@ public class Staff {
 
     @Column(name = "terminated_at")
     private LocalDate terminatedAt;
+
+    // 🔐 mot de passe hashé pour login Staff
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
 }

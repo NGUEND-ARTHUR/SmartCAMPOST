@@ -32,6 +32,20 @@ public class Courier {
     @Column(name = "status", nullable = false, length = 20)
     private CourierStatus status;
 
+    // 🔐 mot de passe hashé pour login Courier
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 }
