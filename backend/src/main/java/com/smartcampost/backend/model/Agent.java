@@ -32,6 +32,14 @@ public class Agent {
     @Column(name = "status", nullable = false, length = 20)
     private StaffStatus status;
 
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
+
+    // 🔐 mot de passe hashé pour login Agent
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -39,6 +47,9 @@ public class Agent {
     void onCreate() {
         if (createdAt == null) {
             createdAt = Instant.now();
+        }
+        if (id == null) {
+            id = UUID.randomUUID();
         }
     }
 }
