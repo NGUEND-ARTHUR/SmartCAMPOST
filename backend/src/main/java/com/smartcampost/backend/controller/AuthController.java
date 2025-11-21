@@ -2,7 +2,6 @@ package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.auth.*;
 import com.smartcampost.backend.service.AuthService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,33 +14,26 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterClientRequest request) {
-        AuthResponse response = authService.registerClient(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterClientRequest request) {
+        return ResponseEntity.ok(authService.registerClient(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/send-otp")
     public ResponseEntity<Void> sendOtp(@RequestParam String phone) {
-        authService.sendPhoneOtp(phone);
+        authService.sendOtp(phone);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<Boolean> verifyOtp(@RequestParam String phone,
-                                             @RequestParam String otp) {
-        boolean ok = authService.verifyPhoneOtp(phone, otp);
-        return ResponseEntity.ok(ok);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/change-password")
-    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        authService.changePassword(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<VerifyOtpResponse> verifyOtp(
+            @RequestParam String phone,
+            @RequestParam String otp) {
+        boolean verified = authService.verifyOtp(phone, otp);
+        return ResponseEntity.ok(new VerifyOtpResponse(verified));
     }
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ChangePasswordRequest {
 
-    private UUID userId;        // or you can ignore this and use the authenticated user
-    private String oldPassword;
-    private String newPassword;
+    private UUID userId;        // ID of the authenticated user
+    private String oldPassword; // Previous password for verification
+    private String newPassword; // New password to be set
 }

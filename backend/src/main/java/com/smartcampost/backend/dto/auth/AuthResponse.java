@@ -1,21 +1,19 @@
 package com.smartcampost.backend.dto.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.util.UUID;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AuthResponse {
 
     private UUID userId;
+    private UUID entityId;
     private String fullName;
     private String phone;
-    private String accessToken;   // JWT or any token
-    private String tokenType;     // e.g. "Bearer"
+    private String role;
+    private String accessToken;
+    private String tokenType;
 }
