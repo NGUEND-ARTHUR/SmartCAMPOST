@@ -17,30 +17,57 @@ import java.util.UUID;
 public class Payment {
 
     @Id
-    @Column(name = "payment_id", columnDefinition = "CHAR(36)")
+    @Column(name = "payment_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parcel_id", nullable = false)
+    @JoinColumn(
+            name = "parcel_id",
+            nullable = false,
+            referencedColumnName = "parcel_id",
+            foreignKey = @ForeignKey(name = "fk_payment_parcel")
+    )
     private Parcel parcel;
 
     @Column(name = "amount", nullable = false)
-    private Double amount;
+    private Double amount; // FLOAT en DB
 
     @Column(name = "currency", nullable = false, length = 10)
-    private String currency;
+    @Builder.Default
+    private String currency = "XAF";
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "method", nullable = false, length = 20)
-    private PaymentMethod method;
+    @Column(name = "method", nullable = false)
+    private PaymentMethod method; // CASH, MOBILE_MONEY, CARD
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 10)
-    private PaymentStatus status;
+    @Column(name = "status", nullable = false)
+    private PaymentStatus status; // INIT, PAID, FAILED
 
-    @Column(name = "timestamp", nullable = false)
+    @Column(
+            name = "timestamp",
+            nullable = false,
+            updatable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
     private Instant timestamp;
 
     @Column(name = "external_ref", length = 100)
     private String externalRef;
+
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+        if (timestamp == null) {
+            timestamp = Instant.now();
+        }
+        if (currency == null) {
+            currency = "XAF";
+        }
+        if (status == null) {
+            status = PaymentStatus.INIT; // match DEFAULT 'INIT'
+        }
+    }
 }

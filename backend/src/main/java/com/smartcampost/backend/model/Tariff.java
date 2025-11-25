@@ -17,23 +17,29 @@ import java.util.UUID;
 public class Tariff {
 
     @Id
-    @Column(nullable = false, updatable = false)
+    @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ServiceType serviceType;
+    @Column(name = "service_type", nullable = false)
+    private ServiceType serviceType; // STANDARD, EXPRESS
 
-    @Column(nullable = false)
+    @Column(name = "origin_zone", nullable = false, length = 255)
     private String originZone;
 
-    @Column(nullable = false)
+    @Column(name = "destination_zone", nullable = false, length = 255)
     private String destinationZone;
 
-    @Column(nullable = false)
+    @Column(name = "weight_bracket", nullable = false, length = 255)
     private String weightBracket;
 
-    // 🔹 THIS is what was missing:
-    @Column(nullable = false)
+    @Column(name = "price", nullable = false, precision = 38, scale = 2)
     private BigDecimal price;
+
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID(); // corresponds to BINARY(16)
+        }
+    }
 }

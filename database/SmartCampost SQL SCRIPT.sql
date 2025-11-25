@@ -1,5 +1,5 @@
 -- =========================================================
--- SmartCAMPOST • MySQL 8.0 schema (aligned with class diagram)
+-- SmartCAMPOST • MySQL schema (UUID = BINARY(16), TIMESTAMP)
 -- =========================================================
 
 DROP DATABASE IF EXISTS smartcampost;
@@ -26,14 +26,30 @@ USE smartcampost;
 
 
 -- =========================================================
+-- 0) USER_ACCOUNT  (for authentication)
+-- =========================================================
+CREATE TABLE user_account (
+  id             BINARY(16)    NOT NULL,       -- UUID
+  phone          VARCHAR(20)   NOT NULL,
+  password_hash  VARCHAR(255)  NOT NULL,
+  role           ENUM('CLIENT','AGENT','STAFF','COURIER') NOT NULL,
+  entity_id      BINARY(16)    NOT NULL,       -- points to client/agent/staff/courier
+  created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_user_account PRIMARY KEY (id),
+  CONSTRAINT uq_user_phone UNIQUE (phone)
+) ENGINE=InnoDB;
+
+
+-- =========================================================
 -- 1) CLIENT
 -- =========================================================
 CREATE TABLE client (
-  client_id           CHAR(36)      NOT NULL,
+  client_id           BINARY(16)    NOT NULL,             -- UUID
   full_name           VARCHAR(150)  NOT NULL,
   phone               VARCHAR(30)   NOT NULL,
   email               VARCHAR(100)  NULL,
-  preferred_language  VARCHAR(10)   NULL, -- 'FR','EN',...
+  preferred_language  VARCHAR(10)   NULL,                 -- 'FR','EN',...
+  password_hash       VARCHAR(255)  NOT NULL,             -- for client login
   created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_client PRIMARY KEY (client_id),
   CONSTRAINT uq_client_phone UNIQUE (phone),
@@ -43,12 +59,11 @@ CREATE TABLE client (
 
 -- =========================================================
 -- 2) ADDRESS
--- (Client 0..* Address, sender/receiver in Parcel)
 -- =========================================================
 CREATE TABLE address (
-  address_id   CHAR(36)      NOT NULL,
-  client_id    CHAR(36)      NULL,
-  label        VARCHAR(255)  NOT NULL,  -- e.g. "Home", "Office"
+  address_id   BINARY(16)    NOT NULL,        -- UUID
+  client_id    BINARY(16)    NULL,
+  label        VARCHAR(255)  NOT NULL,        -- e.g. "Home", "Office"
   street       VARCHAR(255)  NULL,
   city         VARCHAR(100)  NOT NULL,
   region       VARCHAR(100)  NOT NULL,
@@ -68,7 +83,7 @@ CREATE INDEX ix_address_client ON address(client_id);
 -- 3) AGENCY
 -- =========================================================
 CREATE TABLE agency (
-  agency_id     CHAR(36)      NOT NULL,
+  agency_id     BINARY(16)    NOT NULL,       -- UUID
   agency_name   VARCHAR(150)  NOT NULL,
   agency_code   VARCHAR(50)   NOT NULL,
   city          VARCHAR(100)  NOT NULL,
@@ -80,14 +95,15 @@ CREATE TABLE agency (
 
 
 -- =========================================================
--- 4) STAFF   (generic CAMPOST staff – used by Agent)
+-- 4) STAFF
 -- =========================================================
 CREATE TABLE staff (
-  staff_id      CHAR(36)      NOT NULL,
+  staff_id      BINARY(16)    NOT NULL,        -- UUID
   full_name     VARCHAR(150)  NOT NULL,
-  role          VARCHAR(80)   NOT NULL,  -- e.g. 'AGENT','MANAGER','CASHIER'
+  role          VARCHAR(80)   NOT NULL,        -- e.g. 'AGENT','MANAGER','CASHIER'
   email         VARCHAR(100)  NULL,
   phone         VARCHAR(30)   NULL,
+  password_hash VARCHAR(255)  NOT NULL,        -- for staff login if needed
   status        ENUM('ACTIVE','INACTIVE','SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
   hired_at      DATE          NULL,
   terminated_at DATE          NULL,
@@ -98,14 +114,16 @@ CREATE TABLE staff (
 
 
 -- =========================================================
--- 5) AGENT  (field / counter agent, linked to Agency + Staff)
+-- 5) AGENT
 -- =========================================================
 CREATE TABLE agent (
-  agent_id      CHAR(36)      NOT NULL,
-  agency_id     CHAR(36)      NULL,
-  staff_id      CHAR(36)      NOT NULL,
+  agent_id      BINARY(16)    NOT NULL,        -- UUID
+  agency_id     BINARY(16)    NULL,
+  staff_id      BINARY(16)    NOT NULL,
   staff_number  VARCHAR(50)   NOT NULL,
+  full_name     VARCHAR(150)  NOT NULL,
   phone         VARCHAR(30)   NOT NULL,
+  password_hash VARCHAR(255)  NOT NULL,
   status        ENUM('ACTIVE','INACTIVE','SUSPENDED') NOT NULL,
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_agent PRIMARY KEY (agent_id),
@@ -124,15 +142,16 @@ CREATE INDEX ix_agent_agency ON agent(agency_id);
 
 
 -- =========================================================
--- 6) COURIER   (class Courier in diagram)
+-- 6) COURIER
 -- =========================================================
 CREATE TABLE courier (
-  courier_id   CHAR(36)      NOT NULL,
-  full_name    VARCHAR(150)  NOT NULL,
-  phone        VARCHAR(30)   NOT NULL,
-  vehicle_id   VARCHAR(50)   NULL,
-  status       ENUM('AVAILABLE','ON_ROUTE','INACTIVE') NOT NULL DEFAULT 'AVAILABLE',
-  created_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  courier_id    BINARY(16)    NOT NULL,   -- UUID
+  full_name     VARCHAR(150)  NOT NULL,
+  phone         VARCHAR(30)   NOT NULL,
+  vehicle_id    VARCHAR(50)   NULL,
+  password_hash VARCHAR(255)  NOT NULL,
+  status        ENUM('AVAILABLE','INACTIVE','ON_ROUTE') NOT NULL,
+  created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_courier PRIMARY KEY (courier_id),
   CONSTRAINT uq_courier_phone UNIQUE (phone)
 ) ENGINE=InnoDB;
@@ -142,24 +161,24 @@ CREATE TABLE courier (
 -- 7) PARCEL
 -- =========================================================
 CREATE TABLE parcel (
-  parcel_id            CHAR(36)      NOT NULL,
-  tracking_ref         VARCHAR(80)   NOT NULL,
-  client_id            CHAR(36)      NOT NULL,
-  sender_address_id    CHAR(36)      NOT NULL,
-  recipient_address_id CHAR(36)      NOT NULL,
-  origin_agency_id     CHAR(36)      NULL,
-  destination_agency_id CHAR(36)     NULL,
-  weight               DECIMAL(10,3) NOT NULL,
-  dimensions           VARCHAR(50)   NULL,
-  declared_value       DECIMAL(12,2) NULL,
-  is_fragile           BOOLEAN       NOT NULL DEFAULT FALSE,
-  service_type         ENUM('STANDARD','EXPRESS') NOT NULL,
-  delivery_option      ENUM('AGENCY','HOME') NOT NULL,
-  status               ENUM('CREATED','ACCEPTED','IN_TRANSIT','ARRIVED_HUB',
-                            'OUT_FOR_DELIVERY','DELIVERED','RETURNED','CANCELLED')
-                     NOT NULL DEFAULT 'CREATED',
-  created_at           TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  expected_delivery_at TIMESTAMP     NULL,
+  parcel_id             BINARY(16)    NOT NULL,         -- UUID
+  tracking_ref          VARCHAR(80)   NOT NULL,
+  client_id             BINARY(16)    NOT NULL,
+  sender_address_id     BINARY(16)    NOT NULL,
+  recipient_address_id  BINARY(16)    NOT NULL,
+  origin_agency_id      BINARY(16)    NULL,
+  destination_agency_id BINARY(16)    NULL,
+  weight                FLOAT         NOT NULL,
+  dimensions            VARCHAR(50)   NULL,
+  declared_value        FLOAT         NULL,
+  is_fragile            BOOLEAN       NOT NULL DEFAULT FALSE,
+  service_type          ENUM('STANDARD','EXPRESS') NOT NULL,
+  delivery_option       ENUM('AGENCY','HOME') NOT NULL,
+  status                ENUM('CREATED','ACCEPTED','IN_TRANSIT','ARRIVED_HUB',
+                             'OUT_FOR_DELIVERY','DELIVERED','RETURNED','CANCELLED')
+                       NOT NULL DEFAULT 'CREATED',
+  created_at            TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expected_delivery_at  TIMESTAMP     NULL,
   CONSTRAINT pk_parcel PRIMARY KEY (parcel_id),
   CONSTRAINT uq_parcel_tracking UNIQUE (tracking_ref),
   CONSTRAINT fk_parcel_client
@@ -185,16 +204,16 @@ CREATE INDEX ix_parcel_tracking ON parcel(tracking_ref);
 
 
 -- =========================================================
--- 8) PICKUP_REQUEST (0..1 per Parcel)
+-- 8) PICKUP_REQUEST
 -- =========================================================
 CREATE TABLE pickup_request (
-  pickup_id      CHAR(36)     NOT NULL,
-  parcel_id      CHAR(36)     NOT NULL,
-  courier_id     CHAR(36)     NULL,
+  pickup_id      BINARY(16)   NOT NULL,       -- UUID
+  parcel_id      BINARY(16)   NOT NULL,
+  courier_id     BINARY(16)   NULL,
   requested_date DATE         NOT NULL,
-  time_window    VARCHAR(30)  NOT NULL, -- '08:00-12:00'
+  time_window    VARCHAR(30)  NOT NULL,       -- '08:00-12:00'
   state          ENUM('REQUESTED','ASSIGNED','COMPLETED','CANCELLED') NOT NULL,
-  comment        TEXT         NULL,
+  comment        VARCHAR(255) NULL,
   CONSTRAINT pk_pickup PRIMARY KEY (pickup_id),
   CONSTRAINT uq_pickup_parcel UNIQUE (parcel_id),
   CONSTRAINT fk_pickup_parcel
@@ -212,10 +231,10 @@ CREATE INDEX ix_pickup_state ON pickup_request(state);
 -- 9) SCAN_EVENT
 -- =========================================================
 CREATE TABLE scan_event (
-  scan_id       CHAR(36)     NOT NULL,
-  parcel_id     CHAR(36)     NOT NULL,
-  agency_id     CHAR(36)     NULL,
-  agent_id      CHAR(36)     NULL,
+  scan_id       BINARY(16)   NOT NULL,      -- UUID
+  parcel_id     BINARY(16)   NOT NULL,
+  agency_id     BINARY(16)   NULL,
+  agent_id      BINARY(16)   NULL,
   event_type    ENUM(
                   'CREATED',
                   'AT_ORIGIN_AGENCY',
@@ -248,15 +267,15 @@ CREATE INDEX ix_scan_type_time   ON scan_event(event_type, event_time);
 
 
 -- =========================================================
--- 10) DELIVERY_PROOF (0..1 per Parcel)
+-- 10) DELIVERY_PROOF
 -- =========================================================
 CREATE TABLE delivery_proof (
-  pod_id      CHAR(36)     NOT NULL,
-  parcel_id   CHAR(36)     NOT NULL,
-  courier_id  CHAR(36)     NULL,
+  pod_id      BINARY(16)   NOT NULL,      -- UUID
+  parcel_id   BINARY(16)   NOT NULL,
+  courier_id  BINARY(16)   NULL,
   proof_type  ENUM('SIGNATURE','PHOTO','OTP') NOT NULL,
   timestamp   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  details     TEXT         NULL, -- signature hash, photo URL, masked OTP, etc.
+  details     VARCHAR(255) NULL,
   CONSTRAINT pk_pod PRIMARY KEY (pod_id),
   CONSTRAINT uq_pod_parcel UNIQUE (parcel_id),
   CONSTRAINT fk_pod_parcel
@@ -269,17 +288,17 @@ CREATE TABLE delivery_proof (
 
 
 -- =========================================================
--- 11) PAYMENT (N per Parcel)
+-- 11) PAYMENT
 -- =========================================================
 CREATE TABLE payment (
-  payment_id   CHAR(36)      NOT NULL,
-  parcel_id    CHAR(36)      NOT NULL,
-  amount       DECIMAL(12,2) NOT NULL,
-  currency     VARCHAR(10)   NOT NULL DEFAULT 'XAF',
+  payment_id   BINARY(16)   NOT NULL,      -- UUID
+  parcel_id    BINARY(16)   NOT NULL,
+  amount       FLOAT        NOT NULL,
+  currency     VARCHAR(10)  NOT NULL DEFAULT 'XAF',
   method       ENUM('CASH','MOBILE_MONEY','CARD') NOT NULL,
   status       ENUM('INIT','PAID','FAILED') NOT NULL DEFAULT 'INIT',
-  timestamp    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  external_ref VARCHAR(100)  NULL, -- MoMo ref, etc.
+  timestamp    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  external_ref VARCHAR(100) NULL,
   CONSTRAINT pk_payment PRIMARY KEY (payment_id),
   CONSTRAINT fk_payment_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
@@ -291,15 +310,15 @@ CREATE INDEX ix_payment_status ON payment(status);
 
 
 -- =========================================================
--- 12) INVOICE (0..1 per Payment)
+-- 12) INVOICE
 -- =========================================================
 CREATE TABLE invoice (
-  invoice_id      CHAR(36)      NOT NULL,
-  payment_id      CHAR(36)      NOT NULL,
-  invoice_number  VARCHAR(50)   NOT NULL,
-  total_amount    DECIMAL(12,2) NOT NULL,
-  issued_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  pdf_link        TEXT          NULL,
+  invoice_id      BINARY(16)   NOT NULL,       -- UUID
+  payment_id      BINARY(16)   NOT NULL,
+  invoice_number  VARCHAR(50)  NOT NULL,
+  total_amount    FLOAT        NOT NULL,
+  issued_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  pdf_link        VARCHAR(255) NULL,
   CONSTRAINT pk_invoice PRIMARY KEY (invoice_id),
   CONSTRAINT uq_invoice_number UNIQUE (invoice_number),
   CONSTRAINT uq_invoice_payment UNIQUE (payment_id),
@@ -310,12 +329,12 @@ CREATE TABLE invoice (
 
 
 -- =========================================================
--- 13) NOTIFICATION (N per Parcel / Client)
+-- 13) NOTIFICATION
 -- =========================================================
 CREATE TABLE notification (
-  notif_id    CHAR(36)     NOT NULL,
-  parcel_id   CHAR(36)     NOT NULL,
-  client_id   CHAR(36)     NOT NULL,
+  notif_id    BINARY(16)   NOT NULL,        -- UUID
+  parcel_id   BINARY(16)   NOT NULL,
+  client_id   BINARY(16)   NOT NULL,
   channel     ENUM('SMS','PUSH') NOT NULL,
   message     TEXT         NOT NULL,
   timestamp   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -335,16 +354,16 @@ CREATE INDEX ix_notif_client ON notification(client_id);
 
 
 -- =========================================================
--- 14) TARIFF (reference pricing table)
+-- 14) TARIFF
 -- =========================================================
 CREATE TABLE tariff (
-  tariff_id        CHAR(36)      NOT NULL,
+  id               BINARY(16)    NOT NULL,   -- UUID
   service_type     ENUM('STANDARD','EXPRESS') NOT NULL,
-  origin_zone      VARCHAR(50)   NOT NULL,
-  destination_zone VARCHAR(50)   NOT NULL,
-  weight_bracket   VARCHAR(30)   NOT NULL, -- e.g. '0-1kg','1-5kg'
-  base_price       DECIMAL(10,2) NOT NULL,
-  CONSTRAINT pk_tariff PRIMARY KEY (tariff_id)
+  origin_zone      VARCHAR(255)   NOT NULL,
+  destination_zone VARCHAR(255)   NOT NULL,
+  weight_bracket   VARCHAR(255)   NOT NULL,
+  price            DECIMAL(38,2)  NOT NULL,
+  CONSTRAINT pk_tariff PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
 CREATE INDEX ix_tariff_lookup
@@ -352,21 +371,33 @@ CREATE INDEX ix_tariff_lookup
 
 
 -- =========================================================
--- 15) PRICING_DETAIL (audit of tariff used for a parcel)
+-- 15) PRICING_DETAIL
 -- =========================================================
 CREATE TABLE pricing_detail (
-  pricing_detail_id CHAR(36)      NOT NULL,
-  parcel_id         CHAR(36)      NOT NULL,
-  tariff_id         CHAR(36)      NOT NULL,
-  applied_price     DECIMAL(12,2) NOT NULL,
-  applied_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  pricing_detail_id BINARY(16)   NOT NULL,   -- UUID
+  parcel_id         BINARY(16)   NOT NULL,
+  tariff_id         BINARY(16)   NOT NULL,
+  applied_price     FLOAT        NOT NULL,
+  applied_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_pricing_detail PRIMARY KEY (pricing_detail_id),
   CONSTRAINT fk_pd_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
     ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT fk_pd_tariff
-    FOREIGN KEY (tariff_id) REFERENCES tariff(tariff_id)
+    FOREIGN KEY (tariff_id) REFERENCES tariff(id)
     ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE otp_code (
+  otp_id      BINARY(16)   NOT NULL,
+  phone       VARCHAR(20)  NOT NULL,
+  code        VARCHAR(10)  NOT NULL,
+  purpose     ENUM('REGISTER','LOGIN','RESET_PASSWORD') NOT NULL,
+  expires_at  TIMESTAMP    NOT NULL,
+  used        BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_otp_code PRIMARY KEY (otp_id),
+  INDEX ix_otp_phone_purpose (phone, purpose, created_at)
 ) ENGINE=InnoDB;
 
 CREATE INDEX ix_pd_parcel ON pricing_detail(parcel_id, applied_at);

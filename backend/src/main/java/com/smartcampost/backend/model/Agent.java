@@ -16,40 +16,49 @@ import java.util.UUID;
 public class Agent {
 
     @Id
-    @Column(name = "agent_id", columnDefinition = "CHAR(36)")
+    @Column(name = "agent_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(name = "full_name", nullable = false, length = 150)
-    private String fullName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "agency_id",
+            referencedColumnName = "agency_id",
+            foreignKey = @ForeignKey(name = "fk_agent_agency")
+    )
+    private Agency agency; // nullable
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "staff_id",
+            referencedColumnName = "staff_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_agent_staff")
+    )
+    private Staff staff; // NOT NULL + UNIQUE
 
     @Column(name = "staff_number", nullable = false, length = 50, unique = true)
     private String staffNumber;
+
+    @Column(name = "full_name", nullable = false, length = 150)
+    private String fullName;
 
     @Column(name = "phone", nullable = false, length = 30, unique = true)
     private String phone;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private StaffStatus status;
+    @Column(name = "status", nullable = false)
+    private StaffStatus status; // ACTIVE, INACTIVE, SUSPENDED
 
-    @ManyToOne
-    @JoinColumn(name = "agency_id")
-    private Agency agency;
-
-    // 🔐 mot de passe hashé pour login Agent
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant createdAt;
 
     @PrePersist
     void onCreate() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
+        if (id == null) id = UUID.randomUUID();
+        // created_at handled by DB, do not override if null
     }
 }

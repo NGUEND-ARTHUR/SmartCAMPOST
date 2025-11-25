@@ -15,7 +15,7 @@ import java.util.UUID;
 public class Client {
 
     @Id
-    @Column(name = "client_id", columnDefinition = "CHAR(36)")
+    @Column(name = "client_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Column(name = "full_name", nullable = false, length = 150)
@@ -25,7 +25,7 @@ public class Client {
     private String phone;
 
     @Column(name = "email", length = 100, unique = true)
-    private String email;
+    private String email; // nullable en DB → OK sans nullable=false
 
     @Column(name = "preferred_language", length = 10)
     private String preferredLanguage;
@@ -39,11 +39,11 @@ public class Client {
 
     @PrePersist
     void onCreate() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
         if (id == null) {
-            id = UUID.randomUUID();
+            id = UUID.randomUUID();      // correspond à BINARY(16)
+        }
+        if (createdAt == null) {
+            createdAt = Instant.now();   // NOT NULL, cohérent avec le DEFAULT SQL
         }
     }
 }

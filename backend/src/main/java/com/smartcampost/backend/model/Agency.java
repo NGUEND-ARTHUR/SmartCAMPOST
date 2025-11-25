@@ -14,7 +14,7 @@ import java.util.UUID;
 public class Agency {
 
     @Id
-    @Column(name = "agency_id", columnDefinition = "CHAR(36)")
+    @Column(name = "agency_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Column(name = "agency_name", nullable = false, length = 150)
@@ -30,5 +30,16 @@ public class Agency {
     private String region;
 
     @Column(name = "country", nullable = false, length = 100)
-    private String country;
+    @Builder.Default
+    private String country = "Cameroon";
+
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+        if (country == null) {
+            country = "Cameroon"; // correspond exactement au DEFAULT SQL
+        }
+    }
 }

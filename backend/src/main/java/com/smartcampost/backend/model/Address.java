@@ -15,12 +15,16 @@ import java.util.UUID;
 public class Address {
 
     @Id
-    @Column(name = "address_id", columnDefinition = "CHAR(36)")
-    private UUID id;
+    @Column(name = "address_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;  // mappe sur BINARY(16)
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
-    private Client client;   // nullable
+    @JoinColumn(
+            name = "client_id",
+            referencedColumnName = "client_id",
+            foreignKey = @ForeignKey(name = "fk_address_client")
+    )
+    private Client client;   // NULL autorisé en DB → pas besoin de nullable=false
 
     @Column(name = "label", nullable = false, length = 255)
     private String label;
@@ -37,9 +41,16 @@ public class Address {
     @Column(name = "country", nullable = false, length = 100)
     private String country;
 
-    @Column(name = "latitude")
+    @Column(name = "latitude", precision = 9, scale = 6)
     private BigDecimal latitude;
 
-    @Column(name = "longitude")
+    @Column(name = "longitude", precision = 9, scale = 6)
     private BigDecimal longitude;
+
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 }

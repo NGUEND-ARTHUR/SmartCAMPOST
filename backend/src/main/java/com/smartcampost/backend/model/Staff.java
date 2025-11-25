@@ -16,7 +16,7 @@ import java.util.UUID;
 public class Staff {
 
     @Id
-    @Column(name = "staff_id", columnDefinition = "CHAR(36)")
+    @Column(name = "staff_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Column(name = "full_name", nullable = false, length = 150)
@@ -26,14 +26,17 @@ public class Staff {
     private String role;
 
     @Column(name = "email", length = 100, unique = true)
-    private String email;
+    private String email; // nullable en DB
 
     @Column(name = "phone", length = 30, unique = true)
-    private String phone;
+    private String phone; // nullable en DB
+
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private StaffStatus status;
+    @Column(name = "status", nullable = false)
+    private StaffStatus status; // ACTIVE, INACTIVE, SUSPENDED
 
     @Column(name = "hired_at")
     private LocalDate hiredAt;
@@ -41,7 +44,13 @@ public class Staff {
     @Column(name = "terminated_at")
     private LocalDate terminatedAt;
 
-    // 🔐 mot de passe hashé pour login Staff
-    @Column(name = "password_hash", nullable = false, length = 255)
-    private String passwordHash;
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+        if (status == null) {
+            status = StaffStatus.ACTIVE; // correspond au DEFAULT SQL
+        }
+    }
 }

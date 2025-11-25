@@ -16,16 +16,26 @@ import java.util.UUID;
 public class PickupRequest {
 
     @Id
-    @Column(name = "pickup_id", columnDefinition = "CHAR(36)")
+    @Column(name = "pickup_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parcel_id", nullable = false, unique = true)
+    @JoinColumn(
+            name = "parcel_id",
+            nullable = false,
+            unique = true,
+            referencedColumnName = "parcel_id",
+            foreignKey = @ForeignKey(name = "fk_pickup_parcel")
+    )
     private Parcel parcel;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "courier_id")
-    private Courier courier;
+    @JoinColumn(
+            name = "courier_id",
+            referencedColumnName = "courier_id",
+            foreignKey = @ForeignKey(name = "fk_pickup_courier")
+    )
+    private Courier courier; // nullable
 
     @Column(name = "requested_date", nullable = false)
     private LocalDate requestedDate;
@@ -34,9 +44,19 @@ public class PickupRequest {
     private String timeWindow;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "state", nullable = false, length = 20)
-    private PickupRequestState state;
+    @Column(name = "state", nullable = false)
+    private PickupRequestState state; // REQUESTED, ASSIGNED, COMPLETED, CANCELLED
 
-    @Column(name = "comment")
+    @Column(name = "comment", length = 255)
     private String comment;
+
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+        if (state == null) {
+            state = PickupRequestState.REQUESTED; // match default business logic
+        }
+    }
 }
