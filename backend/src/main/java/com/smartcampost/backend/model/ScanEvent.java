@@ -16,28 +16,57 @@ import java.util.UUID;
 public class ScanEvent {
 
     @Id
-    @Column(name = "scan_id", columnDefinition = "CHAR(36)")
+    @Column(name = "scan_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parcel_id", nullable = false)
+    @JoinColumn(
+            name = "parcel_id",
+            nullable = false,
+            referencedColumnName = "parcel_id",
+            foreignKey = @ForeignKey(name = "fk_scan_parcel")
+    )
     private Parcel parcel;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id")
-    private Agency agency;
+    @JoinColumn(
+            name = "agency_id",
+            referencedColumnName = "agency_id",
+            foreignKey = @ForeignKey(name = "fk_scan_agency")
+    )
+    private Agency agency; // nullable
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agent_id")
-    private Agent agent;
+    @JoinColumn(
+            name = "agent_id",
+            referencedColumnName = "agent_id",
+            foreignKey = @ForeignKey(name = "fk_scan_agent")
+    )
+    private Agent agent; // nullable
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "event_type", nullable = false, length = 40)
+    @Column(name = "event_type", nullable = false)
     private ScanEventType eventType;
 
-    @Column(name = "timestamp", nullable = false)
+    // 👉 Champ Java = timestamp, colonne SQL = event_time
+    @Column(
+            name = "event_time",
+            nullable = false,
+            updatable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
     private Instant timestamp;
 
     @Column(name = "location_note", length = 255)
     private String locationNote;
+
+    @PrePersist
+    void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+        if (timestamp == null) {
+            timestamp = Instant.now();
+        }
+    }
 }

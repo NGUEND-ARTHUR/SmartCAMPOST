@@ -16,7 +16,7 @@ import java.util.UUID;
 public class Courier {
 
     @Id
-    @Column(name = "courier_id", columnDefinition = "CHAR(36)")
+    @Column(name = "courier_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Column(name = "full_name", nullable = false, length = 150)
@@ -29,23 +29,27 @@ public class Courier {
     private String vehicleId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private CourierStatus status;
+    @Column(name = "status", nullable = false)
+    private CourierStatus status; // AVAILABLE, INACTIVE, ON_ROUTE
 
-    // 🔐 mot de passe hashé pour login Courier
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
     private Instant createdAt;
 
     @PrePersist
     void onCreate() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
         if (id == null) {
-            id = UUID.randomUUID();
+            id = UUID.randomUUID(); // Converti automatiquement en BINARY(16)
+        }
+        if (createdAt == null) {
+            createdAt = Instant.now(); // NOT NULL → cohérent
         }
     }
 }

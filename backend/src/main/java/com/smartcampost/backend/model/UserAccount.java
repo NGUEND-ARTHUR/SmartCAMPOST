@@ -16,28 +16,37 @@ import java.util.UUID;
 public class UserAccount {
 
     @Id
-    @Column(columnDefinition = "CHAR(36)")
+    @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(name = "phone", nullable = false, unique = true, length = 20)
     private String phone;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
+    @Column(name = "role", nullable = false)
+    private UserRole role; // CLIENT, AGENT, STAFF, COURIER
 
-    @Column(nullable = false, columnDefinition = "CHAR(36)")
-    private UUID entityId; // Reference to Client, Agent, Courier, or Staff
+    @Column(name = "entity_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID entityId;
 
-    @Column(nullable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    )
     private Instant createdAt;
 
     @PrePersist
     void onCreate() {
-        if (id == null) id = UUID.randomUUID();
-        if (createdAt == null) createdAt = Instant.now();
+        if (id == null) {
+            id = UUID.randomUUID();  // convert automatically to BINARY(16)
+        }
+        if (createdAt == null) {
+            createdAt = Instant.now(); // ensures NOT NULL
+        }
     }
 }
