@@ -19,25 +19,14 @@ public class GlobalExceptionHandler {
             AuthException ex,
             HttpServletRequest request
     ) {
-        HttpStatus status;
+        HttpStatus status = switch (ex.getCode()) {
+            case AUTH_INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
+            case AUTH_PHONE_EXISTS        -> HttpStatus.CONFLICT;
+            case AUTH_USER_NOT_FOUND      -> HttpStatus.NOT_FOUND;
+            default -> HttpStatus.BAD_REQUEST;
+        };
 
-        switch (ex.getCode()) {
-            case AUTH_INVALID_CREDENTIALS -> status = HttpStatus.UNAUTHORIZED;        // 401
-            case AUTH_PHONE_EXISTS         -> status = HttpStatus.CONFLICT;           // 409
-            case AUTH_USER_NOT_FOUND       -> status = HttpStatus.NOT_FOUND;          // 404
-            default                        -> status = HttpStatus.BAD_REQUEST;
-        }
-
-        ErrorResponse body = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .code(ex.getCode().name())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(status).body(body);
+        return buildErrorResponse(ex.getMessage(), ex.getCode(), request, status);
     }
 
     // ================== OTP EXCEPTIONS ==================
@@ -46,24 +35,13 @@ public class GlobalExceptionHandler {
             OtpException ex,
             HttpServletRequest request
     ) {
-        HttpStatus status;
+        HttpStatus status = switch (ex.getCode()) {
+            case OTP_TOO_MANY_REQUESTS -> HttpStatus.TOO_MANY_REQUESTS;  // 429
+            case OTP_INVALID, OTP_EXPIRED -> HttpStatus.BAD_REQUEST;
+            default -> HttpStatus.BAD_REQUEST;
+        };
 
-        switch (ex.getCode()) {
-            case OTP_COOLDOWN -> status = HttpStatus.TOO_MANY_REQUESTS;   // 429
-            case OTP_INVALID, OTP_EXPIRED -> status = HttpStatus.BAD_REQUEST;
-            default -> status = HttpStatus.BAD_REQUEST;
-        }
-
-        ErrorResponse body = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .code(ex.getCode().name())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(status).body(body);
+        return buildErrorResponse(ex.getMessage(), ex.getCode(), request, status);
     }
 
     // ================== RESOURCE NOT FOUND ==================
@@ -72,18 +50,12 @@ public class GlobalExceptionHandler {
             ResourceNotFoundException ex,
             HttpServletRequest request
     ) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
-
-        ErrorResponse body = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .code(ex.getCode().name())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(status).body(body);
+        return buildErrorResponse(
+                ex.getMessage(),
+                ex.getErrorCode(),
+                request,
+                HttpStatus.NOT_FOUND
+        );
     }
 
     // ================== CONFLICT ==================
@@ -92,18 +64,12 @@ public class GlobalExceptionHandler {
             ConflictException ex,
             HttpServletRequest request
     ) {
-        HttpStatus status = HttpStatus.CONFLICT;
-
-        ErrorResponse body = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .code(ex.getCode().name())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(status).body(body);
+        return buildErrorResponse(
+                ex.getMessage(),
+                ex.getErrorCode(),
+                request,
+                HttpStatus.CONFLICT
+        );
     }
 
     // ================== VALIDATION @Valid ==================
@@ -117,38 +83,26 @@ public class GlobalExceptionHandler {
                 .map(err -> err.getField() + " " + err.getDefaultMessage())
                 .orElse("Validation error");
 
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-
-        ErrorResponse body = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .code(ErrorCode.VALIDATION_ERROR.name())
-                .message(msg)
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(status).body(body);
+        return buildErrorResponse(
+                msg,
+                ErrorCode.VALIDATION_ERROR,
+                request,
+                HttpStatus.BAD_REQUEST
+        );
     }
 
-    // ================== RUNTIME (fallback business) ==================
+    // ================== RUNTIME (Biz errors) ==================
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(
             RuntimeException ex,
             HttpServletRequest request
     ) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-
-        ErrorResponse body = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .code(ErrorCode.BUSINESS_ERROR.name())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(status).body(body);
+        return buildErrorResponse(
+                ex.getMessage(),
+                ErrorCode.BUSINESS_ERROR,
+                request,
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     // ================== CATCH-ALL (500) ==================
@@ -157,18 +111,31 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request
     ) {
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ex.printStackTrace(); // log serveur
 
+        return buildErrorResponse(
+                "An unexpected error occurred",
+                ErrorCode.BUSINESS_ERROR,
+                request,
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
+    // ================== GENERIC BUILDER ==================
+    private ResponseEntity<ErrorResponse> buildErrorResponse(
+            String message,
+            ErrorCode code,
+            HttpServletRequest request,
+            HttpStatus status
+    ) {
         ErrorResponse body = ErrorResponse.builder()
                 .timestamp(Instant.now())
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .code(ErrorCode.INTERNAL_ERROR.name())
-                .message("An unexpected error occurred")
+                .code(code.name())
+                .message(message)
                 .path(request.getRequestURI())
                 .build();
-
-        ex.printStackTrace(); // log serveur
 
         return ResponseEntity.status(status).body(body);
     }

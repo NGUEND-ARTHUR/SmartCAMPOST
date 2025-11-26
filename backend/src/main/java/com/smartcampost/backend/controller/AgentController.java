@@ -1,14 +1,13 @@
 package com.smartcampost.backend.controller;
 
-import com.smartcampost.backend.dto.agent.AgentRequest;
-import com.smartcampost.backend.dto.agent.AgentResponse;
+import com.smartcampost.backend.dto.agent.*;
 import com.smartcampost.backend.service.AgentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,25 +17,44 @@ public class AgentController {
 
     private final AgentService agentService;
 
+    // US10 : créer un agent
     @PostMapping
-    public ResponseEntity<AgentResponse> create(@Valid @RequestBody AgentRequest request) {
+    public ResponseEntity<AgentResponse> createAgent(
+            @Valid @RequestBody CreateAgentRequest request
+    ) {
         return ResponseEntity.ok(agentService.createAgent(request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<AgentResponse>> list() {
-        return ResponseEntity.ok(agentService.listAgents());
-    }
-
+    // détail d’un agent
     @GetMapping("/{agentId}")
-    public ResponseEntity<AgentResponse> get(@PathVariable UUID agentId) {
-        return ResponseEntity.ok(agentService.getAgent(agentId));
+    public ResponseEntity<AgentResponse> getAgent(@PathVariable UUID agentId) {
+        return ResponseEntity.ok(agentService.getAgentById(agentId));
     }
 
-    @PostMapping("/{agentId}/status")
-    public ResponseEntity<Void> changeStatus(@PathVariable UUID agentId,
-                                             @RequestParam String status) {
-        agentService.changeStatus(agentId, status);
-        return ResponseEntity.ok().build();
+    // US11/US12 : liste des agents (admin)
+    @GetMapping
+    public ResponseEntity<Page<AgentResponse>> listAgents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(agentService.listAgents(page, size));
+    }
+
+    // US12 : activer / désactiver / suspendre
+    @PatchMapping("/{agentId}/status")
+    public ResponseEntity<AgentResponse> updateStatus(
+            @PathVariable UUID agentId,
+            @Valid @RequestBody UpdateAgentStatusRequest request
+    ) {
+        return ResponseEntity.ok(agentService.updateAgentStatus(agentId, request));
+    }
+
+    // US11 : assigner une agence
+    @PatchMapping("/{agentId}/agency")
+    public ResponseEntity<AgentResponse> assignAgency(
+            @PathVariable UUID agentId,
+            @Valid @RequestBody AssignAgentAgencyRequest request
+    ) {
+        return ResponseEntity.ok(agentService.assignAgency(agentId, request));
     }
 }

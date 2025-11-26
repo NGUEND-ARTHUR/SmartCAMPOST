@@ -3,12 +3,11 @@ package com.smartcampost.backend.repository;
 import com.smartcampost.backend.model.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public interface ClientRepository extends JpaRepository<Client, UUID> {
 
-    Optional<Client> findByPhone(String phone);
+    boolean existsByEmail(String email);
 
-    Optional<Client> findByEmail(String email);
+    boolean existsByPhone(String phone); // utile aussi
 }

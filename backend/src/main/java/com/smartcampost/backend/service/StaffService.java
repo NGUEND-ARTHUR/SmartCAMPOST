@@ -1,17 +1,19 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.Staff;
+import com.smartcampost.backend.dto.staff.*;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface StaffService {
 
-    Staff createStaff(Staff staff);
+    StaffResponse createStaff(CreateStaffRequest request);
 
-    Staff updateStaff(UUID staffId, Staff staff);
+    StaffResponse getStaffById(UUID staffId);
 
-    void changeStaffStatus(UUID staffId, String newStatus); // Active / Inactive / Suspended
+    Page<StaffResponse> listStaff(int page, int size);
 
-    List<Staff> listStaffByAgency(UUID agencyId);
+    StaffResponse updateStaffStatus(UUID staffId, UpdateStaffStatusRequest request);
+
+    StaffResponse updateStaffRole(UUID staffId, UpdateStaffRoleRequest request);
 }

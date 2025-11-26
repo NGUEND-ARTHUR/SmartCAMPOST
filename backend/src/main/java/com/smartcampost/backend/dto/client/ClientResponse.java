@@ -5,15 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.UUID;
 
-/**
- * DTO renvoyé au frontend quand on expose un client.
- */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ClientResponse {
 
     private UUID id;
@@ -21,4 +19,5 @@ public class ClientResponse {
     private String phone;
     private String email;
     private String preferredLanguage;
+    private Instant createdAt;
 }

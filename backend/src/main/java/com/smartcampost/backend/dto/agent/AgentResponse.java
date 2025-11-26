@@ -1,22 +1,22 @@
 package com.smartcampost.backend.dto.agent;
 
-import lombok.AllArgsConstructor;
+import com.smartcampost.backend.model.enums.StaffStatus;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class AgentResponse {
+
     private UUID id;
     private String fullName;
     private String staffNumber;
     private String phone;
-    private String status;     // String pour exposer l'enum en texte
+    private StaffStatus status;
+    private UUID agencyId;
+    private String agencyName;
     private Instant createdAt;
 }

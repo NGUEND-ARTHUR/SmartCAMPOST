@@ -1,16 +1,21 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.model.Tariff;
-import com.smartcampost.backend.model.enums.ServiceType;
+import com.smartcampost.backend.dto.tariff.CreateTariffRequest;
+import com.smartcampost.backend.dto.tariff.TariffResponse;
+import com.smartcampost.backend.dto.tariff.UpdateTariffRequest;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface TariffService {
 
-    Tariff createTariff(Tariff tariff);
+    TariffResponse createTariff(CreateTariffRequest request);
 
-    Tariff updateTariff(UUID tariffId, Tariff tariff);
+    TariffResponse updateTariff(UUID tariffId, UpdateTariffRequest request);
 
-    List<Tariff> findTariffs(ServiceType serviceType, String originZone, String destinationZone);
+    TariffResponse getTariffById(UUID tariffId);
+
+    Page<TariffResponse> listTariffs(int page, int size, String serviceType);
+
+    void deleteTariff(UUID tariffId);
 }

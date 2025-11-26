@@ -1,28 +1,26 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.dto.client.ClientRequest;
 import com.smartcampost.backend.dto.client.ClientResponse;
-import com.smartcampost.backend.model.Client;
+import com.smartcampost.backend.dto.client.UpdateClientProfileRequest;
+import com.smartcampost.backend.dto.client.UpdatePreferredLanguageRequest;
+import org.springframework.data.domain.Page;
 
 import java.util.UUID;
 
 public interface ClientService {
 
-    ClientResponse createClient(ClientRequest request);
+    // US6: voir mon profil
+    ClientResponse getMyProfile();
 
-    ClientResponse getClient(UUID clientId);
+    // Client par ID (admin/staff)
+    ClientResponse getClientById(UUID clientId);
 
-    ClientResponse updateProfile(UUID clientId,
-                                 String fullName,
-                                 String email,
-                                 String preferredLanguage);
+    // US7: liste paginée des clients
+    Page<ClientResponse> listClients(int page, int size);
 
-    /**
-     * Utilisé par la logique métier : retrouve un client par téléphone,
-     * ou le crée s'il n'existe pas encore.
-     */
-    Client findOrCreateByPhone(String fullName,
-                               String phone,
-                               String email,
-                               String preferredLanguage);
+    // US9: mettre à jour seulement la langue
+    ClientResponse updateMyPreferredLanguage(UpdatePreferredLanguageRequest request);
+
+    // 🔥 Nouveau : mettre à jour tout mon profil (nom, email, phone, langue)
+    ClientResponse updateMyProfile(UpdateClientProfileRequest request);
 }

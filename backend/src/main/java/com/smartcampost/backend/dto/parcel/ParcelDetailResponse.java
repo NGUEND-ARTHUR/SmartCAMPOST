@@ -1,35 +1,62 @@
 package com.smartcampost.backend.dto.parcel;
 
+import com.smartcampost.backend.dto.pricing.PricingDetailResponse;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.smartcampost.backend.model.enums.ServiceType;
+import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ParcelDetailResponse {
 
     private UUID id;
     private String trackingRef;
-    private UUID clientId;
-    private UUID senderAddressId;
-    private UUID recipientAddressId;
 
-    private Double weight;
+    private ParcelStatus status;
+    private ServiceType serviceType;
+    private DeliveryOption deliveryOption;
+
+    private double weight;
     private String dimensions;
-    private Double declaredValue;
+    private double declaredValue;
     private boolean fragile;
 
-    private String serviceType;
-    private DeliveryOption deliveryOption;
-    private ParcelStatus status;
-
     private Instant createdAt;
+    private Instant expectedDeliveryAt;
+
+    // ---- CLIENT ----
+    private UUID clientId;
+    private String clientName;
+
+    // ---- SENDER ADDRESS ----
+    private UUID senderAddressId;
+    private String senderLabel;
+    private String senderCity;
+    private String senderRegion;
+    private String senderCountry;
+
+    // ---- RECIPIENT ADDRESS ----
+    private UUID recipientAddressId;
+    private String recipientLabel;
+    private String recipientCity;
+    private String recipientRegion;
+    private String recipientCountry;
+
+    // ---- AGENCIES ----
+    private UUID originAgencyId;
+    private String originAgencyName;
+
+    private UUID destinationAgencyId;
+    private String destinationAgencyName;
+
+    // ---- PRICING ----
+    private Double lastAppliedPrice;
+    private List<PricingDetailResponse> pricingHistory;
 }

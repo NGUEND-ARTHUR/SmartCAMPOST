@@ -1,14 +1,22 @@
 package com.smartcampost.backend.exception;
 
-import lombok.Getter;
-
-@Getter
 public class ResourceNotFoundException extends RuntimeException {
 
-    private final ErrorCode code;
+    private final ErrorCode errorCode;
 
+    // Ancien constructeur (pour compatibilité)
     public ResourceNotFoundException(String message) {
         super(message);
-        this.code = ErrorCode.RESOURCE_NOT_FOUND;
+        this.errorCode = ErrorCode.USER_NOT_FOUND; // ou une valeur par défaut
+    }
+
+    // Nouveau constructeur avec ErrorCode
+    public ResourceNotFoundException(String message, ErrorCode errorCode) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    public ErrorCode getErrorCode() {
+        return errorCode;
     }
 }
