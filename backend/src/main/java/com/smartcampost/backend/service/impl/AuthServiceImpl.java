@@ -1,6 +1,11 @@
 package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.dto.auth.*;
+import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ConflictException;
+import com.smartcampost.backend.exception.ErrorCode;
+import com.smartcampost.backend.exception.OtpException;
+import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Client;
 import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.OtpPurpose;
@@ -33,21 +38,25 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse registerClient(RegisterClientRequest request) {
 
+        // 1) Vérifier si le téléphone existe déjà
         if (userAccountRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone already exists");
+            throw new ConflictException("Phone already exists");
         }
 
+        // 2) Vérifier OTP (REGISTER)
         boolean validOtp = otpService.validateOtp(
                 request.getPhone(),
                 request.getOtp(),
                 OtpPurpose.REGISTER
         );
         if (!validOtp) {
-            throw new RuntimeException("Invalid or expired OTP");
+            throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
 
+        // 3) Encoder le mot de passe
         String encodedPassword = encoder.encode(request.getPassword());
 
+        // 4) Créer le client
         Client client = Client.builder()
                 .id(UUID.randomUUID())
                 .fullName(request.getFullName())
@@ -59,6 +68,7 @@ public class AuthServiceImpl implements AuthService {
 
         clientRepository.save(client);
 
+        // 5) Créer le compte utilisateur
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(request.getPhone())
@@ -69,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
 
         userAccountRepository.save(account);
 
+        // 6) Générer le token JWT
         String token = jwtService.generateToken(account);
 
         return AuthResponse.builder()
@@ -89,17 +100,18 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest request) {
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() ->
+                        new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials"));
 
         if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
         }
 
         String fullName = null;
 
         if (user.getRole() == UserRole.CLIENT) {
             Client client = clientRepository.findById(user.getEntityId())
-                    .orElseThrow(() -> new RuntimeException("Client not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
             fullName = client.getFullName();
         }
 
@@ -126,6 +138,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean verifyOtp(String phone, String otp) {
+        // Ici on garde le booléen pour l'endpoint /verify-otp
         return otpService.validateOtp(phone, otp, OtpPurpose.REGISTER);
     }
 
@@ -136,10 +149,10 @@ public class AuthServiceImpl implements AuthService {
     public void changePassword(ChangePasswordRequest request) {
 
         UserAccount user = userAccountRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!encoder.matches(request.getOldPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Old password incorrect");
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Old password incorrect");
         }
 
         user.setPasswordHash(encoder.encode(request.getNewPassword()));
@@ -152,7 +165,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void requestPasswordReset(String phone) {
         userAccountRepository.findByPhone(phone)
-                .orElseThrow(() -> new RuntimeException("No account with this phone"));
+                .orElseThrow(() ->
+                        new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "No account with this phone"));
 
         otpService.generateOtp(phone, OtpPurpose.RESET_PASSWORD);
     }
@@ -166,11 +180,11 @@ public class AuthServiceImpl implements AuthService {
                 OtpPurpose.RESET_PASSWORD
         );
         if (!validOtp) {
-            throw new RuntimeException("Invalid or expired OTP");
+            throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String encoded = encoder.encode(request.getNewPassword());
         user.setPasswordHash(encoded);
@@ -192,8 +206,9 @@ public class AuthServiceImpl implements AuthService {
     public void requestLoginOtp(String phone) {
         // vérifier que le compte existe
         userAccountRepository.findByPhone(phone)
-                .orElseThrow(() -> new RuntimeException("No account with this phone"));
-        // envoyer un OTP pour LOGIN
+                .orElseThrow(() ->
+                        new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "No account with this phone"));
+
         otpService.generateOtp(phone, OtpPurpose.LOGIN);
     }
 
@@ -206,16 +221,16 @@ public class AuthServiceImpl implements AuthService {
                 OtpPurpose.LOGIN
         );
         if (!validOtp) {
-            throw new RuntimeException("Invalid or expired OTP");
+            throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String fullName = null;
         if (user.getRole() == UserRole.CLIENT) {
             Client client = clientRepository.findById(user.getEntityId())
-                    .orElseThrow(() -> new RuntimeException("Client not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
             fullName = client.getFullName();
         }
 

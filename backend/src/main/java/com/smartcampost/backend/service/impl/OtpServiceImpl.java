@@ -1,5 +1,7 @@
 package com.smartcampost.backend.service.impl;
 
+import com.smartcampost.backend.exception.ErrorCode;
+import com.smartcampost.backend.exception.OtpException;
 import com.smartcampost.backend.model.OtpCode;
 import com.smartcampost.backend.model.enums.OtpPurpose;
 import com.smartcampost.backend.repository.OtpCodeRepository;
@@ -28,12 +30,15 @@ public class OtpServiceImpl implements OtpService {
     public void generateOtp(String phone, OtpPurpose purpose) {
         Instant now = Instant.now();
 
-        // 1) Cooldown par téléphone + purpose (REGISTER, RESET_PASSWORD, etc.)
+        // 1) Cooldown par téléphone + purpose (REGISTER, RESET_PASSWORD, LOGIN)
         otpCodeRepository.findTopByPhoneAndPurposeOrderByCreatedAtDesc(phone, purpose)
                 .ifPresent(last -> {
                     Instant limit = now.minusSeconds(COOLDOWN_SECONDS);
                     if (last.getCreatedAt().isAfter(limit)) {
-                        throw new IllegalStateException("Please wait before requesting a new OTP.");
+                        throw new OtpException(
+                                ErrorCode.OTP_COOLDOWN,
+                                "Please wait before requesting a new OTP."
+                        );
                     }
                 });
 
