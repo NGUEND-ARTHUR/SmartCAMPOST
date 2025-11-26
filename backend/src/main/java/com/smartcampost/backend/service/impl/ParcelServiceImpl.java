@@ -1,24 +1,26 @@
 package com.smartcampost.backend.service.impl;
 
-import com.smartcampost.backend.dto.parcel.ParcelCreateRequest;
-import com.smartcampost.backend.dto.parcel.ParcelDetailResponse;
-import com.smartcampost.backend.dto.parcel.ParcelSummaryResponse;
-import com.smartcampost.backend.model.Address;
-import com.smartcampost.backend.model.Client;
-import com.smartcampost.backend.model.Parcel;
-import com.smartcampost.backend.model.enums.DeliveryOption;
+import com.smartcampost.backend.dto.parcel.*;
+import com.smartcampost.backend.dto.pricing.PricingDetailResponse;
+import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ErrorCode;
+import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.model.*;
 import com.smartcampost.backend.model.enums.ParcelStatus;
-import com.smartcampost.backend.model.enums.ServiceType;
-import com.smartcampost.backend.repository.AddressRepository;
-import com.smartcampost.backend.repository.ClientRepository;
-import com.smartcampost.backend.repository.ParcelRepository;
+import com.smartcampost.backend.model.enums.UserRole;
+import com.smartcampost.backend.repository.*;
 import com.smartcampost.backend.service.ParcelService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,104 +28,324 @@ public class ParcelServiceImpl implements ParcelService {
 
     private final ParcelRepository parcelRepository;
     private final ClientRepository clientRepository;
+    private final UserAccountRepository userAccountRepository;
     private final AddressRepository addressRepository;
+    private final AgencyRepository agencyRepository;
+    private final PricingDetailRepository pricingDetailRepository; // 🔹 nouveau
 
+    private final SecureRandom random = new SecureRandom();
+
+    // ================== CREATE PARCEL (CLIENT) ==================
     @Override
-    public ParcelDetailResponse createParcel(ParcelCreateRequest request) {
-        Client client = clientRepository.findById(request.getClientId())
-                .orElseThrow(() -> new IllegalArgumentException("Client not found: " + request.getClientId()));
+    public ParcelResponse createParcel(CreateParcelRequest request) {
 
+        // 1) récupérer user courant + client
+        UserAccount user = getCurrentUserAccount();
+        if (user.getRole() != UserRole.CLIENT) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+        }
+
+        Client client = clientRepository.findById(user.getEntityId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client not found",
+                        ErrorCode.AUTH_USER_NOT_FOUND
+                ));
+
+        // 2) addresses
         Address sender = addressRepository.findById(request.getSenderAddressId())
-                .orElseThrow(() -> new IllegalArgumentException("Sender address not found: " + request.getSenderAddressId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Sender address not found",
+                        ErrorCode.ADDRESS_NOT_FOUND
+                ));
 
         Address recipient = addressRepository.findById(request.getRecipientAddressId())
-                .orElseThrow(() -> new IllegalArgumentException("Recipient address not found: " + request.getRecipientAddressId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Recipient address not found",
+                        ErrorCode.ADDRESS_NOT_FOUND
+                ));
 
-        // 🔁 Convert String -> enum ServiceType
-        ServiceType serviceType = ServiceType.valueOf(
-                request.getServiceType().toUpperCase().trim()
-        );
+        // (Optionnel) vérifier que sender.getClient().getId() == client.getId()
 
-        // (si dans le DTO tu as déjà DeliveryOption enum, on le prend direct)
-        DeliveryOption deliveryOption = request.getDeliveryOption();
+        // 3) agences
+        Agency originAgency = null;
+        if (request.getOriginAgencyId() != null) {
+            originAgency = agencyRepository.findById(request.getOriginAgencyId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Origin agency not found",
+                            ErrorCode.AGENCY_NOT_FOUND
+                    ));
+        }
 
+        Agency destinationAgency = null;
+        if (request.getDestinationAgencyId() != null) {
+            destinationAgency = agencyRepository.findById(request.getDestinationAgencyId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Destination agency not found",
+                            ErrorCode.AGENCY_NOT_FOUND
+                    ));
+        }
+
+        // 4) Tracking number
+        String trackingRef = generateTrackingRef();
+
+        // 5) créer Parcel
         Parcel parcel = Parcel.builder()
                 .id(UUID.randomUUID())
-                .trackingRef(request.getTrackingRef())
+                .trackingRef(trackingRef)
                 .client(client)
                 .senderAddress(sender)
                 .recipientAddress(recipient)
+                .originAgency(originAgency)
+                .destinationAgency(destinationAgency)
                 .weight(request.getWeight())
                 .dimensions(request.getDimensions())
                 .declaredValue(request.getDeclaredValue())
                 .fragile(request.isFragile())
-                .serviceType(serviceType)
-                .deliveryOption(deliveryOption)
+                .serviceType(request.getServiceType())
+                .deliveryOption(request.getDeliveryOption())
                 .status(ParcelStatus.CREATED)
+                .createdAt(Instant.now())
+                .expectedDeliveryAt(null) // ou calcul si tu veux
                 .build();
 
-        parcel = parcelRepository.save(parcel);
-        return toDetail(parcel);
-    }
-
-    @Override
-    public ParcelDetailResponse getParcel(UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new IllegalArgumentException("Parcel not found: " + parcelId));
-        return toDetail(parcel);
-    }
-
-    @Override
-    public ParcelDetailResponse getByTrackingRef(String trackingRef) {
-        Parcel parcel = parcelRepository.findByTrackingRef(trackingRef)
-                .orElseThrow(() -> new IllegalArgumentException("Parcel not found for tracking: " + trackingRef));
-        return toDetail(parcel);
-    }
-
-    @Override
-    public List<ParcelSummaryResponse> listClientParcels(UUID clientId) {
-        return parcelRepository.findByClient_Id(clientId)
-                .stream()
-                .map(this::toSummary)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public void updateParcelStatus(UUID parcelId, String status) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new IllegalArgumentException("Parcel not found: " + parcelId));
-        ParcelStatus newStatus = ParcelStatus.valueOf(status.toUpperCase().trim());
-        parcel.setStatus(newStatus);
         parcelRepository.save(parcel);
+
+        return toResponse(parcel);
     }
 
-    private ParcelSummaryResponse toSummary(Parcel parcel) {
-        return ParcelSummaryResponse.builder()
+    // ================== GET BY ID ==================
+    @Override
+    public ParcelDetailResponse getParcelById(UUID parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        // contrôle d’accès basique :
+        UserAccount user = getCurrentUserAccount();
+        if (user.getRole() == UserRole.CLIENT &&
+                !parcel.getClient().getId().equals(user.getEntityId())) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "You cannot access this parcel");
+        }
+
+        return toDetailResponse(parcel);
+    }
+
+    // ================== GET BY TRACKING ==================
+    @Override
+    public ParcelDetailResponse getParcelByTracking(String trackingRef) {
+        Parcel parcel = parcelRepository.findByTrackingRef(trackingRef)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        // même contrôle que ci-dessus
+        UserAccount user = getCurrentUserAccount();
+        if (user.getRole() == UserRole.CLIENT &&
+                !parcel.getClient().getId().equals(user.getEntityId())) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "You cannot access this parcel");
+        }
+
+        return toDetailResponse(parcel);
+    }
+
+    // ================== LIST MY PARCELS ==================
+    @Override
+    public Page<ParcelResponse> listMyParcels(int page, int size) {
+        UserAccount user = getCurrentUserAccount();
+        if (user.getRole() != UserRole.CLIENT) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+        }
+
+        return parcelRepository.findByClient_Id(user.getEntityId(), PageRequest.of(page, size))
+                .map(this::toResponse);
+    }
+
+    // ================== LIST ALL (ADMIN/STAFF) ==================
+    @Override
+    public Page<ParcelResponse> listParcels(int page, int size) {
+        // TODO: si tu veux, vérifier que userRole != CLIENT
+        return parcelRepository.findAll(PageRequest.of(page, size))
+                .map(this::toResponse);
+    }
+
+    // ================== UPDATE STATUS ==================
+    @Override
+    public ParcelResponse updateParcelStatus(UUID parcelId, UpdateParcelStatusRequest request) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        ParcelStatus current = parcel.getStatus();
+        ParcelStatus next = request.getStatus();
+
+        validateStatusTransition(current, next);
+
+        parcel.setStatus(next);
+        parcelRepository.save(parcel);
+
+        return toResponse(parcel);
+    }
+
+    // ================== STATUS RULES ==================
+    private void validateStatusTransition(ParcelStatus current, ParcelStatus next) {
+
+        if (current == next) return;
+
+        // états finaux : pas de retour en arrière
+        if (current == ParcelStatus.DELIVERED
+                || current == ParcelStatus.RETURNED
+                || current == ParcelStatus.CANCELLED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Cannot change status from a final state: " + current
+            );
+        }
+
+        // Annulation ou retour toujours possibles (avant d’être final)
+        if (next == ParcelStatus.CANCELLED || next == ParcelStatus.RETURNED) {
+            return;
+        }
+
+        // règle simple : progression "en avant" (basée sur l’ordre de l’enum)
+        if (next.ordinal() < current.ordinal()) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Invalid status transition: " + current + " -> " + next
+            );
+        }
+    }
+
+    // ================== TRACKING REF ==================
+    private String generateTrackingRef() {
+        // Ex: SCM-2025-123456
+        String ref;
+        do {
+            int randomPart = random.nextInt(1_000_000); // 0–999999
+            ref = "SCM-" + Instant.now().toString().substring(0, 10).replace("-", "")
+                    + "-" + String.format("%06d", randomPart);
+        } while (parcelRepository.existsByTrackingRef(ref));
+        return ref;
+    }
+
+    // ================== CURRENT USER ==================
+    private UserAccount getCurrentUserAccount() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Unauthenticated");
+        }
+
+        String subject = auth.getName(); // "sub" du JWT (userId ou phone)
+
+        try {
+            UUID userId = UUID.fromString(subject);
+            return userAccountRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User not found",
+                            ErrorCode.AUTH_USER_NOT_FOUND
+                    ));
+        } catch (IllegalArgumentException ex) {
+            // pas un UUID, on considère que c'est le phone
+            return userAccountRepository.findByPhone(subject)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User not found",
+                            ErrorCode.AUTH_USER_NOT_FOUND
+                    ));
+        }
+    }
+
+    // ================== MAPPERS ==================
+    private ParcelResponse toResponse(Parcel parcel) {
+        return ParcelResponse.builder()
                 .id(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
                 .status(parcel.getStatus())
-                // enum -> String pour le DTO
-                .serviceType(parcel.getServiceType() != null ? parcel.getServiceType().name() : null)
-                .createdAt(parcel.getCreatedAt())
-                .build();
-    }
-
-    private ParcelDetailResponse toDetail(Parcel parcel) {
-        return ParcelDetailResponse.builder()
-                .id(parcel.getId())
-                .trackingRef(parcel.getTrackingRef())
+                .serviceType(parcel.getServiceType())
+                .deliveryOption(parcel.getDeliveryOption())
+                .weight(parcel.getWeight())
                 .clientId(parcel.getClient().getId())
                 .senderAddressId(parcel.getSenderAddress().getId())
                 .recipientAddressId(parcel.getRecipientAddress().getId())
+                .createdAt(parcel.getCreatedAt())
+                .expectedDeliveryAt(parcel.getExpectedDeliveryAt())
+                .build();
+    }
+
+    private ParcelDetailResponse toDetailResponse(Parcel parcel) {
+        Address sender = parcel.getSenderAddress();
+        Address recipient = parcel.getRecipientAddress();
+        Agency origin = parcel.getOriginAgency();
+        Agency dest = parcel.getDestinationAgency();
+        Client client = parcel.getClient();
+
+        // 🔹 Récupérer l’historique de pricing pour ce colis
+        var pricingDetails = pricingDetailRepository
+                .findByParcel_IdOrderByAppliedAtAsc(parcel.getId());
+
+        Double lastPrice = null;
+        if (!pricingDetails.isEmpty()) {
+            lastPrice = pricingDetails
+                    .get(pricingDetails.size() - 1)
+                    .getAppliedPrice();
+        }
+
+        List<PricingDetailResponse> pricingHistory = pricingDetails.stream()
+                .map(detail -> {
+                    Tariff t = detail.getTariff();
+                    return PricingDetailResponse.builder()
+                            .id(detail.getId())
+                            .parcelId(parcel.getId())
+                            .tariffId(t.getId())
+                            .serviceType(t.getServiceType().name())
+                            .originZone(t.getOriginZone())
+                            .destinationZone(t.getDestinationZone())
+                            .weightBracket(t.getWeightBracket())
+                            .appliedPrice(detail.getAppliedPrice())
+                            .appliedAt(detail.getAppliedAt())
+                            .build();
+                })
+                .toList();
+
+        return ParcelDetailResponse.builder()
+                .id(parcel.getId())
+                .trackingRef(parcel.getTrackingRef())
+                .status(parcel.getStatus())
+                .serviceType(parcel.getServiceType())
+                .deliveryOption(parcel.getDeliveryOption())
                 .weight(parcel.getWeight())
                 .dimensions(parcel.getDimensions())
                 .declaredValue(parcel.getDeclaredValue())
                 .fragile(parcel.isFragile())
-                // enum -> String pour le DTO
-                .serviceType(parcel.getServiceType() != null ? parcel.getServiceType().name() : null)
-                .deliveryOption(parcel.getDeliveryOption())
-                .status(parcel.getStatus())
                 .createdAt(parcel.getCreatedAt())
+                .expectedDeliveryAt(parcel.getExpectedDeliveryAt())
+
+                .clientId(client.getId())
+                .clientName(client.getFullName())
+
+                .senderAddressId(sender.getId())
+                .senderLabel(sender.getLabel())
+                .senderCity(sender.getCity())
+                .senderRegion(sender.getRegion())
+                .senderCountry(sender.getCountry())
+
+                .recipientAddressId(recipient.getId())
+                .recipientLabel(recipient.getLabel())
+                .recipientCity(recipient.getCity())
+                .recipientRegion(recipient.getRegion())
+                .recipientCountry(recipient.getCountry())
+
+                .originAgencyId(origin != null ? origin.getId() : null)
+                .originAgencyName(origin != null ? origin.getAgencyName() : null)
+                .destinationAgencyId(dest != null ? dest.getId() : null)
+                .destinationAgencyName(dest != null ? dest.getAgencyName() : null)
+
+                // 🔹 champs pricing (ajoutés dans ParcelDetailResponse)
+                .lastAppliedPrice(lastPrice)
+                .pricingHistory(pricingHistory)
                 .build();
     }
 }

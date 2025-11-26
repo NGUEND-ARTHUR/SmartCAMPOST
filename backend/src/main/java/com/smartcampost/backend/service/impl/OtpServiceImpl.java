@@ -35,8 +35,9 @@ public class OtpServiceImpl implements OtpService {
                 .ifPresent(last -> {
                     Instant limit = now.minusSeconds(COOLDOWN_SECONDS);
                     if (last.getCreatedAt().isAfter(limit)) {
+                        // Trop de requêtes OTP dans un court délai
                         throw new OtpException(
-                                ErrorCode.OTP_COOLDOWN,
+                                ErrorCode.OTP_TOO_MANY_REQUESTS,
                                 "Please wait before requesting a new OTP."
                         );
                     }

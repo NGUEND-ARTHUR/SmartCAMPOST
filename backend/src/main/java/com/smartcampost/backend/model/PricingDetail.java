@@ -37,14 +37,9 @@ public class PricingDetail {
     private Tariff tariff;
 
     @Column(name = "applied_price", nullable = false)
-    private Double appliedPrice; // FLOAT en DB
+    private Double appliedPrice;
 
-    @Column(
-            name = "applied_at",
-            nullable = false,
-            updatable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-    )
+    @Column(name = "applied_at", nullable = false)
     private Instant appliedAt;
 
     @PrePersist

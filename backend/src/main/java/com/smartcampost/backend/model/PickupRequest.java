@@ -4,6 +4,7 @@ import com.smartcampost.backend.model.enums.PickupRequestState;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -50,13 +51,19 @@ public class PickupRequest {
     @Column(name = "comment", length = 255)
     private String comment;
 
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
     @PrePersist
     void onCreate() {
         if (id == null) {
             id = UUID.randomUUID();
         }
         if (state == null) {
-            state = PickupRequestState.REQUESTED; // match default business logic
+            state = PickupRequestState.REQUESTED;
+        }
+        if (createdAt == null) {
+            createdAt = Instant.now();
         }
     }
 }
