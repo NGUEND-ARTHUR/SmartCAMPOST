@@ -1,10 +1,12 @@
 package com.smartcampost.backend.controller;
 
-import com.smartcampost.backend.dto.payment.PaymentInitRequest;
+import com.smartcampost.backend.dto.payment.ConfirmPaymentRequest;
+import com.smartcampost.backend.dto.payment.InitPaymentRequest;
 import com.smartcampost.backend.dto.payment.PaymentResponse;
 import com.smartcampost.backend.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,20 +20,42 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PostMapping
-    public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentInitRequest request) {
-        return ResponseEntity.ok(paymentService.initiatePayment(request));
+    // US35: init payment
+    @PostMapping("/init")
+    public ResponseEntity<PaymentResponse> initPayment(
+            @Valid @RequestBody InitPaymentRequest request
+    ) {
+        return ResponseEntity.ok(paymentService.initPayment(request));
     }
 
-    @PostMapping("/{paymentId}/complete")
-    public ResponseEntity<PaymentResponse> completePayment(@PathVariable UUID paymentId,
-                                                           @RequestParam boolean success,
-                                                           @RequestParam(required = false) String externalRef) {
-        return ResponseEntity.ok(paymentService.completePayment(paymentId, success, externalRef));
+    // US36: confirm payment (callback interne)
+    @PostMapping("/confirm")
+    public ResponseEntity<PaymentResponse> confirmPayment(
+            @Valid @RequestBody ConfirmPaymentRequest request
+    ) {
+        return ResponseEntity.ok(paymentService.confirmPayment(request));
     }
 
+    // Get one payment
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<PaymentResponse> getPayment(@PathVariable UUID paymentId) {
+        return ResponseEntity.ok(paymentService.getPaymentById(paymentId));
+    }
+
+    // US37: Payment history for a parcel
     @GetMapping("/parcel/{parcelId}")
-    public ResponseEntity<List<PaymentResponse>> listForParcel(@PathVariable UUID parcelId) {
-        return ResponseEntity.ok(paymentService.listPaymentsForParcel(parcelId));
+    public ResponseEntity<List<PaymentResponse>> getPaymentsForParcel(
+            @PathVariable UUID parcelId
+    ) {
+        return ResponseEntity.ok(paymentService.getPaymentsForParcel(parcelId));
+    }
+
+    // Admin/staff: list all payments
+    @GetMapping
+    public ResponseEntity<Page<PaymentResponse>> listAllPayments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(paymentService.listAllPayments(page, size));
     }
 }
