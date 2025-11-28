@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface ScanEventRepository extends JpaRepository<ScanEvent, UUID> {
 
-    // Historique de scan pour un colis, par ordre chronologique
+    // Historique chronologique pour un colis
     List<ScanEvent> findByParcel_IdOrderByTimestampAsc(UUID parcelId);
 }

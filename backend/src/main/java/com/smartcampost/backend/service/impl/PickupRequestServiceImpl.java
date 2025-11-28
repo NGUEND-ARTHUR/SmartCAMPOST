@@ -12,6 +12,7 @@ import com.smartcampost.backend.repository.CourierRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PickupRequestRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.PickupRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     private final ParcelRepository parcelRepository;
     private final CourierRepository courierRepository;
     private final UserAccountRepository userAccountRepository;
+    private final NotificationService notificationService; // 🔔
 
     // ================== CREATE (US25) ==================
     @Override
@@ -71,6 +73,9 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .build();
 
         pickupRequestRepository.save(pickup);
+
+        // 🔔 Notification automatique : pickup demandé
+        notificationService.notifyPickupRequested(pickup);
 
         return toResponse(pickup);
     }
@@ -204,6 +209,11 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         pickup.setState(next);
         pickupRequestRepository.save(pickup);
 
+        // 🔔 si le pickup est COMPLETED -> notifier le client
+        if (next == PickupRequestState.COMPLETED) {
+            notificationService.notifyPickupCompleted(pickup);
+        }
+
         return toResponse(pickup);
     }
 
@@ -296,7 +306,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .timeWindow(pickup.getTimeWindow())
                 .state(pickup.getState())
                 .comment(pickup.getComment())
-                .createdAt(pickup.getCreatedAt())   // 🔥 ici on exploite le champ ajouté
+                .createdAt(pickup.getCreatedAt())
                 .build();
     }
 }

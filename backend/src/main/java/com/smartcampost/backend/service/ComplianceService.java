@@ -1,16 +1,23 @@
 package com.smartcampost.backend.service;
+import com.smartcampost.backend.dto.compliance.ComplianceReportResponse;
+import com.smartcampost.backend.dto.compliance.ResolveRiskAlertRequest;
+import com.smartcampost.backend.dto.compliance.RiskAlertResponse;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.UUID;
 
 public interface ComplianceService {
 
-    Map<String, Object> reviewAnomalies(LocalDate from, LocalDate to);
+    Page<RiskAlertResponse> listRiskAlerts(int page, int size);
 
-    void freezeClientAccount(UUID clientId);
+    RiskAlertResponse getRiskAlertById(UUID id);
 
-    void unfreezeClientAccount(UUID clientId);
+    RiskAlertResponse resolveRiskAlert(UUID id, ResolveRiskAlertRequest request);
 
-    Map<String, Object> generateComplianceReport(LocalDate from, LocalDate to);
+    ComplianceReportResponse generateComplianceReport(LocalDate from, LocalDate to);
+
+    void freezeAccount(UUID userId);
+
+    void unfreezeAccount(UUID userId);
 }

@@ -1,15 +1,22 @@
 package com.smartcampost.backend.service;
+// package com.smartcampost.backend.service;
 
-import java.util.List;
+import com.smartcampost.backend.dto.ticket.*;
+import org.springframework.data.domain.Page;
+
 import java.util.UUID;
 
 public interface SupportTicketService {
 
-    UUID openTicket(UUID clientId, UUID parcelId, String subject, String description);
+    TicketResponse createTicket(CreateTicketRequest request);
 
-    void addMessage(UUID ticketId, UUID authorId, String message);
+    TicketResponse getTicketById(UUID ticketId);
 
-    void closeTicket(UUID ticketId);
+    Page<TicketResponse> listMyTickets(int page, int size);
 
-    List<?> listTicketsForClient(UUID clientId);
+    Page<TicketResponse> listAllTickets(int page, int size);
+
+    TicketResponse replyToTicket(UUID ticketId, TicketReplyRequest request);
+
+    TicketResponse updateTicketStatus(UUID ticketId, UpdateTicketStatusRequest request);
 }

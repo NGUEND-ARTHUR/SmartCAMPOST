@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
-    // ✅ Pour récupérer tous les paiements d'un colis
-    List<Payment> findByParcel_Id(UUID parcelId);
+    List<Payment> findByParcel_IdOrderByTimestampDesc(UUID parcelId);
+
+    boolean existsByParcel_IdAndStatus(UUID parcelId, com.smartcampost.backend.model.enums.PaymentStatus status);
 }

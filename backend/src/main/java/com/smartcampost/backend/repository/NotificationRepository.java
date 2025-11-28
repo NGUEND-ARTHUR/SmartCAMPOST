@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
-    List<Notification> findByParcel_Id(UUID parcelId);
+    List<Notification> findByParcel_IdOrderByCreatedAtDesc(UUID parcelId);
 
-    List<Notification> findByClient_Id(UUID clientId);
+    List<Notification> findByPickupRequest_IdOrderByCreatedAtDesc(UUID pickupId);
 }

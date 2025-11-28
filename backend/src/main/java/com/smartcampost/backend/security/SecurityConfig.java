@@ -27,40 +27,124 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // ============================
-                        //   PUBLIC AUTH ENDPOINTS
-                        // ============================
+                        // ===================================================
+                        //                    PUBLIC AUTH ROUTES
+                        // ===================================================
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
-
                                 "/api/auth/send-otp",
                                 "/api/auth/verify-otp",
-
                                 "/api/auth/login/otp/request",
                                 "/api/auth/login/otp/confirm",
-
                                 "/api/auth/password/reset/request",
                                 "/api/auth/password/reset/confirm"
                         ).permitAll()
 
-                        // ============================
-                        //   SPRINT 3 : Agent Module
-                        // ============================
-                        // Pour l'instant, ANY authenticated user peut gérer les agents.
-                        // On restreindra plus tard (ADMIN only).
-                        .requestMatchers("/api/agents/**").authenticated()
+                        // ===================================================
+                        //                    CLIENT MODULE
+                        //   View/update profile, list my parcels, etc.
+                        // ===================================================
+                        .requestMatchers("/api/clients/**")
+                        .hasAnyRole("CLIENT", "ADMIN", "STAFF")
 
-                        // SPRINT 2 : Clients (profil)
-                        .requestMatchers("/api/clients/**").authenticated()
+                        // ===================================================
+                        //                    AGENT MODULE
+                        //   Creating agents, assigning agencies, etc.
+                        // ===================================================
+                        .requestMatchers("/api/agents/**")
+                        .hasAnyRole("ADMIN", "STAFF")
 
-                        // ============================
-                        //   ANY OTHER REQUEST MUST BE AUTHENTICATED
-                        // ============================
+                        // ===================================================
+                        //                 STAFF MODULE
+                        // ===================================================
+                        .requestMatchers("/api/staff/**")
+                        .hasRole("ADMIN")
+
+                        // ===================================================
+                        //                 COURIER MODULE
+                        // ===================================================
+                        .requestMatchers("/api/couriers/**")
+                        .hasAnyRole("ADMIN", "STAFF")
+
+                        // ===================================================
+                        //                 PARCEL MODULE
+                        //  Clients → only own parcel
+                        //  Admin/Staff/Agent → full access
+                        // ===================================================
+                        .requestMatchers("/api/parcels/**")
+                        .authenticated()
+
+                        // ===================================================
+                        //                 PICKUP MODULE
+                        //   Client schedules, Staff assigns, Courier updates
+                        // ===================================================
+                        .requestMatchers("/api/pickups/**")
+                        .authenticated()
+
+                        // ===================================================
+                        //                 TARIFF & PRICING
+                        // ===================================================
+                        .requestMatchers("/api/tariffs/**")
+                        .hasAnyRole("ADMIN", "STAFF")
+
+                        .requestMatchers("/api/pricing/**")
+                        .authenticated()
+
+                        // ===================================================
+                        //                 PAYMENT MODULE
+                        // ===================================================
+                        .requestMatchers("/api/payments/**")
+                        .authenticated()
+
+                        // ===================================================
+                        //                 SCAN EVENTS (Tracking)
+                        //   Only AGENT / STAFF / ADMIN can scan
+                        // ===================================================
+                        .requestMatchers("/api/scan-events/**")
+                        .hasAnyRole("ADMIN", "STAFF", "AGENT")
+
+                        // ===================================================
+                        //                 NOTIFICATION MODULE
+                        // ===================================================
+                        .requestMatchers("/api/notifications/**")
+                        .hasAnyRole("ADMIN", "STAFF")
+
+                        // ===================================================
+                        //                 SPRINT 13 MODULES
+                        // ===================================================
+
+                        // --- Support / Ticketing ---
+                        .requestMatchers("/api/support/**")
+                        .authenticated()
+
+                        // --- Refund & Chargebacks ---
+                        .requestMatchers("/api/refunds/**")
+                        .hasAnyRole("ADMIN", "FINANCE", "STAFF")
+
+                        // --- Compliance / AML ---
+                        .requestMatchers("/api/compliance/**")
+                        .hasAnyRole("ADMIN", "RISK", "STAFF")
+
+                        // --- Analytics / AI ---
+                        .requestMatchers("/api/analytics/**")
+                        .hasAnyRole("ADMIN", "STAFF")
+
+                        // --- Geolocation Routing ---
+                        .requestMatchers("/api/geolocation/**")
+                        .authenticated()
+
+                        // --- USSD Gateway ---
+                        .requestMatchers("/api/ussd/**")
+                        .permitAll()
+
+                        // ===================================================
+                        //               ANY OTHER REQUEST
+                        // ===================================================
                         .anyRequest().authenticated()
                 );
 
-        // Ajouter le filtre JWT
+        // Add JWT filter BEFORE UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

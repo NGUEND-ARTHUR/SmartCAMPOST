@@ -1,25 +1,22 @@
 package com.smartcampost.backend.service;
 
-import com.smartcampost.backend.dto.payment.PaymentInitRequest;
+import com.smartcampost.backend.dto.payment.ConfirmPaymentRequest;
+import com.smartcampost.backend.dto.payment.InitPaymentRequest;
 import com.smartcampost.backend.dto.payment.PaymentResponse;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface PaymentService {
 
-    /**
-     * Initie un paiement pour un colis.
-     */
-    PaymentResponse initiatePayment(PaymentInitRequest request);
+    PaymentResponse initPayment(InitPaymentRequest request);
 
-    /**
-     * Complète un paiement (callback après succès/échec du provider).
-     */
-    PaymentResponse completePayment(UUID paymentId, boolean success, String externalRef);
+    PaymentResponse confirmPayment(ConfirmPaymentRequest request);
 
-    /**
-     * Liste tous les paiements liés à un colis.
-     */
-    List<PaymentResponse> listPaymentsForParcel(UUID parcelId);
+    PaymentResponse getPaymentById(UUID paymentId);
+
+    List<PaymentResponse> getPaymentsForParcel(UUID parcelId);
+
+    Page<PaymentResponse> listAllPayments(int page, int size);
 }

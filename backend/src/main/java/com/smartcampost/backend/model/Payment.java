@@ -30,7 +30,7 @@ public class Payment {
     private Parcel parcel;
 
     @Column(name = "amount", nullable = false)
-    private Double amount; // FLOAT en DB
+    private Double amount;
 
     @Column(name = "currency", nullable = false, length = 10)
     @Builder.Default
@@ -42,7 +42,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private PaymentStatus status; // INIT, PAID, FAILED
+    private PaymentStatus status; // PENDING, SUCCESS, FAILED, CANCELLED
 
     @Column(
             name = "timestamp",
@@ -67,7 +67,7 @@ public class Payment {
             currency = "XAF";
         }
         if (status == null) {
-            status = PaymentStatus.INIT; // match DEFAULT 'INIT'
+            status = PaymentStatus.PENDING; // valeur par défaut correcte
         }
     }
 }

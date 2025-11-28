@@ -8,13 +8,9 @@ import java.util.UUID;
 
 public interface ScanEventService {
 
-    /**
-     * Enregistrer un nouvel événement de scan pour un colis.
-     */
+    // US38 : ajouter un scan
     ScanEventResponse recordScanEvent(ScanEventCreateRequest request);
 
-    /**
-     * Récupérer l’historique des scans pour un colis donné.
-     */
+    // US39 : historique complet d’un colis
     List<ScanEventResponse> getHistoryForParcel(UUID parcelId);
 }

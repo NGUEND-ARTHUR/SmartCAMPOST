@@ -1,10 +1,11 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.notification.NotificationResponse;
-import com.smartcampost.backend.dto.notification.NotificationSendRequest;
+import com.smartcampost.backend.dto.notification.TriggerNotificationRequest;
 import com.smartcampost.backend.service.NotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,19 +19,37 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PostMapping
-    public ResponseEntity<NotificationResponse> sendNotification(
-            @Valid @RequestBody NotificationSendRequest request) {
-        return ResponseEntity.ok(notificationService.sendNotification(request));
+    // Admin déclenche une notif manuelle
+    @PostMapping("/trigger")
+    public ResponseEntity<NotificationResponse> trigger(@Valid @RequestBody TriggerNotificationRequest request) {
+        return ResponseEntity.ok(notificationService.triggerNotification(request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<NotificationResponse> get(@PathVariable UUID id) {
+        return ResponseEntity.ok(notificationService.getNotification(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<NotificationResponse>> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(notificationService.listNotifications(page, size));
+    }
+
+    @PostMapping("/{id}/retry")
+    public ResponseEntity<NotificationResponse> retry(@PathVariable UUID id) {
+        return ResponseEntity.ok(notificationService.retryNotification(id));
     }
 
     @GetMapping("/parcel/{parcelId}")
-    public ResponseEntity<List<NotificationResponse>> listByParcel(@PathVariable UUID parcelId) {
-        return ResponseEntity.ok(notificationService.listByParcel(parcelId));
+    public ResponseEntity<List<NotificationResponse>> listForParcel(@PathVariable UUID parcelId) {
+        return ResponseEntity.ok(notificationService.listForParcel(parcelId));
     }
 
-    @GetMapping("/client/{clientId}")
-    public ResponseEntity<List<NotificationResponse>> listByClient(@PathVariable UUID clientId) {
-        return ResponseEntity.ok(notificationService.listByClient(clientId));
+    @GetMapping("/pickup/{pickupId}")
+    public ResponseEntity<List<NotificationResponse>> listForPickup(@PathVariable UUID pickupId) {
+        return ResponseEntity.ok(notificationService.listForPickup(pickupId));
     }
 }

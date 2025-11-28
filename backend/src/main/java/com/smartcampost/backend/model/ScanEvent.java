@@ -9,7 +9,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "scan_event")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -34,7 +35,7 @@ public class ScanEvent {
             referencedColumnName = "agency_id",
             foreignKey = @ForeignKey(name = "fk_scan_agency")
     )
-    private Agency agency; // nullable
+    private Agency agency;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -42,17 +43,15 @@ public class ScanEvent {
             referencedColumnName = "agent_id",
             foreignKey = @ForeignKey(name = "fk_scan_agent")
     )
-    private Agent agent; // nullable
+    private Agent agent;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "event_type", nullable = false)
+    @Column(name = "event_type", nullable = false, length = 40)
     private ScanEventType eventType;
 
-    // 👉 Champ Java = timestamp, colonne SQL = event_time
     @Column(
-            name = "event_time",
+            name = "timestamp",
             nullable = false,
-            updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
     )
     private Instant timestamp;

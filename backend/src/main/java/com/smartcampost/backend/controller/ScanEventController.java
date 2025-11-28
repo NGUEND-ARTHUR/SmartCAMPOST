@@ -18,13 +18,15 @@ public class ScanEventController {
 
     private final ScanEventService scanEventService;
 
+    // US38 : ajouter un scan event
     @PostMapping
     public ResponseEntity<ScanEventResponse> recordScan(@Valid @RequestBody ScanEventCreateRequest request) {
         return ResponseEntity.ok(scanEventService.recordScanEvent(request));
     }
 
+    // US39 : timeline d’un colis
     @GetMapping("/parcel/{parcelId}")
-    public ResponseEntity<List<ScanEventResponse>> historyForParcel(@PathVariable UUID parcelId) {
+    public ResponseEntity<List<ScanEventResponse>> getHistory(@PathVariable UUID parcelId) {
         return ResponseEntity.ok(scanEventService.getHistoryForParcel(parcelId));
     }
 }
