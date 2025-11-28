@@ -8,31 +8,42 @@ CREATE DATABASE smartcampost
 USE smartcampost;
 
 -- =========================================================
--- ENUM-LIKE CONVENTIONS (from the class diagram)
+-- ENUM-LIKE CONVENTIONS (from the domain model)
 --   ServiceType        : 'STANDARD','EXPRESS'
 --   ParcelStatus       : 'CREATED','ACCEPTED','IN_TRANSIT','ARRIVED_HUB',
 --                        'OUT_FOR_DELIVERY','DELIVERED','RETURNED','CANCELLED'
 --   PaymentMethod      : 'CASH','MOBILE_MONEY','CARD'
---   PaymentStatus      : 'INIT','PAID','FAILED'
---   NotificationChannel: 'SMS','PUSH'
---   NotificationStatus : 'SENT','FAILED'
+--   PaymentStatus      : 'INIT','PENDING','SUCCESS','FAILED','CANCELLED'
+--   NotificationChannel: 'SMS','EMAIL','PUSH'
+--   NotificationStatus : 'PENDING','SENT','FAILED'
 --   DeliveryProofType  : 'SIGNATURE','PHOTO','OTP'
 --   PickupRequestState : 'REQUESTED','ASSIGNED','COMPLETED','CANCELLED'
 --   ScanEventType      : 'CREATED','AT_ORIGIN_AGENCY','IN_TRANSIT','ARRIVED_HUB',
 --                        'DEPARTED_HUB','ARRIVED_DESTINATION',
 --                        'OUT_FOR_DELIVERY','DELIVERED','RETURNED'
---   StaffStatus / AgentStatus / CourierStatus: see tables below
+--   StaffStatus / AgentStatus : 'ACTIVE','INACTIVE','SUSPENDED'
+--   CourierStatus      : 'AVAILABLE','BUSY','OFFLINE'
+--   SupportCategory    : 'COMPLAINT','CLAIM','TECHNICAL','PAYMENT','OTHER'
+--   SupportTicketStatus: 'OPEN','IN_PROGRESS','RESOLVED','CLOSED'
+--   SupportPriority    : 'LOW','MEDIUM','HIGH','URGENT'
+--   RefundType         : 'REFUND','CHARGEBACK','ADJUSTMENT'
+--   RefundStatus       : 'PENDING','APPROVED','REJECTED','COMPLETED'
+--   RiskAlertType      : 'AML_FLAG','HIGH_VALUE','MULTIPLE_FAILED_PAYMENTS','OTHER'
+--   RiskSeverity       : 'LOW','MEDIUM','HIGH','CRITICAL'
+--   RiskAlertStatus    : 'OPEN','UNDER_REVIEW','RESOLVED','DISMISSED'
+--   IntegrationType    : 'PAYMENT','SMS','USSD','MAPS','NPSI','ANALYTICS','OTHER'
+--   ComplianceStatus   : 'GENERATED','SENT','ARCHIVED'
 -- =========================================================
 
 
 -- =========================================================
--- 0) USER_ACCOUNT  (for authentication)
+-- 0) USER_ACCOUNT  (for authentication, any actor)
 -- =========================================================
 CREATE TABLE user_account (
   id             BINARY(16)    NOT NULL,       -- UUID
   phone          VARCHAR(20)   NOT NULL,
   password_hash  VARCHAR(255)  NOT NULL,
-  role           ENUM('CLIENT','AGENT','STAFF','COURIER') NOT NULL,
+  role           ENUM('CLIENT','AGENT','STAFF','COURIER','ADMIN','FINANCE','RISK') NOT NULL,
   entity_id      BINARY(16)    NOT NULL,       -- points to client/agent/staff/courier
   created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_user_account PRIMARY KEY (id),
@@ -100,7 +111,7 @@ CREATE TABLE agency (
 CREATE TABLE staff (
   staff_id      BINARY(16)    NOT NULL,        -- UUID
   full_name     VARCHAR(150)  NOT NULL,
-  role          VARCHAR(80)   NOT NULL,        -- e.g. 'AGENT','MANAGER','CASHIER'
+  role          VARCHAR(80)   NOT NULL,        -- e.g. 'ADMIN','MANAGER','CASHIER','FINANCE'
   email         VARCHAR(100)  NULL,
   phone         VARCHAR(30)   NULL,
   password_hash VARCHAR(255)  NOT NULL,        -- for staff login if needed
@@ -127,7 +138,7 @@ CREATE TABLE agent (
   status        ENUM('ACTIVE','INACTIVE','SUSPENDED') NOT NULL,
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_agent PRIMARY KEY (agent_id),
-  CONSTRAINT uq_agent_staff UNIQUE (staff_number),
+  CONSTRAINT uq_agent_staff_number UNIQUE (staff_number),
   CONSTRAINT uq_agent_phone UNIQUE (phone),
   CONSTRAINT uq_agent_staff_fk UNIQUE (staff_id),
   CONSTRAINT fk_agent_agency
@@ -150,7 +161,7 @@ CREATE TABLE courier (
   phone         VARCHAR(30)   NOT NULL,
   vehicle_id    VARCHAR(50)   NULL,
   password_hash VARCHAR(255)  NOT NULL,
-  status        ENUM('AVAILABLE','INACTIVE','ON_ROUTE') NOT NULL,
+  status        ENUM('AVAILABLE','BUSY','OFFLINE') NOT NULL,
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_courier PRIMARY KEY (courier_id),
   CONSTRAINT uq_courier_phone UNIQUE (phone)
@@ -214,6 +225,7 @@ CREATE TABLE pickup_request (
   time_window    VARCHAR(30)  NOT NULL,       -- '08:00-12:00'
   state          ENUM('REQUESTED','ASSIGNED','COMPLETED','CANCELLED') NOT NULL,
   comment        VARCHAR(255) NULL,
+  created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_pickup PRIMARY KEY (pickup_id),
   CONSTRAINT uq_pickup_parcel UNIQUE (parcel_id),
   CONSTRAINT fk_pickup_parcel
@@ -225,10 +237,11 @@ CREATE TABLE pickup_request (
 ) ENGINE=InnoDB;
 
 CREATE INDEX ix_pickup_state ON pickup_request(state);
+CREATE INDEX ix_pickup_courier ON pickup_request(courier_id);
 
 
 -- =========================================================
--- 9) SCAN_EVENT
+-- 9) SCAN_EVENT (Tracking history)
 -- =========================================================
 CREATE TABLE scan_event (
   scan_id       BINARY(16)   NOT NULL,      -- UUID
@@ -246,7 +259,7 @@ CREATE TABLE scan_event (
                   'DELIVERED',
                   'RETURNED'
                 ) NOT NULL,
-  event_time    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  timestamp     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   location_note VARCHAR(255) NULL,
   CONSTRAINT pk_scan PRIMARY KEY (scan_id),
   CONSTRAINT fk_scan_parcel
@@ -260,10 +273,10 @@ CREATE TABLE scan_event (
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_scan_parcel_time ON scan_event(parcel_id, event_time);
+CREATE INDEX ix_scan_parcel_time ON scan_event(parcel_id, timestamp);
 CREATE INDEX ix_scan_agency      ON scan_event(agency_id);
 CREATE INDEX ix_scan_agent       ON scan_event(agent_id);
-CREATE INDEX ix_scan_type_time   ON scan_event(event_type, event_time);
+CREATE INDEX ix_scan_type_time   ON scan_event(event_type, timestamp);
 
 
 -- =========================================================
@@ -296,7 +309,8 @@ CREATE TABLE payment (
   amount       FLOAT        NOT NULL,
   currency     VARCHAR(10)  NOT NULL DEFAULT 'XAF',
   method       ENUM('CASH','MOBILE_MONEY','CARD') NOT NULL,
-  status       ENUM('INIT','PAID','FAILED') NOT NULL DEFAULT 'INIT',
+  status       ENUM('INIT','PENDING','SUCCESS','FAILED','CANCELLED')
+               NOT NULL DEFAULT 'INIT',
   timestamp    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   external_ref VARCHAR(100) NULL,
   CONSTRAINT pk_payment PRIMARY KEY (payment_id),
@@ -333,17 +347,17 @@ CREATE TABLE invoice (
 -- =========================================================
 CREATE TABLE notification (
   notif_id    BINARY(16)   NOT NULL,        -- UUID
-  parcel_id   BINARY(16)   NOT NULL,
+  parcel_id   BINARY(16)   NULL,
   client_id   BINARY(16)   NOT NULL,
-  channel     ENUM('SMS','PUSH') NOT NULL,
+  channel     ENUM('SMS','EMAIL','PUSH') NOT NULL,
   message     TEXT         NOT NULL,
   timestamp   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  status      ENUM('SENT','FAILED') NOT NULL,
+  status      ENUM('PENDING','SENT','FAILED') NOT NULL,
   gateway_ref VARCHAR(100) NULL,
   CONSTRAINT pk_notification PRIMARY KEY (notif_id),
   CONSTRAINT fk_notif_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
-    ON UPDATE CASCADE ON DELETE CASCADE,
+    ON UPDATE CASCADE ON DELETE SET NULL,
   CONSTRAINT fk_notif_client
     FOREIGN KEY (client_id) REFERENCES client(client_id)
     ON UPDATE CASCADE ON DELETE CASCADE
@@ -388,6 +402,13 @@ CREATE TABLE pricing_detail (
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE INDEX ix_pd_parcel ON pricing_detail(parcel_id, applied_at);
+CREATE INDEX ix_pd_tariff ON pricing_detail(tariff_id);
+
+
+-- =========================================================
+-- 16) OTP_CODE (for OTP / SMS auth)
+-- =========================================================
 CREATE TABLE otp_code (
   otp_id      BINARY(16)   NOT NULL,
   phone       VARCHAR(20)  NOT NULL,
@@ -400,8 +421,179 @@ CREATE TABLE otp_code (
   INDEX ix_otp_phone_purpose (phone, purpose, created_at)
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_pd_parcel ON pricing_detail(parcel_id, applied_at);
-CREATE INDEX ix_pd_tariff ON pricing_detail(tariff_id);
+
+-- =========================================================
+-- 17) SUPPORT_TICKET  (Support / Ticketing module)
+-- =========================================================
+CREATE TABLE support_ticket (
+  ticket_id          BINARY(16)   NOT NULL,      -- UUID
+  client_id          BINARY(16)   NULL,
+  parcel_id          BINARY(16)   NULL,
+  subject            VARCHAR(200) NOT NULL,
+  description        TEXT         NOT NULL,
+  category           ENUM('COMPLAINT','CLAIM','TECHNICAL','PAYMENT','OTHER') NOT NULL,
+  status             ENUM('OPEN','IN_PROGRESS','RESOLVED','CLOSED') NOT NULL DEFAULT 'OPEN',
+  priority           ENUM('LOW','MEDIUM','HIGH','URGENT') NOT NULL DEFAULT 'MEDIUM',
+  created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at         TIMESTAMP    NULL,
+  assigned_staff_id  BINARY(16)   NULL,
+  CONSTRAINT pk_support_ticket PRIMARY KEY (ticket_id),
+  CONSTRAINT fk_st_client
+    FOREIGN KEY (client_id) REFERENCES client(client_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_st_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_st_staff
+    FOREIGN KEY (assigned_staff_id) REFERENCES staff(staff_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_st_client  ON support_ticket(client_id);
+CREATE INDEX ix_st_parcel  ON support_ticket(parcel_id);
+CREATE INDEX ix_st_status  ON support_ticket(status);
+CREATE INDEX ix_st_priority ON support_ticket(priority);
+
+
+-- =========================================================
+-- 18) REFUND_ADJUSTMENT (Refunds & Chargebacks)
+-- =========================================================
+CREATE TABLE refund_adjustment (
+  refund_id           BINARY(16)   NOT NULL,     -- UUID
+  payment_id          BINARY(16)   NOT NULL,
+  type                ENUM('REFUND','CHARGEBACK','ADJUSTMENT') NOT NULL,
+  status              ENUM('PENDING','APPROVED','REJECTED','COMPLETED') NOT NULL DEFAULT 'PENDING',
+  amount              FLOAT        NOT NULL,
+  reason              VARCHAR(255) NULL,
+  created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  processed_at        TIMESTAMP    NULL,
+  processed_by_staff_id BINARY(16) NULL,
+  CONSTRAINT pk_refund PRIMARY KEY (refund_id),
+  CONSTRAINT fk_refund_payment
+    FOREIGN KEY (payment_id) REFERENCES payment(payment_id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_refund_staff
+    FOREIGN KEY (processed_by_staff_id) REFERENCES staff(staff_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_refund_payment ON refund_adjustment(payment_id);
+CREATE INDEX ix_refund_status  ON refund_adjustment(status);
+
+
+-- =========================================================
+-- 19) RISK_ALERT (Compliance / AML / Risk)
+-- =========================================================
+CREATE TABLE risk_alert (
+  risk_alert_id      BINARY(16)   NOT NULL,     -- UUID
+  parcel_id          BINARY(16)   NULL,
+  payment_id         BINARY(16)   NULL,
+  alert_type         ENUM('AML_FLAG','HIGH_VALUE','MULTIPLE_FAILED_PAYMENTS','OTHER') NOT NULL,
+  severity           ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
+  status             ENUM('OPEN','UNDER_REVIEW','RESOLVED','DISMISSED') NOT NULL DEFAULT 'OPEN',
+  description        VARCHAR(255) NULL,
+  created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at         TIMESTAMP    NULL,
+  reviewed_by_staff_id BINARY(16) NULL,
+  CONSTRAINT pk_risk_alert PRIMARY KEY (risk_alert_id),
+  CONSTRAINT fk_risk_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_risk_payment
+    FOREIGN KEY (payment_id) REFERENCES payment(payment_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_risk_staff
+    FOREIGN KEY (reviewed_by_staff_id) REFERENCES staff(staff_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_risk_status  ON risk_alert(status);
+CREATE INDEX ix_risk_severity ON risk_alert(severity);
+CREATE INDEX ix_risk_parcel  ON risk_alert(parcel_id);
+CREATE INDEX ix_risk_payment ON risk_alert(payment_id);
+
+
+-- =========================================================
+-- 20) GEOLOCATION_ROUTE_LOG (Geocoding / routing / ETA)
+-- =========================================================
+CREATE TABLE geolocation_route_log (
+  route_log_id       BINARY(16)   NOT NULL,    -- UUID
+  parcel_id          BINARY(16)   NULL,
+  origin_lat         DECIMAL(9,6) NULL,
+  origin_lng         DECIMAL(9,6) NULL,
+  dest_lat           DECIMAL(9,6) NULL,
+  dest_lng           DECIMAL(9,6) NULL,
+  distance_km        FLOAT        NULL,
+  duration_min       INT          NULL,
+  provider           VARCHAR(50)  NULL,        -- 'GOOGLE','OSM','INTERNAL',...
+  created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_geo_route PRIMARY KEY (route_log_id),
+  CONSTRAINT fk_geo_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_geo_parcel ON geolocation_route_log(parcel_id);
+
+
+-- =========================================================
+-- 21) USSD_SESSION (USSD Integration)
+-- =========================================================
+CREATE TABLE ussd_session (
+  ussd_session_id  BINARY(16)   NOT NULL,    -- UUID
+  session_ref      VARCHAR(100) NOT NULL,    -- telco session id
+  phone            VARCHAR(20)  NOT NULL,
+  state            VARCHAR(50)  NOT NULL,    -- current menu / step
+  last_input       VARCHAR(255) NULL,
+  active           BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at       TIMESTAMP    NULL,
+  CONSTRAINT pk_ussd_session PRIMARY KEY (ussd_session_id),
+  CONSTRAINT uq_ussd_session_ref UNIQUE (session_ref)
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_ussd_phone ON ussd_session(phone);
+
+
+-- =========================================================
+-- 22) INTEGRATION_CONFIG (Operational integrations)
+-- =========================================================
+CREATE TABLE integration_config (
+  integration_id    BINARY(16)   NOT NULL,    -- UUID
+  integration_type  ENUM('PAYMENT','SMS','USSD','MAPS','NPSI','ANALYTICS','OTHER') NOT NULL,
+  provider_name     VARCHAR(100) NOT NULL,
+  base_url          VARCHAR(255) NULL,
+  api_key           VARCHAR(255) NULL,
+  active            BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at        TIMESTAMP    NULL,
+  CONSTRAINT pk_integration_config PRIMARY KEY (integration_id)
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_integration_type ON integration_config(integration_type);
+CREATE INDEX ix_integration_active ON integration_config(active);
+
+
+-- =========================================================
+-- 23) COMPLIANCE_REPORT (Compliance / AML reporting)
+-- =========================================================
+CREATE TABLE compliance_report (
+  compliance_report_id  BINARY(16)   NOT NULL,  -- UUID
+  period_start          DATE         NOT NULL,
+  period_end            DATE         NOT NULL,
+  generated_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  generated_by_staff_id BINARY(16)   NULL,
+  status                ENUM('GENERATED','SENT','ARCHIVED') NOT NULL DEFAULT 'GENERATED',
+  file_url              VARCHAR(255) NULL,
+  CONSTRAINT pk_compliance_report PRIMARY KEY (compliance_report_id),
+  CONSTRAINT fk_compliance_staff
+    FOREIGN KEY (generated_by_staff_id) REFERENCES staff(staff_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_compliance_period ON compliance_report(period_start, period_end);
+CREATE INDEX ix_compliance_status ON compliance_report(status);
+
 
 -- =========================================================
 -- DONE
