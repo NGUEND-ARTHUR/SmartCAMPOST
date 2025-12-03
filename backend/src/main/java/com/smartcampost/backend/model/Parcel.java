@@ -3,6 +3,7 @@ package com.smartcampost.backend.model;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ServiceType;
+import com.smartcampost.backend.model.enums.PaymentOption;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -91,6 +92,21 @@ public class Parcel {
     @Column(name = "status", nullable = false)
     private ParcelStatus status; // CREATED,...,CANCELLED
 
+    // --------------------------------------------------
+    //  🔥 SPRINT 14 — NEW FIELDS ADDED (NO DELETIONS)
+    // --------------------------------------------------
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_option", nullable = false)
+    private PaymentOption paymentOption; // PREPAID, COD
+
+    @Column(name = "photo_url", length = 255)
+    private String photoUrl; // optional
+
+    @Column(name = "description_comment", length = 1000)
+    private String descriptionComment; // optional comment at validation
+    // --------------------------------------------------
+
     @Column(
             name = "created_at",
             nullable = false,
@@ -115,6 +131,9 @@ public class Parcel {
         }
         if (!fragile) {
             fragile = false; // default SQL
+        }
+        if (paymentOption == null) {
+            paymentOption = PaymentOption.PREPAID; // safe default
         }
     }
 }

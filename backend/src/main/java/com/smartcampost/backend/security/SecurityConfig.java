@@ -83,6 +83,14 @@ public class SecurityConfig {
                         .authenticated()
 
                         // ===================================================
+                        //                 DELIVERY MODULE (SPRINT 14)
+                        //   OTP + final delivery confirmation
+                        //   Only COURIER / AGENT / STAFF / ADMIN
+                        // ===================================================
+                        .requestMatchers("/api/delivery/**")
+                        .hasAnyRole("COURIER", "AGENT", "STAFF", "ADMIN")
+
+                        // ===================================================
                         //                 TARIFF & PRICING
                         // ===================================================
                         .requestMatchers("/api/tariffs/**")

@@ -3,6 +3,7 @@ package com.smartcampost.backend.dto.parcel;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ServiceType;
+import com.smartcampost.backend.model.enums.PaymentOption;
 import lombok.*;
 
 import java.time.Instant;
@@ -23,6 +24,13 @@ public class ParcelResponse {
     private UUID clientId;
     private UUID senderAddressId;
     private UUID recipientAddressId;
+
+    // 🔥 NEW FIELDS
+    private PaymentOption paymentOption;     // PREPAID / COD
+    private String photoUrl;                 // optional photo
+    private String descriptionComment;       // optional comment
+    // -----------
+
     private Instant createdAt;
     private Instant expectedDeliveryAt;
 }

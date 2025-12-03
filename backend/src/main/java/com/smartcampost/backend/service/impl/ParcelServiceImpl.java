@@ -6,10 +6,13 @@ import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.*;
+import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.*;
+import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ParcelService;
+import com.smartcampost.backend.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +35,10 @@ public class ParcelServiceImpl implements ParcelService {
     private final AddressRepository addressRepository;
     private final AgencyRepository agencyRepository;
     private final PricingDetailRepository pricingDetailRepository; // 🔹 nouveau
+
+    // 🔥 SPRINT 14: services ajoutés
+    private final NotificationService notificationService;
+    private final PaymentService paymentService;
 
     private final SecureRandom random = new SecureRandom();
 
@@ -63,8 +70,6 @@ public class ParcelServiceImpl implements ParcelService {
                         "Recipient address not found",
                         ErrorCode.ADDRESS_NOT_FOUND
                 ));
-
-        // (Optionnel) vérifier que sender.getClient().getId() == client.getId()
 
         // 3) agences
         Agency originAgency = null;
@@ -106,9 +111,18 @@ public class ParcelServiceImpl implements ParcelService {
                 .status(ParcelStatus.CREATED)
                 .createdAt(Instant.now())
                 .expectedDeliveryAt(null) // ou calcul si tu veux
+
+                // 🔥 SPRINT 14: nouveaux champs
+                .paymentOption(request.getPaymentOption())
+                .photoUrl(request.getPhotoUrl())
+                .descriptionComment(request.getDescriptionComment())
+                // -----------------------------
                 .build();
 
         parcelRepository.save(parcel);
+
+        // 🔔 SPRINT 14: notification à la création du colis
+        notificationService.notifyParcelCreated(parcel);
 
         return toResponse(parcel);
     }
@@ -191,6 +205,82 @@ public class ParcelServiceImpl implements ParcelService {
         return toResponse(parcel);
     }
 
+    // ================== ACCEPT PARCEL (CREATED -> ACCEPTED) ==================
+    @Override
+    public ParcelResponse acceptParcel(UUID parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        if (parcel.getStatus() != ParcelStatus.CREATED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel must be in CREATED state to be accepted"
+            );
+        }
+
+        parcel.setStatus(ParcelStatus.ACCEPTED);
+        parcelRepository.save(parcel);
+
+        return toResponse(parcel);
+    }
+
+    // ================== CHANGE DELIVERY OPTION (AGENCY ↔ HOME) ==================
+    @Override
+    public ParcelResponse changeDeliveryOption(UUID parcelId, ChangeDeliveryOptionRequest request) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        if (parcel.getStatus() == ParcelStatus.DELIVERED
+                || parcel.getStatus() == ParcelStatus.RETURNED
+                || parcel.getStatus() == ParcelStatus.CANCELLED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Cannot change delivery option for a final parcel"
+            );
+        }
+
+        DeliveryOption oldOption = parcel.getDeliveryOption();
+        DeliveryOption newOption = request.getNewDeliveryOption();
+
+        parcel.setDeliveryOption(newOption);
+        parcelRepository.save(parcel);
+
+        // 💰 SPRINT 14: supplément si AGENCY -> HOME avec additionalAmount
+        if (oldOption == DeliveryOption.AGENCY
+                && newOption == DeliveryOption.HOME
+                && request.getAdditionalAmount() != null) {
+            paymentService.handleAdditionalDeliveryCharge(parcelId, request.getAdditionalAmount());
+        }
+
+        return toResponse(parcel);
+    }
+
+    // ================== UPDATE METADATA (photo + commentaire) ==================
+    @Override
+    public ParcelResponse updateParcelMetadata(UUID parcelId, UpdateParcelMetadataRequest request) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        if (request.getPhotoUrl() != null && !request.getPhotoUrl().isBlank()) {
+            parcel.setPhotoUrl(request.getPhotoUrl());
+        }
+        if (request.getDescriptionComment() != null && !request.getDescriptionComment().isBlank()) {
+            parcel.setDescriptionComment(request.getDescriptionComment());
+        }
+
+        parcelRepository.save(parcel);
+        return toResponse(parcel);
+    }
+
     // ================== STATUS RULES ==================
     private void validateStatusTransition(ParcelStatus current, ParcelStatus next) {
 
@@ -270,6 +360,13 @@ public class ParcelServiceImpl implements ParcelService {
                 .clientId(parcel.getClient().getId())
                 .senderAddressId(parcel.getSenderAddress().getId())
                 .recipientAddressId(parcel.getRecipientAddress().getId())
+
+                // 🔥 SPRINT 14: nouveaux champs
+                .paymentOption(parcel.getPaymentOption())
+                .photoUrl(parcel.getPhotoUrl())
+                .descriptionComment(parcel.getDescriptionComment())
+                // -----------------------------
+
                 .createdAt(parcel.getCreatedAt())
                 .expectedDeliveryAt(parcel.getExpectedDeliveryAt())
                 .build();

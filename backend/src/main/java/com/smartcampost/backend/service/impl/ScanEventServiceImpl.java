@@ -112,6 +112,13 @@ public class ScanEventServiceImpl implements ScanEventService {
             if (newStatus == ParcelStatus.DELIVERED) {
                 notificationService.notifyParcelDelivered(parcel);
             }
+
+            // 🔔 si le colis passe en "OUT_FOR_DELIVERY" -> notification dédiée
+            String eventName = type.name();
+            if (newStatus == ParcelStatus.IN_TRANSIT
+                    && eventName.contains("OUT_FOR_DELIVERY")) {
+                notificationService.notifyParcelOutForDelivery(parcel);
+            }
         }
 
         return toResponse(event);

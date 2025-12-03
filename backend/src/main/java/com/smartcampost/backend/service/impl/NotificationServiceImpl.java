@@ -270,6 +270,97 @@ public class NotificationServiceImpl implements NotificationService {
         sendAndUpdate(notif);
     }
 
+    // 🔥 NEW: notification lors de la création du colis
+    @Override
+    public void notifyParcelCreated(Parcel parcel) {
+        Client client = parcel.getClient();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String subject = "Parcel created";
+        String message = "Dear " + client.getFullName()
+                + ", your parcel " + parcel.getTrackingRef()
+                + " has been created in SmartCAMPOST system.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.PARCEL_CREATED)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
+    // 🔥 NEW: notification "out for delivery"
+    @Override
+    public void notifyParcelOutForDelivery(Parcel parcel) {
+        Client client = parcel.getClient();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String subject = "Parcel out for delivery";
+        String message = "Dear " + client.getFullName()
+                + ", your parcel " + parcel.getTrackingRef()
+                + " is now out for delivery.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.PARCEL_OUT_FOR_DELIVERY)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
+    // 🔥 NEW: envoi spécifique pour OTP de livraison
+    @Override
+    public void sendDeliveryOtp(String phoneNumber, String otpCode, String trackingRef) {
+        // On essaie d’attacher le colis si possible
+        Parcel parcel = null;
+        if (trackingRef != null && !trackingRef.isBlank()) {
+            parcel = parcelRepository.findByTrackingRef(trackingRef).orElse(null);
+        }
+
+        String subject = "Delivery OTP for your parcel";
+        String message = "Your OTP for the delivery of parcel "
+                + (trackingRef != null ? trackingRef : "your parcel")
+                + " is: " + otpCode + ". It is valid for 10 minutes.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phoneNumber)
+                .recipientEmail(null)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.DELIVERY_OTP) // 👈 dédié au flux OTP
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
     // ======================== PRIVATE HELPERS ========================
 
     private void sendAndUpdate(Notification notif) {
@@ -307,6 +398,9 @@ public class NotificationServiceImpl implements NotificationService {
             case PICKUP_REQUESTED -> "Pickup requested";
             case PICKUP_COMPLETED -> "Pickup completed";
             case PARCEL_DELIVERED -> "Parcel delivered";
+            case PARCEL_CREATED -> "Parcel created";
+            case PARCEL_OUT_FOR_DELIVERY -> "Parcel out for delivery";
+            case DELIVERY_OTP -> "Delivery OTP";
             default -> "Notification";
         };
     }
@@ -317,6 +411,9 @@ public class NotificationServiceImpl implements NotificationService {
             case PICKUP_REQUESTED -> "Pickup requested for " + tracking;
             case PICKUP_COMPLETED -> "Pickup completed for " + tracking;
             case PARCEL_DELIVERED -> tracking + " has been delivered.";
+            case PARCEL_CREATED -> tracking + " has been created in our system.";
+            case PARCEL_OUT_FOR_DELIVERY -> tracking + " is out for delivery.";
+            case DELIVERY_OTP -> "Your OTP for " + tracking + " was sent to your phone.";
             default -> "Notification regarding " + tracking;
         };
     }

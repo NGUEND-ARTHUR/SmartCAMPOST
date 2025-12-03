@@ -67,4 +67,30 @@ public class ParcelController {
     ) {
         return ResponseEntity.ok(parcelService.updateParcelStatus(parcelId, request));
     }
+
+    // 🔥 SPRINT 14: accepter un colis (CREATED -> ACCEPTED)
+    @PatchMapping("/{parcelId}/accept")
+    public ResponseEntity<ParcelResponse> acceptParcel(
+            @PathVariable UUID parcelId
+    ) {
+        return ResponseEntity.ok(parcelService.acceptParcel(parcelId));
+    }
+
+    // 🔥 SPRINT 14: changer l’option de livraison (AGENCY ↔ HOME)
+    @PatchMapping("/{parcelId}/delivery-option")
+    public ResponseEntity<ParcelResponse> changeDeliveryOption(
+            @PathVariable UUID parcelId,
+            @Valid @RequestBody ChangeDeliveryOptionRequest request
+    ) {
+        return ResponseEntity.ok(parcelService.changeDeliveryOption(parcelId, request));
+    }
+
+    // 🔥 SPRINT 14: mettre à jour photo + commentaire
+    @PatchMapping("/{parcelId}/metadata")
+    public ResponseEntity<ParcelResponse> updateParcelMetadata(
+            @PathVariable UUID parcelId,
+            @RequestBody UpdateParcelMetadataRequest request
+    ) {
+        return ResponseEntity.ok(parcelService.updateParcelMetadata(parcelId, request));
+    }
 }
