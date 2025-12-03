@@ -77,6 +77,7 @@ public enum ErrorCode {
     PAYMENT_NOT_FOUND,
     PAYMENT_ALREADY_PROCESSED,
     PAYMENT_GATEWAY_ERROR,
+    PAYMENT_INVALID_AMOUNT,       // 🔥 ADDED FOR SPRINT 14
 
     // =====================================================
     // PICKUP REQUEST MODULE

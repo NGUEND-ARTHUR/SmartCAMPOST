@@ -2,6 +2,7 @@ package com.smartcampost.backend.dto.parcel;
 
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ServiceType;
+import com.smartcampost.backend.model.enums.PaymentOption;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
@@ -38,4 +39,12 @@ public class CreateParcelRequest {
 
     @NotNull
     private DeliveryOption deliveryOption; // AGENCY / HOME
+
+    // 🔥 NEW FIELDS
+    @NotNull
+    private PaymentOption paymentOption;   // PREPAID / COD
+
+    private String photoUrl;               // optional
+    private String descriptionComment;     // optional
+    // ------------------
 }

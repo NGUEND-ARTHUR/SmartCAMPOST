@@ -1,5 +1,6 @@
 package com.smartcampost.backend.service;
 
+import com.smartcampost.backend.dto.delivery.DeliveryProofRequest;
 import com.smartcampost.backend.model.DeliveryProof;
 import com.smartcampost.backend.model.enums.DeliveryProofType;
 
@@ -14,4 +15,7 @@ public interface DeliveryProofService {
                                String capturedBy);   // courier id or staff id
 
     Optional<DeliveryProof> getProofForParcel(UUID parcelId);
+
+    // 🔥 NEW: convenience method using the DTO
+    DeliveryProof captureProof(DeliveryProofRequest request);
 }

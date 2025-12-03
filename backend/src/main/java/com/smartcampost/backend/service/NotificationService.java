@@ -30,4 +30,13 @@ public interface NotificationService {
     void notifyPickupCompleted(PickupRequest pickup);
 
     void notifyParcelDelivered(Parcel parcel);
+
+    // 🔥 NEW: notification lors de la création du colis
+    void notifyParcelCreated(Parcel parcel);
+
+    // 🔥 NEW: notification "out for delivery"
+    void notifyParcelOutForDelivery(Parcel parcel);
+
+    // 🔥 NEW: utilisé par DeliveryOtpServiceImpl
+    void sendDeliveryOtp(String phoneNumber, String otpCode, String trackingRef);
 }
