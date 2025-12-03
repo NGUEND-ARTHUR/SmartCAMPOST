@@ -14,8 +14,14 @@ USE smartcampost;
 --                        'OUT_FOR_DELIVERY','DELIVERED','RETURNED','CANCELLED'
 --   PaymentMethod      : 'CASH','MOBILE_MONEY','CARD'
 --   PaymentStatus      : 'INIT','PENDING','SUCCESS','FAILED','CANCELLED'
+--   PaymentOption      : 'PREPAID','COD'
 --   NotificationChannel: 'SMS','EMAIL','PUSH'
 --   NotificationStatus : 'PENDING','SENT','FAILED'
+--   NotificationType   : 'PICKUP_REQUESTED','PICKUP_COMPLETED','PARCEL_DELIVERED','MANUAL',
+--                        'PARCEL_CREATED','PARCEL_ACCEPTED','PARCEL_IN_TRANSIT',
+--                        'PARCEL_ARRIVED_DESTINATION','PARCEL_OUT_FOR_DELIVERY',
+--                        'PARCEL_RETURNED','PAYMENT_CONFIRMED','DELIVERY_OPTION_CHANGED',
+--                        'REMINDER_NOT_COLLECTED','DELIVERY_OTP'
 --   DeliveryProofType  : 'SIGNATURE','PHOTO','OTP'
 --   PickupRequestState : 'REQUESTED','ASSIGNED','COMPLETED','CANCELLED'
 --   ScanEventType      : 'CREATED','AT_ORIGIN_AGENCY','IN_TRANSIT','ARRIVED_HUB',
@@ -185,9 +191,12 @@ CREATE TABLE parcel (
   is_fragile            BOOLEAN       NOT NULL DEFAULT FALSE,
   service_type          ENUM('STANDARD','EXPRESS') NOT NULL,
   delivery_option       ENUM('AGENCY','HOME') NOT NULL,
+  payment_option        ENUM('PREPAID','COD') NOT NULL DEFAULT 'PREPAID',
   status                ENUM('CREATED','ACCEPTED','IN_TRANSIT','ARRIVED_HUB',
                              'OUT_FOR_DELIVERY','DELIVERED','RETURNED','CANCELLED')
                        NOT NULL DEFAULT 'CREATED',
+  photo_url             VARCHAR(255)  NULL,
+  description_comment   VARCHAR(255)  NULL,
   created_at            TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   expected_delivery_at  TIMESTAMP     NULL,
   CONSTRAINT pk_parcel PRIMARY KEY (parcel_id),
@@ -236,7 +245,7 @@ CREATE TABLE pickup_request (
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_pickup_state ON pickup_request(state);
+CREATE INDEX ix_pickup_state   ON pickup_request(state);
 CREATE INDEX ix_pickup_courier ON pickup_request(courier_id);
 
 
@@ -301,6 +310,27 @@ CREATE TABLE delivery_proof (
 
 
 -- =========================================================
+-- 10B) DELIVERY_OTP (OTP codes for final delivery confirmation)
+-- =========================================================
+CREATE TABLE delivery_otp (
+  delivery_otp_id BINARY(16)   NOT NULL,    -- UUID
+  parcel_id       BINARY(16)   NOT NULL,
+  phone_number    VARCHAR(30)  NOT NULL,
+  otp_code        VARCHAR(10)  NOT NULL,
+  expires_at      TIMESTAMP    NOT NULL,
+  consumed        BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_delivery_otp PRIMARY KEY (delivery_otp_id),
+  CONSTRAINT fk_delivery_otp_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_delivery_otp_parcel   ON delivery_otp(parcel_id);
+CREATE INDEX ix_delivery_otp_consumed ON delivery_otp(parcel_id, consumed);
+
+
+-- =========================================================
 -- 11) PAYMENT
 -- =========================================================
 CREATE TABLE payment (
@@ -346,25 +376,48 @@ CREATE TABLE invoice (
 -- 13) NOTIFICATION
 -- =========================================================
 CREATE TABLE notification (
-  notif_id    BINARY(16)   NOT NULL,        -- UUID
-  parcel_id   BINARY(16)   NULL,
-  client_id   BINARY(16)   NOT NULL,
-  channel     ENUM('SMS','EMAIL','PUSH') NOT NULL,
-  message     TEXT         NOT NULL,
-  timestamp   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  status      ENUM('PENDING','SENT','FAILED') NOT NULL,
-  gateway_ref VARCHAR(100) NULL,
-  CONSTRAINT pk_notification PRIMARY KEY (notif_id),
-  CONSTRAINT fk_notif_parcel
+  notification_id  BINARY(16)   NOT NULL,      -- UUID
+  parcel_id        BINARY(16)   NULL,
+  pickup_id        BINARY(16)   NULL,
+  recipient_phone  VARCHAR(30)  NULL,
+  recipient_email  VARCHAR(100) NULL,
+  channel          ENUM('SMS','EMAIL','PUSH') NOT NULL,
+  type             ENUM(
+                      'PICKUP_REQUESTED',
+                      'PICKUP_COMPLETED',
+                      'PARCEL_DELIVERED',
+                      'MANUAL',
+                      'PARCEL_CREATED',
+                      'PARCEL_ACCEPTED',
+                      'PARCEL_IN_TRANSIT',
+                      'PARCEL_ARRIVED_DESTINATION',
+                      'PARCEL_OUT_FOR_DELIVERY',
+                      'PARCEL_RETURNED',
+                      'PAYMENT_CONFIRMED',
+                      'DELIVERY_OPTION_CHANGED',
+                      'REMINDER_NOT_COLLECTED',
+                      'DELIVERY_OTP'
+                    ) NOT NULL,
+  status           ENUM('PENDING','SENT','FAILED') NOT NULL DEFAULT 'PENDING',
+  subject          VARCHAR(255) NOT NULL,
+  message          TEXT         NOT NULL,
+  retry_count      INT          NOT NULL DEFAULT 0,
+  error_message    VARCHAR(255) NULL,
+  created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  sent_at          TIMESTAMP    NULL,
+  CONSTRAINT pk_notification PRIMARY KEY (notification_id),
+  CONSTRAINT fk_notification_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
     ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT fk_notif_client
-    FOREIGN KEY (client_id) REFERENCES client(client_id)
-    ON UPDATE CASCADE ON DELETE CASCADE
+  CONSTRAINT fk_notification_pickup
+    FOREIGN KEY (pickup_id) REFERENCES pickup_request(pickup_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE INDEX ix_notif_parcel ON notification(parcel_id);
-CREATE INDEX ix_notif_client ON notification(client_id);
+CREATE INDEX ix_notif_pickup ON notification(pickup_id);
+CREATE INDEX ix_notif_type   ON notification(type);
+CREATE INDEX ix_notif_status ON notification(status);
 
 
 -- =========================================================
@@ -449,9 +502,9 @@ CREATE TABLE support_ticket (
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_st_client  ON support_ticket(client_id);
-CREATE INDEX ix_st_parcel  ON support_ticket(parcel_id);
-CREATE INDEX ix_st_status  ON support_ticket(status);
+CREATE INDEX ix_st_client   ON support_ticket(client_id);
+CREATE INDEX ix_st_parcel   ON support_ticket(parcel_id);
+CREATE INDEX ix_st_status   ON support_ticket(status);
 CREATE INDEX ix_st_priority ON support_ticket(priority);
 
 
@@ -459,15 +512,15 @@ CREATE INDEX ix_st_priority ON support_ticket(priority);
 -- 18) REFUND_ADJUSTMENT (Refunds & Chargebacks)
 -- =========================================================
 CREATE TABLE refund_adjustment (
-  refund_id           BINARY(16)   NOT NULL,     -- UUID
-  payment_id          BINARY(16)   NOT NULL,
-  type                ENUM('REFUND','CHARGEBACK','ADJUSTMENT') NOT NULL,
-  status              ENUM('PENDING','APPROVED','REJECTED','COMPLETED') NOT NULL DEFAULT 'PENDING',
-  amount              FLOAT        NOT NULL,
-  reason              VARCHAR(255) NULL,
-  created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  processed_at        TIMESTAMP    NULL,
-  processed_by_staff_id BINARY(16) NULL,
+  refund_id             BINARY(16)   NOT NULL,     -- UUID
+  payment_id            BINARY(16)   NOT NULL,
+  type                  ENUM('REFUND','CHARGEBACK','ADJUSTMENT') NOT NULL,
+  status                ENUM('PENDING','APPROVED','REJECTED','COMPLETED') NOT NULL DEFAULT 'PENDING',
+  amount                FLOAT        NOT NULL,
+  reason                VARCHAR(255) NULL,
+  created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  processed_at          TIMESTAMP    NULL,
+  processed_by_staff_id BINARY(16)   NULL,
   CONSTRAINT pk_refund PRIMARY KEY (refund_id),
   CONSTRAINT fk_refund_payment
     FOREIGN KEY (payment_id) REFERENCES payment(payment_id)
@@ -507,10 +560,10 @@ CREATE TABLE risk_alert (
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_risk_status  ON risk_alert(status);
+CREATE INDEX ix_risk_status   ON risk_alert(status);
 CREATE INDEX ix_risk_severity ON risk_alert(severity);
-CREATE INDEX ix_risk_parcel  ON risk_alert(parcel_id);
-CREATE INDEX ix_risk_payment ON risk_alert(payment_id);
+CREATE INDEX ix_risk_parcel   ON risk_alert(parcel_id);
+CREATE INDEX ix_risk_payment  ON risk_alert(payment_id);
 
 
 -- =========================================================
@@ -570,7 +623,7 @@ CREATE TABLE integration_config (
   CONSTRAINT pk_integration_config PRIMARY KEY (integration_id)
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_integration_type ON integration_config(integration_type);
+CREATE INDEX ix_integration_type   ON integration_config(integration_type);
 CREATE INDEX ix_integration_active ON integration_config(active);
 
 
