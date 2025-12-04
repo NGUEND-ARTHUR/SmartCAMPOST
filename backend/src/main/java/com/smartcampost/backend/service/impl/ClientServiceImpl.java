@@ -40,7 +40,10 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientResponse getClientById(UUID clientId) {
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
         return toResponse(client);
     }
 
@@ -66,17 +69,27 @@ public class ClientServiceImpl implements ClientService {
         UserAccount user = getCurrentUserAccount();
 
         if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Current user is not a client"
+            );
         }
 
         Client client = clientRepository.findById(user.getEntityId())
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
 
         // === PHONE (avec contrôle d'unicité) ===
         if (request.getPhone() != null && !request.getPhone().equals(client.getPhone())) {
             // Vérifier si un autre compte utilise déjà ce phone
             if (userAccountRepository.existsByPhone(request.getPhone())) {
-                throw new ConflictException("Phone already in use");
+                // ✅ Utilisation de CLIENT_PHONE_EXISTS
+                throw new ConflictException(
+                        "Client phone already in use",
+                        ErrorCode.CLIENT_PHONE_EXISTS
+                );
             }
             client.setPhone(request.getPhone());
             user.setPhone(request.getPhone());
@@ -86,7 +99,11 @@ public class ClientServiceImpl implements ClientService {
         // === EMAIL (unicité au niveau Client) ===
         if (request.getEmail() != null && !request.getEmail().equals(client.getEmail())) {
             if (clientRepository.existsByEmail(request.getEmail())) {
-                throw new ConflictException("Email already in use");
+                // ✅ Utilisation de CLIENT_EMAIL_EXISTS
+                throw new ConflictException(
+                        "Client email already in use",
+                        ErrorCode.CLIENT_EMAIL_EXISTS
+                );
             }
             client.setEmail(request.getEmail());
         }
@@ -111,17 +128,26 @@ public class ClientServiceImpl implements ClientService {
     private Client getCurrentClient() {
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Current user is not a client"
+            );
         }
 
         return clientRepository.findById(user.getEntityId())
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
     }
 
     private UserAccount getCurrentUserAccount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Unauthenticated");
+            throw new AuthException(
+                    ErrorCode.AUTH_UNAUTHORIZED,
+                    "Unauthenticated"
+            );
         }
 
         String subject = auth.getName(); // "sub" du JWT
@@ -130,11 +156,17 @@ public class ClientServiceImpl implements ClientService {
         try {
             UUID userId = UUID.fromString(subject);
             return userAccountRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User not found",
+                            ErrorCode.AUTH_USER_NOT_FOUND
+                    ));
         } catch (IllegalArgumentException ex) {
             // pas un UUID -> on considère que c'est le phone
             return userAccountRepository.findByPhone(subject)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User not found",
+                            ErrorCode.AUTH_USER_NOT_FOUND
+                    ));
         }
     }
 

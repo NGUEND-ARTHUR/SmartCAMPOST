@@ -4,6 +4,7 @@ import com.smartcampost.backend.dto.ussd.UssdRequest;
 import com.smartcampost.backend.dto.ussd.UssdResponse;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.UssdSession;
 import com.smartcampost.backend.model.enums.UssdSessionState;
@@ -27,16 +28,36 @@ public class UssdServiceImpl implements UssdService {
     @Override
     public UssdResponse handleUssdRequest(UssdRequest request) {
 
+        // ============================
+        // 🔥 1. Validate incoming request
+        // ============================
+        if (request.getSessionRef() == null || request.getMsisdn() == null) {
+            throw new ConflictException(
+                    "Invalid USSD request from gateway",
+                    ErrorCode.USSD_GATEWAY_ERROR
+            );
+        }
+
+        // Retrieve or create session
         UssdSession session = getOrCreateSession(
                 request.getSessionRef(),
                 request.getMsisdn()
         );
 
-        String input = request.getUserInput().trim();
+        if (session == null) {
+            throw new ResourceNotFoundException(
+                    "USSD session not found",
+                    ErrorCode.USSD_SESSION_NOT_FOUND
+            );
+        }
 
-        // Simple menu:
-        // First step: "0" or empty -> show main menu
+        String input = request.getUserInput() != null ? request.getUserInput().trim() : "";
+
+        // ============================
+        // MAIN MENU ENTRY
+        // ============================
         if (input.isEmpty() || "0".equals(input)) {
+
             session.setCurrentMenu("MAIN");
             session.setLastInteractionAt(Instant.now());
             ussdSessionRepository.save(session);
@@ -44,26 +65,33 @@ public class UssdServiceImpl implements UssdService {
             String msg = "Welcome to SmartCAMPOST\n"
                     + "1. Track parcel\n"
                     + "0. Exit";
+
             return UssdResponse.builder()
                     .message(msg)
                     .endSession(false)
                     .build();
         }
 
+        // ============================
+        // TRACK PARCEL MENU
+        // ============================
         if ("1".equals(input) && "MAIN".equals(session.getCurrentMenu())) {
+
             session.setCurrentMenu("TRACK_PROMPT");
             session.setLastInteractionAt(Instant.now());
             ussdSessionRepository.save(session);
 
-            String msg = "Enter tracking number:";
             return UssdResponse.builder()
-                    .message(msg)
+                    .message("Enter tracking number:")
                     .endSession(false)
                     .build();
         }
 
+        // ============================
+        // PARCEL SEARCH
+        // ============================
         if ("TRACK_PROMPT".equals(session.getCurrentMenu())) {
-            // input is tracking ref
+
             String trackingRef = input;
 
             Optional<Parcel> parcelOpt = parcelRepository.findByTrackingRef(trackingRef);
@@ -86,33 +114,50 @@ public class UssdServiceImpl implements UssdService {
                     .build();
         }
 
-        // default: finish
+        // ============================
+        // UNKNOWN MENU → use USSD_MENU_NOT_FOUND
+        // ============================
         session.setState(UssdSessionState.COMPLETED);
         session.setLastInteractionAt(Instant.now());
         ussdSessionRepository.save(session);
 
-        return UssdResponse.builder()
-                .message("Session ended.")
-                .endSession(true)
-                .build();
+        throw new ConflictException(
+                "Unknown USSD menu state: " + session.getCurrentMenu(),
+                ErrorCode.USSD_MENU_NOT_FOUND
+        );
     }
 
+    // ============================================================
+    // SESSION HELPER
+    // ============================================================
     private UssdSession getOrCreateSession(String sessionRef, String msisdn) {
-        return ussdSessionRepository
-                .findTopBySessionRefAndStateOrderByLastInteractionAtDesc(
-                        sessionRef,
-                        UssdSessionState.ACTIVE
-                )
-                .orElseGet(() -> {
-                    UssdSession s = UssdSession.builder()
-                            .id(UUID.randomUUID())
-                            .sessionRef(sessionRef)
-                            .msisdn(msisdn)
-                            .currentMenu("MAIN")
-                            .state(UssdSessionState.ACTIVE)
-                            .lastInteractionAt(Instant.now())
-                            .build();
-                    return ussdSessionRepository.save(s);
-                });
+
+        try {
+            return ussdSessionRepository
+                    .findTopBySessionRefAndStateOrderByLastInteractionAtDesc(
+                            sessionRef,
+                            UssdSessionState.ACTIVE
+                    )
+                    .orElseGet(() -> {
+
+                        UssdSession s = UssdSession.builder()
+                                .id(UUID.randomUUID())
+                                .sessionRef(sessionRef)
+                                .msisdn(msisdn)
+                                .currentMenu("MAIN")
+                                .state(UssdSessionState.ACTIVE)
+                                .lastInteractionAt(Instant.now())
+                                .build();
+
+                        return ussdSessionRepository.save(s);
+                    });
+
+        } catch (Exception ex) {
+            // If the session cannot be created or loaded → mark as session error
+            throw new ConflictException(
+                    "Unable to load USSD session",
+                    ErrorCode.USSD_SESSION_NOT_FOUND
+            );
+        }
     }
 }

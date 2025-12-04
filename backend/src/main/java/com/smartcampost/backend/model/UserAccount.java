@@ -40,6 +40,10 @@ public class UserAccount {
     )
     private Instant createdAt;
 
+    // 🔥 NEW FIELD: account frozen flag (for compliance / risk)
+    @Column(name = "is_frozen", nullable = false)
+    private Boolean frozen = false;
+
     @PrePersist
     void onCreate() {
         if (id == null) {
@@ -48,5 +52,18 @@ public class UserAccount {
         if (createdAt == null) {
             createdAt = Instant.now(); // ensures NOT NULL
         }
+        if (frozen == null) {
+            frozen = false;
+        }
+    }
+
+    // 🔥 Explicit getter to support account.isFrozen() calls
+    public Boolean isFrozen() {
+        return frozen;
+    }
+
+    // Explicit setter (Lombok would generate setFrozen, but we keep it clear)
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
     }
 }

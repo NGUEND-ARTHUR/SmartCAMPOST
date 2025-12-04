@@ -26,7 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;   // 🔥 ajouté
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -50,7 +50,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Current user is not a client"
+            );
         }
 
         // --- Récupérer le colis ---
@@ -61,7 +64,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Le colis doit appartenir au client
         if (!parcel.getClient().getId().equals(user.getEntityId())) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "You do not own this parcel");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "You do not own this parcel"
+            );
         }
 
         // --- Vérifier si déjà payé ---
@@ -191,6 +197,13 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (!payments.isEmpty()) {
             enforceAccess(payments.get(0));
+        } else {
+            // Aucun paiement, mais on doit quand même contrôler l'accès au parcel
+            Parcel parcel = parcelRepository.findById(parcelId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Parcel not found", ErrorCode.PARCEL_NOT_FOUND
+                    ));
+            enforceParcelAccess(parcel);
         }
 
         return payments.stream().map(this::toResponse).collect(Collectors.toList());
@@ -205,7 +218,10 @@ public class PaymentServiceImpl implements PaymentService {
         UserAccount user = getCurrentUserAccount();
 
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to list all payments");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Not allowed to list all payments"
+            );
         }
 
         return paymentRepository.findAll(PageRequest.of(page, size))
@@ -247,8 +263,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .parcel(parcel)
                 .amount(amount)
                 .currency(currency)
-                // 👇 IMPORTANT : on passe null ici car method attend un PaymentMethod (pas String)
-                // Tu pourras plus tard mettre un PaymentMethod.COD si tu crées cette constante.
+                // plus tard: PaymentMethod.COD
                 .method(null)
                 .status(PaymentStatus.PENDING)
                 .timestamp(Instant.now())
@@ -317,7 +332,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .parcel(parcel)
                 .amount(additionalAmount.doubleValue())
                 .currency("XAF")
-                // même remarque : method peut rester null ou reprendre une méthode existante plus tard
+                // plus tard: PaymentMethod.CASH, etc.
                 .method(null)
                 // on considère que ce supplément est payé immédiatement au comptoir
                 .status(PaymentStatus.SUCCESS)
@@ -334,18 +349,29 @@ public class PaymentServiceImpl implements PaymentService {
     // ACCESS CONTROL
     // ======================================================
     private void enforceAccess(Payment payment) {
-        UserAccount user = getCurrentUserAccount();
         Parcel parcel = payment.getParcel();
+        enforceParcelAccess(parcel);
+    }
+
+    private void enforceParcelAccess(Parcel parcel) {
+        UserAccount user = getCurrentUserAccount();
 
         if (user.getRole() == UserRole.CLIENT) {
             if (!parcel.getClient().getId().equals(user.getEntityId())) {
-                throw new AuthException(ErrorCode.BUSINESS_ERROR, "You cannot access this payment");
+                throw new AuthException(
+                        ErrorCode.AUTH_FORBIDDEN,
+                        "You cannot access this payment"
+                );
             }
         }
 
         if (user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Courier cannot access payment details");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Courier cannot access payment details"
+            );
         }
+        // STAFF / AGENT / ADMIN : ok
     }
 
     // ======================================================
@@ -355,7 +381,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Unauthenticated");
+            throw new AuthException(
+                    ErrorCode.AUTH_UNAUTHORIZED,
+                    "Unauthenticated"
+            );
         }
 
         String subject = auth.getName();

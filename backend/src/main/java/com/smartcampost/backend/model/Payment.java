@@ -55,6 +55,25 @@ public class Payment {
     @Column(name = "external_ref", length = 100)
     private String externalRef;
 
+    // ============================================================
+    // 🔥 NEW FIELD: for chargeback / reverse payment handling
+    // ============================================================
+
+    @Column(name = "reversed", nullable = false)
+    @Builder.Default
+    private Boolean reversed = false;
+
+    public Boolean isReversed() {
+        return reversed;
+    }
+
+    public void setReversed(Boolean reversed) {
+        this.reversed = reversed;
+    }
+
+    // ============================================================
+    // LIFECYCLE HOOK
+    // ============================================================
     @PrePersist
     void onCreate() {
         if (id == null) {
@@ -67,7 +86,10 @@ public class Payment {
             currency = "XAF";
         }
         if (status == null) {
-            status = PaymentStatus.PENDING; // valeur par défaut correcte
+            status = PaymentStatus.PENDING;
+        }
+        if (reversed == null) {
+            reversed = false;
         }
     }
 }

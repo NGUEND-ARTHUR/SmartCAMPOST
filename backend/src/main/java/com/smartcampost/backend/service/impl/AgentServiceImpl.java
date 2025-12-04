@@ -41,8 +41,21 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public AgentResponse createAgent(CreateAgentRequest request) {
 
+        // Pré-calculer les conflits
+        boolean staffNumberExists = agentRepository.existsByStaffNumber(request.getStaffNumber());
+        boolean phoneExists = agentRepository.existsByPhone(request.getPhone())
+                || userAccountRepository.existsByPhone(request.getPhone());
+
+        // 🔥 Cas combiné : conflit global agent (staff + phone)
+        if (staffNumberExists && phoneExists) {
+            throw new ConflictException(
+                    "Agent conflict: staff number and phone already in use",
+                    ErrorCode.AGENT_CONFLICT
+            );
+        }
+
         // unicité staffNumber
-        if (agentRepository.existsByStaffNumber(request.getStaffNumber())) {
+        if (staffNumberExists) {
             throw new ConflictException(
                     "Staff number already in use",
                     ErrorCode.AGENT_STAFF_NUMBER_EXISTS
@@ -50,8 +63,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         // unicité phone (Agent + UserAccount)
-        if (agentRepository.existsByPhone(request.getPhone())
-                || userAccountRepository.existsByPhone(request.getPhone())) {
+        if (phoneExists) {
             throw new ConflictException(
                     "Phone already in use",
                     ErrorCode.AGENT_PHONE_EXISTS
