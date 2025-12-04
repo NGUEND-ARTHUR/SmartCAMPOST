@@ -33,7 +33,7 @@ USE smartcampost;
 --   SupportTicketStatus: 'OPEN','IN_PROGRESS','RESOLVED','CLOSED'
 --   SupportPriority    : 'LOW','MEDIUM','HIGH','URGENT'
 --   RefundType         : 'REFUND','CHARGEBACK','ADJUSTMENT'
---   RefundStatus       : 'PENDING','APPROVED','REJECTED','COMPLETED'
+--   RefundStatus       : 'REQUESTED','PENDING','APPROVED','REJECTED','COMPLETED','PROCESSED'
 --   RiskAlertType      : 'AML_FLAG','HIGH_VALUE','MULTIPLE_FAILED_PAYMENTS','OTHER'
 --   RiskSeverity       : 'LOW','MEDIUM','HIGH','CRITICAL'
 --   RiskAlertStatus    : 'OPEN','UNDER_REVIEW','RESOLVED','DISMISSED'
@@ -51,6 +51,7 @@ CREATE TABLE user_account (
   password_hash  VARCHAR(255)  NOT NULL,
   role           ENUM('CLIENT','AGENT','STAFF','COURIER','ADMIN','FINANCE','RISK') NOT NULL,
   entity_id      BINARY(16)    NOT NULL,       -- points to client/agent/staff/courier
+  frozen         BOOLEAN       NOT NULL DEFAULT FALSE,   -- 🔥 account freeze flag
   created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_user_account PRIMARY KEY (id),
   CONSTRAINT uq_user_phone UNIQUE (phone)
@@ -341,6 +342,7 @@ CREATE TABLE payment (
   method       ENUM('CASH','MOBILE_MONEY','CARD') NOT NULL,
   status       ENUM('INIT','PENDING','SUCCESS','FAILED','CANCELLED')
                NOT NULL DEFAULT 'INIT',
+  reversed     BOOLEAN      NOT NULL DEFAULT FALSE,  -- 🔥 soft reversal flag
   timestamp    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   external_ref VARCHAR(100) NULL,
   CONSTRAINT pk_payment PRIMARY KEY (payment_id),
@@ -515,7 +517,8 @@ CREATE TABLE refund_adjustment (
   refund_id             BINARY(16)   NOT NULL,     -- UUID
   payment_id            BINARY(16)   NOT NULL,
   type                  ENUM('REFUND','CHARGEBACK','ADJUSTMENT') NOT NULL,
-  status                ENUM('PENDING','APPROVED','REJECTED','COMPLETED') NOT NULL DEFAULT 'PENDING',
+  status                ENUM('REQUESTED','PENDING','APPROVED','REJECTED','COMPLETED','PROCESSED')
+                        NOT NULL DEFAULT 'REQUESTED',
   amount                FLOAT        NOT NULL,
   reason                VARCHAR(255) NULL,
   created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -538,16 +541,17 @@ CREATE INDEX ix_refund_status  ON refund_adjustment(status);
 -- 19) RISK_ALERT (Compliance / AML / Risk)
 -- =========================================================
 CREATE TABLE risk_alert (
-  risk_alert_id      BINARY(16)   NOT NULL,     -- UUID
-  parcel_id          BINARY(16)   NULL,
-  payment_id         BINARY(16)   NULL,
-  alert_type         ENUM('AML_FLAG','HIGH_VALUE','MULTIPLE_FAILED_PAYMENTS','OTHER') NOT NULL,
-  severity           ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
-  status             ENUM('OPEN','UNDER_REVIEW','RESOLVED','DISMISSED') NOT NULL DEFAULT 'OPEN',
-  description        VARCHAR(255) NULL,
-  created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at         TIMESTAMP    NULL,
-  reviewed_by_staff_id BINARY(16) NULL,
+  risk_alert_id        BINARY(16)   NOT NULL,     -- UUID
+  parcel_id            BINARY(16)   NULL,
+  payment_id           BINARY(16)   NULL,
+  alert_type           ENUM('AML_FLAG','HIGH_VALUE','MULTIPLE_FAILED_PAYMENTS','OTHER') NOT NULL,
+  severity             ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL,
+  status               ENUM('OPEN','UNDER_REVIEW','RESOLVED','DISMISSED') NOT NULL DEFAULT 'OPEN',
+  resolved             BOOLEAN      NOT NULL DEFAULT FALSE,   -- 🔥 boolean flag used in service
+  description          VARCHAR(255) NULL,
+  created_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at           TIMESTAMP    NULL,
+  reviewed_by_staff_id BINARY(16)   NULL,
   CONSTRAINT pk_risk_alert PRIMARY KEY (risk_alert_id),
   CONSTRAINT fk_risk_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
@@ -593,14 +597,16 @@ CREATE INDEX ix_geo_parcel ON geolocation_route_log(parcel_id);
 -- 21) USSD_SESSION (USSD Integration)
 -- =========================================================
 CREATE TABLE ussd_session (
-  ussd_session_id  BINARY(16)   NOT NULL,    -- UUID
-  session_ref      VARCHAR(100) NOT NULL,    -- telco session id
-  phone            VARCHAR(20)  NOT NULL,
-  state            VARCHAR(50)  NOT NULL,    -- current menu / step
-  last_input       VARCHAR(255) NULL,
-  active           BOOLEAN      NOT NULL DEFAULT TRUE,
-  created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at       TIMESTAMP    NULL,
+  ussd_session_id    BINARY(16)   NOT NULL,    -- UUID
+  session_ref        VARCHAR(100) NOT NULL,    -- telco session id
+  phone              VARCHAR(20)  NOT NULL,
+  state              VARCHAR(50)  NOT NULL,    -- technical state (ACTIVE/COMPLETED, etc.)
+  current_menu       VARCHAR(50)  NOT NULL DEFAULT 'MAIN',  -- 🔥 logical menu (MAIN, TRACK_PROMPT, ...)
+  last_input         VARCHAR(255) NULL,
+  active             BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at         TIMESTAMP    NULL,
+  last_interaction_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 🔥 used in service
   CONSTRAINT pk_ussd_session PRIMARY KEY (ussd_session_id),
   CONSTRAINT uq_ussd_session_ref UNIQUE (session_ref)
 ) ENGINE=InnoDB;
