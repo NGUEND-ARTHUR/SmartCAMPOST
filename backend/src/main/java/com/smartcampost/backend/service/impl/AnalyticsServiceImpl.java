@@ -4,6 +4,7 @@ import com.smartcampost.backend.dto.analytics.AnomalyCheckResponse;
 import com.smartcampost.backend.dto.analytics.EtaPredictionResponse;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.Payment;
 import com.smartcampost.backend.repository.ParcelRepository;
@@ -25,6 +26,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     // ================== ETA PREDICTION ==================
     @Override
     public EtaPredictionResponse predictEtaForParcel(UUID parcelId) {
+
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -34,14 +36,21 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Instant predicted;
         double confidence;
 
-        if (parcel.getExpectedDeliveryAt() != null) {
-            predicted = parcel.getExpectedDeliveryAt();
-            confidence = 0.9;
-        } else {
-            // Simple heuristic: createdAt + 3 days (3 × 24 × 3600 seconds)
-            long threeDaysInSeconds = 3L * 24 * 3600;
-            predicted = parcel.getCreatedAt().plusSeconds(threeDaysInSeconds);
-            confidence = 0.6;
+        try {
+            if (parcel.getExpectedDeliveryAt() != null) {
+                predicted = parcel.getExpectedDeliveryAt();
+                confidence = 0.9;
+            } else {
+                long threeDaysInSeconds = 3L * 24 * 3600;
+                predicted = parcel.getCreatedAt().plusSeconds(threeDaysInSeconds);
+                confidence = 0.6;
+            }
+        } catch (Exception ex) {
+            // 🔥 Use ETA_CALCULATION_FAILED
+            throw new ConflictException(
+                    "Could not compute ETA for parcel",
+                    ErrorCode.ETA_CALCULATION_FAILED
+            );
         }
 
         return EtaPredictionResponse.builder()
@@ -55,6 +64,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     // ================== PAYMENT ANOMALY ==================
     @Override
     public AnomalyCheckResponse checkPaymentAnomaly(UUID paymentId) {
+
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Payment not found",
@@ -66,11 +76,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         String reason = "Normal payment";
         double score = 0.1;
 
-        // Simple rule: large amount -> suspicious
-        if (amount > 200000) { // threshold e.g. 200k XAF
-            anomalous = true;
-            reason = "Amount exceeds anomaly threshold";
-            score = 0.8;
+        try {
+            // Simple rule: amount above threshold = suspicious
+            if (amount > 200000) {
+                anomalous = true;
+                reason = "Amount exceeds anomaly threshold";
+                score = 0.8;
+            }
+        } catch (Exception ex) {
+            // 🔥 Use ANOMALY_DETECTION_FAILED
+            throw new ConflictException(
+                    "Failed to evaluate payment anomaly",
+                    ErrorCode.ANOMALY_DETECTION_FAILED
+            );
         }
 
         return AnomalyCheckResponse.builder()

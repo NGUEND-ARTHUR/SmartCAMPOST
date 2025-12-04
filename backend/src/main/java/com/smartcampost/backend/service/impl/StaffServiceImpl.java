@@ -33,8 +33,21 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public StaffResponse createStaff(CreateStaffRequest request) {
 
+        // Pré-calculer les conflits
+        boolean emailExists = staffRepository.existsByEmail(request.getEmail());
+        boolean phoneExists = staffRepository.existsByPhone(request.getPhone())
+                || userAccountRepository.existsByPhone(request.getPhone());
+
+        // 🔥 Conflit global staff (email + phone)
+        if (emailExists && phoneExists) {
+            throw new ConflictException(
+                    "Staff conflict: email and phone already in use",
+                    ErrorCode.STAFF_CONFLICT
+            );
+        }
+
         // Email unique
-        if (staffRepository.existsByEmail(request.getEmail())) {
+        if (emailExists) {
             throw new ConflictException(
                     "Email already in use",
                     ErrorCode.STAFF_EMAIL_EXISTS
@@ -42,8 +55,7 @@ public class StaffServiceImpl implements StaffService {
         }
 
         // Phone unique (Staff + UserAccount)
-        if (staffRepository.existsByPhone(request.getPhone())
-                || userAccountRepository.existsByPhone(request.getPhone())) {
+        if (phoneExists) {
             throw new ConflictException(
                     "Phone already in use",
                     ErrorCode.STAFF_PHONE_EXISTS

@@ -4,6 +4,7 @@ import com.smartcampost.backend.dto.compliance.ComplianceReportResponse;
 import com.smartcampost.backend.dto.compliance.ResolveRiskAlertRequest;
 import com.smartcampost.backend.dto.compliance.RiskAlertResponse;
 import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.RiskAlert;
@@ -40,7 +41,6 @@ public class ComplianceServiceImpl implements ComplianceService {
     @Override
     public Page<RiskAlertResponse> listRiskAlerts(int page, int size) {
         ensureBackoffice();
-
         return riskAlertRepository.findAll(PageRequest.of(page, size))
                 .map(this::toResponse);
     }
@@ -71,8 +71,6 @@ public class ComplianceServiceImpl implements ComplianceService {
                 ));
 
         alert.setResolved(request.isResolved());
-        // resolutionNote not stored currently; you could extend entity later
-
         riskAlertRepository.save(alert);
 
         return toResponse(alert);
@@ -82,6 +80,13 @@ public class ComplianceServiceImpl implements ComplianceService {
     @Override
     public ComplianceReportResponse generateComplianceReport(LocalDate from, LocalDate to) {
         ensureBackoffice();
+
+        if (from == null || to == null || from.isAfter(to)) {
+            throw new ConflictException(
+                    "Invalid date range for compliance report",
+                    ErrorCode.RISK_EVALUATION_FAILED
+            );
+        }
 
         Instant fromInstant = from.atStartOfDay().toInstant(ZoneOffset.UTC);
         Instant toInstant = to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -103,12 +108,18 @@ public class ComplianceServiceImpl implements ComplianceService {
                         || a.getSeverity() == RiskSeverity.CRITICAL)
                 .count();
 
+        long amlCount = all.stream()
+                .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
+                .filter(a -> a.getType() != null
+                        && a.getType().name().toUpperCase().contains("AML"))
+                .count();
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalAlerts", total);
         stats.put("unresolvedAlerts", unresolved);
         stats.put("highOrCriticalAlerts", highCritical);
+        stats.put("amlAlerts", amlCount);
 
-        // breakdown by type
         Map<String, Long> byType = all.stream()
                 .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
                 .collect(Collectors.groupingBy(
@@ -117,6 +128,19 @@ public class ComplianceServiceImpl implements ComplianceService {
                 ));
         stats.put("byType", byType);
 
+        // Use the existing error codes in the report context
+        if (total == 0) {
+            stats.put("noAlertsCode", ErrorCode.COMPLIANCE_ALERT_NOT_FOUND.name());
+        }
+        if (amlCount == 0) {
+            stats.put("amlStatusCode", ErrorCode.AML_ALERT_NOT_FOUND.name());
+        }
+
+        // 🔥 NEW: use COMPLIANCE_RULE_VIOLATION when there are unresolved HIGH/CRITICAL alerts
+        if (highCritical > 0 && unresolved > 0) {
+            stats.put("complianceRuleStatusCode", ErrorCode.COMPLIANCE_RULE_VIOLATION.name());
+        }
+
         return ComplianceReportResponse.builder()
                 .generatedAt(Instant.now())
                 .period(from + " to " + to)
@@ -124,7 +148,7 @@ public class ComplianceServiceImpl implements ComplianceService {
                 .build();
     }
 
-    // ================== FREEZE / UNFREEZE ==================
+    // ================== FREEZE ACCOUNT ==================
     @Override
     public void freezeAccount(UUID userId) {
         ensureBackoffice();
@@ -135,9 +159,18 @@ public class ComplianceServiceImpl implements ComplianceService {
                         ErrorCode.AUTH_USER_NOT_FOUND
                 ));
 
+        if (Boolean.TRUE.equals(account.isFrozen())) {
+            throw new ConflictException(
+                    "Account already frozen",
+                    ErrorCode.ACCOUNT_ALREADY_FROZEN
+            );
+        }
+
+        // account.setFrozen(true);
         userAccountRepository.save(account);
     }
 
+    // ================== UNFREEZE ACCOUNT ==================
     @Override
     public void unfreezeAccount(UUID userId) {
         ensureBackoffice();
@@ -148,7 +181,14 @@ public class ComplianceServiceImpl implements ComplianceService {
                         ErrorCode.AUTH_USER_NOT_FOUND
                 ));
 
-        // e.g. account.setFrozen(false);
+        if (!Boolean.TRUE.equals(account.isFrozen())) {
+            throw new ConflictException(
+                    "Account is not frozen",
+                    ErrorCode.ACCOUNT_NOT_FROZEN
+            );
+        }
+
+        // account.setFrozen(false);
         userAccountRepository.save(account);
     }
 
@@ -157,7 +197,7 @@ public class ComplianceServiceImpl implements ComplianceService {
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
             throw new AuthException(
-                    ErrorCode.BUSINESS_ERROR,
+                    ErrorCode.AUTH_FORBIDDEN,
                     "Not allowed to access compliance resources"
             );
         }
@@ -172,7 +212,7 @@ public class ComplianceServiceImpl implements ComplianceService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             throw new AuthException(
-                    ErrorCode.AUTH_INVALID_CREDENTIALS,
+                    ErrorCode.AUTH_UNAUTHORIZED,
                     "Unauthenticated"
             );
         }

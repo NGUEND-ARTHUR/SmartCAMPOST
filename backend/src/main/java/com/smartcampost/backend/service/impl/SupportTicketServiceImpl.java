@@ -5,6 +5,7 @@ import com.smartcampost.backend.dto.ticket.TicketReplyRequest;
 import com.smartcampost.backend.dto.ticket.TicketResponse;
 import com.smartcampost.backend.dto.ticket.UpdateTicketStatusRequest;
 import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Client;
@@ -40,14 +41,30 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Only clients can open support tickets");
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Only clients can open support tickets");
         }
 
         Client client = clientRepository.findById(user.getEntityId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Client not found",
-                        ErrorCode.AUTH_USER_NOT_FOUND
+                        ErrorCode.CLIENT_NOT_FOUND
                 ));
+
+        // 🔥 Simple business rule: avoid multiple active tickets for same client
+        Page<SupportTicket> existingTickets = supportTicketRepository
+                .findByClient(client, PageRequest.of(0, 50));
+
+        boolean hasActiveTicket = existingTickets
+                .stream()
+                .anyMatch(t -> t.getStatus() == TicketStatus.OPEN
+                        || t.getStatus() == TicketStatus.IN_PROGRESS);
+
+        if (hasActiveTicket) {
+            throw new ConflictException(
+                    "You already have an active support ticket",
+                    ErrorCode.TICKET_CONFLICT
+            );
+        }
 
         SupportTicket ticket = SupportTicket.builder()
                 .id(UUID.randomUUID())
@@ -82,14 +99,15 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     @Override
     public Page<TicketResponse> listMyTickets(int page, int size) {
         UserAccount user = getCurrentUserAccount();
+
         if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Current user is not a client");
         }
 
         Client client = clientRepository.findById(user.getEntityId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Client not found",
-                        ErrorCode.AUTH_USER_NOT_FOUND
+                        ErrorCode.CLIENT_NOT_FOUND
                 ));
 
         return supportTicketRepository
@@ -101,8 +119,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     @Override
     public Page<TicketResponse> listAllTickets(int page, int size) {
         UserAccount user = getCurrentUserAccount();
+
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to list all tickets");
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Not allowed to list all tickets");
         }
 
         return supportTicketRepository.findAll(PageRequest.of(page, size))
@@ -113,8 +132,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     @Override
     public TicketResponse replyToTicket(UUID ticketId, TicketReplyRequest request) {
         UserAccount user = getCurrentUserAccount();
+
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to reply to tickets");
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Not allowed to reply to tickets");
         }
 
         SupportTicket ticket = supportTicketRepository.findById(ticketId)
@@ -123,7 +143,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                         ErrorCode.TICKET_NOT_FOUND
                 ));
 
-        // Simple approach: append reply text to message body
+        // Reply logic
         String existing = ticket.getMessage() != null ? ticket.getMessage() : "";
         String replyBlock = "\n\n[REPLY] " + request.getReplyMessage();
         ticket.setMessage(existing + replyBlock);
@@ -131,8 +151,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         if (ticket.getStatus() == TicketStatus.OPEN) {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
         }
-        ticket.setUpdatedAt(Instant.now());
 
+        ticket.setUpdatedAt(Instant.now());
         supportTicketRepository.save(ticket);
 
         return toResponse(ticket);
@@ -142,8 +162,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     @Override
     public TicketResponse updateTicketStatus(UUID ticketId, UpdateTicketStatusRequest request) {
         UserAccount user = getCurrentUserAccount();
+
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to change ticket status");
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Not allowed to change ticket status");
         }
 
         SupportTicket ticket = supportTicketRepository.findById(ticketId)
@@ -151,6 +172,21 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                         "Ticket not found",
                         ErrorCode.TICKET_NOT_FOUND
                 ));
+
+        // 🔥 Validation – TICKET_STATUS_INVALID
+        if (request.getStatus() == null) {
+            throw new ConflictException(
+                    "Ticket status is required",
+                    ErrorCode.TICKET_STATUS_INVALID
+            );
+        }
+
+        if (ticket.getStatus() == request.getStatus()) {
+            throw new ConflictException(
+                    "Ticket is already in this status",
+                    ErrorCode.TICKET_STATUS_INVALID
+            );
+        }
 
         ticket.setStatus(request.getStatus());
         ticket.setUpdatedAt(Instant.now());
@@ -165,20 +201,22 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         UserAccount user = getCurrentUserAccount();
 
         if (user.getRole() == UserRole.CLIENT) {
-            if (ticket.getClient() == null
-                    || !ticket.getClient().getId().equals(user.getEntityId())) {
-                throw new AuthException(ErrorCode.BUSINESS_ERROR, "You cannot access this ticket");
+            if (ticket.getClient() == null ||
+                    !ticket.getClient().getId().equals(user.getEntityId())) {
+
+                throw new AuthException(
+                        ErrorCode.AUTH_FORBIDDEN,
+                        "You cannot access this ticket"
+                );
             }
         }
-        // STAFF / AGENT / ADMIN : OK
-        // COURIER : by design, no tickets – but we could block explicitly if needed
     }
 
     // ================== CURRENT USER ==================
     private UserAccount getCurrentUserAccount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Unauthenticated");
+            throw new AuthException(ErrorCode.AUTH_UNAUTHORIZED, "Unauthenticated");
         }
 
         String subject = auth.getName();

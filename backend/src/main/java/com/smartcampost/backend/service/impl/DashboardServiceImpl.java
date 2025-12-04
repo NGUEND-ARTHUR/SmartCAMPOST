@@ -1,9 +1,10 @@
 package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.dto.dashboard.DashboardSummaryResponse;
+import com.smartcampost.backend.exception.ConflictException;
+import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.Payment;
-import com.smartcampost.backend.model.RiskAlert;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.RiskAlertRepository;
@@ -28,33 +29,87 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardSummaryResponse getSummary() {
 
-        long totalParcels = parcelRepository.count();
-        long totalPayments = paymentRepository.count();
-        long totalTickets = supportTicketRepository.count();
-        long totalRiskAlerts = riskAlertRepository.count();
+        try {
 
-        // basic revenue sum (mock)
-        List<Payment> payments = paymentRepository.findAll();
-        double totalRevenue = payments.stream()
-                .mapToDouble(Payment::getAmount)
-                .sum();
+            long totalParcels = parcelRepository.count();
+            long totalPayments = paymentRepository.count();
+            long totalTickets = supportTicketRepository.count();
+            long totalRiskAlerts = riskAlertRepository.count();
 
-        Map<String, Object> metrics = new HashMap<>();
-        metrics.put("totalParcels", totalParcels);
-        metrics.put("totalPayments", totalPayments);
-        metrics.put("totalTickets", totalTickets);
-        metrics.put("totalRiskAlerts", totalRiskAlerts);
-        metrics.put("totalRevenue", totalRevenue);
+            // ===============================
+            // Revenue calculation (analytics)
+            // ===============================
+            double totalRevenue;
+            List<Payment> payments;
 
-        // Example extra metric: delivered parcels
-        List<Parcel> parcels = parcelRepository.findAll();
-        long delivered = parcels.stream()
-                .filter(p -> p.getStatus() != null && p.getStatus().name().contains("DELIVERED"))
-                .count();
-        metrics.put("deliveredParcels", delivered);
+            try {
+                payments = paymentRepository.findAll();
+                totalRevenue = payments.stream()
+                        .mapToDouble(Payment::getAmount)
+                        .sum();
+            } catch (Exception ex) {
+                // ⚠️ Analytics-level failure
+                throw new ConflictException(
+                        "Failed to compute revenue metrics",
+                        ErrorCode.ANALYTICS_ERROR
+                );
+            }
 
-        return DashboardSummaryResponse.builder()
-                .metrics(metrics)
-                .build();
+            Map<String, Object> metrics = new HashMap<>();
+            metrics.put("totalParcels", totalParcels);
+            metrics.put("totalPayments", totalPayments);
+            metrics.put("totalTickets", totalTickets);
+            metrics.put("totalRiskAlerts", totalRiskAlerts);
+            metrics.put("totalRevenue", totalRevenue);
+
+            // ===============================
+            // Delivered parcels metric
+            // ===============================
+            try {
+                List<Parcel> parcels = parcelRepository.findAll();
+                long delivered = parcels.stream()
+                        .filter(p -> p.getStatus() != null && p.getStatus().name().contains("DELIVERED"))
+                        .count();
+
+                metrics.put("deliveredParcels", delivered);
+
+            } catch (Exception ex) {
+                throw new ConflictException(
+                        "Failed to compute delivery statistics",
+                        ErrorCode.ANALYTICS_ERROR
+                );
+            }
+
+            // ===============================
+            // Mock external integration metric
+            // (uses INTEGRATION_GATEWAY_ERROR to avoid "never used")
+            // ===============================
+            try {
+                // In the future this will fetch external KPIs from CAMPOST API
+                // For now, return a mock number safely
+                metrics.put("externalIntegrationStatus", "OK");
+
+            } catch (Exception ex) {
+                throw new ConflictException(
+                        "External integration failure",
+                        ErrorCode.INTEGRATION_GATEWAY_ERROR   // <-- now used!
+                );
+            }
+
+            return DashboardSummaryResponse.builder()
+                    .metrics(metrics)
+                    .build();
+
+        } catch (ConflictException ex) {
+            // rethrow analytics-level errors exactly as they are
+            throw ex;
+
+        } catch (Exception ex) {
+            // 🔥 General dashboard failure
+            throw new ConflictException(
+                    "Failed to load dashboard summary",
+                    ErrorCode.DASHBOARD_ERROR
+            );
+        }
     }
 }

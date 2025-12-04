@@ -4,6 +4,7 @@ import com.smartcampost.backend.dto.refund.CreateRefundRequest;
 import com.smartcampost.backend.dto.refund.RefundResponse;
 import com.smartcampost.backend.dto.refund.UpdateRefundStatusRequest;
 import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Client;
@@ -59,15 +60,26 @@ public class RefundServiceImpl implements RefundService {
         // Clients can only request refunds for their own payments
         if (user.getRole() == UserRole.CLIENT) {
             if (!client.getId().equals(user.getEntityId())) {
-                throw new AuthException(ErrorCode.BUSINESS_ERROR, "You do not own this payment");
+                throw new AuthException(
+                        ErrorCode.AUTH_FORBIDDEN,
+                        "You do not own this payment"
+                );
             }
+        }
+
+        // ❌ NEW: Prevent refund on reversed/chargebacked payment
+        if (payment.isReversed() != null && payment.isReversed()) {
+            throw new ConflictException(
+                    "Payment already reversed, cannot issue refund",
+                    ErrorCode.CHARGEBACK_CONFLICT
+            );
         }
 
         // Basic amount check (no over-refund)
         if (request.getAmount() > payment.getAmount()) {
-            throw new AuthException(
-                    ErrorCode.BUSINESS_ERROR,
-                    "Refund amount cannot exceed original payment amount"
+            throw new ConflictException(
+                    "Refund amount cannot exceed original payment amount",
+                    ErrorCode.REFUND_CONFLICT
             );
         }
 
@@ -90,9 +102,12 @@ public class RefundServiceImpl implements RefundService {
     public RefundResponse updateRefundStatus(UUID refundId, UpdateRefundStatusRequest request) {
 
         UserAccount user = getCurrentUserAccount();
-        // Only STAFF / AGENT (or similar backoffice roles) should update refunds
+
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to update refund status");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Not allowed to update refund status"
+            );
         }
 
         Refund refund = refundRepository.findById(refundId)
@@ -101,7 +116,16 @@ public class RefundServiceImpl implements RefundService {
                         ErrorCode.REFUND_NOT_FOUND
                 ));
 
+        // 🔥 Prevent re-processing a processed refund
+        if (refund.getStatus() == RefundStatus.PROCESSED) {
+            throw new ConflictException(
+                    "Refund is already processed",
+                    ErrorCode.REFUND_ALREADY_PROCESSED
+            );
+        }
+
         refund.setStatus(request.getStatus());
+
         if (request.getStatus() == RefundStatus.PROCESSED) {
             refund.setProcessedAt(Instant.now());
         }
@@ -116,8 +140,8 @@ public class RefundServiceImpl implements RefundService {
     public RefundResponse getRefundById(UUID refundId) {
         Refund refund = refundRepository.findById(refundId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Refund not found",
-                        ErrorCode.REFUND_NOT_FOUND
+                        "Refund/Chargeback not found",
+                        ErrorCode.CHARGEBACK_NOT_FOUND
                 ));
 
         enforceAccess(refund);
@@ -137,32 +161,37 @@ public class RefundServiceImpl implements RefundService {
 
         List<Refund> refunds = refundRepository.findByPayment(payment);
 
-        // Access control on first refund (or on payment’s parcel)
-        if (!refunds.isEmpty()) {
-            enforceAccess(refunds.get(0));
-        } else {
-            // if no refund yet, still enforce access from payment
-            enforcePaymentAccess(payment);
+        if (refunds.isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "No refund/chargeback found for this payment",
+                    ErrorCode.CHARGEBACK_NOT_FOUND
+            );
         }
+
+        enforceAccess(refunds.get(0));
 
         return refunds.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    // ================== LIST ALL (BACKOFFICE) ==================
+    // ================== LIST ALL ==================
     @Override
     public Page<RefundResponse> listAllRefunds(int page, int size) {
         UserAccount user = getCurrentUserAccount();
+
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to list all refunds");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Not allowed to list all refunds"
+            );
         }
 
         return refundRepository.findAll(PageRequest.of(page, size))
                 .map(this::toResponse);
     }
 
-    // ================== ACCESS CONTROL HELPERS ==================
+    // ================== ACCESS HELPERS ==================
     private void enforceAccess(Refund refund) {
         Payment payment = refund.getPayment();
         enforcePaymentAccess(payment);
@@ -175,27 +204,35 @@ public class RefundServiceImpl implements RefundService {
 
         if (user.getRole() == UserRole.CLIENT) {
             if (!client.getId().equals(user.getEntityId())) {
-                throw new AuthException(ErrorCode.BUSINESS_ERROR, "You cannot access this refund");
+                throw new AuthException(
+                        ErrorCode.AUTH_FORBIDDEN,
+                        "You cannot access this refund"
+                );
             }
         }
 
         if (user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Courier cannot access refunds");
+            throw new AuthException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    "Courier cannot access refunds"
+            );
         }
-        // STAFF / AGENT / ADMIN : ok
     }
 
     private UserAccount getCurrentUserAccount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Unauthenticated");
+            throw new AuthException(
+                    ErrorCode.AUTH_UNAUTHORIZED,
+                    "Unauthenticated"
+            );
         }
 
         String subject = auth.getName();
 
         try {
-            UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            UUID id = UUID.fromString(subject);
+            return userAccountRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND

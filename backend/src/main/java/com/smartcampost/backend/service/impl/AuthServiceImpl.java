@@ -33,30 +33,42 @@ public class AuthServiceImpl implements AuthService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     // ============================================================
-    // REGISTER CLIENT (avec OTP REGISTER)
+    // REGISTER CLIENT
     // ============================================================
     @Override
     public AuthResponse registerClient(RegisterClientRequest request) {
 
-        // 1) Vérifier si le téléphone existe déjà
+        // 1) Vérifier si le téléphone existe déjà → USER_PHONE_EXISTS
         if (userAccountRepository.existsByPhone(request.getPhone())) {
-            throw new ConflictException("Phone already exists");
+            throw new ConflictException(
+                    "Phone already exists",
+                    ErrorCode.USER_PHONE_EXISTS
+            );
         }
 
-        // 2) Vérifier OTP (REGISTER)
+        // 1b) Vérifier email en double
+        if (request.getEmail() != null && clientRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException(
+                    "Email already exists",
+                    ErrorCode.CLIENT_CONFLICT
+            );
+        }
+
+        // 2) Vérifier OTP
         boolean validOtp = otpService.validateOtp(
                 request.getPhone(),
                 request.getOtp(),
                 OtpPurpose.REGISTER
         );
+
         if (!validOtp) {
             throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
 
-        // 3) Encoder le mot de passe
+        // 3) Encoder mot de passe
         String encodedPassword = encoder.encode(request.getPassword());
 
-        // 4) Créer le client
+        // 4) Créer Client
         Client client = Client.builder()
                 .id(UUID.randomUUID())
                 .fullName(request.getFullName())
@@ -68,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
         clientRepository.save(client);
 
-        // 5) Créer le compte utilisateur
+        // 5) Créer UserAccount
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(request.getPhone())
@@ -79,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
 
         userAccountRepository.save(account);
 
-        // 6) Générer le token JWT
+        // 6) JWT Token
         String token = jwtService.generateToken(account);
 
         return AuthResponse.builder()
@@ -94,24 +106,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // ============================================================
-    // LOGIN classique (password)
+    // LOGIN classique
     // ============================================================
     @Override
     public AuthResponse login(LoginRequest request) {
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
                 .orElseThrow(() ->
-                        new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials"));
+                        new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials")
+                );
 
         if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
         }
 
         String fullName = null;
-
         if (user.getRole() == UserRole.CLIENT) {
             Client client = clientRepository.findById(user.getEntityId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("Client not found", ErrorCode.CLIENT_NOT_FOUND));
             fullName = client.getFullName();
         }
 
@@ -129,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // ============================================================
-    // OTP GÉNÉRIQUE (REGISTER par défaut)
+    // OTP GENERIC
     // ============================================================
     @Override
     public void sendOtp(String phone) {
@@ -138,18 +151,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean verifyOtp(String phone, String otp) {
-        // Ici on garde le booléen pour l'endpoint /verify-otp
         return otpService.validateOtp(phone, otp, OtpPurpose.REGISTER);
     }
 
     // ============================================================
-    // CHANGE PASSWORD (user connecté)
+    // CHANGE PASSWORD
     // ============================================================
     @Override
     public void changePassword(ChangePasswordRequest request) {
 
         UserAccount user = userAccountRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
         if (!encoder.matches(request.getOldPassword(), user.getPasswordHash())) {
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Old password incorrect");
@@ -160,7 +173,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // ============================================================
-    // PASSWORD RESET FLOW (OTP RESET_PASSWORD)
+    // RESET PASSWORD VIA OTP
     // ============================================================
     @Override
     public void requestPasswordReset(String phone) {
@@ -179,12 +192,14 @@ public class AuthServiceImpl implements AuthService {
                 request.getOtp(),
                 OtpPurpose.RESET_PASSWORD
         );
+
         if (!validOtp) {
             throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
         String encoded = encoder.encode(request.getNewPassword());
         user.setPasswordHash(encoded);
@@ -200,11 +215,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // ============================================================
-    // LOGIN PAR OTP (OtpPurpose.LOGIN)
+    // LOGIN WITH OTP
     // ============================================================
     @Override
     public void requestLoginOtp(String phone) {
-        // vérifier que le compte existe
         userAccountRepository.findByPhone(phone)
                 .orElseThrow(() ->
                         new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "No account with this phone"));
@@ -225,12 +239,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
         String fullName = null;
         if (user.getRole() == UserRole.CLIENT) {
             Client client = clientRepository.findById(user.getEntityId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("Client not found", ErrorCode.CLIENT_NOT_FOUND));
             fullName = client.getFullName();
         }
 
