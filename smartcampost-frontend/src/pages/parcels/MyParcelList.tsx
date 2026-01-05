@@ -1,23 +1,23 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listParcels } from "../../services/parcelService";
+import { listMyParcels } from "../../services/parcelService";
 import { Link } from "react-router-dom";
 import ParcelStatusBadge from "../../components/parcel/ParcelStatusBadge";
 
-export default function ParcelList() {
+export default function MyParcelList() {
   const [page, setPage] = useState(0);
   const size = 10;
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
-    queryKey: ["parcels", page, size],
-    queryFn: () => listParcels(page, size),
-    staleTime: 20_000,
+    queryKey: ["myParcels", page, size],
+    queryFn: () => listMyParcels(page, size),
+    staleTime: 30_000,
   });
 
   return (
     <div className="p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-100">All Parcels</h2>
+        <h2 className="text-lg font-semibold text-slate-100">My Parcels</h2>
         {isFetching && <span className="text-xs text-slate-400">Refreshing…</span>}
       </div>
 
@@ -37,7 +37,7 @@ export default function ParcelList() {
                 <tr>
                   <th className="px-3 py-2 text-left">Tracking</th>
                   <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Destination</th>
+                  <th className="px-3 py-2 text-left">Receiver</th>
                   <th className="px-3 py-2 text-left">Action</th>
                 </tr>
               </thead>
@@ -48,9 +48,9 @@ export default function ParcelList() {
                     <td className="px-3 py-2">
                       <ParcelStatusBadge status={p.status} />
                     </td>
-                    <td className="px-3 py-2 text-slate-300">{p.destinationCity ?? "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">{p.receiverName ?? "-"}</td>
                     <td className="px-3 py-2">
-                      <Link to={`/parcels/${p.id}`} className="text-amber-400 hover:text-amber-300">
+                      <Link to={`/client/parcels/${p.id}`} className="text-amber-400 hover:text-amber-300">
                         View
                       </Link>
                     </td>
