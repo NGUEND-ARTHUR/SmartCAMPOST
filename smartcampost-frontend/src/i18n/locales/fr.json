@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "SmartCAMPOST"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "parcels": "Colis",
+    "pickups": "Collectes",
+    "delivery": "Livraison",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "auth": {
+    "loginTitle": "Connexion",
+    "loginSubtitle": "Accès backoffice réservé au personnel CAMPOST",
+    "usernameLabel": "Email ou nom d’utilisateur",
+    "passwordLabel": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion…"
+  },
+  "common": {
+    "language": "Langue",
+    "english": "Anglais",
+    "french": "Français"
+  }
+}
