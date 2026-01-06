@@ -1,19 +1,12 @@
 import { api } from "./api";
 import type { PageResponse } from "../types/Common";
-import type { Parcel, ParcelDetail, ParcelStatus, DeliveryOption } from "../types/Parcel";
-
-export interface CreateParcelRequest {
-  receiverName: string;
-  receiverPhone: string;
-  destinationCity: string;
-
-  // optional extras (adapt to your backend DTO)
-  senderName?: string;
-  senderPhone?: string;
-  originCity?: string;
-  deliveryOption?: DeliveryOption;
-  comment?: string;
-}
+import type {
+  Parcel,
+  ParcelDetail,
+  ParcelStatus,
+  DeliveryOption,
+  CreateParcelRequest,
+} from "../types/Parcel";
 
 export interface UpdateParcelStatusRequest {
   status: ParcelStatus;
