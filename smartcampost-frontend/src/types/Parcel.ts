@@ -9,6 +9,8 @@ export type ParcelStatus =
   | "CANCELLED";
 
 export type DeliveryOption = "AGENCY" | "HOME";
+export type ServiceType = "STANDARD" | "EXPRESS";
+export type PaymentOption = "PREPAID" | "COD";
 
 export interface ParcelResponse {
   id: string; // UUID string from backend
@@ -53,20 +55,21 @@ export interface ParcelDetailResponse extends ParcelResponse {
   timeline?: ParcelTimelineItem[];
 }
 
-// ===== Requests =====
+// ===== Requests (align with backend CreateParcelRequest DTO) =====
 export interface CreateParcelRequest {
-  receiverName: string;
-  receiverPhone: string;
-  destinationAgencyId: string; // UUID string
-
-  senderName?: string;
-  senderPhone?: string;
-
-  weightKg?: number;
+  senderAddressId: string;
+  recipientAddressId: string;
+  originAgencyId?: string;
+  destinationAgencyId?: string;
+  weight: number;
+  dimensions?: string;
   declaredValue?: number;
-  description?: string;
-
-  deliveryOption?: DeliveryOption; // AGENCY | HOME
+  fragile: boolean;
+  serviceType: ServiceType;
+  deliveryOption: DeliveryOption;
+  paymentOption: PaymentOption;
+  photoUrl?: string;
+  descriptionComment?: string;
 }
 
 export interface UpdateParcelStatusRequest {

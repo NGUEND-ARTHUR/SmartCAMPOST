@@ -5,15 +5,19 @@ export function getHomeByRole(role?: string) {
   switch (role) {
     case "ADMIN":
     case "STAFF":
-      return "/";
+      return "/admin/dashboard";
     case "AGENT":
-      return "/agent";
+      return "/agent/dashboard";
     case "COURIER":
-      return "/courier";
+      return "/courier/dashboard";
     case "CLIENT":
-      return "/client";
+      return "/client/dashboard";
+    case "FINANCE":
+      return "/finance/dashboard";
+    case "RISK":
+      return "/risk/dashboard";
     default:
-      return "/login";
+      return "/auth/login";
   }
 }
 
@@ -21,7 +25,7 @@ export function PrivateRoute() {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/auth/login" replace />;
   }
 
   return <Outlet />;

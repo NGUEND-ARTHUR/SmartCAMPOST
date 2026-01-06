@@ -1,12 +1,12 @@
 ﻿import { FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login as loginApi } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { getHomeByRole } from "../../router/PrivateRoute";
 import axios from "axios";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await loginApi({ username, password });
+      const res = await loginApi({ phone, password });
 
       // Save
       login(res.user, res.accessToken);
@@ -68,16 +68,16 @@ export default function Login() {
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="username" className="block text-xs font-medium text-slate-300">
-              Email or username
+            <label htmlFor="phone" className="block text-xs font-medium text-slate-300">
+              Phone number
             </label>
             <input
-              id="username"
-              type="text"
+              id="phone"
+              type="tel"
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-50 outline-none focus:ring-2 focus:ring-amber-500/60"
-              placeholder="admin@smartcampost.cm"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="+237 6xx xxx xxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
             />
           </div>
@@ -110,10 +110,31 @@ export default function Login() {
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
+
+          <div className="flex items-center justify-between text-[11px] text-slate-400">
+            <Link
+              to="/auth/login-otp"
+              className="hover:text-amber-300 transition-colors"
+            >
+              Login with OTP
+            </Link>
+            <Link
+              to="/auth/reset-password"
+              className="hover:text-amber-300 transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </form>
 
         <p className="mt-4 text-[11px] text-slate-500 text-center">
-          Client portal is handled separately via role-based routing.
+          New customer?{" "}
+          <Link
+            to="/auth/register"
+            className="text-amber-400 hover:text-amber-300 font-medium"
+          >
+            Create a client account
+          </Link>
         </p>
       </div>
     </div>
