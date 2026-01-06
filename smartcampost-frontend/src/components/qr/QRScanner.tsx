@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { recordScanEvent } from "../../services/scanEventService";
-import api from "../../services/api";
+import { api } from "../../services/api";
 import type { ScanEventType } from "../../types/Scan";
 
 function isUuid(value: string) {

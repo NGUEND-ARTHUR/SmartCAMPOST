@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useFetchOne } from "../../hooks/common/useApiQuery";
+import { useQuery } from "@tanstack/react-query";
 import { ReadOnlyTrackingMap } from "../../components/maps/ReadOnlyTrackingMap";
 import {
   sendDeliveryOtp,
@@ -25,20 +25,11 @@ export default function DeliveryConfirmStepper() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    data: parcel,
-    isLoading,
-    isError,
-  } = useFetchOne(
-    ["parcel", parcelId],
-    `/api/parcels/${parcelId}`,
-    parcelId
-      ? {
-          enabled: true,
-          queryFn: () => getParcelById(parcelId),
-        }
-      : { enabled: false }
-  );
+  const { data: parcel, isLoading, isError } = useQuery({
+    queryKey: ["parcel", parcelId],
+    queryFn: () => getParcelById(String(parcelId)),
+    enabled: !!parcelId,
+  });
 
   if (!parcelId) {
     return <ErrorBanner>Missing parcel id in URL.</ErrorBanner>;

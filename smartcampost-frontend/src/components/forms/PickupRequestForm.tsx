@@ -1,12 +1,10 @@
 import { FormEvent, useState } from "react";
-import { createPickupRequest } from "../../services/pickupService";
+import { createPickup } from "../../services/pickupService";
 import axios from "axios";
 
 export default function PickupRequestForm() {
-  const [senderName, setSenderName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [parcelId, setParcelId] = useState("");
   const [addressText, setAddressText] = useState("");
-  const [city, setCity] = useState("");
   const [preferredTimeSlot, setPreferredTimeSlot] = useState("08:00-12:00");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -16,18 +14,14 @@ export default function PickupRequestForm() {
     setMsg(null);
     setLoading(true);
     try {
-      await createPickupRequest({
-        senderName,
-        phone,
+      await createPickup({
+        parcelId: parcelId.trim(),
         addressText,
-        city,
         preferredTimeSlot,
       });
       setMsg("Pickup request created successfully ✅");
-      setSenderName("");
-      setPhone("");
+      setParcelId("");
       setAddressText("");
-      setCity("");
     } catch (err: unknown) {
       let m = "Failed to create pickup request.";
       if (axios.isAxiosError(err)) m = err.message;
@@ -41,21 +35,13 @@ export default function PickupRequestForm() {
     <form onSubmit={submit} className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
       <h3 className="text-sm font-semibold text-slate-100">Request Home Pickup</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label="Full name">
-          <input value={senderName} onChange={(e) => setSenderName(e.target.value)} required
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-50" />
-        </Field>
-
-        <Field label="Phone">
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} required
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-50" />
-        </Field>
-      </div>
-
-      <Field label="City">
-        <input value={city} onChange={(e) => setCity(e.target.value)} required
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-50" />
+      <Field label="Parcel ID">
+        <input
+          value={parcelId}
+          onChange={(e) => setParcelId(e.target.value)}
+          required
+          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-50"
+        />
       </Field>
 
       <Field label="Address details">
