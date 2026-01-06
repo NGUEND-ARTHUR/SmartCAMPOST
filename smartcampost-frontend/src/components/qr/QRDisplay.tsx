@@ -12,7 +12,7 @@ export default function QRDisplay({ value, label }: Props) {
   useEffect(() => {
     let mounted = true;
     QRCode.toDataURL(value, { margin: 1, width: 220 })
-      .then((url) => mounted && setDataUrl(url))
+      .then((url: string) => mounted && setDataUrl(url))
       .catch(() => mounted && setDataUrl(""));
     return () => {
       mounted = false;

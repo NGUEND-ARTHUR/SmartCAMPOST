@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { confirmDelivery } from "../../services/deliveryService";
+import { confirmFinalDelivery } from "../../services/deliveryService";
 
 export default function DeliveryConfirmationForm() {
   const [parcelId, setParcelId] = useState("");
@@ -12,8 +12,11 @@ export default function DeliveryConfirmationForm() {
     setMsg(null);
     setLoading(true);
     try {
-      const res = await confirmDelivery({ parcelId, otp });
-      setMsg(res.ok ? "Delivery confirmed ✅" : res.message ?? "Delivery failed");
+      await confirmFinalDelivery({
+        otp: { parcelId, otpCode: otp },
+        proof: { parcelId, proofType: "OTP" },
+      });
+      setMsg("Delivery confirmed ✅");
       setParcelId("");
       setOtp("");
     } catch {

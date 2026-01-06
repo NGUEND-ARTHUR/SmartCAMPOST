@@ -7,20 +7,20 @@ import {
 import { AxiosError } from "axios";
 import { useApiClient } from "./useApiClient";
 
-type AnyKey = readonly unknown[] | string;
+type QueryKey = readonly unknown[];
 
 export function useFetchList<TData = unknown>(
-  key: AnyKey,
+  key: QueryKey,
   url: string,
   params?: Record<string, unknown>,
   options?: Omit<
-    UseQueryOptions<TData, AxiosError, TData, AnyKey>,
+    UseQueryOptions<TData, AxiosError, TData, QueryKey>,
     "queryKey" | "queryFn"
   >
 ) {
   const client = useApiClient();
   return useQuery<TData, AxiosError>({
-    queryKey: typeof key === "string" ? [key, params] : key,
+    queryKey: key,
     queryFn: async () => {
       const { data } = await client.get<TData>(url, { params });
       return data;
@@ -30,16 +30,16 @@ export function useFetchList<TData = unknown>(
 }
 
 export function useFetchOne<TData = unknown>(
-  key: AnyKey,
+  key: QueryKey,
   url: string,
   options?: Omit<
-    UseQueryOptions<TData, AxiosError, TData, AnyKey>,
+    UseQueryOptions<TData, AxiosError, TData, QueryKey>,
     "queryKey" | "queryFn"
   >
 ) {
   const client = useApiClient();
   return useQuery<TData, AxiosError>({
-    queryKey: typeof key === "string" ? [key] : key,
+    queryKey: key,
     queryFn: async () => {
       const { data } = await client.get<TData>(url);
       return data;
