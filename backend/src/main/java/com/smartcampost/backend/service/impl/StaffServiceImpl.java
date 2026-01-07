@@ -155,6 +155,11 @@ public class StaffServiceImpl implements StaffService {
                                 ErrorCode.STAFF_NOT_FOUND
                         ));
 
+        // ✅ If role is already the same, just return (idempotent)
+        if (staff.getRole() != null && staff.getRole().equalsIgnoreCase(role.name())) {
+            return toResponse(staff);
+        }
+
         // ✅ Staff.role is STRING
         staff.setRole(role.name());
         staffRepository.save(staff);
@@ -180,6 +185,7 @@ public class StaffServiceImpl implements StaffService {
         }
 
         // Only allow staff-like roles to be created/updated via staff module
+        // ✅ Allowed: STAFF, ADMIN, FINANCE, RISK
         if (role == UserRole.CLIENT || role == UserRole.AGENT || role == UserRole.COURIER) {
             throw new ConflictException(
                     "Invalid staff role: " + role + ". Allowed: STAFF, ADMIN, FINANCE, RISK",

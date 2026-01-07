@@ -78,9 +78,6 @@ export default function ParcelTracking() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold">{parcel.trackingRef}</p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Destination: {parcel.destinationCity ?? "-"}
-                </p>
               </div>
               <ParcelStatusBadge status={parcel.status} />
             </div>

@@ -48,7 +48,9 @@ export default function ParcelList() {
                     <td className="px-3 py-2">
                       <ParcelStatusBadge status={p.status} />
                     </td>
-                    <td className="px-3 py-2 text-slate-300">{p.destinationCity ?? "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {p.destinationAgencyId ?? "-"}
+                    </td>
                     <td className="px-3 py-2">
                       <Link to={`/parcels/${p.id}`} className="text-amber-400 hover:text-amber-300">
                         View
