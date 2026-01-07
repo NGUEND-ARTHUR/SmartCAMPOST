@@ -22,21 +22,23 @@ public class Staff {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
+    // ✅ Keep as String (matches your DB + service mapping role.name())
     @Column(name = "role", nullable = false, length = 80)
     private String role;
 
     @Column(name = "email", length = 100, unique = true)
-    private String email; // nullable en DB
+    private String email; // nullable en DB (but required by your request validation)
 
     @Column(name = "phone", length = 30, unique = true)
-    private String phone; // nullable en DB
+    private String phone; // nullable en DB (but required by your request validation)
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     @Column(name = "status", nullable = false)
-    private StaffStatus status; // ACTIVE, INACTIVE, SUSPENDED
+    private StaffStatus status = StaffStatus.ACTIVE; // ✅ builder-safe default
 
     @Column(name = "hired_at")
     private LocalDate hiredAt;
@@ -52,5 +54,6 @@ public class Staff {
         if (status == null) {
             status = StaffStatus.ACTIVE; // correspond au DEFAULT SQL
         }
+        // hiredAt is handled in service (LocalDate.now()) if null
     }
 }

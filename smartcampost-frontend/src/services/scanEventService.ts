@@ -1,4 +1,4 @@
-import api from "./api";
+import { api } from "./api";
 import type { ScanEventCreateRequest, ScanEventResponse } from "../types/Scan";
 
 export async function recordScanEvent(payload: ScanEventCreateRequest) {

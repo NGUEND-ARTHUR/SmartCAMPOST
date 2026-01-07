@@ -14,7 +14,10 @@ public class StaffResponse {
 
     private UUID id;
     private String fullName;
+
+    // ✅ Keep role as String (matches Staff model + existing API)
     private String role;
+
     private String email;
     private String phone;
     private StaffStatus status;

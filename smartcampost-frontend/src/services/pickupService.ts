@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { SpringPage } from "./parcelService";
+import type { PageResponse } from "../types/Common";
 
 export type PickupState = "REQUESTED" | "ASSIGNED" | "COMPLETED" | "CANCELLED";
 
@@ -43,21 +43,21 @@ export async function getPickupByParcel(parcelId: string) {
 }
 
 export async function listMyPickups(page = 0, size = 20) {
-  const { data } = await api.get<SpringPage<PickupResponse>>("/api/pickups/me", {
+  const { data } = await api.get<PageResponse<PickupResponse>>("/api/pickups/me", {
     params: { page, size },
   });
   return data;
 }
 
 export async function listCourierPickups(page = 0, size = 20) {
-  const { data } = await api.get<SpringPage<PickupResponse>>("/api/pickups/courier/me", {
+  const { data } = await api.get<PageResponse<PickupResponse>>("/api/pickups/courier/me", {
     params: { page, size },
   });
   return data;
 }
 
 export async function listAllPickups(page = 0, size = 20) {
-  const { data } = await api.get<SpringPage<PickupResponse>>("/api/pickups", {
+  const { data } = await api.get<PageResponse<PickupResponse>>("/api/pickups", {
     params: { page, size },
   });
   return data;

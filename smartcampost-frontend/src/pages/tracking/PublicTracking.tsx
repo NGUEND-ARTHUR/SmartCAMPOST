@@ -1,11 +1,11 @@
 import { FormEvent, useState } from "react";
-import { getParcelByTrackingNumber } from "../../services/parcelService";
-import type { Parcel } from "../../types/Parcel";
+import { getParcelByTracking } from "../../services/parcelService";
+import type { ParcelDetailResponse } from "../../types/Parcel";
 import ParcelStatusBadge from "../../components/parcel/ParcelStatusBadge";
 
 export default function PublicTracking() {
   const [tracking, setTracking] = useState("");
-  const [parcel, setParcel] = useState<Parcel | null>(null);
+  const [parcel, setParcel] = useState<ParcelDetailResponse | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +15,7 @@ export default function PublicTracking() {
     setParcel(null);
     setLoading(true);
     try {
-      const p = await getParcelByTrackingNumber(tracking.trim());
+      const p = await getParcelByTracking(tracking.trim());
       setParcel(p);
     } catch {
       setMsg("Parcel not found. Check tracking number.");
@@ -52,15 +52,9 @@ export default function PublicTracking() {
       {parcel && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="font-mono text-sm">{parcel.trackingNumber}</p>
+            <p className="font-mono text-sm">{parcel.trackingRef}</p>
             <ParcelStatusBadge status={parcel.status} />
           </div>
-          <p className="text-xs text-slate-400">
-            {parcel.originAgency} → {parcel.destinationAgency}
-          </p>
-          <p className="text-xs text-slate-400">
-            Sender: {parcel.senderName} | Receiver: {parcel.receiverName}
-          </p>
         </div>
       )}
     </div>

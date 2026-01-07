@@ -42,6 +42,18 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // ===================================================
+                        //                    ADMIN / FINANCE / RISK MODULES
+                        // ===================================================
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/finance/**")
+                        .hasAnyRole("FINANCE", "ADMIN")
+
+                        .requestMatchers("/api/risk/**")
+                        .hasAnyRole("RISK", "ADMIN")
+
+                        // ===================================================
                         //                    CLIENT MODULE
                         //   View/update profile, list my parcels, etc.
                         // ===================================================

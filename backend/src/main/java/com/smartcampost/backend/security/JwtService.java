@@ -3,7 +3,6 @@ package com.smartcampost.backend.security;
 import com.smartcampost.backend.model.UserAccount;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,8 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-    private static final String SECRET = "SUP3R-S3CR3T-K3Y-1234567890123456"; // MUST be 32+ chars
+    private static final String SECRET =
+            "SUP3R-S3CR3T-K3Y-1234567890123456-SMARTCAMPOST-EXTRA"; // ✅ longer
     private final SecretKey key;
 
     public JwtService() {
@@ -30,14 +30,14 @@ public class JwtService {
         claims.put("entityId", user.getEntityId().toString());
 
         long now = System.currentTimeMillis();
-        long exp = now + (1000 * 60 * 60 * 24); // 24 hours
+        long exp = now + (1000L * 60 * 60 * 24); // 24 hours
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getId().toString())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(exp))
-                .signWith(key, SignatureAlgorithm.HS256) // modern method
+                .signWith(key) // ✅ modern style, algorithm inferred
                 .compact();
     }
 

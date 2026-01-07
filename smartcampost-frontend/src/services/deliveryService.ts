@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { ParcelResponse } from "./parcelService";
+import type { ParcelResponse } from "../types/Parcel";
 
 export interface DeliveryOtpSendRequest {
   parcelId: string;

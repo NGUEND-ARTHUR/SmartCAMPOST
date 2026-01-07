@@ -41,8 +41,9 @@ public class UserAccount {
     private Instant createdAt;
 
     // NEW FIELD: account frozen flag (for compliance / risk)
+    // ✅ DB column name is "frozen" (NOT "is_frozen")
     @Builder.Default
-    @Column(name = "is_frozen", nullable = false)
+    @Column(name = "frozen", nullable = false)
     private Boolean frozen = false;
 
     @PrePersist

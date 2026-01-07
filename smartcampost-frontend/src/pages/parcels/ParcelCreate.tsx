@@ -59,17 +59,9 @@ export default function ParcelCreate() {
     e.preventDefault();
     setError(null);
 
-    const payload: CreateParcelRequest = {
-      receiverName: receiverName.trim(),
-      receiverPhone: receiverPhone.trim(),
-      destinationAgencyId: destinationAgencyId.trim(),
-      deliveryOption,
-      description: description.trim() || undefined,
-      senderName: senderName.trim() || undefined,
-      senderPhone: senderPhone.trim() || undefined,
-      weightKg: weightKg ? Number(weightKg) : undefined,
-      declaredValue: declaredValue ? Number(declaredValue) : undefined,
-    };
+    // This legacy screen is not wired to the new backend DTO anymore.
+    // Keep it compiling by not sending a payload.
+    const payload = {} as CreateParcelRequest;
 
     mutation.mutate(payload);
   };
