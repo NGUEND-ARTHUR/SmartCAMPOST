@@ -512,6 +512,7 @@ CREATE INDEX ix_st_priority ON support_ticket(priority);
 
 -- =========================================================
 -- 18) REFUND_ADJUSTMENT (Refunds & Chargebacks)
+--     ✅ Fix Hibernate FK duplication by renaming FK constraint names here
 -- =========================================================
 CREATE TABLE refund_adjustment (
   refund_id             BINARY(16)   NOT NULL,     -- UUID
@@ -525,6 +526,34 @@ CREATE TABLE refund_adjustment (
   processed_at          TIMESTAMP    NULL,
   processed_by_staff_id BINARY(16)   NULL,
   CONSTRAINT pk_refund PRIMARY KEY (refund_id),
+
+  -- ⚠️ Changed only constraint names (table/columns unchanged)
+  CONSTRAINT fk_refund_adjustment_payment
+    FOREIGN KEY (payment_id) REFERENCES payment(payment_id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_refund_adjustment_staff
+    FOREIGN KEY (processed_by_staff_id) REFERENCES staff(staff_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_refund_payment ON refund_adjustment(payment_id);
+CREATE INDEX ix_refund_status  ON refund_adjustment(status);
+
+
+-- =========================================================
+-- 18B) REFUND  (Added to match Hibernate expectation and reserve fk_refund_payment name)
+--      ✅ This prevents Hibernate from trying to create/alter refund FK with same name.
+-- =========================================================
+CREATE TABLE refund (
+  refund_id             BINARY(16)   NOT NULL,     -- UUID
+  payment_id            BINARY(16)   NOT NULL,
+  status                ENUM('REQUESTED','APPROVED','REJECTED','PROCESSED') NOT NULL DEFAULT 'REQUESTED',
+  amount                FLOAT        NOT NULL,
+  reason                VARCHAR(255) NULL,
+  created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  processed_at          TIMESTAMP    NULL,
+  processed_by_staff_id BINARY(16)   NULL,
+  CONSTRAINT pk_refund_table PRIMARY KEY (refund_id),
   CONSTRAINT fk_refund_payment
     FOREIGN KEY (payment_id) REFERENCES payment(payment_id)
     ON UPDATE CASCADE ON DELETE CASCADE,
@@ -533,8 +562,8 @@ CREATE TABLE refund_adjustment (
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE INDEX ix_refund_payment ON refund_adjustment(payment_id);
-CREATE INDEX ix_refund_status  ON refund_adjustment(status);
+CREATE INDEX ix_refund_table_payment ON refund(payment_id);
+CREATE INDEX ix_refund_table_status  ON refund(status);
 
 
 -- =========================================================
