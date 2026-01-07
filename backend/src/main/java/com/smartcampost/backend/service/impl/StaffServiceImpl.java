@@ -33,6 +33,12 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public StaffResponse createStaff(CreateStaffRequest request) {
 
+        // ✅ Convert role String -> enum
+        UserRole role = parseUserRole(request.getRole());
+
+        // ✅ Validate role: only STAFF-like roles are allowed for staff creation
+        validateStaffUserRole(role);
+
         // Pré-calculer les conflits
         boolean emailExists = staffRepository.existsByEmail(request.getEmail());
         boolean phoneExists = staffRepository.existsByPhone(request.getPhone())
@@ -68,7 +74,7 @@ public class StaffServiceImpl implements StaffService {
         Staff staff = Staff.builder()
                 .id(UUID.randomUUID())
                 .fullName(request.getFullName())
-                .role(request.getRole())
+                .role(role.name()) // ✅ Staff.role is STRING in your model
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .status(StaffStatus.ACTIVE)
@@ -78,12 +84,12 @@ public class StaffServiceImpl implements StaffService {
 
         staffRepository.save(staff);
 
-        // UserAccount pour login STAFF
+        // ✅ UserAccount pour login STAFF-like (role must match staff role)
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(request.getPhone())
                 .passwordHash(encodedPassword)
-                .role(UserRole.STAFF)
+                .role(role) // ✅ UserAccount.role is ENUM
                 .entityId(staff.getId())
                 .build();
 
@@ -135,6 +141,13 @@ public class StaffServiceImpl implements StaffService {
     // ================= UPDATE ROLE =================
     @Override
     public StaffResponse updateStaffRole(UUID staffId, UpdateStaffRoleRequest request) {
+
+        // ✅ Convert role String -> enum
+        UserRole role = parseUserRole(request.getRole());
+
+        // ✅ Validate staff role updates too
+        validateStaffUserRole(role);
+
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -142,10 +155,54 @@ public class StaffServiceImpl implements StaffService {
                                 ErrorCode.STAFF_NOT_FOUND
                         ));
 
-        staff.setRole(request.getRole());
+        // ✅ Staff.role is STRING
+        staff.setRole(role.name());
         staffRepository.save(staff);
 
+        // ✅ Sync UserAccount role too (critical!)
+        UserAccount account = userAccountRepository.findFirstByEntityId(staff.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "UserAccount not found for staff",
+                        ErrorCode.USER_NOT_FOUND
+                ));
+
+        // ✅ UserAccount.role is ENUM
+        account.setRole(role);
+        userAccountRepository.save(account);
+
         return toResponse(staff);
+    }
+
+    // ================= ROLE VALIDATION =================
+    private void validateStaffUserRole(UserRole role) {
+        if (role == null) {
+            throw new ConflictException("Role is required", ErrorCode.STAFF_CONFLICT);
+        }
+
+        // Only allow staff-like roles to be created/updated via staff module
+        if (role == UserRole.CLIENT || role == UserRole.AGENT || role == UserRole.COURIER) {
+            throw new ConflictException(
+                    "Invalid staff role: " + role + ". Allowed: STAFF, ADMIN, FINANCE, RISK",
+                    ErrorCode.STAFF_CONFLICT
+            );
+        }
+    }
+
+    // ================= ROLE PARSER =================
+    // ✅ Keeps your DTOs as String but ensures entity/account always uses enum
+    private UserRole parseUserRole(String role) {
+        if (role == null || role.trim().isEmpty()) {
+            throw new ConflictException("Role is required", ErrorCode.STAFF_CONFLICT);
+        }
+
+        try {
+            return UserRole.valueOf(role.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ConflictException(
+                    "Invalid role: " + role + ". Allowed: STAFF, ADMIN, FINANCE, RISK",
+                    ErrorCode.STAFF_CONFLICT
+            );
+        }
     }
 
     // ================= HELPER =================
@@ -153,7 +210,7 @@ public class StaffServiceImpl implements StaffService {
         return StaffResponse.builder()
                 .id(staff.getId())
                 .fullName(staff.getFullName())
-                .role(staff.getRole())
+                .role(staff.getRole()) // String role
                 .email(staff.getEmail())
                 .phone(staff.getPhone())
                 .status(staff.getStatus())

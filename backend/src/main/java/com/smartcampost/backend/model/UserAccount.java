@@ -27,7 +27,7 @@ public class UserAccount {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
-    private UserRole role; // CLIENT, AGENT, STAFF, COURIER
+    private UserRole role; // CLIENT, AGENT, STAFF, COURIER, ADMIN, FINANCE, RISK
 
     @Column(name = "entity_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID entityId;
@@ -40,14 +40,15 @@ public class UserAccount {
     )
     private Instant createdAt;
 
-    // 🔥 NEW FIELD: account frozen flag (for compliance / risk)
+    // NEW FIELD: account frozen flag (for compliance / risk)
+    @Builder.Default
     @Column(name = "is_frozen", nullable = false)
     private Boolean frozen = false;
 
     @PrePersist
     void onCreate() {
         if (id == null) {
-            id = UUID.randomUUID();  // convert automatically to BINARY(16)
+            id = UUID.randomUUID();  // stored as BINARY(16)
         }
         if (createdAt == null) {
             createdAt = Instant.now(); // ensures NOT NULL
@@ -57,12 +58,12 @@ public class UserAccount {
         }
     }
 
-    // 🔥 Explicit getter to support account.isFrozen() calls
+    // Explicit getter to support account.isFrozen() calls
     public Boolean isFrozen() {
         return frozen;
     }
 
-    // Explicit setter (Lombok would generate setFrozen, but we keep it clear)
+    // Explicit setter (keep naming clear)
     public void setFrozen(Boolean frozen) {
         this.frozen = frozen;
     }
