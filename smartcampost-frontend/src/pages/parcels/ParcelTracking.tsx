@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { getParcelByTracking } from "../../services/parcelService";
+import { getParcelByTracking } from "../../services/parcels/parcelService";
 import ParcelStatusBadge from "../../components/parcel/ParcelStatusBadge";
 import axios from "axios";
 

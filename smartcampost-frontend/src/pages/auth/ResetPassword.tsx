@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   confirmPasswordReset,
   requestPasswordReset,
-} from "../../services/authService";
+} from "../../services/auth/authService";
 import axios from "axios";
 
 export default function ResetPassword() {

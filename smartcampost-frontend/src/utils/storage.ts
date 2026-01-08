@@ -1,4 +1,4 @@
-import type { AuthUser } from "../services/authService";
+import type { AuthUser } from "../services/auth/authService";
 
 const TOKEN_KEY = "smartcampost_token";
 const USER_KEY = "smartcampost_user";

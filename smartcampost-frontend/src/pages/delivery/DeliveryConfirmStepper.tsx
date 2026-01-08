@@ -7,8 +7,8 @@ import {
   verifyDeliveryOtp,
   confirmFinalDelivery,
   type DeliveryProofRequest,
-} from "../../services/deliveryService";
-import { getParcelById } from "../../services/parcelService";
+} from "../../services/delivery/deliveryService";
+import { getParcelById } from "../../services/parcels/parcelService";
 import { ErrorBanner } from "../../components/feedback/ErrorBanner";
 import { EmptyState } from "../../components/feedback/EmptyState";
 

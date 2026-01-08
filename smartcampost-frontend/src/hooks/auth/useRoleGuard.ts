@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAuth } from "../useAuth";
+import { useAuth } from "./useAuth";
 import { hasAnyRole } from "../../app/config/roles";
 
 /**

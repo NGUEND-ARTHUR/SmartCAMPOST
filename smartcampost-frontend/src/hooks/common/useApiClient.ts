@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { api } from "../../services/api";
+import { api } from "../../services/api/api";
 
 /**
  * Thin hook wrapper around the shared Axios client.

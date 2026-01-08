@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   confirmLoginOtp,
   requestLoginOtp,
-} from "../../services/authService";
+} from "../../services/auth/authService";
 import { useAuth } from "../../context/AuthContext";
 import { getHomeByRole } from "../../router/PrivateRoute";
 import axios from "axios";

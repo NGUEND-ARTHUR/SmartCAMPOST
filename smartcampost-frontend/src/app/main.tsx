@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryProvider } from "./providers/QueryProvider";
 import { AuthProvider } from "./providers/AuthProvider";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import { Toaster } from "react-hot-toast";
 import App from "./App";
 import "../index.css";
 
@@ -20,6 +21,7 @@ export function bootstrapApp() {
           <AuthProvider>
             <ThemeProvider>
               <App />
+              <Toaster position="top-right" />
             </ThemeProvider>
           </AuthProvider>
         </BrowserRouter>
