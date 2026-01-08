@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { listMyPickups } from "../../services/pickupService";
-import type { PickupResponse } from "../../services/pickupService";
+import { listMyPickups } from "../../services/pickups/pickupService";
+import type { PickupResponse } from "../../services/pickups/pickupService";
 
 export default function PickupRequests() {
   const [items, setItems] = useState<PickupResponse[]>([]);

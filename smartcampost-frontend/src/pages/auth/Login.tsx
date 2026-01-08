@@ -1,6 +1,6 @@
 ﻿import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login as loginApi } from "../../services/authService";
+import { login as loginApi } from "../../services/auth/authService";
 import { useAuth } from "../../context/AuthContext";
 import { getHomeByRole } from "../../router/PrivateRoute";
 import axios from "axios";

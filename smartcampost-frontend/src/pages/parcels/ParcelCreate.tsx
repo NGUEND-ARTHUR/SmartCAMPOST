@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createParcel } from "../../services/parcelService";
+import { createParcel } from "../../services/parcels/parcelService";
 import type { CreateParcelRequest, DeliveryOption } from "../../types/Parcel";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";

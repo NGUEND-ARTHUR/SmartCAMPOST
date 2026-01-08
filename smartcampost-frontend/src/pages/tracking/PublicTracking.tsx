@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { getParcelByTracking } from "../../services/parcelService";
+import { getParcelByTracking } from "../../services/parcels/parcelService";
 import type { ParcelDetailResponse } from "../../types/Parcel";
 import ParcelStatusBadge from "../../components/parcel/ParcelStatusBadge";
 

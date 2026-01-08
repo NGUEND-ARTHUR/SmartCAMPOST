@@ -8,13 +8,13 @@ import {
   getParcelById,
   updateParcelMetadata,
   updateParcelStatus,
-} from "../../services/parcelService";
+} from "../../services/parcels/parcelService";
 import type { DeliveryOption, ParcelStatus } from "../../types/Parcel";
 import ParcelStatusBadge from "../../components/parcel/ParcelStatusBadge";
 import axios from "axios";
 
 // ✅ Phase 4 imports
-import { getParcelScanHistory } from "../../services/scanEventService";
+import { getParcelScanHistory } from "../../services/scans/scanEventService";
 import ParcelTimeline from "../../components/parcel/ParcelTimeline";
 import QRGenerator from "../../components/qr/QRGenerator";
 

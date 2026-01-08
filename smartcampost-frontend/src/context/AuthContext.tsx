@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, ReactNode } from "react";
-import type { AuthUser } from "../services/authService";
+import type { AuthUser } from "../services/auth/authService";
 import { getToken, getUser, setToken, setUser, clearAuthStorage } from "../utils/storage";
 
 interface AuthContextValue {

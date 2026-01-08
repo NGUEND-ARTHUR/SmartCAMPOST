@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listMyParcels } from "../../services/parcelService";
+import { listMyParcels } from "../../services/parcels/parcelService";
 import { Link } from "react-router-dom";
 import ParcelStatusBadge from "../../components/parcel/ParcelStatusBadge";
 
