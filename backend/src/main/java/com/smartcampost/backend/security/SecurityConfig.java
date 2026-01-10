@@ -31,14 +31,15 @@ public class SecurityConfig {
                         //                    PUBLIC AUTH ROUTES
                         // ===================================================
                         .requestMatchers(
-                                "/api/auth/register",
-                                "/api/auth/login",
-                                "/api/auth/send-otp",
-                                "/api/auth/verify-otp",
-                                "/api/auth/login/otp/request",
-                                "/api/auth/login/otp/confirm",
-                                "/api/auth/password/reset/request",
-                                "/api/auth/password/reset/confirm"
+                            "/actuator/**",
+                            "/api/auth/register",
+                            "/api/auth/login",
+                            "/api/auth/send-otp",
+                            "/api/auth/verify-otp",
+                            "/api/auth/login/otp/request",
+                            "/api/auth/login/otp/confirm",
+                            "/api/auth/password/reset/request",
+                            "/api/auth/password/reset/confirm"
                         ).permitAll()
 
                         // ===================================================
