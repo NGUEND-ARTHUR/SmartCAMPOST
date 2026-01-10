@@ -1,4 +1,12 @@
-import { bootstrapApp } from "./app/main";
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { Toaster } from 'sonner'
+import './index.css'
+import App from './App.tsx'
 
-bootstrapApp();
-
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+    <Toaster />
+  </StrictMode>,
+)
