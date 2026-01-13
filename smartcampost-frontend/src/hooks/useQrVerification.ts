@@ -6,7 +6,7 @@ import {
   isSecureQrCode,
   isForgeryAttempt,
   getVerificationStatusMessage,
-} from "../../services/scan/qrVerification.api";
+} from "@/services/scan/qrVerification.api";
 
 interface UseQrVerificationState {
   isVerifying: boolean;
