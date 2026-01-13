@@ -1,4 +1,4 @@
-import { apiClient } from "../apiClient";
+import { httpClient } from "../apiClient";
 
 // ==================== TYPES ====================
 
@@ -73,11 +73,10 @@ export interface SecureQrPayload {
 export async function verifyQrCode(
   request: QrVerificationRequest,
 ): Promise<QrVerificationResponse> {
-  const response = await apiClient.post<QrVerificationResponse>(
+  return httpClient.post<QrVerificationResponse>(
     "/api/qr/verify",
     request,
   );
-  return response.data;
 }
 
 /**
@@ -88,10 +87,9 @@ export async function verifyQrCodeContent(
   qrContent: string,
 ): Promise<QrVerificationResponse> {
   const encodedContent = encodeURIComponent(qrContent);
-  const response = await apiClient.get<QrVerificationResponse>(
+  return httpClient.get<QrVerificationResponse>(
     `/api/qr/verify/${encodedContent}`,
   );
-  return response.data;
 }
 
 /**
@@ -100,10 +98,9 @@ export async function verifyQrCodeContent(
 export async function regenerateSecureQrCode(
   parcelId: string,
 ): Promise<SecureQrPayload> {
-  const response = await apiClient.post<SecureQrPayload>(
+  return httpClient.post<SecureQrPayload>(
     `/api/qr/secure/${parcelId}`,
   );
-  return response.data;
 }
 
 /**
@@ -113,9 +110,8 @@ export async function revokeQrCode(
   token: string,
   reason?: string,
 ): Promise<void> {
-  await apiClient.delete(`/api/qr/revoke/${token}`, {
-    params: { reason: reason || "Manual revocation" },
-  });
+  const reasonParam = encodeURIComponent(reason || "Manual revocation");
+  await httpClient.delete(`/api/qr/revoke/${token}?reason=${reasonParam}`);
 }
 
 /**
@@ -125,9 +121,8 @@ export async function revokeAllQrCodesForParcel(
   parcelId: string,
   reason?: string,
 ): Promise<void> {
-  await apiClient.delete(`/api/qr/revoke/parcel/${parcelId}`, {
-    params: { reason: reason || "Bulk revocation" },
-  });
+  const reasonParam = encodeURIComponent(reason || "Bulk revocation");
+  await httpClient.delete(`/api/qr/revoke/parcel/${parcelId}?reason=${reasonParam}`);
 }
 
 // ==================== HELPER FUNCTIONS ====================
