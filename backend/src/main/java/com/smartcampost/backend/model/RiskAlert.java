@@ -1,6 +1,8 @@
 package com.smartcampost.backend.model;
+
+import com.smartcampost.backend.model.enums.RiskAlertStatus;
+import com.smartcampost.backend.model.enums.RiskAlertType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
-import com.smartcampost.backend.model.enums.RiskType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,32 +21,51 @@ public class RiskAlert {
     @Column(name = "risk_alert_id", columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parcel_id")
+    private Parcel parcel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id")
+    private Payment payment;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 50)
-    private RiskType type;
+    @Column(name = "alert_type", nullable = false, length = 30)
+    private RiskAlertType alertType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "severity", nullable = false, length = 20)
     private RiskSeverity severity;
 
-    @Column(name = "entity_type", length = 50)
-    private String entityType; // "PARCEL", "PAYMENT", "CLIENT"
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private RiskAlertStatus status;
 
-    @Column(name = "entity_id", length = 100)
-    private String entityId;   // store UUID as String for flexibility
+    @Column(name = "resolved", nullable = false)
+    private boolean resolved;
 
-    @Column(name = "description", length = 1000)
+    @Column(name = "description", length = 255)
     private String description;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "resolved", nullable = false)
-    private boolean resolved;
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewed_by_staff_id")
+    private Staff reviewedByStaff;
 
     @PrePersist
     void onCreate() {
         if (id == null) id = UUID.randomUUID();
         if (createdAt == null) createdAt = Instant.now();
+        if (status == null) status = RiskAlertStatus.OPEN;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = Instant.now();
     }
 }
