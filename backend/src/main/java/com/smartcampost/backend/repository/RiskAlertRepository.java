@@ -1,17 +1,29 @@
 package com.smartcampost.backend.repository;
+
 import com.smartcampost.backend.model.RiskAlert;
+import com.smartcampost.backend.model.enums.RiskAlertStatus;
+import com.smartcampost.backend.model.enums.RiskAlertType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
-import com.smartcampost.backend.model.enums.RiskType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
+@Repository
 public interface RiskAlertRepository extends JpaRepository<RiskAlert, UUID> {
 
-    List<RiskAlert> findByType(RiskType type);
+    List<RiskAlert> findByAlertType(RiskAlertType alertType);
 
     List<RiskAlert> findBySeverity(RiskSeverity severity);
 
+    List<RiskAlert> findByStatus(RiskAlertStatus status);
+
     List<RiskAlert> findByResolvedFalse();
+
+    List<RiskAlert> findByParcelId(UUID parcelId);
+
+    List<RiskAlert> findByPaymentId(UUID paymentId);
+
+    List<RiskAlert> findByReviewedByStaffId(UUID staffId);
 }

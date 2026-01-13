@@ -198,6 +198,13 @@ CREATE TABLE parcel (
                        NOT NULL DEFAULT 'CREATED',
   photo_url             VARCHAR(255)  NULL,
   description_comment   VARCHAR(255)  NULL,
+  -- Validation fields (Sprint 15)
+  validated_weight      FLOAT         NULL,
+  validated_dimensions  VARCHAR(50)   NULL,
+  validation_notes      VARCHAR(500)  NULL,
+  validated_at          TIMESTAMP     NULL,
+  validated_by_agent_id BINARY(16)    NULL,
+  -- End validation fields
   created_at            TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   expected_delivery_at  TIMESTAMP     NULL,
   CONSTRAINT pk_parcel PRIMARY KEY (parcel_id),
@@ -216,6 +223,9 @@ CREATE TABLE parcel (
     ON UPDATE CASCADE ON DELETE SET NULL,
   CONSTRAINT fk_parcel_dest_agency
     FOREIGN KEY (destination_agency_id) REFERENCES agency(agency_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_parcel_validated_by
+    FOREIGN KEY (validated_by_agent_id) REFERENCES agent(agent_id)
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
@@ -684,6 +694,105 @@ CREATE INDEX ix_compliance_status ON compliance_report(status);
 
 
 -- =========================================================
+-- 24) QR_VERIFICATION_TOKEN (QR Code Security - Sprint 16)
+-- =========================================================
+CREATE TABLE qr_verification_token (
+  token_id            BINARY(16)    NOT NULL,     -- UUID
+  token               VARCHAR(64)   NOT NULL,     -- Secure random token
+  signature           VARCHAR(255)  NOT NULL,     -- HMAC signature
+  token_type          ENUM('PERMANENT','TEMPORARY') NOT NULL,
+  parcel_id           BINARY(16)    NOT NULL,
+  pickup_id           BINARY(16)    NULL,
+  created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at          TIMESTAMP     NULL,         -- NULL for permanent tokens
+  valid               BOOLEAN       NOT NULL DEFAULT TRUE,
+  revocation_reason   VARCHAR(255)  NULL,
+  verification_count  INT           NOT NULL DEFAULT 0,
+  last_verified_at    TIMESTAMP     NULL,
+  last_verified_by    BINARY(16)    NULL,
+  last_client_ip      VARCHAR(45)   NULL,
+  last_user_agent     VARCHAR(255)  NULL,
+  CONSTRAINT pk_qr_token PRIMARY KEY (token_id),
+  CONSTRAINT uq_qr_token UNIQUE (token),
+  CONSTRAINT fk_qr_token_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_qr_token_pickup
+    FOREIGN KEY (pickup_id) REFERENCES pickup_request(pickup_id)
+    ON UPDATE CASCADE ON DELETE SET NULL,
+  CONSTRAINT fk_qr_token_verified_by
+    FOREIGN KEY (last_verified_by) REFERENCES user_account(id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_qr_token_parcel ON qr_verification_token(parcel_id);
+CREATE INDEX ix_qr_token_pickup ON qr_verification_token(pickup_id);
+CREATE INDEX ix_qr_token_valid  ON qr_verification_token(valid);
+CREATE INDEX ix_qr_token_type   ON qr_verification_token(token_type);
+
+
+-- =========================================================
+-- 25) DELIVERY_ATTEMPT (Delivery Tracking - Sprint 16)
+-- =========================================================
+CREATE TABLE delivery_attempt (
+  attempt_id      BINARY(16)    NOT NULL,     -- UUID
+  parcel_id       BINARY(16)    NOT NULL,
+  courier_id      BINARY(16)    NULL,
+  attempt_number  INT           NOT NULL,
+  result          ENUM('SUCCESS','FAILED_NOT_HOME','FAILED_WRONG_ADDRESS',
+                       'FAILED_REFUSED','FAILED_ACCESS_DENIED','FAILED_OTHER') NOT NULL,
+  failure_reason  VARCHAR(255)  NULL,
+  latitude        DECIMAL(10,8) NULL,
+  longitude       DECIMAL(11,8) NULL,
+  notes           VARCHAR(500)  NULL,
+  attempted_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_delivery_attempt PRIMARY KEY (attempt_id),
+  CONSTRAINT fk_attempt_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_attempt_courier
+    FOREIGN KEY (courier_id) REFERENCES courier(courier_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_attempt_parcel  ON delivery_attempt(parcel_id);
+CREATE INDEX ix_attempt_courier ON delivery_attempt(courier_id);
+CREATE INDEX ix_attempt_result  ON delivery_attempt(result);
+
+
+-- =========================================================
+-- 26) DELIVERY_RECEIPT (Receipt Generation - Sprint 16)
+-- =========================================================
+CREATE TABLE delivery_receipt (
+  receipt_id            BINARY(16)    NOT NULL,     -- UUID
+  parcel_id             BINARY(16)    NOT NULL,
+  proof_id              BINARY(16)    NULL,
+  receipt_number        VARCHAR(50)   NOT NULL,
+  receiver_name         VARCHAR(100)  NULL,
+  receiver_signature_url VARCHAR(255) NULL,
+  delivery_address      VARCHAR(500)  NULL,
+  courier_name          VARCHAR(100)  NULL,
+  total_amount          DOUBLE        NULL,
+  payment_collected     BOOLEAN       NOT NULL DEFAULT FALSE,
+  payment_method        VARCHAR(30)   NULL,
+  pdf_url               VARCHAR(255)  NULL,
+  delivered_at          TIMESTAMP     NOT NULL,
+  generated_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_delivery_receipt PRIMARY KEY (receipt_id),
+  CONSTRAINT uq_receipt_parcel UNIQUE (parcel_id),
+  CONSTRAINT uq_receipt_number UNIQUE (receipt_number),
+  CONSTRAINT fk_receipt_parcel
+    FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_receipt_proof
+    FOREIGN KEY (proof_id) REFERENCES delivery_proof(pod_id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_receipt_number ON delivery_receipt(receipt_number);
+
+
+-- =========================================================
 -- SEED DATA: Initial Admin Account
 -- =========================================================
 -- Default Admin Credentials:
@@ -693,7 +802,7 @@ CREATE INDEX ix_compliance_status ON compliance_report(status);
 -- NOTE: Change this password after first login!
 
 -- 1) Create Staff record for Admin
-INSERT INTO staff (staff_id, full_name, role, email, phone, status, hired_at, password_hash, created_at)
+INSERT INTO staff (staff_id, full_name, role, email, phone, status, hired_at, password_hash)
 VALUES (
   UNHEX(REPLACE('a0000000-0000-0000-0000-000000000001', '-', '')),
   'System Administrator',
@@ -702,8 +811,7 @@ VALUES (
   '+237600000000',
   'ACTIVE',
   CURDATE(),
-  '$2b$10$TEyVVX.4KiRwehr0J4gk2e0KpYRsmTWs6je8S0at0wMaSGGlk1l5C',
-  NOW()
+  '$2b$10$TEyVVX.4KiRwehr0J4gk2e0KpYRsmTWs6je8S0at0wMaSGGlk1l5C'
 );
 
 -- 2) Create UserAccount for Admin login

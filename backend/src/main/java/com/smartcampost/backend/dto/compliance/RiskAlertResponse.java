@@ -1,6 +1,8 @@
 package com.smartcampost.backend.dto.compliance;
+
+import com.smartcampost.backend.model.enums.RiskAlertStatus;
+import com.smartcampost.backend.model.enums.RiskAlertType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
-import com.smartcampost.backend.model.enums.RiskType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,11 +14,14 @@ import java.util.UUID;
 public class RiskAlertResponse {
 
     private UUID id;
-    private RiskType type;
+    private RiskAlertType alertType;
     private RiskSeverity severity;
-    private String entityType;
-    private String entityId;
+    private RiskAlertStatus status;
+    private UUID parcelId;
+    private UUID paymentId;
     private String description;
     private boolean resolved;
     private Instant createdAt;
+    private Instant updatedAt;
+    private UUID reviewedByStaffId;
 }

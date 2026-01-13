@@ -110,8 +110,8 @@ public class ComplianceServiceImpl implements ComplianceService {
 
         long amlCount = all.stream()
                 .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
-                .filter(a -> a.getType() != null
-                        && a.getType().name().toUpperCase().contains("AML"))
+                .filter(a -> a.getAlertType() != null
+                        && a.getAlertType().name().toUpperCase().contains("AML"))
                 .count();
 
         Map<String, Object> stats = new HashMap<>();
@@ -123,7 +123,7 @@ public class ComplianceServiceImpl implements ComplianceService {
         Map<String, Long> byType = all.stream()
                 .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
                 .collect(Collectors.groupingBy(
-                        a -> a.getType().name(),
+                        a -> a.getAlertType().name(),
                         Collectors.counting()
                 ));
         stats.put("byType", byType);
@@ -238,13 +238,16 @@ public class ComplianceServiceImpl implements ComplianceService {
     private RiskAlertResponse toResponse(RiskAlert alert) {
         return RiskAlertResponse.builder()
                 .id(alert.getId())
-                .type(alert.getType())
+                .alertType(alert.getAlertType())
                 .severity(alert.getSeverity())
-                .entityType(alert.getEntityType())
-                .entityId(alert.getEntityId())
+                .status(alert.getStatus())
+                .parcelId(alert.getParcel() != null ? alert.getParcel().getId() : null)
+                .paymentId(alert.getPayment() != null ? alert.getPayment().getId() : null)
                 .description(alert.getDescription())
                 .resolved(alert.isResolved())
                 .createdAt(alert.getCreatedAt())
+                .updatedAt(alert.getUpdatedAt())
+                .reviewedByStaffId(alert.getReviewedByStaff() != null ? alert.getReviewedByStaff().getId() : null)
                 .build();
     }
 }
