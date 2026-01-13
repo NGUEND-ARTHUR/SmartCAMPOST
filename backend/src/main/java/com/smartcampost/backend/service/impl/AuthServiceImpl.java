@@ -6,12 +6,10 @@ import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.OtpException;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
-import com.smartcampost.backend.model.Client;
-import com.smartcampost.backend.model.UserAccount;
+import com.smartcampost.backend.model.*;
 import com.smartcampost.backend.model.enums.OtpPurpose;
 import com.smartcampost.backend.model.enums.UserRole;
-import com.smartcampost.backend.repository.ClientRepository;
-import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.repository.*;
 import com.smartcampost.backend.security.JwtService;
 import com.smartcampost.backend.service.AuthService;
 import com.smartcampost.backend.service.OtpService;
@@ -27,6 +25,9 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserAccountRepository userAccountRepository;
     private final ClientRepository clientRepository;
+    private final StaffRepository staffRepository;
+    private final AgentRepository agentRepository;
+    private final CourierRepository courierRepository;
     private final JwtService jwtService;
     private final OtpService otpService;
 
@@ -120,14 +121,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
         }
 
-        String fullName = null;
-        if (user.getRole() == UserRole.CLIENT) {
-            Client client = clientRepository.findById(user.getEntityId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException("Client not found", ErrorCode.CLIENT_NOT_FOUND));
-            fullName = client.getFullName();
-        }
-
+        String fullName = resolveFullName(user);
         String token = jwtService.generateToken(user);
 
         return AuthResponse.builder()
@@ -139,6 +133,35 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(token)
                 .tokenType("Bearer")
                 .build();
+    }
+
+    /**
+     * Resolves the full name based on user role
+     */
+    private String resolveFullName(UserAccount user) {
+        switch (user.getRole()) {
+            case CLIENT:
+                return clientRepository.findById(user.getEntityId())
+                        .map(Client::getFullName)
+                        .orElse(null);
+            case STAFF:
+            case ADMIN:
+            case FINANCE:
+            case RISK:
+                return staffRepository.findById(user.getEntityId())
+                        .map(Staff::getFullName)
+                        .orElse(null);
+            case AGENT:
+                return agentRepository.findById(user.getEntityId())
+                        .map(Agent::getFullName)
+                        .orElse(null);
+            case COURIER:
+                return courierRepository.findById(user.getEntityId())
+                        .map(Courier::getFullName)
+                        .orElse(null);
+            default:
+                return null;
+        }
     }
 
     // ============================================================
@@ -242,14 +265,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
-        String fullName = null;
-        if (user.getRole() == UserRole.CLIENT) {
-            Client client = clientRepository.findById(user.getEntityId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException("Client not found", ErrorCode.CLIENT_NOT_FOUND));
-            fullName = client.getFullName();
-        }
-
+        String fullName = resolveFullName(user);
         String token = jwtService.generateToken(user);
 
         return AuthResponse.builder()

@@ -1,7 +1,10 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.pickup.*;
+import com.smartcampost.backend.dto.qr.TemporaryQrData;
 import com.smartcampost.backend.service.PickupRequestService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/pickups")
 @RequiredArgsConstructor
+@Tag(name = "Pickup Requests", description = "Home collection workflow endpoints")
 public class PickupRequestController {
 
     private final PickupRequestService pickupRequestService;
@@ -81,4 +85,27 @@ public class PickupRequestController {
     ) {
         return ResponseEntity.ok(pickupRequestService.updatePickupState(pickupId, request));
     }
-}
+    // ==================== QR CODE WORKFLOW ====================
+
+    @Operation(summary = "Generate temporary QR code for pickup",
+               description = "Client receives QR code after submitting pickup request. Shows to agent when they arrive.")
+    @PostMapping("/{pickupId}/qr")
+    public ResponseEntity<TemporaryQrData> generatePickupQr(@PathVariable UUID pickupId) {
+        return ResponseEntity.ok(pickupRequestService.generatePickupQrCode(pickupId));
+    }
+
+    @Operation(summary = "Get pickup details by temporary QR token",
+               description = "Agent scans temporary QR to retrieve pickup details before confirming")
+    @GetMapping("/qr/{temporaryQrToken}")
+    public ResponseEntity<TemporaryQrData> getPickupByQr(@PathVariable String temporaryQrToken) {
+        return ResponseEntity.ok(pickupRequestService.getPickupByTemporaryQr(temporaryQrToken));
+    }
+
+    @Operation(summary = "Confirm pickup with QR scan",
+               description = "Agent confirms pickup after scanning QR, validating parcel, and optionally printing label")
+    @PostMapping("/confirm")
+    public ResponseEntity<ConfirmPickupResponse> confirmPickup(
+            @Valid @RequestBody ConfirmPickupRequest request
+    ) {
+        return ResponseEntity.ok(pickupRequestService.confirmPickupWithQrScan(request));
+    }}

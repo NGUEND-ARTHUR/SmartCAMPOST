@@ -68,12 +68,22 @@ public class ParcelController {
         return ResponseEntity.ok(parcelService.updateParcelStatus(parcelId, request));
     }
 
-    // 🔥 SPRINT 14: accepter un colis (CREATED -> ACCEPTED)
+    // 🔥 SPRINT 14: accepter un colis (CREATED -> ACCEPTED) - simple version
     @PatchMapping("/{parcelId}/accept")
     public ResponseEntity<ParcelResponse> acceptParcel(
             @PathVariable UUID parcelId
     ) {
         return ResponseEntity.ok(parcelService.acceptParcel(parcelId));
+    }
+
+    // 🔥 SPRINT 15: accepter un colis avec validation complète
+    // Agent/Courier validates description, weight, adds photo and validation comments
+    @PatchMapping("/{parcelId}/validate")
+    public ResponseEntity<ParcelResponse> acceptParcelWithValidation(
+            @PathVariable UUID parcelId,
+            @Valid @RequestBody AcceptParcelRequest request
+    ) {
+        return ResponseEntity.ok(parcelService.acceptParcelWithValidation(parcelId, request));
     }
 
     // 🔥 SPRINT 14: changer l’option de livraison (AGENCY ↔ HOME)

@@ -62,6 +62,7 @@ public enum ErrorCode {
     AGENCY_NOT_FOUND,
     PARCEL_NOT_FOUND,
     PARCEL_STATUS_INVALID,
+    VALIDATION_FAILED,
 
     // =====================================================
     // TARIFF & PRICING
@@ -85,6 +86,14 @@ public enum ErrorCode {
     PICKUP_NOT_FOUND,
     PICKUP_ALREADY_EXISTS,
     PICKUP_INVALID_STATE,
+
+    // =====================================================
+    // QR CODE MODULE
+    // =====================================================
+    QR_CODE_INVALID,
+    QR_CODE_EXPIRED,
+    QR_CODE_ALREADY_USED,
+    QR_CODE_GENERATION_FAILED,
 
     // =====================================================
     // NOTIFICATION MODULE

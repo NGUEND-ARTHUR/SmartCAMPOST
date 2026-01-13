@@ -10,6 +10,7 @@ public enum NotificationType {
     // NEW (added according to Sprint 14 – following same style)
     PARCEL_CREATED,
     PARCEL_ACCEPTED,
+    PARCEL_STATUS_CHANGE,
     PARCEL_IN_TRANSIT,
     PARCEL_ARRIVED_DESTINATION,
     PARCEL_OUT_FOR_DELIVERY,

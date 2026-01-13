@@ -1,0 +1,383 @@
+/**
+ * Interactive Tracking Map Component
+ * Shows parcel journey with animated marker and route visualization
+ */
+import { useEffect, useMemo, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+  useMap,
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { Package, MapPin, Navigation, Clock } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+// Fix Leaflet default marker icon issue
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
+  ._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
+
+// Custom icons
+const createIcon = (color: string, emoji: string) =>
+  L.divIcon({
+    className: "custom-marker",
+    html: `<div style="
+      background: ${color};
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    ">${emoji}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  });
+
+const originIcon = createIcon("#22c55e", "📍");
+const destinationIcon = createIcon("#ef4444", "🏁");
+const parcelIcon = createIcon("#3b82f6", "📦");
+const transitIcon = createIcon("#f59e0b", "🚚");
+
+interface ScanEvent {
+  id: string;
+  eventType: string;
+  location?: string;
+  latitude?: number;
+  longitude?: number;
+  timestamp: string;
+  agencyName?: string;
+}
+
+interface TrackingMapProps {
+  trackingId?: string;
+  scanEvents?: ScanEvent[];
+  originLat?: number;
+  originLng?: number;
+  destinationLat?: number;
+  destinationLng?: number;
+  currentStatus?: string;
+  showAnimation?: boolean;
+}
+
+// Component to animate the map view
+function AnimatedView({
+  center,
+  zoom,
+}: {
+  center: [number, number];
+  zoom: number;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 1.5 });
+  }, [center, zoom, map]);
+  return null;
+}
+
+// Animated parcel marker that moves along the route
+function AnimatedParcelMarker({
+  positions,
+  isAnimating,
+}: {
+  positions: [number, number][];
+  isAnimating: boolean;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const map = useMap();
+
+  useEffect(() => {
+    if (!isAnimating || positions.length < 2) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => {
+        const next = prev + 1;
+        if (next >= positions.length) {
+          return 0; // Loop back
+        }
+        return next;
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isAnimating, positions.length]);
+
+  useEffect(() => {
+    if (positions[currentIndex]) {
+      map.panTo(positions[currentIndex], { animate: true, duration: 1 });
+    }
+  }, [currentIndex, positions, map]);
+
+  if (positions.length === 0) return null;
+
+  return (
+    <Marker position={positions[currentIndex] || positions[0]} icon={parcelIcon}>
+      <Popup>
+        <div className="text-center">
+          <strong>📦 Your Parcel</strong>
+          <br />
+          <span className="text-sm text-gray-600">In Transit</span>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+export default function TrackingMap({
+  trackingId,
+  scanEvents = [],
+  originLat,
+  originLng,
+  destinationLat,
+  destinationLng,
+  currentStatus = "IN_TRANSIT",
+  showAnimation = true,
+}: TrackingMapProps) {
+  const [isAnimating, setIsAnimating] = useState(showAnimation);
+
+  // Convert scan events to positions
+  const eventPositions: [number, number][] = useMemo(() => {
+    return scanEvents
+      .filter((e) => e.latitude && e.longitude)
+      .map((e) => [e.latitude!, e.longitude!] as [number, number]);
+  }, [scanEvents]);
+
+  // Build full route including origin and destination
+  const fullRoute: [number, number][] = useMemo(() => {
+    const route: [number, number][] = [];
+
+    if (originLat && originLng) {
+      route.push([originLat, originLng]);
+    }
+
+    route.push(...eventPositions);
+
+    if (destinationLat && destinationLng) {
+      route.push([destinationLat, destinationLng]);
+    }
+
+    return route;
+  }, [originLat, originLng, destinationLat, destinationLng, eventPositions]);
+
+  // Calculate map center
+  const mapCenter: [number, number] = useMemo(() => {
+    if (fullRoute.length > 0) {
+      const lats = fullRoute.map((p) => p[0]);
+      const lngs = fullRoute.map((p) => p[1]);
+      return [
+        (Math.min(...lats) + Math.max(...lats)) / 2,
+        (Math.min(...lngs) + Math.max(...lngs)) / 2,
+      ];
+    }
+    // Default to Cameroon center
+    return [7.3697, 12.3547];
+  }, [fullRoute]);
+
+  // Calculate appropriate zoom level
+  const mapZoom = useMemo(() => {
+    if (fullRoute.length < 2) return 10;
+    const lats = fullRoute.map((p) => p[0]);
+    const lngs = fullRoute.map((p) => p[1]);
+    const latDiff = Math.max(...lats) - Math.min(...lats);
+    const lngDiff = Math.max(...lngs) - Math.min(...lngs);
+    const maxDiff = Math.max(latDiff, lngDiff);
+    if (maxDiff > 5) return 6;
+    if (maxDiff > 2) return 7;
+    if (maxDiff > 1) return 8;
+    if (maxDiff > 0.5) return 10;
+    return 12;
+  }, [fullRoute]);
+
+  // Get last known position for current parcel location
+  const currentPosition: [number, number] | null = useMemo(() => {
+    if (currentStatus === "DELIVERED" && destinationLat && destinationLng) {
+      return [destinationLat, destinationLng];
+    }
+    if (eventPositions.length > 0) {
+      return eventPositions[eventPositions.length - 1];
+    }
+    if (originLat && originLng) {
+      return [originLat, originLng];
+    }
+    return null;
+  }, [currentStatus, destinationLat, destinationLng, eventPositions, originLat, originLng]);
+
+  if (!trackingId && fullRoute.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-center text-muted-foreground">
+            <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>No tracking data available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Navigation className="w-5 h-5" />
+            Live Tracking {trackingId && `- ${trackingId}`}
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isAnimating ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsAnimating(!isAnimating)}
+            >
+              {isAnimating ? "⏸ Pause" : "▶ Animate"}
+            </Button>
+            <Badge variant="secondary">
+              {scanEvents.length} checkpoint{scanEvents.length !== 1 ? "s" : ""}
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="h-[400px] relative">
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            className="h-full w-full z-0"
+            scrollWheelZoom={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            <AnimatedView center={mapCenter} zoom={mapZoom} />
+
+            {/* Route line */}
+            {fullRoute.length >= 2 && (
+              <Polyline
+                positions={fullRoute}
+                color="#3b82f6"
+                weight={4}
+                opacity={0.7}
+                dashArray="10, 10"
+              />
+            )}
+
+            {/* Origin marker */}
+            {originLat && originLng && (
+              <Marker position={[originLat, originLng]} icon={originIcon}>
+                <Popup>
+                  <div className="text-center">
+                    <strong>📍 Origin</strong>
+                    <br />
+                    <span className="text-sm">Pickup Location</span>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {/* Destination marker */}
+            {destinationLat && destinationLng && (
+              <Marker
+                position={[destinationLat, destinationLng]}
+                icon={destinationIcon}
+              >
+                <Popup>
+                  <div className="text-center">
+                    <strong>🏁 Destination</strong>
+                    <br />
+                    <span className="text-sm">Delivery Location</span>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {/* Transit checkpoints */}
+            {scanEvents
+              .filter((e) => e.latitude && e.longitude)
+              .map((event, index) => (
+                <Marker
+                  key={event.id}
+                  position={[event.latitude!, event.longitude!]}
+                  icon={transitIcon}
+                >
+                  <Popup>
+                    <div className="min-w-[150px]">
+                      <strong className="flex items-center gap-1">
+                        <Package className="w-4 h-4" />
+                        Checkpoint {index + 1}
+                      </strong>
+                      <div className="mt-1 text-sm">
+                        <p>{event.eventType}</p>
+                        {event.agencyName && <p>📍 {event.agencyName}</p>}
+                        <p className="flex items-center gap-1 text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          {new Date(event.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+            {/* Animated parcel marker */}
+            {isAnimating && fullRoute.length >= 2 && (
+              <AnimatedParcelMarker
+                positions={fullRoute}
+                isAnimating={isAnimating}
+              />
+            )}
+
+            {/* Current parcel position (when not animating) */}
+            {!isAnimating && currentPosition && (
+              <Marker position={currentPosition} icon={parcelIcon}>
+                <Popup>
+                  <div className="text-center">
+                    <strong>📦 Current Location</strong>
+                    <br />
+                    <Badge>{currentStatus}</Badge>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+          </MapContainer>
+
+          {/* Legend */}
+          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg z-[1000] text-xs">
+            <div className="font-semibold mb-2">Legend</div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span>📍</span> Origin
+              </div>
+              <div className="flex items-center gap-2">
+                <span>🚚</span> Checkpoint
+              </div>
+              <div className="flex items-center gap-2">
+                <span>📦</span> Current Position
+              </div>
+              <div className="flex items-center gap-2">
+                <span>🏁</span> Destination
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

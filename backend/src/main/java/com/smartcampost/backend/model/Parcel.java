@@ -105,6 +105,33 @@ public class Parcel {
 
     @Column(name = "description_comment", length = 1000)
     private String descriptionComment; // optional comment at validation
+
+    // --------------------------------------------------
+    //  🔥 SPRINT 15 — VALIDATION FIELDS (Agent/Courier Acceptance)
+    // --------------------------------------------------
+
+    @Column(name = "validated_weight")
+    private Double validatedWeight; // Weight confirmed by agent during acceptance
+
+    @Column(name = "validated_dimensions", length = 50)
+    private String validatedDimensions; // Dimensions confirmed by agent
+
+    @Column(name = "validation_comment", length = 1000)
+    private String validationComment; // Agent's notes during acceptance
+
+    @Column(name = "description_confirmed")
+    private Boolean descriptionConfirmed; // Agent confirmed description is accurate
+
+    @Column(name = "validated_at")
+    private Instant validatedAt; // Timestamp when parcel was validated/accepted
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "validated_by_staff_id",
+            referencedColumnName = "staff_id",
+            foreignKey = @ForeignKey(name = "fk_parcel_validated_by")
+    )
+    private Staff validatedBy; // Agent/Courier who validated the parcel
     // --------------------------------------------------
 
     @Column(

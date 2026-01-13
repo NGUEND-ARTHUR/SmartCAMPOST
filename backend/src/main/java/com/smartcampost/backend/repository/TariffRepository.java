@@ -25,5 +25,12 @@ public interface TariffRepository extends JpaRepository<Tariff, UUID> {
             String weightBracket
     );
 
+    Optional<Tariff> findByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
+            ServiceType serviceType,
+            String originZone,
+            String destinationZone,
+            String weightBracket
+    );
+
     Page<Tariff> findByServiceType(ServiceType serviceType, Pageable pageable);
 }

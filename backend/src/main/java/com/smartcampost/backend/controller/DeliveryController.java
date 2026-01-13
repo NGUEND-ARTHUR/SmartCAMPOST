@@ -1,19 +1,15 @@
 package com.smartcampost.backend.controller;
 
-import com.smartcampost.backend.dto.delivery.DeliveryOtpSendRequest;
-import com.smartcampost.backend.dto.delivery.DeliveryOtpVerificationRequest;
-import com.smartcampost.backend.dto.delivery.DeliveryProofRequest;
-import com.smartcampost.backend.dto.delivery.FinalDeliveryRequest;
+import com.smartcampost.backend.dto.delivery.*;
 import com.smartcampost.backend.dto.parcel.ParcelResponse;
 import com.smartcampost.backend.dto.parcel.UpdateParcelStatusRequest;
 import com.smartcampost.backend.dto.scan.ScanEventCreateRequest;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ScanEventType;
-import com.smartcampost.backend.service.DeliveryOtpService;
-import com.smartcampost.backend.service.DeliveryProofService;
-import com.smartcampost.backend.service.ParcelService;
-import com.smartcampost.backend.service.ScanEventService;
-import com.smartcampost.backend.service.PaymentService;   // 🔥 NEW
+import com.smartcampost.backend.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +19,15 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/delivery")
 @RequiredArgsConstructor
+@Tag(name = "Delivery", description = "Home delivery and agency pickup workflow endpoints")
 public class DeliveryController {
 
     private final DeliveryOtpService deliveryOtpService;
     private final DeliveryProofService deliveryProofService;
     private final ScanEventService scanEventService;
     private final ParcelService parcelService;
-    private final PaymentService paymentService; // 🔥 NEW
+    private final PaymentService paymentService;
+    private final DeliveryService deliveryService;
 
     @PostMapping("/otp/send")
     public ResponseEntity<Void> sendDeliveryOtp(@RequestBody DeliveryOtpSendRequest request) {
@@ -84,4 +82,57 @@ public class DeliveryController {
 
         return ResponseEntity.ok(response);
     }
-}
+    // ==================== NEW ENHANCED DELIVERY WORKFLOW ====================
+
+    @Operation(summary = "Start delivery",
+               description = "Courier marks parcel as OUT_FOR_DELIVERY and sends OTP to recipient")
+    @PostMapping("/start")
+    public ResponseEntity<StartDeliveryResponse> startDelivery(
+            @Valid @RequestBody StartDeliveryRequest request
+    ) {
+        return ResponseEntity.ok(deliveryService.startDelivery(request));
+    }
+
+    @Operation(summary = "Re-send delivery OTP",
+               description = "Re-send OTP to recipient phone number")
+    @PostMapping("/{parcelId}/otp/resend")
+    public ResponseEntity<Void> resendOtp(@PathVariable UUID parcelId) {
+        deliveryService.sendDeliveryOtp(parcelId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Complete delivery with full verification",
+               description = "Verify OTP, capture proof (signature/photo), handle COD payment, and mark parcel as DELIVERED")
+    @PostMapping("/complete")
+    public ResponseEntity<CompleteDeliveryResponse> completeDelivery(
+            @Valid @RequestBody CompleteDeliveryRequest request
+    ) {
+        return ResponseEntity.ok(deliveryService.completeDelivery(request));
+    }
+
+    @Operation(summary = "Get delivery status",
+               description = "Get complete delivery status and information for a parcel")
+    @GetMapping("/{parcelId}/status")
+    public ResponseEntity<DeliveryStatusResponse> getDeliveryStatus(@PathVariable UUID parcelId) {
+        return ResponseEntity.ok(deliveryService.getDeliveryStatus(parcelId));
+    }
+
+    @Operation(summary = "Mark delivery as failed",
+               description = "Record a failed delivery attempt with reason")
+    @PostMapping("/{parcelId}/failed")
+    public ResponseEntity<DeliveryStatusResponse> markDeliveryFailed(
+            @PathVariable UUID parcelId,
+            @RequestParam String reason
+    ) {
+        return ResponseEntity.ok(deliveryService.markDeliveryFailed(parcelId, reason));
+    }
+
+    @Operation(summary = "Reschedule delivery",
+               description = "Reschedule delivery for a later date")
+    @PostMapping("/{parcelId}/reschedule")
+    public ResponseEntity<DeliveryStatusResponse> rescheduleDelivery(
+            @PathVariable UUID parcelId,
+            @Valid @RequestBody RescheduleDeliveryRequest request
+    ) {
+        return ResponseEntity.ok(deliveryService.rescheduleDelivery(parcelId, request));
+    }}

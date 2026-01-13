@@ -4,6 +4,7 @@ import com.smartcampost.backend.dto.payment.ConfirmPaymentRequest;
 import com.smartcampost.backend.dto.payment.InitPaymentRequest;
 import com.smartcampost.backend.dto.payment.PaymentResponse;
 import com.smartcampost.backend.service.PaymentService;
+import com.smartcampost.backend.service.PaymentService.PaymentSummary;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -57,5 +58,53 @@ public class PaymentController {
             @RequestParam(defaultValue = "20") int size
     ) {
         return ResponseEntity.ok(paymentService.listAllPayments(page, size));
+    }
+
+    // ======================================================
+    // 🔥 SPRINT 16 — PAYMENT WORKFLOW INTEGRATION
+    // ======================================================
+
+    /**
+     * Create payment entry for parcel registration (PREPAID option)
+     */
+    @PostMapping("/registration/{parcelId}")
+    public ResponseEntity<PaymentResponse> createRegistrationPayment(
+            @PathVariable UUID parcelId
+    ) {
+        return ResponseEntity.ok(paymentService.createRegistrationPayment(parcelId));
+    }
+
+    /**
+     * Process payment collected during home pickup
+     */
+    @PostMapping("/pickup/{parcelId}")
+    public ResponseEntity<PaymentResponse> processPickupPayment(
+            @PathVariable UUID parcelId,
+            @RequestParam String paymentMethod,
+            @RequestParam Double amount
+    ) {
+        return ResponseEntity.ok(paymentService.processPickupPayment(parcelId, paymentMethod, amount));
+    }
+
+    /**
+     * Process COD payment at delivery
+     */
+    @PostMapping("/delivery/{parcelId}")
+    public ResponseEntity<PaymentResponse> processDeliveryPayment(
+            @PathVariable UUID parcelId,
+            @RequestParam String paymentMethod,
+            @RequestParam Double amount
+    ) {
+        return ResponseEntity.ok(paymentService.processDeliveryPayment(parcelId, paymentMethod, amount));
+    }
+
+    /**
+     * Get complete payment summary for a parcel
+     */
+    @GetMapping("/summary/{parcelId}")
+    public ResponseEntity<PaymentSummary> getPaymentSummary(
+            @PathVariable UUID parcelId
+    ) {
+        return ResponseEntity.ok(paymentService.getPaymentSummary(parcelId));
     }
 }
