@@ -1,10 +1,11 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { AuthState, User, LoginRequest, LoginResponse } from '@/types';
-import { apiClient } from '@/lib/api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { AuthState, User, LoginRequest, LoginResponse } from "@/types";
+import { apiClient } from "@/lib/api";
 
 interface AuthStore extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
+  setAuth: (user: User, token: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -27,10 +28,20 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+          return res;
         } catch (error) {
           set({ isLoading: false });
           throw error;
         }
+      },
+
+      setAuth: (user: User, token: string) => {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       },
 
       logout: () => {
@@ -38,21 +49,21 @@ export const useAuthStore = create<AuthStore>()(
           user: null,
           token: null,
           isAuthenticated: false,
-          isLoading: false
+          isLoading: false,
         });
       },
 
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
-      }
+      },
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         token: state.token,
-        isAuthenticated: state.isAuthenticated
-      })
-    }
-  )
+        isAuthenticated: state.isAuthenticated,
+      }),
+    },
+  ),
 );
