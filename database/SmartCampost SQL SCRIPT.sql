@@ -684,5 +684,40 @@ CREATE INDEX ix_compliance_status ON compliance_report(status);
 
 
 -- =========================================================
+-- SEED DATA: Initial Admin Account
+-- =========================================================
+-- Default Admin Credentials:
+--   Phone: +237600000000
+--   Password: Admin@123
+-- 
+-- NOTE: Change this password after first login!
+
+-- 1) Create Staff record for Admin
+INSERT INTO staff (staff_id, full_name, role, email, phone, status, hired_at, password_hash, created_at)
+VALUES (
+  UNHEX(REPLACE('a0000000-0000-0000-0000-000000000001', '-', '')),
+  'System Administrator',
+  'ADMIN',
+  'admin@smartcampost.cm',
+  '+237600000000',
+  'ACTIVE',
+  CURDATE(),
+  '$2b$10$TEyVVX.4KiRwehr0J4gk2e0KpYRsmTWs6je8S0at0wMaSGGlk1l5C',
+  NOW()
+);
+
+-- 2) Create UserAccount for Admin login
+INSERT INTO user_account (id, phone, password_hash, role, entity_id, frozen, created_at)
+VALUES (
+  UNHEX(REPLACE('b0000000-0000-0000-0000-000000000001', '-', '')),
+  '+237600000000',
+  '$2b$10$TEyVVX.4KiRwehr0J4gk2e0KpYRsmTWs6je8S0at0wMaSGGlk1l5C',
+  'ADMIN',
+  UNHEX(REPLACE('a0000000-0000-0000-0000-000000000001', '-', '')),
+  FALSE,
+  NOW()
+);
+
+-- =========================================================
 -- DONE
 -- =========================================================

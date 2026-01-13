@@ -105,19 +105,34 @@ public class ScanEventServiceImpl implements ScanEventService {
         // mettre à jour le statut du colis selon l’event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
         if (newStatus != null) {
+            ParcelStatus oldStatus = parcel.getStatus();
             parcel.setStatus(newStatus);
             parcelRepository.save(parcel);
 
-            // 🔔 si le colis vient d’être livré, notifier le client
+            // 🔔 Notifications based on status changes
+            String eventName = type.name();
+
+            // 🔔 si le colis vient d'être livré, notifier le client
             if (newStatus == ParcelStatus.DELIVERED) {
                 notificationService.notifyParcelDelivered(parcel);
             }
 
             // 🔔 si le colis passe en "OUT_FOR_DELIVERY" -> notification dédiée
-            String eventName = type.name();
-            if (newStatus == ParcelStatus.IN_TRANSIT
-                    && eventName.contains("OUT_FOR_DELIVERY")) {
+            if (eventName.equals("OUT_FOR_DELIVERY") || 
+                (newStatus == ParcelStatus.OUT_FOR_DELIVERY && oldStatus != ParcelStatus.OUT_FOR_DELIVERY)) {
                 notificationService.notifyParcelOutForDelivery(parcel);
+            }
+
+            // 🔔 si le colis passe en transit
+            if (newStatus == ParcelStatus.IN_TRANSIT && oldStatus != ParcelStatus.IN_TRANSIT) {
+                notificationService.notifyParcelInTransit(parcel);
+            }
+
+            // 🔔 si le colis arrive à l'agence de destination
+            if (eventName.equals("ARRIVED_DESTINATION") || eventName.equals("ARRIVED_HUB")) {
+                if (newStatus == ParcelStatus.ARRIVED_HUB || oldStatus != ParcelStatus.ARRIVED_HUB) {
+                    notificationService.notifyParcelArrivedDestination(parcel);
+                }
             }
         }
 

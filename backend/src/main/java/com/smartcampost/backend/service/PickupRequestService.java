@@ -1,6 +1,7 @@
 package com.smartcampost.backend.service;
 
 import com.smartcampost.backend.dto.pickup.*;
+import com.smartcampost.backend.dto.qr.TemporaryQrData;
 import org.springframework.data.domain.Page;
 
 import java.util.UUID;
@@ -29,4 +30,27 @@ public interface PickupRequestService {
 
     // US27 : mise à jour de l'état
     PickupResponse updatePickupState(UUID pickupId, UpdatePickupStateRequest request);
+
+    // ==================== NEW: QR CODE WORKFLOW ====================
+
+    /**
+     * Generate temporary QR code for a pickup request.
+     * Called after client submits pickup request.
+     * Returns QR data that client can show to agent.
+     */
+    TemporaryQrData generatePickupQrCode(UUID pickupId);
+
+    /**
+     * Confirm pickup via QR scan.
+     * Agent scans temporary QR, validates parcel, and confirms pickup.
+     * Transitions pickup to COMPLETED and parcel to ACCEPTED.
+     * Returns permanent QR code and optional label data.
+     */
+    ConfirmPickupResponse confirmPickupWithQrScan(ConfirmPickupRequest request);
+
+    /**
+     * Get pickup details by scanning temporary QR token.
+     * Used by agent before confirming pickup.
+     */
+    TemporaryQrData getPickupByTemporaryQr(String temporaryQrToken);
 }

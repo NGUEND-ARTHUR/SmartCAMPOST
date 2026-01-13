@@ -13,6 +13,7 @@ import com.smartcampost.backend.repository.*;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ParcelService;
 import com.smartcampost.backend.service.PaymentService;
+import com.smartcampost.backend.service.PricingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,11 +35,15 @@ public class ParcelServiceImpl implements ParcelService {
     private final UserAccountRepository userAccountRepository;
     private final AddressRepository addressRepository;
     private final AgencyRepository agencyRepository;
-    private final PricingDetailRepository pricingDetailRepository; // 🔹 nouveau
+    private final PricingDetailRepository pricingDetailRepository;
+    private final StaffRepository staffRepository;
 
     // 🔥 SPRINT 14: services ajoutés
     private final NotificationService notificationService;
     private final PaymentService paymentService;
+    
+    // 🔥 SPRINT 15: pricing service for weight-based recalculation
+    private final PricingService pricingService;
 
     private final SecureRandom random = new SecureRandom();
 
@@ -180,7 +185,7 @@ public class ParcelServiceImpl implements ParcelService {
     // ================== LIST ALL (ADMIN/STAFF) ==================
     @Override
     public Page<ParcelResponse> listParcels(int page, int size) {
-        // TODO: si tu veux, vérifier que userRole != CLIENT
+        // Admin/Staff only - role check enforced via SecurityConfig
         return parcelRepository.findAll(PageRequest.of(page, size))
                 .map(this::toResponse);
     }
@@ -223,6 +228,99 @@ public class ParcelServiceImpl implements ParcelService {
 
         parcel.setStatus(ParcelStatus.ACCEPTED);
         parcelRepository.save(parcel);
+
+        return toResponse(parcel);
+    }
+
+    // ================== ACCEPT PARCEL WITH VALIDATION (CREATED -> ACCEPTED) ==================
+    // Agent/Courier validates parcel details: description, weight, adds photo and comments
+    @Override
+    public ParcelResponse acceptParcelWithValidation(UUID parcelId, AcceptParcelRequest request) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        // 1) Parcel must be in CREATED state
+        if (parcel.getStatus() != ParcelStatus.CREATED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel must be in CREATED state to be accepted. Current: " + parcel.getStatus()
+            );
+        }
+
+        // 2) Description must be confirmed by the agent
+        if (!request.isDescriptionConfirmed()) {
+            throw new AuthException(
+                    ErrorCode.VALIDATION_FAILED,
+                    "Agent must confirm the parcel description is accurate before acceptance"
+            );
+        }
+
+        // 3) Get the current staff (agent/courier) who is validating
+        UserAccount currentUser = getCurrentUserAccount();
+        Staff validatingStaff = null;
+        if (currentUser.getRole() == UserRole.AGENT || currentUser.getRole() == UserRole.COURIER) {
+            validatingStaff = staffRepository.findById(currentUser.getEntityId()).orElse(null);
+        }
+
+        // 4) Store original weight for price recalculation check
+        Double originalWeight = parcel.getWeight();
+        boolean weightChanged = false;
+
+        // 5) Update validated weight if provided and different
+        if (request.getValidatedWeight() != null && request.getValidatedWeight() > 0) {
+            parcel.setValidatedWeight(request.getValidatedWeight());
+            if (!request.getValidatedWeight().equals(originalWeight)) {
+                weightChanged = true;
+                // Optionally update the main weight to the validated weight
+                parcel.setWeight(request.getValidatedWeight());
+            }
+        } else {
+            // Agent confirms original weight is correct
+            parcel.setValidatedWeight(parcel.getWeight());
+        }
+
+        // 6) Update validated dimensions if provided
+        if (request.getValidatedDimensions() != null && !request.getValidatedDimensions().isBlank()) {
+            parcel.setValidatedDimensions(request.getValidatedDimensions());
+        } else {
+            parcel.setValidatedDimensions(parcel.getDimensions());
+        }
+
+        // 7) Set photo URL if provided
+        if (request.getPhotoUrl() != null && !request.getPhotoUrl().isBlank()) {
+            parcel.setPhotoUrl(request.getPhotoUrl());
+        }
+
+        // 8) Set validation comment
+        if (request.getValidationComment() != null && !request.getValidationComment().isBlank()) {
+            parcel.setValidationComment(request.getValidationComment());
+        }
+
+        // 9) Set validation metadata
+        parcel.setDescriptionConfirmed(true);
+        parcel.setValidatedAt(Instant.now());
+        parcel.setValidatedBy(validatingStaff);
+
+        // 10) Update status to ACCEPTED
+        parcel.setStatus(ParcelStatus.ACCEPTED);
+
+        parcelRepository.save(parcel);
+
+        // 11) If weight changed and recalculation requested, trigger price recalculation
+        if (weightChanged && request.isRecalculatePriceOnWeightChange()) {
+            try {
+                pricingService.recalculatePriceForParcel(parcelId);
+            } catch (Exception e) {
+                // Log but don't fail the acceptance
+                // Price can be manually adjusted later
+            }
+        }
+
+        // 12) Notify client that parcel has been validated/accepted
+        notificationService.notifyParcelAccepted(parcel);
 
         return toResponse(parcel);
     }

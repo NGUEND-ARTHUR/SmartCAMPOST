@@ -424,4 +424,141 @@ public class PaymentServiceImpl implements PaymentService {
                 .externalRef(payment.getExternalRef())
                 .build();
     }
+
+    // ======================================================
+    // 🔥 SPRINT 16 — PAYMENT AT DIFFERENT STAGES
+    // ======================================================
+
+    @Override
+    public PaymentResponse createRegistrationPayment(UUID parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        // Get pricing
+        PricingDetail pricing = pricingDetailRepository
+                .findTopByParcel_IdOrderByAppliedAtDesc(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No pricing found for parcel", ErrorCode.PRICING_NOT_FOUND));
+
+        // Create pending payment for registration
+        Payment payment = Payment.builder()
+                .id(UUID.randomUUID())
+                .parcel(parcel)
+                .amount(pricing.getAppliedPrice())
+                .currency("XAF")
+                .method(com.smartcampost.backend.model.enums.PaymentMethod.MOBILE_MONEY)
+                .status(PaymentStatus.PENDING)
+                .timestamp(Instant.now())
+                .build();
+
+        paymentRepository.save(payment);
+        return toResponse(payment);
+    }
+
+    @Override
+    public PaymentResponse processPickupPayment(UUID parcelId, String paymentMethod, Double amount) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        com.smartcampost.backend.model.enums.PaymentMethod method;
+        try {
+            method = com.smartcampost.backend.model.enums.PaymentMethod.valueOf(paymentMethod);
+        } catch (IllegalArgumentException e) {
+            method = com.smartcampost.backend.model.enums.PaymentMethod.CASH;
+        }
+
+        // Create successful payment for pickup
+        Payment payment = Payment.builder()
+                .id(UUID.randomUUID())
+                .parcel(parcel)
+                .amount(amount)
+                .currency("XAF")
+                .method(method)
+                .status(PaymentStatus.SUCCESS)
+                .timestamp(Instant.now())
+                .externalRef("PICKUP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .build();
+
+        paymentRepository.save(payment);
+        return toResponse(payment);
+    }
+
+    @Override
+    public PaymentResponse processDeliveryPayment(UUID parcelId, String paymentMethod, Double amount) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        com.smartcampost.backend.model.enums.PaymentMethod method;
+        try {
+            method = com.smartcampost.backend.model.enums.PaymentMethod.valueOf(paymentMethod);
+        } catch (IllegalArgumentException e) {
+            method = com.smartcampost.backend.model.enums.PaymentMethod.CASH;
+        }
+
+        // Create successful payment for delivery (COD)
+        Payment payment = Payment.builder()
+                .id(UUID.randomUUID())
+                .parcel(parcel)
+                .amount(amount)
+                .currency("XAF")
+                .method(method)
+                .status(PaymentStatus.SUCCESS)
+                .timestamp(Instant.now())
+                .externalRef("COD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .build();
+
+        paymentRepository.save(payment);
+        return toResponse(payment);
+    }
+
+    @Override
+    public PaymentSummary getPaymentSummary(UUID parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        // Get all payments - use correct method
+        List<Payment> payments = paymentRepository.findByParcel_IdOrderByTimestampDesc(parcelId);
+
+        // Get pricing for total due
+        Double totalDue = pricingDetailRepository
+                .findTopByParcel_IdOrderByAppliedAtDesc(parcelId)
+                .map(PricingDetail::getAppliedPrice)
+                .orElse(0.0);
+
+        // Calculate total paid
+        Double totalPaid = payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.SUCCESS)
+                .mapToDouble(Payment::getAmount)
+                .sum();
+
+        Double balance = totalDue - totalPaid;
+
+        String paymentStatus;
+        if (totalPaid >= totalDue) {
+            paymentStatus = "PAID";
+        } else if (totalPaid > 0) {
+            paymentStatus = "PARTIAL";
+        } else {
+            paymentStatus = "PENDING";
+        }
+
+        List<PaymentResponse> paymentResponses = payments.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        return new PaymentSummary(
+                parcelId,
+                parcel.getTrackingRef(),
+                totalDue,
+                totalPaid,
+                balance,
+                parcel.getPaymentOption().name(),
+                paymentStatus,
+                paymentResponses
+        );
+    }
 }

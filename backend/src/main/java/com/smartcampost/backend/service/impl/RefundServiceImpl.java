@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused") // Some repositories reserved for future functionality
 public class RefundServiceImpl implements RefundService {
 
     private final RefundRepository refundRepository;

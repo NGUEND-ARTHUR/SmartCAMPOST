@@ -25,8 +25,12 @@ public interface ParcelService {
     // US21: mise à jour du statut
     ParcelResponse updateParcelStatus(UUID parcelId, UpdateParcelStatusRequest request);
 
-    // 🔥 SPRINT 14: accepter un colis (CREATED -> ACCEPTED)
+    // 🔥 SPRINT 14: accepter un colis (CREATED -> ACCEPTED) - simple version
     ParcelResponse acceptParcel(UUID parcelId);
+
+    // 🔥 SPRINT 15: accepter un colis avec validation complète
+    // Agent/Courier validates description, weight, adds photo and comments
+    ParcelResponse acceptParcelWithValidation(UUID parcelId, AcceptParcelRequest request);
 
     // 🔥 SPRINT 14: changer l’option de livraison (AGENCY ↔ HOME)
     ParcelResponse changeDeliveryOption(UUID parcelId, ChangeDeliveryOptionRequest request);

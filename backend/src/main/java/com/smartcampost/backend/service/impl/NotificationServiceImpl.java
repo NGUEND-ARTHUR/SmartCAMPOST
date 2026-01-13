@@ -300,6 +300,42 @@ public class NotificationServiceImpl implements NotificationService {
         sendAndUpdate(notif);
     }
 
+    // 🔥 SPRINT 15: notification when parcel is validated/accepted by agent
+    @Override
+    public void notifyParcelAccepted(Parcel parcel) {
+        Client client = parcel.getClient();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String subject = "Parcel validated and accepted";
+        String message = "Dear " + client.getFullName()
+                + ", your parcel " + parcel.getTrackingRef()
+                + " has been validated and accepted by our agent. "
+                + "It is now ready for processing and will soon be on its way.";
+
+        // Add validation details if available
+        if (parcel.getValidatedWeight() != null && !parcel.getValidatedWeight().equals(parcel.getWeight())) {
+            message += " Note: The confirmed weight is " + parcel.getValidatedWeight() + " kg.";
+        }
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.PARCEL_STATUS_CHANGE)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
     // 🔥 NEW: notification "out for delivery"
     @Override
     public void notifyParcelOutForDelivery(Parcel parcel) {
@@ -320,6 +356,110 @@ public class NotificationServiceImpl implements NotificationService {
                 .recipientEmail(email)
                 .channel(NotificationChannel.SMS)
                 .type(NotificationType.PARCEL_OUT_FOR_DELIVERY)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
+    // 🔥 NEW: notification when parcel is in transit
+    @Override
+    public void notifyParcelInTransit(Parcel parcel) {
+        Client client = parcel.getClient();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String subject = "Parcel in transit";
+        String message = "Dear " + client.getFullName()
+                + ", your parcel " + parcel.getTrackingRef()
+                + " is now in transit to its destination.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.PARCEL_IN_TRANSIT)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
+    // 🔥 NEW: notification when parcel arrives at destination agency
+    @Override
+    public void notifyParcelArrivedDestination(Parcel parcel) {
+        Client client = parcel.getClient();
+        Agency destAgency = parcel.getDestinationAgency();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String agencyInfo = destAgency != null ?
+                " at " + destAgency.getAgencyName() + " agency" : "";
+
+        String deliveryInfo = parcel.getDeliveryOption().name().equals("HOME") ?
+                " It will soon be out for home delivery." :
+                " You can come pick it up during working hours.";
+
+        String subject = "Parcel arrived at destination";
+        String message = "Dear " + client.getFullName()
+                + ", your parcel " + parcel.getTrackingRef()
+                + " has arrived" + agencyInfo + "." + deliveryInfo;
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.PARCEL_ARRIVED_DESTINATION)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
+    // 🔥 NEW: reminder for uncollected parcels at agency
+    @Override
+    public void sendReminderForUncollectedParcel(Parcel parcel, int daysSinceArrival) {
+        Client client = parcel.getClient();
+        Agency destAgency = parcel.getDestinationAgency();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String agencyInfo = destAgency != null ?
+                destAgency.getAgencyName() : "our agency";
+
+        String subject = "Reminder: Collect your parcel";
+        String message = "Dear " + client.getFullName()
+                + ", your parcel " + parcel.getTrackingRef()
+                + " has been waiting for collection at " + agencyInfo
+                + " for " + daysSinceArrival + " days. "
+                + "Please pick it up soon to avoid return to sender.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.REMINDER_NOT_COLLECTED)
                 .status(NotificationStatus.PENDING)
                 .subject(subject)
                 .message(message)

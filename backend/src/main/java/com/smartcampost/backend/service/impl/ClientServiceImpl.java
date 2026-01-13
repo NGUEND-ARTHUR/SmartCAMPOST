@@ -49,7 +49,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Page<ClientResponse> listClients(int page, int size) {
-        // TODO: Optionnel - vérifier que l'utilisateur n'est pas un simple CLIENT (admin/staff only)
+        // Admin/Staff only - role check enforced via SecurityConfig
         return clientRepository.findAll(PageRequest.of(page, size))
                 .map(this::toResponse);
     }

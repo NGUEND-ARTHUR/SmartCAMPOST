@@ -44,4 +44,45 @@ public interface PaymentService {
      * and an additional amount must be charged.
      */
     PaymentResponse handleAdditionalDeliveryCharge(UUID parcelId, BigDecimal additionalAmount);
+
+    // ==========================================================
+    // 🔥 SPRINT 16 — PAYMENT AT DIFFERENT STAGES
+    // ==========================================================
+
+    /**
+     * Create payment at registration stage (when parcel is created).
+     * Called for PREPAID parcels.
+     */
+    PaymentResponse createRegistrationPayment(UUID parcelId);
+
+    /**
+     * Process payment during pickup.
+     * Called when agent collects payment at home collection.
+     */
+    PaymentResponse processPickupPayment(UUID parcelId, String paymentMethod, Double amount);
+
+    /**
+     * Process payment at delivery.
+     * Called when courier collects COD payment.
+     */
+    PaymentResponse processDeliveryPayment(UUID parcelId, String paymentMethod, Double amount);
+
+    /**
+     * Get payment summary for a parcel including all payments and balance.
+     */
+    PaymentSummary getPaymentSummary(UUID parcelId);
+
+    /**
+     * Payment summary with total due, paid, and balance.
+     */
+    record PaymentSummary(
+            UUID parcelId,
+            String trackingRef,
+            Double totalDue,
+            Double totalPaid,
+            Double balance,
+            String paymentOption,    // PREPAID or COD
+            String paymentStatus,    // PAID, PARTIAL, PENDING
+            java.util.List<PaymentResponse> payments
+    ) {}
 }

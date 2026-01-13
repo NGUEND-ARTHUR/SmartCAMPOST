@@ -1,11 +1,15 @@
 package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.dto.pickup.*;
+import com.smartcampost.backend.dto.qr.QrCodeData;
+import com.smartcampost.backend.dto.qr.QrLabelData;
+import com.smartcampost.backend.dto.qr.TemporaryQrData;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.*;
+import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.PickupRequestState;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.CourierRepository;
@@ -14,13 +18,16 @@ import com.smartcampost.backend.repository.PickupRequestRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.PickupRequestService;
+import com.smartcampost.backend.service.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -31,7 +38,8 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     private final ParcelRepository parcelRepository;
     private final CourierRepository courierRepository;
     private final UserAccountRepository userAccountRepository;
-    private final NotificationService notificationService; // 🔔
+    private final NotificationService notificationService;
+    private final QrCodeService qrCodeService;
 
     // ================== CREATE (US25) ==================
     @Override
@@ -307,6 +315,140 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .state(pickup.getState())
                 .comment(pickup.getComment())
                 .createdAt(pickup.getCreatedAt())
+                .build();
+    }
+
+    // ==================== QR CODE WORKFLOW ====================
+
+    @Override
+    public TemporaryQrData generatePickupQrCode(UUID pickupId) {
+        PickupRequest pickup = pickupRequestRepository.findById(pickupId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+
+        // Verify access - only the owning client can get QR
+        UserAccount user = getCurrentUserAccount();
+        if (user.getRole() == UserRole.CLIENT) {
+            if (!pickup.getParcel().getClient().getId().equals(user.getEntityId())) {
+                throw new AuthException(ErrorCode.BUSINESS_ERROR, "You cannot access this pickup");
+            }
+        }
+
+        return qrCodeService.generateTemporaryQrForPickup(pickupId);
+    }
+
+    @Override
+    public TemporaryQrData getPickupByTemporaryQr(String temporaryQrToken) {
+        return qrCodeService.validateTemporaryQr(temporaryQrToken);
+    }
+
+    @Override
+    @Transactional
+    public ConfirmPickupResponse confirmPickupWithQrScan(ConfirmPickupRequest request) {
+        UserAccount user = getCurrentUserAccount();
+
+        // Only agents, couriers, or staff can confirm pickups
+        if (user.getRole() == UserRole.CLIENT) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Clients cannot confirm pickups");
+        }
+
+        // Get pickup - either by QR token or by ID
+        PickupRequest pickup;
+        TemporaryQrData tempQrData = null;
+
+        if (request.getTemporaryQrToken() != null && !request.getTemporaryQrToken().isEmpty()) {
+            // Validate temporary QR and get pickup
+            tempQrData = qrCodeService.validateTemporaryQr(request.getTemporaryQrToken());
+            pickup = pickupRequestRepository.findById(tempQrData.getPickupId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+        } else if (request.getPickupId() != null) {
+            pickup = pickupRequestRepository.findById(request.getPickupId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+        } else {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR,
+                    "Either temporaryQrToken or pickupId must be provided");
+        }
+
+        // Verify pickup is in correct state
+        if (pickup.getState() == PickupRequestState.COMPLETED) {
+            throw new AuthException(ErrorCode.PICKUP_INVALID_STATE, "Pickup is already completed");
+        }
+        if (pickup.getState() == PickupRequestState.CANCELLED) {
+            throw new AuthException(ErrorCode.PICKUP_INVALID_STATE, "Pickup is cancelled");
+        }
+
+        Parcel parcel = pickup.getParcel();
+        Instant now = Instant.now();
+
+        // Update parcel with validated information
+        if (request.getActualWeight() != null) {
+            parcel.setValidatedWeight(request.getActualWeight());
+        }
+        if (request.getActualDimensions() != null && !request.getActualDimensions().isEmpty()) {
+            parcel.setValidatedDimensions(request.getActualDimensions());
+        }
+        if (request.getValidationComment() != null) {
+            parcel.setValidationComment(request.getValidationComment());
+        }
+        if (request.getPhotoUrl() != null && !request.getPhotoUrl().isEmpty()) {
+            parcel.setPhotoUrl(request.getPhotoUrl());
+        }
+
+        parcel.setDescriptionConfirmed(request.isDescriptionConfirmed());
+        parcel.setValidatedAt(now);
+        // Note: validatedBy should be Staff, but we only have UserAccount here
+        // For now, we leave it null unless Staff can be retrieved
+
+        // Transition parcel to ACCEPTED
+        if (parcel.getStatus() == ParcelStatus.CREATED) {
+            parcel.setStatus(ParcelStatus.ACCEPTED);
+        }
+
+        parcelRepository.save(parcel);
+
+        // Update pickup state to COMPLETED
+        pickup.setState(PickupRequestState.COMPLETED);
+        pickupRequestRepository.save(pickup);
+
+        // Convert temporary QR to permanent
+        QrCodeData permanentQr = qrCodeService.convertTemporaryToPermanent(pickup.getId());
+
+        // Generate label if requested
+        QrLabelData labelData = null;
+        if (request.isPrintLabel()) {
+            labelData = qrCodeService.generatePrintableLabel(parcel.getId());
+            if (request.getLabelCopies() > 0) {
+                labelData.setCopiesCount(request.getLabelCopies());
+            }
+        }
+
+        // Notify client
+        notificationService.notifyPickupCompleted(pickup);
+        notificationService.notifyParcelAccepted(parcel);
+
+        // Build response
+        return ConfirmPickupResponse.builder()
+                .pickupId(pickup.getId())
+                .pickupState(pickup.getState().name())
+                .parcelId(parcel.getId())
+                .trackingRef(parcel.getTrackingRef())
+                .parcelStatus(parcel.getStatus().name())
+                .agentId(user.getEntityId())
+                .agentName(user.getPhone()) // Could get agent name if needed
+                .validatedWeight(parcel.getValidatedWeight())
+                .validatedDimensions(parcel.getValidatedDimensions())
+                .validationComment(parcel.getValidationComment())
+                .descriptionConfirmed(Boolean.TRUE.equals(parcel.getDescriptionConfirmed()))
+                .validatedAt(parcel.getValidatedAt())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .qrCodeData(permanentQr)
+                .labelData(labelData)
+                .clientNotified(true)
+                .notificationMessage("Votre colis " + parcel.getTrackingRef() + " a été pris en charge")
+                .confirmedAt(now)
                 .build();
     }
 }
