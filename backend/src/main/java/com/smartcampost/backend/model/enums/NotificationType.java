@@ -22,5 +22,9 @@ public enum NotificationType {
     REMINDER_NOT_COLLECTED,
 
     // 🔥 For delivery OTP SMS
-    DELIVERY_OTP
+    DELIVERY_OTP,
+
+    // 🔥 NEW: For delivery rescheduling and failed attempts
+    DELIVERY_RESCHEDULED,
+    DELIVERY_ATTEMPT_FAILED
 }

@@ -443,6 +443,7 @@ export default function TariffManagement() {
                 <input
                   type="checkbox"
                   id="active"
+                  aria-label="Tariff active status"
                   checked={editingTariff.active}
                   onChange={(e) =>
                     setEditingTariff({

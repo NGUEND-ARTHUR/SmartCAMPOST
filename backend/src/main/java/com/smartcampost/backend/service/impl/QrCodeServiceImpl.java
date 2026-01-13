@@ -6,9 +6,9 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartcampost.backend.dto.qr.QrCodeData;
 import com.smartcampost.backend.dto.qr.QrLabelData;
+import com.smartcampost.backend.dto.qr.SecureQrPayload;
 import com.smartcampost.backend.dto.qr.TemporaryQrData;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
@@ -17,6 +17,7 @@ import com.smartcampost.backend.model.*;
 import com.smartcampost.backend.model.enums.PaymentStatus;
 import com.smartcampost.backend.repository.*;
 import com.smartcampost.backend.service.QrCodeService;
+import com.smartcampost.backend.service.QrSecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class QrCodeServiceImpl implements QrCodeService {
     private final RefundRepository refundRepository;
     private final PricingDetailRepository pricingDetailRepository;
     private final DeliveryProofRepository deliveryProofRepository;
-    private final ObjectMapper objectMapper;
+    private final QrSecurityService qrSecurityService;
 
     // Temporary QR tokens storage (in production, use Redis)
     private final Map<String, TemporaryQrData> temporaryQrTokens = new ConcurrentHashMap<>();
@@ -74,18 +75,25 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public String generateQrCodeImage(UUID parcelId) {
-        QrCodeData data = generateQrCode(parcelId);
-        return generateQrImage(data.getTrackingRef());
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        
+        // Generate secure QR code with anti-forgery token
+        SecureQrPayload securePayload = qrSecurityService.generatePermanentToken(parcel);
+        return generateQrImage(securePayload.toCompactString());
     }
 
     @Override
     public String generateQrCodeImageByTracking(String trackingRef) {
-        // Verify parcel exists
-        parcelRepository.findByTrackingRef(trackingRef)
+        // Verify parcel exists and generate secure QR
+        Parcel parcel = parcelRepository.findByTrackingRef(trackingRef)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
-        return generateQrImage(trackingRef);
+        // Generate secure QR code with anti-forgery token
+        SecureQrPayload securePayload = qrSecurityService.generatePermanentToken(parcel);
+        return generateQrImage(securePayload.toCompactString());
     }
 
     // ==================== TEMPORARY QR (PICKUP) ====================
@@ -143,23 +151,35 @@ public class QrCodeServiceImpl implements QrCodeService {
                 .createdAt(Instant.now())
                 .build();
 
-        // Generate QR image for the temporary token
-        String qrImage = generateQrImage("PICKUP:" + temporaryToken);
+        // Generate secure QR code with anti-forgery token for the temporary pickup
+        SecureQrPayload securePayload = qrSecurityService.generateTemporaryToken(pickup, TEMPORARY_QR_VALIDITY_HOURS);
+        String qrImage = generateQrImage(securePayload.toCompactString());
         tempQr.setQrCodeImage(qrImage);
+        
+        // Also store the secure token in the temp QR data
+        tempQr.setTemporaryToken(securePayload.getToken());
 
-        // Store token for later validation
+        // Store token for later validation (legacy support)
         temporaryQrTokens.put(temporaryToken, tempQr);
+        // Also store with secure token
+        temporaryQrTokens.put(securePayload.getToken(), tempQr);
 
-        log.info("Generated temporary QR for pickup {} with token {}", pickupId, temporaryToken);
+        log.info("Generated secure temporary QR for pickup {} with token {}", pickupId, securePayload.getToken());
 
         return tempQr;
     }
 
     @Override
     public TemporaryQrData validateTemporaryQr(String temporaryQrToken) {
+        // First try the legacy in-memory cache
         TemporaryQrData tempQr = temporaryQrTokens.get(temporaryQrToken);
 
         if (tempQr == null) {
+            // Try to validate via the security service (database lookup)
+            if (qrSecurityService.isValidToken(temporaryQrToken)) {
+                // Token exists in DB but not in memory cache - this is a valid scenario
+                log.debug("Token {} found in security service but not in memory cache", temporaryQrToken);
+            }
             throw new ResourceNotFoundException(
                     "Temporary QR code not found or expired",
                     ErrorCode.QR_CODE_INVALID);
@@ -318,8 +338,9 @@ public class QrCodeServiceImpl implements QrCodeService {
                     .build();
         }).orElse(null);
 
-        // Generate QR image
-        String qrImage = generateQrImage(parcel.getTrackingRef());
+        // Generate secure QR code with anti-forgery token
+        SecureQrPayload securePayload = qrSecurityService.generatePermanentToken(parcel);
+        String qrImage = generateQrImage(securePayload.toCompactString());
 
         return QrCodeData.builder()
                 .parcelId(parcel.getId())

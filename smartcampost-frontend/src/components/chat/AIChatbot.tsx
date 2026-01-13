@@ -376,7 +376,7 @@ How can I assist you today?`,
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-[380px] max-h-[600px] shadow-2xl z-50 flex flex-col">
+    <Card className="fixed bottom-6 right-6 w-95 max-h-150 shadow-2xl z-50 flex flex-col">
       {/* Header */}
       <CardHeader className="p-3 bg-blue-600 text-white rounded-t-lg flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
@@ -409,7 +409,7 @@ How can I assist you today?`,
       </CardHeader>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4 max-h-[400px]">
+      <ScrollArea className="flex-1 p-4 max-h-100">
         <div className="space-y-4">
           {messages.map((message) => (
             <div
@@ -425,7 +425,7 @@ How can I assist you today?`,
               >
                 <div className="flex items-start gap-2">
                   {message.role === "assistant" && (
-                    <Bot className="w-4 h-4 mt-1 text-blue-600 flex-shrink-0" />
+                    <Bot className="w-4 h-4 mt-1 text-blue-600 shrink-0" />
                   )}
                   <div className="flex-1">
                     <div className="text-sm whitespace-pre-wrap">{message.content}</div>
@@ -455,6 +455,8 @@ How can I assist you today?`,
                               : "text-gray-400 hover:text-green-600"
                           }`}
                           onClick={() => handleFeedback(message.id, "positive")}
+                          title="Helpful response"
+                          aria-label="Mark as helpful"
                         >
                           <ThumbsUp className="w-3 h-3" />
                         </button>
@@ -465,6 +467,8 @@ How can I assist you today?`,
                               : "text-gray-400 hover:text-red-600"
                           }`}
                           onClick={() => handleFeedback(message.id, "negative")}
+                          title="Not helpful response"
+                          aria-label="Mark as not helpful"
                         >
                           <ThumbsDown className="w-3 h-3" />
                         </button>
@@ -472,7 +476,7 @@ How can I assist you today?`,
                     )}
                   </div>
                   {message.role === "user" && (
-                    <User className="w-4 h-4 mt-1 flex-shrink-0" />
+                    <User className="w-4 h-4 mt-1 shrink-0" />
                   )}
                 </div>
                 <p className="text-[10px] opacity-60 mt-1 text-right">
@@ -491,9 +495,9 @@ How can I assist you today?`,
               <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-2">
                 <Bot className="w-4 h-4 text-blue-600" />
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-150" />
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-300" />
                 </div>
               </div>
             </div>
@@ -510,7 +514,7 @@ How can I assist you today?`,
             key={idx}
             variant="outline"
             size="sm"
-            className="flex-shrink-0 text-xs"
+            className="shrink-0 text-xs"
             onClick={() => handleSend(action.query)}
           >
             {action.icon}

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,12 +32,12 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final PaymentRepository paymentRepository;
     private final UserAccountRepository userAccountRepository;
     private final ScanEventRepository scanEventRepository;
+    private final DeliveryAttemptRepository deliveryAttemptRepository;
 
     private final DeliveryOtpService deliveryOtpService;
     private final DeliveryProofService deliveryProofService;
     private final NotificationService notificationService;
-    private final PaymentService paymentService;
-    private final ScanEventService scanEventService;
+    private final DeliveryReceiptService deliveryReceiptService;
 
     // ==================== START DELIVERY ====================
 
@@ -198,6 +197,27 @@ public class DeliveryServiceImpl implements DeliveryService {
             courier = proof.getCourier();
         }
 
+        // Generate delivery receipt
+        boolean receiptGenerated = false;
+        try {
+            deliveryReceiptService.generateReceipt(
+                    parcel,
+                    proof,
+                    request.getReceiverName(),
+                    request.isPaymentCollected(),
+                    request.getAmountCollected(),
+                    request.getPaymentMethod()
+            );
+            receiptGenerated = true;
+            log.info("Receipt generated for parcel {}", parcel.getTrackingRef());
+        } catch (Exception e) {
+            log.warn("Failed to generate receipt for parcel {}: {}", parcel.getTrackingRef(), e.getMessage());
+        }
+
+        // Record successful delivery attempt
+        recordDeliveryAttempt(parcel, courier, DeliveryAttemptResult.SUCCESS, null,
+                request.getLatitude(), request.getLongitude(), request.getNotes());
+
         return CompleteDeliveryResponse.builder()
                 .parcelId(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
@@ -215,7 +235,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .courierId(courier != null ? courier.getId() : null)
                 .courierName(courier != null ? courier.getFullName() : null)
                 .clientNotified(true)
-                .receiptGenerated(false) // TODO: Implement receipt generation
+                .receiptGenerated(receiptGenerated)
                 .deliveredAt(now)
                 .build();
     }
@@ -250,6 +270,20 @@ public class DeliveryServiceImpl implements DeliveryService {
         // Determine current stage
         String currentStage = determineDeliveryStage(parcel);
 
+        // Get delivery attempts
+        List<DeliveryAttempt> attemptEntities = deliveryAttemptRepository.findByParcel_IdOrderByAttemptNumberAsc(parcelId);
+        int attemptCount = attemptEntities.size();
+        List<DeliveryStatusResponse.DeliveryAttempt> attempts = attemptEntities.stream()
+                .map(a -> DeliveryStatusResponse.DeliveryAttempt.builder()
+                        .attemptNumber(a.getAttemptNumber())
+                        .attemptedAt(a.getAttemptedAt())
+                        .result(a.getResult().name())
+                        .failureReason(a.getFailureReason())
+                        .latitude(a.getLatitude() != null ? a.getLatitude().doubleValue() : null)
+                        .longitude(a.getLongitude() != null ? a.getLongitude().doubleValue() : null)
+                        .build())
+                .toList();
+
         return DeliveryStatusResponse.builder()
                 .parcelId(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
@@ -259,8 +293,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .currentAgencyName(destAgency != null ? destAgency.getAgencyName() : null)
                 .recipientName(recipient != null ? recipient.getLabel() : null)
                 .recipientCity(recipient != null ? recipient.getCity() : null)
-                .attemptCount(0) // TODO: Track delivery attempts
-                .attempts(new ArrayList<>())
+                .attemptCount(attemptCount)
+                .attempts(attempts)
                 .proofId(proofOpt.map(DeliveryProof::getId).orElse(null))
                 .proofType(proofOpt.map(p -> p.getProofType().name()).orElse(null))
                 .deliveredAt(proofOpt.map(DeliveryProof::getTimestamp).orElse(null))
@@ -279,14 +313,25 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
-        // Record the failed attempt
+        // Record the failed delivery attempt
+        int attemptNumber = recordDeliveryAttempt(parcel, null, 
+                DeliveryAttemptResult.FAILED_OTHER, reason, null, null, null);
+
+        // Record scan event
         recordScanEvent(parcel, ScanEventType.ARRIVED_DESTINATION,
-                "Delivery attempt failed: " + reason);
+                "Delivery attempt #" + attemptNumber + " failed: " + reason);
 
         // Parcel stays at OUT_FOR_DELIVERY or goes back to ARRIVED_HUB
         if (parcel.getStatus() == ParcelStatus.OUT_FOR_DELIVERY) {
             parcel.setStatus(ParcelStatus.ARRIVED_HUB);
             parcelRepository.save(parcel);
+        }
+
+        // Notify recipient about failed delivery attempt
+        try {
+            notificationService.notifyDeliveryAttemptFailed(parcel, attemptNumber, reason);
+        } catch (Exception e) {
+            log.warn("Failed to send delivery failure notification: {}", e.getMessage());
         }
 
         log.info("Delivery marked as failed for parcel {}: {}", parcelId, reason);
@@ -313,7 +358,12 @@ public class DeliveryServiceImpl implements DeliveryService {
         log.info("Delivery rescheduled for parcel {} to {}",
                 parcelId, request.getNewDate());
 
-        // TODO: Notify recipient about rescheduled delivery
+        // Notify recipient about rescheduled delivery
+        try {
+            notificationService.notifyDeliveryRescheduled(parcel, request.getNewDate(), request.getReason());
+        } catch (Exception e) {
+            log.warn("Failed to send reschedule notification: {}", e.getMessage());
+        }
 
         return getDeliveryStatus(parcelId);
     }
@@ -415,6 +465,34 @@ public class DeliveryServiceImpl implements DeliveryService {
     private String maskPhoneNumber(String phone) {
         if (phone == null || phone.length() < 4) return phone;
         return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 2);
+    }
+
+    /**
+     * Record a delivery attempt for tracking purposes.
+     * 
+     * @return The attempt number
+     */
+    private int recordDeliveryAttempt(Parcel parcel, Courier courier, DeliveryAttemptResult result,
+                                       String failureReason, Double latitude, Double longitude, String notes) {
+        int attemptNumber = deliveryAttemptRepository.countByParcel_Id(parcel.getId()) + 1;
+
+        DeliveryAttempt attempt = DeliveryAttempt.builder()
+                .parcel(parcel)
+                .courier(courier)
+                .attemptNumber(attemptNumber)
+                .result(result)
+                .failureReason(failureReason)
+                .latitude(latitude != null ? java.math.BigDecimal.valueOf(latitude) : null)
+                .longitude(longitude != null ? java.math.BigDecimal.valueOf(longitude) : null)
+                .notes(notes)
+                .attemptedAt(Instant.now())
+                .build();
+
+        deliveryAttemptRepository.save(attempt);
+        log.info("Recorded delivery attempt #{} for parcel {} - result: {}", 
+                attemptNumber, parcel.getTrackingRef(), result);
+
+        return attemptNumber;
     }
 
     private UserAccount getCurrentUser() {

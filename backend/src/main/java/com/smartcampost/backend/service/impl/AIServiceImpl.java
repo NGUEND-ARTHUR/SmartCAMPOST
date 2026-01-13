@@ -185,12 +185,10 @@ public class AIServiceImpl implements AIService {
 
         // Find best matching knowledge base entry
         KnowledgeEntry bestMatch = null;
-        String matchedKeyword = null;
         
         for (Map.Entry<String, KnowledgeEntry> entry : KNOWLEDGE_BASE.entrySet()) {
             if (message.contains(entry.getKey())) {
                 bestMatch = entry.getValue();
-                matchedKeyword = entry.getKey();
                 break;
             }
         }
@@ -199,19 +197,14 @@ public class AIServiceImpl implements AIService {
         if (bestMatch == null) {
             if (message.contains("hi") || message.contains("hey") || message.contains("bonjour")) {
                 bestMatch = KNOWLEDGE_BASE.get("hello");
-                matchedKeyword = "hello";
             } else if (message.contains("cost") || message.contains("how much") || message.contains("tarif")) {
                 bestMatch = KNOWLEDGE_BASE.get("price");
-                matchedKeyword = "price";
             } else if (message.contains("where") || message.contains("status") || message.contains("où")) {
                 bestMatch = KNOWLEDGE_BASE.get("track");
-                matchedKeyword = "track";
             } else if (message.contains("time") || message.contains("long") || message.contains("when") || message.contains("quand")) {
                 bestMatch = KNOWLEDGE_BASE.get("delivery");
-                matchedKeyword = "delivery";
             } else if (message.contains("pay") || message.contains("money") || message.contains("momo")) {
                 bestMatch = KNOWLEDGE_BASE.get("payment");
-                matchedKeyword = "payment";
             }
         }
 

@@ -28,6 +28,17 @@ spring:
 server:
   port: 8080
 
+# SmartCAMPOST QR Code Security Configuration
+smartcampost:
+  qr:
+    # Secret key for HMAC-SHA256 signature (MUST be changed in production!)
+    # Use an environment variable: ${QR_SECRET_KEY:defaultKey}
+    secret-key: ${QR_SECRET_KEY:SmartCampost2024SecureQRKey!@#$%^&*}
+    # Maximum QR code verifications per token per hour (rate limiting)
+    max-verifications-per-hour: 100
+    # Temporary QR code validity in hours
+    temporary-validity-hours: 48
+
 logging:
   level:
     org.hibernate.SQL: debug
