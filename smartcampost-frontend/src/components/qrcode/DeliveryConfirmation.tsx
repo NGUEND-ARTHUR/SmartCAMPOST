@@ -460,7 +460,7 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
                     ref={photoInputRef}
                     type="file"
                     accept="image/*"
-                    capture="environment"
+                    aria-label="Capture delivery photo"
                     onChange={handlePhotoCapture}
                     className="hidden"
                   />

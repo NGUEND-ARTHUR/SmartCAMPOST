@@ -470,6 +470,73 @@ public class NotificationServiceImpl implements NotificationService {
         sendAndUpdate(notif);
     }
 
+    // 🔥 NEW: notification when delivery is rescheduled
+    @Override
+    public void notifyDeliveryRescheduled(Parcel parcel, java.time.LocalDate newDate, String reason) {
+        Client client = parcel.getClient();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String reasonPart = (reason != null && !reason.isBlank()) ? 
+                " Reason: " + reason + "." : "";
+
+        String subject = "Delivery rescheduled";
+        String message = "Dear " + client.getFullName()
+                + ", the delivery of your parcel " + parcel.getTrackingRef()
+                + " has been rescheduled to " + newDate.toString() + "."
+                + reasonPart
+                + " We apologize for any inconvenience.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.DELIVERY_RESCHEDULED)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
+    // 🔥 NEW: notification when delivery attempt fails
+    @Override
+    public void notifyDeliveryAttemptFailed(Parcel parcel, int attemptNumber, String failureReason) {
+        Client client = parcel.getClient();
+
+        String phone = client.getPhone();
+        String email = client.getEmail();
+
+        String subject = "Delivery attempt failed";
+        String message = "Dear " + client.getFullName()
+                + ", delivery attempt #" + attemptNumber
+                + " for your parcel " + parcel.getTrackingRef()
+                + " was unsuccessful. Reason: " + failureReason + ". "
+                + "We will try again soon. Please ensure you are available.";
+
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(null)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(NotificationChannel.SMS)
+                .type(NotificationType.DELIVERY_ATTEMPT_FAILED)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(message)
+                .retryCount(0)
+                .build();
+
+        notificationRepository.save(notif);
+        sendAndUpdate(notif);
+    }
+
     // 🔥 NEW: envoi spécifique pour OTP de livraison
     @Override
     public void sendDeliveryOtp(String phoneNumber, String otpCode, String trackingRef) {

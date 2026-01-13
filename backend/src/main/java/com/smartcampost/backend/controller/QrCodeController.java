@@ -1,11 +1,11 @@
 package com.smartcampost.backend.controller;
 
-import com.smartcampost.backend.dto.qr.QrCodeData;
-import com.smartcampost.backend.dto.qr.QrLabelData;
-import com.smartcampost.backend.dto.qr.TemporaryQrData;
+import com.smartcampost.backend.dto.qr.*;
 import com.smartcampost.backend.service.QrCodeService;
+import com.smartcampost.backend.service.QrSecurityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +19,7 @@ import java.util.UUID;
 public class QrCodeController {
 
     private final QrCodeService qrCodeService;
+    private final QrSecurityService qrSecurityService;
 
     // ==================== PERMANENT QR (PARCEL) ====================
 
@@ -81,5 +82,75 @@ public class QrCodeController {
     @GetMapping("/label/tracking/{trackingRef}")
     public ResponseEntity<QrLabelData> getPrintableLabelByTracking(@PathVariable String trackingRef) {
         return ResponseEntity.ok(qrCodeService.generatePrintableLabelByTracking(trackingRef));
+    }
+
+    // ==================== SECURE QR VERIFICATION (ANTI-FORGERY) ====================
+
+    @Operation(summary = "Verify QR code authenticity (anti-forgery)",
+               description = "Server-side verification of scanned QR code. Validates the unique token and HMAC signature to detect forgery attempts.")
+    @PostMapping("/verify")
+    public ResponseEntity<QrVerificationResponse> verifyQrCode(
+            @RequestBody QrVerificationRequest request,
+            HttpServletRequest httpRequest) {
+        
+        // Populate client info for audit trail
+        request.setClientIp(getClientIp(httpRequest));
+        request.setUserAgent(httpRequest.getHeader("User-Agent"));
+        
+        return ResponseEntity.ok(qrSecurityService.verifyQrCode(request));
+    }
+
+    @Operation(summary = "Verify QR code from scanned content",
+               description = "Parses and verifies the raw content scanned from a QR code. Returns verification status and parcel/pickup details if valid.")
+    @GetMapping("/verify/{qrContent}")
+    public ResponseEntity<QrVerificationResponse> verifyQrCodeContent(
+            @PathVariable String qrContent,
+            HttpServletRequest httpRequest) {
+        
+        String clientIp = getClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+        
+        return ResponseEntity.ok(qrSecurityService.verifyQrCodeContent(qrContent, clientIp, userAgent));
+    }
+
+    @Operation(summary = "Generate secure QR code for parcel",
+               description = "Generates a new secure QR code with anti-forgery token. Invalidates any previous QR codes for this parcel.")
+    @PostMapping("/secure/{parcelId}")
+    public ResponseEntity<SecureQrPayload> generateSecureQrCode(@PathVariable UUID parcelId) {
+        return ResponseEntity.ok(qrSecurityService.regenerateToken(parcelId));
+    }
+
+    @Operation(summary = "Revoke QR code",
+               description = "Revokes a QR code, making it invalid for future scans. Use when a QR code is compromised or needs to be replaced.")
+    @DeleteMapping("/revoke/{token}")
+    public ResponseEntity<Void> revokeQrCode(
+            @PathVariable String token,
+            @RequestParam(defaultValue = "Manual revocation") String reason) {
+        qrSecurityService.revokeToken(token, reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Revoke all QR codes for a parcel",
+               description = "Revokes all QR codes associated with a parcel. Use when regenerating QR codes or when parcel security is compromised.")
+    @DeleteMapping("/revoke/parcel/{parcelId}")
+    public ResponseEntity<Void> revokeAllQrCodesForParcel(
+            @PathVariable UUID parcelId,
+            @RequestParam(defaultValue = "Bulk revocation") String reason) {
+        qrSecurityService.revokeAllTokensForParcel(parcelId, reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty()) {
+            return xRealIp;
+        }
+        return request.getRemoteAddr();
     }
 }

@@ -49,6 +49,12 @@ public interface NotificationService {
     // 🔥 NEW: reminder for uncollected parcels at agency
     void sendReminderForUncollectedParcel(Parcel parcel, int daysSinceArrival);
 
+    // 🔥 NEW: notification when delivery is rescheduled
+    void notifyDeliveryRescheduled(Parcel parcel, java.time.LocalDate newDate, String reason);
+
+    // 🔥 NEW: notification when delivery attempt fails
+    void notifyDeliveryAttemptFailed(Parcel parcel, int attemptNumber, String failureReason);
+
     // 🔥 NEW: utilisé par DeliveryOtpServiceImpl
     void sendDeliveryOtp(String phoneNumber, String otpCode, String trackingRef);
 }

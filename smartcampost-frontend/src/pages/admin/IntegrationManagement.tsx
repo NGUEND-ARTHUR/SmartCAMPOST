@@ -251,6 +251,7 @@ export default function IntegrationManagement() {
                 <input
                   type="checkbox"
                   id="active"
+                  aria-label="Integration active status"
                   checked={formData.active}
                   onChange={(e) =>
                     setFormData({ ...formData, active: e.target.checked })
@@ -466,6 +467,7 @@ export default function IntegrationManagement() {
                 <input
                   type="checkbox"
                   id="editActive"
+                  aria-label="Integration edit active status"
                   checked={editingIntegration.active}
                   onChange={(e) =>
                     setEditingIntegration({
