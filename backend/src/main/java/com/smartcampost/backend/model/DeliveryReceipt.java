@@ -36,7 +36,7 @@ public class DeliveryReceipt {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "proof_id",
-            referencedColumnName = "proof_id",
+            referencedColumnName = "pod_id",
             foreignKey = @ForeignKey(name = "fk_receipt_proof")
     )
     private DeliveryProof proof;

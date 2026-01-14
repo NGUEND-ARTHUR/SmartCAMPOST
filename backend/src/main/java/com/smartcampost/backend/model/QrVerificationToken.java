@@ -114,7 +114,7 @@ public class QrVerificationToken {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "last_verified_by",
-            referencedColumnName = "account_id",
+            referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_qr_token_verifier")
     )
     private UserAccount lastVerifiedBy;
