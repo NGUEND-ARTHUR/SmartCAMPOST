@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FileCheck,
   Loader2,
@@ -33,6 +34,7 @@ const severityColors: Record<string, string> = {
 };
 
 export default function Compliance() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useComplianceAlerts(page, 20);
   const resolveAlert = useResolveComplianceAlert();

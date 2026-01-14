@@ -1,9 +1,11 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 
 import DeliveryWorkflowStepper from "@/components/delivery/DeliveryWorkflowStepper";
 
 export default function DeliveryDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 

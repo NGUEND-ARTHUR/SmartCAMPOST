@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Users,
   Loader2,
@@ -41,6 +42,7 @@ const roleColors: Record<string, string> = {
 };
 
 export default function UserAccountManagement() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
 

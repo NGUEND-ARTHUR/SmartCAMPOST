@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
   CheckCircle2,
@@ -35,6 +36,7 @@ const statusOptions = [
 ];
 
 export default function ScanConsole() {
+  const { t } = useTranslation();
   const [barcode, setBarcode] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0].value);
   const [location, setLocation] = useState("NY Distribution Center");

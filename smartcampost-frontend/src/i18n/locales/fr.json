@@ -42,7 +42,19 @@
     "required": "Requis",
     "optional": "Optionnel",
     "noData": "Aucune donnée disponible",
-    "tryAgain": "Réessayer"
+    "tryAgain": "Réessayer",
+    "view": "Voir",
+    "details": "Détails",
+    "description": "Description",
+    "amount": "Montant",
+    "total": "Total",
+    "type": "Type",
+    "add": "Ajouter",
+    "remove": "Supprimer",
+    "update": "Mettre à jour",
+    "refresh": "Rafraîchir",
+    "noResults": "Aucun résultat trouvé",
+    "selectAll": "Tout sélectionner"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -125,6 +137,7 @@
     "overview": "Aperçu",
     "recentActivity": "Activité Récente",
     "quickActions": "Actions Rapides",
+    "loadingError": "Erreur de chargement des données du tableau de bord",
     "stats": {
       "totalParcels": "Total des Colis",
       "inTransit": "En Transit",
@@ -133,13 +146,23 @@
       "totalRevenue": "Revenu Total",
       "todayPickups": "Collectes du Jour",
       "todayDeliveries": "Livraisons du Jour",
-      "activeAlerts": "Alertes Actives"
+      "activeAlerts": "Alertes Actives",
+      "activeCouriers": "Coursiers Actifs",
+      "onDutyToday": "En service aujourd'hui",
+      "pendingIssues": "Problèmes en Attente",
+      "requireAttention": "Nécessitent une attention"
     },
     "client": {
       "title": "Tableau de Bord Client",
       "myParcels": "Mes Colis",
       "createParcel": "Créer un Nouveau Colis",
-      "trackParcel": "Suivre un Colis"
+      "trackParcel": "Suivre un Colis",
+      "activeShipments": "Expéditions actives",
+      "awaitingPickup": "En attente de collecte",
+      "allTime": "Tous les temps",
+      "recentParcels": "Colis Récents",
+      "noRecentParcels": "Aucun colis récent",
+      "createFirstParcel": "Créer votre premier colis"
     },
     "courier": {
       "title": "Tableau de Bord Coursier",
@@ -412,10 +435,28 @@
     "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
     "passwordMismatch": "Les mots de passe ne correspondent pas",
     "loginFailed": "Échec de la connexion. Veuillez vérifier vos identifiants.",
-    "networkError": "Erreur réseau. Veuillez réessayer.",
+    "networkError": "Impossible de se connecter au serveur. Vérifiez votre connexion internet.",
     "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action",
     "notFound": "Ressource introuvable",
-    "serverError": "Erreur serveur. Veuillez réessayer plus tard."
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+    "invalidCredentials": "Numéro de téléphone ou mot de passe incorrect. Veuillez réessayer.",
+    "userNotFound": "Aucun compte trouvé avec ce numéro de téléphone.",
+    "accountLocked": "Votre compte a été verrouillé. Veuillez contacter le support.",
+    "accountDisabled": "Votre compte a été désactivé. Veuillez contacter le support.",
+    "invalidOtp": "Code OTP invalide. Veuillez vérifier et réessayer.",
+    "otpExpired": "Le code OTP a expiré. Veuillez en demander un nouveau.",
+    "validationError": "Veuillez vérifier vos données et réessayer.",
+    "invalidInput": "Entrée invalide. Veuillez vérifier les champs du formulaire.",
+    "duplicateEntry": "Cette entrée existe déjà.",
+    "conflict": "Un conflit s'est produit. La ressource existe peut-être déjà.",
+    "serviceUnavailable": "Le service est temporairement indisponible. Veuillez réessayer plus tard.",
+    "timeout": "La requête a expiré. Veuillez réessayer.",
+    "unknownError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+    "tariffExists": "Un tarif avec cette combinaison existe déjà.",
+    "loadingFailed": "Échec du chargement des données. Veuillez rafraîchir la page.",
+    "saveFailed": "Échec de l'enregistrement. Veuillez réessayer.",
+    "deleteFailed": "Échec de la suppression. Veuillez réessayer.",
+    "permissionDenied": "Vous n'avez pas la permission d'effectuer cette action."
   },
   "messages": {
     "saveSuccess": "Enregistré avec succès",

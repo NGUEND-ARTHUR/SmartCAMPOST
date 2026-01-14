@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Truck, Plus, Calendar, Clock, Package, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +36,7 @@ const stateColors: Record<PickupState, string> = {
 };
 
 export default function Pickups() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState("");

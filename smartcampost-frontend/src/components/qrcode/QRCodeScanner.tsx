@@ -57,10 +57,18 @@ export function QRCodeScanner({
   const [lastScan, setLastScan] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [hasCamera, setHasCamera] = useState(true);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastScanTimeRef = useRef<number>(0);
+
+  // Ensure component is mounted before starting camera
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   const parseQRCode = useCallback((decodedText: string): ScanResult => {
     try {
@@ -142,19 +150,39 @@ export function QRCodeScanner({
   );
 
   const startScanning = useCallback(async () => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !isMounted) return;
 
     setIsLoading(true);
+    setCameraError(null);
 
     try {
+      // Check if container element exists
+      const container = document.getElementById("qr-reader");
+      if (!container) {
+        throw new Error("Scanner container not found");
+      }
+
       // Check camera permission
       const devices = await Html5Qrcode.getCameras();
       if (devices.length === 0) {
         setHasCamera(false);
+        setCameraError("No camera found on this device");
         toast.error("No camera found");
         onError?.("No camera found");
         setIsLoading(false);
         return;
+      }
+
+      // Stop any existing scanner instance
+      if (scannerRef.current) {
+        try {
+          if (scannerRef.current.isScanning) {
+            await scannerRef.current.stop();
+          }
+          await scannerRef.current.clear();
+        } catch {
+          // Ignore cleanup errors
+        }
       }
 
       const scanner = new Html5Qrcode("qr-reader", {
@@ -182,11 +210,13 @@ export function QRCodeScanner({
     } catch (err) {
       console.error("Camera error:", err);
       setIsLoading(false);
+      setIsScanning(false);
       const errorMessage = err instanceof Error ? err.message : "Camera access denied";
+      setCameraError(errorMessage);
       toast.error("Camera Error", { description: errorMessage });
       onError?.(errorMessage);
     }
-  }, [facingMode, handleScanSuccess, onError]);
+  }, [facingMode, handleScanSuccess, onError, isMounted]);
 
   const stopScanning = useCallback(async () => {
     if (scannerRef.current?.isScanning) {
@@ -258,11 +288,27 @@ export function QRCodeScanner({
           <div
             id="qr-reader"
             ref={containerRef}
-            className="w-full aspect-square bg-muted rounded-lg overflow-hidden"
+            className="w-full aspect-square bg-muted rounded-lg overflow-hidden min-h-75"
           >
             {!isScanning && !isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                {hasCamera ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground z-10">
+                {cameraError ? (
+                  <>
+                    <XCircle className="h-12 w-12 mb-2 text-destructive" />
+                    <p className="text-center px-4">{cameraError}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => {
+                        setCameraError(null);
+                        startScanning();
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </>
+                ) : hasCamera ? (
                   <>
                     <CameraOff className="h-12 w-12 mb-2" />
                     <p>Camera stopped</p>
@@ -276,7 +322,7 @@ export function QRCodeScanner({
               </div>
             )}
             {isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10">
                 <Loader2 className="h-8 w-8 animate-spin mb-2" />
                 <p>Activating camera...</p>
               </div>

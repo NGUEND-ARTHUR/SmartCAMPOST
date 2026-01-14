@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   HelpCircle,
   Plus,
@@ -61,6 +62,7 @@ const categoryLabels: Record<TicketCategory, string> = {
 };
 
 export default function Support() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
