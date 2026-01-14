@@ -67,6 +67,10 @@ export default function AgencyManagement() {
     );
   });
 
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -85,7 +89,14 @@ export default function AgencyManagement() {
       toast.error("Agency name is required");
       return;
     }
-    createAgency.mutate(formData, {
+    // Map to backend field names
+    const payload = {
+      agencyName: formData.name,
+      agencyCode: formData.code || undefined,
+      city: formData.city || undefined,
+      region: formData.region || undefined,
+    };
+    createAgency.mutate(payload, {
       onSuccess: () => {
         toast.success("Agency created successfully");
         setIsCreateOpen(false);
@@ -118,8 +129,15 @@ export default function AgencyManagement() {
       toast.error("Agency name is required");
       return;
     }
+    // Map to backend field names
+    const payload = {
+      agencyName: formData.name,
+      agencyCode: formData.code || undefined,
+      city: formData.city || undefined,
+      region: formData.region || undefined,
+    };
     updateAgency.mutate(
-      { id: selectedAgency, data: formData },
+      { id: selectedAgency, data: payload },
       {
         onSuccess: () => {
           toast.success("Agency updated successfully");
@@ -135,13 +153,8 @@ export default function AgencyManagement() {
     );
   };
 
-  const AgencyForm = ({
-    onSubmit,
-    isLoading: submitting,
-  }: {
-    onSubmit: () => void;
-    isLoading: boolean;
-  }) => (
+  // Form fields JSX - used inline to avoid re-render issues
+  const formFields = (
     <div className="space-y-4 py-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -149,16 +162,16 @@ export default function AgencyManagement() {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             placeholder="Main Branch"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="code">Code</Label>
+          <Label htmlFor="code">Code (auto-generated if empty)</Label>
           <Input
             id="code"
             value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
             placeholder="AG001"
           />
         </div>
@@ -168,9 +181,7 @@ export default function AgencyManagement() {
         <Input
           id="address"
           value={formData.address}
-          onChange={(e) =>
-            setFormData({ ...formData, address: e.target.value })
-          }
+          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
           placeholder="123 Main Street"
         />
       </div>
@@ -180,7 +191,7 @@ export default function AgencyManagement() {
           <Input
             id="city"
             value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
             placeholder="Douala"
           />
         </div>
@@ -189,9 +200,7 @@ export default function AgencyManagement() {
           <Input
             id="region"
             value={formData.region}
-            onChange={(e) =>
-              setFormData({ ...formData, region: e.target.value })
-            }
+            onChange={(e) => setFormData(prev => ({ ...prev, region: e.target.value }))}
             placeholder="Littoral"
           />
         </div>
@@ -200,9 +209,7 @@ export default function AgencyManagement() {
           <Input
             id="country"
             value={formData.country}
-            onChange={(e) =>
-              setFormData({ ...formData, country: e.target.value })
-            }
+            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
             placeholder="Cameroon"
           />
         </div>
@@ -213,9 +220,7 @@ export default function AgencyManagement() {
           <Input
             id="phone"
             value={formData.phone}
-            onChange={(e) =>
-              setFormData({ ...formData, phone: e.target.value })
-            }
+            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
             placeholder="+237 6XX XXX XXX"
           />
         </div>
@@ -225,28 +230,11 @@ export default function AgencyManagement() {
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
             placeholder="agency@campost.cm"
           />
         </div>
       </div>
-      <DialogFooter>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setIsCreateOpen(false);
-            setIsEditOpen(false);
-            resetForm();
-          }}
-        >
-          Cancel
-        </Button>
-        <Button onClick={onSubmit} disabled={submitting}>
-          {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Save
-        </Button>
-      </DialogFooter>
     </div>
   );
 
@@ -278,10 +266,16 @@ export default function AgencyManagement() {
                 Add a new CAMPOST agency or branch
               </DialogDescription>
             </DialogHeader>
-            <AgencyForm
-              onSubmit={handleCreate}
-              isLoading={createAgency.isPending}
-            />
+            {formFields}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreate} disabled={createAgency.isPending}>
+                {createAgency.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Save
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -430,10 +424,16 @@ export default function AgencyManagement() {
             <DialogTitle>Edit Agency</DialogTitle>
             <DialogDescription>Update agency information</DialogDescription>
           </DialogHeader>
-          <AgencyForm
-            onSubmit={handleUpdate}
-            isLoading={updateAgency.isPending}
-          />
+          {formFields}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsEditOpen(false); resetForm(); setSelectedAgency(null); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdate} disabled={updateAgency.isPending}>
+              {updateAgency.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

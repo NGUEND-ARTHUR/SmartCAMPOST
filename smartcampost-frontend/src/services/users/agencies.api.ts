@@ -20,26 +20,17 @@ export interface AgencyResponse {
 }
 
 export interface CreateAgencyRequest {
-  name: string;
-  code?: string;
-  address?: string;
+  agencyName: string;
+  agencyCode?: string;
   city?: string;
   region?: string;
-  country?: string;
-  phone?: string;
-  email?: string;
 }
 
 export interface UpdateAgencyRequest {
-  name?: string;
-  code?: string;
-  address?: string;
+  agencyName?: string;
+  agencyCode?: string;
   city?: string;
   region?: string;
-  country?: string;
-  phone?: string;
-  email?: string;
-  isActive?: boolean;
 }
 
 // ---- Service ----

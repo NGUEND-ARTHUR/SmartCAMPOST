@@ -82,7 +82,12 @@ export default function CourierManagement() {
       toast.error("Name, phone, and password are required");
       return;
     }
-    createCourier.mutate(formData, {
+    // Auto-generate vehicleId if not provided
+    const payload = {
+      ...formData,
+      vehicleId: formData.vehicleId || `VH-${Date.now().toString(36).toUpperCase()}`,
+    };
+    createCourier.mutate(payload, {
       onSuccess: () => {
         toast.success("Courier created successfully");
         setIsCreateOpen(false);

@@ -9,11 +9,13 @@ import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Agent;
 import com.smartcampost.backend.model.Agency;
+import com.smartcampost.backend.model.Staff;
 import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.StaffStatus;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.AgentRepository;
 import com.smartcampost.backend.repository.AgencyRepository;
+import com.smartcampost.backend.repository.StaffRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.AgentService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentRepository agentRepository;
     private final AgencyRepository agencyRepository;
+    private final StaffRepository staffRepository;
     private final UserAccountRepository userAccountRepository;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -41,8 +44,14 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public AgentResponse createAgent(CreateAgentRequest request) {
 
+        // Générer staffNumber si non fourni
+        String staffNumber = request.getStaffNumber();
+        if (staffNumber == null || staffNumber.isBlank()) {
+            staffNumber = "AGT-" + System.currentTimeMillis();
+        }
+
         // Pré-calculer les conflits
-        boolean staffNumberExists = agentRepository.existsByStaffNumber(request.getStaffNumber());
+        boolean staffNumberExists = agentRepository.existsByStaffNumber(staffNumber);
         boolean phoneExists = agentRepository.existsByPhone(request.getPhone())
                 || userAccountRepository.existsByPhone(request.getPhone());
 
@@ -84,14 +93,30 @@ public class AgentServiceImpl implements AgentService {
         // hash du mot de passe
         String encodedPassword = encoder.encode(request.getPassword());
 
+        // chercher Staff existant ou en créer un nouveau
+        Staff staff = staffRepository.findByPhone(request.getPhone())
+                .orElseGet(() -> {
+                    Staff newStaff = Staff.builder()
+                            .id(UUID.randomUUID())
+                            .fullName(request.getFullName())
+                            .phone(request.getPhone())
+                            .role(UserRole.AGENT.name())
+                            .passwordHash(encodedPassword)
+                            .status(StaffStatus.ACTIVE)
+                            .hiredAt(java.time.LocalDate.now())
+                            .build();
+                    return staffRepository.save(newStaff);
+                });
+
         // créer Agent
         Agent agent = Agent.builder()
                 .id(UUID.randomUUID())
                 .fullName(request.getFullName())
-                .staffNumber(request.getStaffNumber())
+                .staffNumber(staffNumber)
                 .phone(request.getPhone())
                 .status(StaffStatus.ACTIVE)
                 .agency(agency)
+                .staff(staff)
                 .passwordHash(encodedPassword)
                 .createdAt(Instant.now())
                 .build();
