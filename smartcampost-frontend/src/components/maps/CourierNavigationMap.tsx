@@ -354,7 +354,7 @@ export default function CourierNavigationMap({
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[500px] relative">
+          <div className="h-125 relative">
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
@@ -417,7 +417,7 @@ export default function CourierNavigationMap({
                     }}
                   >
                     <Popup>
-                      <div className="min-w-[200px]">
+                      <div className="min-w-50">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge
                             variant="secondary"
