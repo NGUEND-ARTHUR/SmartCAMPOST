@@ -1,0 +1,429 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "close": "Close",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "welcome": "Welcome",
+    "language": "Language",
+    "french": "French",
+    "english": "English",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "suspended": "Suspended",
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "success": "Success",
+    "required": "Required",
+    "optional": "Optional",
+    "noData": "No data available",
+    "tryAgain": "Try again"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "parcels": "Parcels",
+    "myParcels": "My Parcels",
+    "pickups": "Pickups",
+    "myPickups": "My Pickups",
+    "deliveries": "Deliveries",
+    "myDeliveries": "My Deliveries",
+    "payments": "Payments",
+    "refunds": "Refunds",
+    "support": "Support",
+    "notifications": "Notifications",
+    "analytics": "Analytics",
+    "scanConsole": "Scan Console",
+    "staffDashboard": "Staff Dashboard",
+    "staffManagement": "Staff Management",
+    "agentManagement": "Agent Management",
+    "courierManagement": "Courier Management",
+    "agencyManagement": "Agency Management",
+    "clientManagement": "Client Management",
+    "tariffManagement": "Tariff Management",
+    "integrations": "Integrations",
+    "userAccounts": "User Accounts",
+    "riskAlerts": "Risk Alerts",
+    "compliance": "Compliance"
+  },
+  "auth": {
+    "loginTitle": "Login to your account",
+    "loginSubtitle": "Enter your credentials to access your account",
+    "registerTitle": "Create an account",
+    "registerSubtitle": "Join SmartCAMPOST today",
+    "resetPasswordTitle": "Reset your password",
+    "resetPasswordSubtitle": "Enter your email to receive a reset link",
+    "otpTitle": "Enter OTP Code",
+    "otpSubtitle": "We sent a code to your phone",
+    "fullName": "Full Name",
+    "phoneNumber": "Phone Number",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "signIn": "Sign in",
+    "sendOtp": "Send OTP",
+    "verifyOtp": "Verify OTP",
+    "resendOtp": "Resend OTP",
+    "selectLanguage": "Select your preferred language",
+    "preferredLanguage": "Preferred Language"
+  },
+  "landing": {
+    "hero": {
+      "title": "Smart Postal Services for Cameroon",
+      "subtitle": "Track, send, and manage your parcels with ease. Modern logistics solutions for individuals and businesses.",
+      "cta": "Get Started",
+      "login": "Login"
+    },
+    "features": {
+      "title": "Our Services",
+      "tracking": {
+        "title": "Real-time Tracking",
+        "description": "Track your parcels in real-time with our advanced GPS system"
+      },
+      "delivery": {
+        "title": "Fast Delivery",
+        "description": "Express delivery options across all regions of Cameroon"
+      },
+      "secure": {
+        "title": "Secure Handling",
+        "description": "Your packages are handled with care and fully insured"
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "Our customer service team is always ready to help"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "stats": {
+      "totalParcels": "Total Parcels",
+      "inTransit": "In Transit",
+      "delivered": "Delivered",
+      "pending": "Pending",
+      "totalRevenue": "Total Revenue",
+      "todayPickups": "Today's Pickups",
+      "todayDeliveries": "Today's Deliveries",
+      "activeAlerts": "Active Alerts"
+    },
+    "client": {
+      "title": "Client Dashboard",
+      "myParcels": "My Parcels",
+      "createParcel": "Create New Parcel",
+      "trackParcel": "Track Parcel"
+    },
+    "courier": {
+      "title": "Courier Dashboard",
+      "assignedPickups": "Assigned Pickups",
+      "assignedDeliveries": "Assigned Deliveries",
+      "completedToday": "Completed Today"
+    },
+    "staff": {
+      "title": "Staff Dashboard",
+      "pendingTasks": "Pending Tasks",
+      "processedToday": "Processed Today"
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "systemOverview": "System Overview",
+      "userStats": "User Statistics",
+      "revenueStats": "Revenue Statistics"
+    },
+    "finance": {
+      "title": "Finance Dashboard",
+      "dailyRevenue": "Daily Revenue",
+      "pendingPayments": "Pending Payments",
+      "refundRequests": "Refund Requests"
+    },
+    "risk": {
+      "title": "Risk Dashboard",
+      "activeAlerts": "Active Alerts",
+      "complianceScore": "Compliance Score",
+      "flaggedTransactions": "Flagged Transactions"
+    }
+  },
+  "parcels": {
+    "title": "Parcels",
+    "createTitle": "Create New Parcel",
+    "detailTitle": "Parcel Details",
+    "trackingNumber": "Tracking Number",
+    "sender": "Sender",
+    "recipient": "Recipient",
+    "origin": "Origin",
+    "destination": "Destination",
+    "weight": "Weight",
+    "dimensions": "Dimensions",
+    "contents": "Contents",
+    "value": "Declared Value",
+    "status": {
+      "created": "Created",
+      "atOrigin": "At Origin Agency",
+      "inTransit": "In Transit",
+      "arrivedHub": "Arrived at Hub",
+      "departedHub": "Departed Hub",
+      "arrivedDestination": "Arrived at Destination",
+      "outForDelivery": "Out for Delivery",
+      "delivered": "Delivered",
+      "returned": "Returned"
+    },
+    "serviceType": {
+      "standard": "Standard",
+      "express": "Express",
+      "economy": "Economy"
+    },
+    "form": {
+      "senderInfo": "Sender Information",
+      "recipientInfo": "Recipient Information",
+      "parcelInfo": "Parcel Information",
+      "recipientName": "Recipient Name",
+      "recipientPhone": "Recipient Phone",
+      "pickupAddress": "Pickup Address",
+      "deliveryAddress": "Delivery Address",
+      "selectServiceType": "Select Service Type",
+      "estimatedPrice": "Estimated Price",
+      "createParcel": "Create Parcel"
+    }
+  },
+  "pickups": {
+    "title": "Pickups",
+    "schedulePickup": "Schedule Pickup",
+    "pickupDate": "Pickup Date",
+    "pickupTime": "Pickup Time",
+    "pickupAddress": "Pickup Address",
+    "assignCourier": "Assign Courier",
+    "status": {
+      "requested": "Requested",
+      "assigned": "Assigned",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "deliveries": {
+    "title": "Deliveries",
+    "confirmDelivery": "Confirm Delivery",
+    "deliveryAddress": "Delivery Address",
+    "deliveryDate": "Delivery Date",
+    "recipientSignature": "Recipient Signature",
+    "deliveryNotes": "Delivery Notes",
+    "proofOfDelivery": "Proof of Delivery",
+    "status": {
+      "pending": "Pending",
+      "assigned": "Assigned",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
+  },
+  "payments": {
+    "title": "Payments",
+    "amount": "Amount",
+    "paymentMethod": "Payment Method",
+    "transactionId": "Transaction ID",
+    "paymentDate": "Payment Date",
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    },
+    "methods": {
+      "mobileMoney": "Mobile Money",
+      "card": "Card",
+      "cash": "Cash",
+      "bankTransfer": "Bank Transfer"
+    }
+  },
+  "refunds": {
+    "title": "Refunds",
+    "requestRefund": "Request Refund",
+    "refundReason": "Refund Reason",
+    "refundAmount": "Refund Amount",
+    "status": {
+      "requested": "Requested",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "processed": "Processed"
+    }
+  },
+  "support": {
+    "title": "Support",
+    "createTicket": "Create Ticket",
+    "ticketSubject": "Subject",
+    "ticketMessage": "Message",
+    "ticketPriority": "Priority",
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAsRead": "Mark as read",
+    "markAllAsRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "types": {
+      "parcelCreated": "Parcel Created",
+      "parcelInTransit": "Parcel In Transit",
+      "parcelDelivered": "Parcel Delivered",
+      "paymentConfirmed": "Payment Confirmed",
+      "pickupRequested": "Pickup Requested",
+      "pickupCompleted": "Pickup Completed"
+    }
+  },
+  "users": {
+    "staff": {
+      "title": "Staff Management",
+      "subtitle": "Manage staff members, administrators, and their roles",
+      "addStaff": "Add Staff",
+      "createTitle": "Create New Staff Member",
+      "createSubtitle": "Add a new staff member or administrator to the system"
+    },
+    "couriers": {
+      "title": "Courier Management",
+      "subtitle": "Manage couriers and their assignments",
+      "addCourier": "Add Courier",
+      "vehicleId": "Vehicle ID"
+    },
+    "agents": {
+      "title": "Agent Management",
+      "subtitle": "Manage agents and their agencies",
+      "addAgent": "Add Agent"
+    },
+    "clients": {
+      "title": "Client Management",
+      "subtitle": "View and manage client accounts",
+      "addClient": "Add Client"
+    },
+    "agencies": {
+      "title": "Agency Management",
+      "subtitle": "Manage postal agencies and locations",
+      "addAgency": "Add Agency",
+      "agencyName": "Agency Name",
+      "agencyCode": "Agency Code",
+      "location": "Location"
+    },
+    "roles": {
+      "client": "Client",
+      "courier": "Courier",
+      "agent": "Agent",
+      "staff": "Staff",
+      "admin": "Administrator",
+      "finance": "Finance",
+      "risk": "Risk Management"
+    }
+  },
+  "tariffs": {
+    "title": "Tariff Management",
+    "subtitle": "Manage pricing and tariffs",
+    "serviceType": "Service Type",
+    "originZone": "Origin Zone",
+    "destinationZone": "Destination Zone",
+    "weightBracket": "Weight Bracket",
+    "price": "Price",
+    "editTariff": "Edit Tariff",
+    "updatePrice": "Update Price"
+  },
+  "integrations": {
+    "title": "Integration Management",
+    "subtitle": "Manage external service integrations",
+    "apiKey": "API Key",
+    "status": "Status",
+    "lastSync": "Last Sync"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "View statistics and reports",
+    "dateRange": "Date Range",
+    "exportReport": "Export Report"
+  },
+  "compliance": {
+    "title": "Compliance",
+    "subtitle": "Regulatory compliance and reporting",
+    "generateReport": "Generate Report"
+  },
+  "risk": {
+    "title": "Risk Alerts",
+    "subtitle": "Monitor and manage risk alerts",
+    "alertType": "Alert Type",
+    "severity": "Severity",
+    "status": {
+      "open": "Open",
+      "underReview": "Under Review",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "severity_levels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    }
+  },
+  "scan": {
+    "title": "Scan Console",
+    "subtitle": "Scan parcels and update their status",
+    "scanQR": "Scan QR Code",
+    "manualEntry": "Manual Entry",
+    "scanResult": "Scan Result",
+    "updateStatus": "Update Status"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "invalidPhone": "Invalid phone number",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "loginFailed": "Login failed. Please check your credentials.",
+    "networkError": "Network error. Please try again.",
+    "unauthorized": "You are not authorized to perform this action",
+    "notFound": "Resource not found",
+    "serverError": "Server error. Please try again later."
+  },
+  "messages": {
+    "saveSuccess": "Saved successfully",
+    "deleteSuccess": "Deleted successfully",
+    "updateSuccess": "Updated successfully",
+    "createSuccess": "Created successfully",
+    "loginSuccess": "Login successful",
+    "logoutSuccess": "Logout successful",
+    "operationFailed": "Operation failed"
+  }
+}

@@ -65,6 +65,14 @@ const roleColors: Record<string, string> = {
   COURIER: "bg-green-100 text-green-800",
 };
 
+const roleLabels: Record<string, string> = {
+  STAFF: "Staff",
+  ADMIN: "Admin",
+  FINANCE: "Finance",
+  RISK: "Risk Manager",
+  COURIER: "Courier",
+};
+
 // Unified member type for staff + couriers
 interface UnifiedMember {
   id: string;

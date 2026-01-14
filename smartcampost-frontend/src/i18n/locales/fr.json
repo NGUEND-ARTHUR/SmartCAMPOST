@@ -1,0 +1,429 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "actions": "Actions",
+    "status": "Statut",
+    "date": "Date",
+    "name": "Nom",
+    "email": "Email",
+    "phone": "Téléphone",
+    "password": "Mot de passe",
+    "submit": "Soumettre",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "yes": "Oui",
+    "no": "Non",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "welcome": "Bienvenue",
+    "language": "Langue",
+    "french": "Français",
+    "english": "Anglais",
+    "all": "Tout",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "suspended": "Suspendu",
+    "pending": "En attente",
+    "completed": "Terminé",
+    "failed": "Échoué",
+    "success": "Succès",
+    "required": "Requis",
+    "optional": "Optionnel",
+    "noData": "Aucune donnée disponible",
+    "tryAgain": "Réessayer"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "parcels": "Colis",
+    "myParcels": "Mes Colis",
+    "pickups": "Collectes",
+    "myPickups": "Mes Collectes",
+    "deliveries": "Livraisons",
+    "myDeliveries": "Mes Livraisons",
+    "payments": "Paiements",
+    "refunds": "Remboursements",
+    "support": "Support",
+    "notifications": "Notifications",
+    "analytics": "Analyses",
+    "scanConsole": "Console de Scan",
+    "staffDashboard": "Tableau Staff",
+    "staffManagement": "Gestion du Personnel",
+    "agentManagement": "Gestion des Agents",
+    "courierManagement": "Gestion des Coursiers",
+    "agencyManagement": "Gestion des Agences",
+    "clientManagement": "Gestion des Clients",
+    "tariffManagement": "Gestion des Tarifs",
+    "integrations": "Intégrations",
+    "userAccounts": "Comptes Utilisateurs",
+    "riskAlerts": "Alertes de Risque",
+    "compliance": "Conformité"
+  },
+  "auth": {
+    "loginTitle": "Connectez-vous à votre compte",
+    "loginSubtitle": "Entrez vos identifiants pour accéder à votre compte",
+    "registerTitle": "Créer un compte",
+    "registerSubtitle": "Rejoignez SmartCAMPOST aujourd'hui",
+    "resetPasswordTitle": "Réinitialiser votre mot de passe",
+    "resetPasswordSubtitle": "Entrez votre email pour recevoir un lien de réinitialisation",
+    "otpTitle": "Entrez le code OTP",
+    "otpSubtitle": "Nous avons envoyé un code à votre téléphone",
+    "fullName": "Nom complet",
+    "phoneNumber": "Numéro de téléphone",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "signUp": "S'inscrire",
+    "signIn": "Se connecter",
+    "sendOtp": "Envoyer OTP",
+    "verifyOtp": "Vérifier OTP",
+    "resendOtp": "Renvoyer OTP",
+    "selectLanguage": "Sélectionnez votre langue préférée",
+    "preferredLanguage": "Langue Préférée"
+  },
+  "landing": {
+    "hero": {
+      "title": "Services Postaux Intelligents pour le Cameroun",
+      "subtitle": "Suivez, envoyez et gérez vos colis facilement. Solutions logistiques modernes pour particuliers et entreprises.",
+      "cta": "Commencer",
+      "login": "Connexion"
+    },
+    "features": {
+      "title": "Nos Services",
+      "tracking": {
+        "title": "Suivi en Temps Réel",
+        "description": "Suivez vos colis en temps réel avec notre système GPS avancé"
+      },
+      "delivery": {
+        "title": "Livraison Rapide",
+        "description": "Options de livraison express dans toutes les régions du Cameroun"
+      },
+      "secure": {
+        "title": "Manipulation Sécurisée",
+        "description": "Vos colis sont manipulés avec soin et entièrement assurés"
+      },
+      "support": {
+        "title": "Support 24/7",
+        "description": "Notre équipe de service client est toujours prête à vous aider"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Bienvenue",
+    "overview": "Aperçu",
+    "recentActivity": "Activité Récente",
+    "quickActions": "Actions Rapides",
+    "stats": {
+      "totalParcels": "Total des Colis",
+      "inTransit": "En Transit",
+      "delivered": "Livrés",
+      "pending": "En Attente",
+      "totalRevenue": "Revenu Total",
+      "todayPickups": "Collectes du Jour",
+      "todayDeliveries": "Livraisons du Jour",
+      "activeAlerts": "Alertes Actives"
+    },
+    "client": {
+      "title": "Tableau de Bord Client",
+      "myParcels": "Mes Colis",
+      "createParcel": "Créer un Nouveau Colis",
+      "trackParcel": "Suivre un Colis"
+    },
+    "courier": {
+      "title": "Tableau de Bord Coursier",
+      "assignedPickups": "Collectes Assignées",
+      "assignedDeliveries": "Livraisons Assignées",
+      "completedToday": "Terminées Aujourd'hui"
+    },
+    "staff": {
+      "title": "Tableau de Bord Personnel",
+      "pendingTasks": "Tâches en Attente",
+      "processedToday": "Traitées Aujourd'hui"
+    },
+    "admin": {
+      "title": "Tableau de Bord Admin",
+      "systemOverview": "Aperçu du Système",
+      "userStats": "Statistiques Utilisateurs",
+      "revenueStats": "Statistiques de Revenus"
+    },
+    "finance": {
+      "title": "Tableau de Bord Finance",
+      "dailyRevenue": "Revenu Journalier",
+      "pendingPayments": "Paiements en Attente",
+      "refundRequests": "Demandes de Remboursement"
+    },
+    "risk": {
+      "title": "Tableau de Bord Risque",
+      "activeAlerts": "Alertes Actives",
+      "complianceScore": "Score de Conformité",
+      "flaggedTransactions": "Transactions Signalées"
+    }
+  },
+  "parcels": {
+    "title": "Colis",
+    "createTitle": "Créer un Nouveau Colis",
+    "detailTitle": "Détails du Colis",
+    "trackingNumber": "Numéro de Suivi",
+    "sender": "Expéditeur",
+    "recipient": "Destinataire",
+    "origin": "Origine",
+    "destination": "Destination",
+    "weight": "Poids",
+    "dimensions": "Dimensions",
+    "contents": "Contenu",
+    "value": "Valeur Déclarée",
+    "status": {
+      "created": "Créé",
+      "atOrigin": "À l'Agence d'Origine",
+      "inTransit": "En Transit",
+      "arrivedHub": "Arrivé au Hub",
+      "departedHub": "Parti du Hub",
+      "arrivedDestination": "Arrivé à Destination",
+      "outForDelivery": "En Cours de Livraison",
+      "delivered": "Livré",
+      "returned": "Retourné"
+    },
+    "serviceType": {
+      "standard": "Standard",
+      "express": "Express",
+      "economy": "Économique"
+    },
+    "form": {
+      "senderInfo": "Informations de l'Expéditeur",
+      "recipientInfo": "Informations du Destinataire",
+      "parcelInfo": "Informations du Colis",
+      "recipientName": "Nom du Destinataire",
+      "recipientPhone": "Téléphone du Destinataire",
+      "pickupAddress": "Adresse de Collecte",
+      "deliveryAddress": "Adresse de Livraison",
+      "selectServiceType": "Sélectionner le Type de Service",
+      "estimatedPrice": "Prix Estimé",
+      "createParcel": "Créer le Colis"
+    }
+  },
+  "pickups": {
+    "title": "Collectes",
+    "schedulePickup": "Planifier une Collecte",
+    "pickupDate": "Date de Collecte",
+    "pickupTime": "Heure de Collecte",
+    "pickupAddress": "Adresse de Collecte",
+    "assignCourier": "Assigner un Coursier",
+    "status": {
+      "requested": "Demandée",
+      "assigned": "Assignée",
+      "inProgress": "En Cours",
+      "completed": "Terminée",
+      "cancelled": "Annulée"
+    }
+  },
+  "deliveries": {
+    "title": "Livraisons",
+    "confirmDelivery": "Confirmer la Livraison",
+    "deliveryAddress": "Adresse de Livraison",
+    "deliveryDate": "Date de Livraison",
+    "recipientSignature": "Signature du Destinataire",
+    "deliveryNotes": "Notes de Livraison",
+    "proofOfDelivery": "Preuve de Livraison",
+    "status": {
+      "pending": "En Attente",
+      "assigned": "Assignée",
+      "inProgress": "En Cours",
+      "completed": "Terminée",
+      "failed": "Échouée"
+    }
+  },
+  "payments": {
+    "title": "Paiements",
+    "amount": "Montant",
+    "paymentMethod": "Mode de Paiement",
+    "transactionId": "ID de Transaction",
+    "paymentDate": "Date de Paiement",
+    "status": {
+      "pending": "En Attente",
+      "completed": "Terminé",
+      "failed": "Échoué",
+      "refunded": "Remboursé"
+    },
+    "methods": {
+      "mobileMoney": "Mobile Money",
+      "card": "Carte",
+      "cash": "Espèces",
+      "bankTransfer": "Virement Bancaire"
+    }
+  },
+  "refunds": {
+    "title": "Remboursements",
+    "requestRefund": "Demander un Remboursement",
+    "refundReason": "Motif du Remboursement",
+    "refundAmount": "Montant du Remboursement",
+    "status": {
+      "requested": "Demandé",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "processed": "Traité"
+    }
+  },
+  "support": {
+    "title": "Support",
+    "createTicket": "Créer un Ticket",
+    "ticketSubject": "Sujet",
+    "ticketMessage": "Message",
+    "ticketPriority": "Priorité",
+    "status": {
+      "open": "Ouvert",
+      "inProgress": "En Cours",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    },
+    "priority": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "urgent": "Urgente"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAsRead": "Marquer comme lu",
+    "markAllAsRead": "Tout marquer comme lu",
+    "noNotifications": "Aucune notification",
+    "types": {
+      "parcelCreated": "Colis Créé",
+      "parcelInTransit": "Colis en Transit",
+      "parcelDelivered": "Colis Livré",
+      "paymentConfirmed": "Paiement Confirmé",
+      "pickupRequested": "Collecte Demandée",
+      "pickupCompleted": "Collecte Terminée"
+    }
+  },
+  "users": {
+    "staff": {
+      "title": "Gestion du Personnel",
+      "subtitle": "Gérer les membres du personnel, administrateurs et leurs rôles",
+      "addStaff": "Ajouter du Personnel",
+      "createTitle": "Créer un Nouveau Membre du Personnel",
+      "createSubtitle": "Ajouter un nouveau membre du personnel ou administrateur au système"
+    },
+    "couriers": {
+      "title": "Gestion des Coursiers",
+      "subtitle": "Gérer les coursiers et leurs affectations",
+      "addCourier": "Ajouter un Coursier",
+      "vehicleId": "ID du Véhicule"
+    },
+    "agents": {
+      "title": "Gestion des Agents",
+      "subtitle": "Gérer les agents et leurs agences",
+      "addAgent": "Ajouter un Agent"
+    },
+    "clients": {
+      "title": "Gestion des Clients",
+      "subtitle": "Voir et gérer les comptes clients",
+      "addClient": "Ajouter un Client"
+    },
+    "agencies": {
+      "title": "Gestion des Agences",
+      "subtitle": "Gérer les agences postales et leurs emplacements",
+      "addAgency": "Ajouter une Agence",
+      "agencyName": "Nom de l'Agence",
+      "agencyCode": "Code de l'Agence",
+      "location": "Emplacement"
+    },
+    "roles": {
+      "client": "Client",
+      "courier": "Coursier",
+      "agent": "Agent",
+      "staff": "Personnel",
+      "admin": "Administrateur",
+      "finance": "Finance",
+      "risk": "Gestion des Risques"
+    }
+  },
+  "tariffs": {
+    "title": "Gestion des Tarifs",
+    "subtitle": "Gérer les prix et tarifs",
+    "serviceType": "Type de Service",
+    "originZone": "Zone d'Origine",
+    "destinationZone": "Zone de Destination",
+    "weightBracket": "Tranche de Poids",
+    "price": "Prix",
+    "editTariff": "Modifier le Tarif",
+    "updatePrice": "Mettre à Jour le Prix"
+  },
+  "integrations": {
+    "title": "Gestion des Intégrations",
+    "subtitle": "Gérer les intégrations de services externes",
+    "apiKey": "Clé API",
+    "status": "Statut",
+    "lastSync": "Dernière Synchronisation"
+  },
+  "analytics": {
+    "title": "Analyses",
+    "subtitle": "Voir les statistiques et rapports",
+    "dateRange": "Période",
+    "exportReport": "Exporter le Rapport"
+  },
+  "compliance": {
+    "title": "Conformité",
+    "subtitle": "Conformité réglementaire et rapports",
+    "generateReport": "Générer un Rapport"
+  },
+  "risk": {
+    "title": "Alertes de Risque",
+    "subtitle": "Surveiller et gérer les alertes de risque",
+    "alertType": "Type d'Alerte",
+    "severity": "Sévérité",
+    "status": {
+      "open": "Ouvert",
+      "underReview": "En Cours d'Examen",
+      "resolved": "Résolu",
+      "dismissed": "Rejeté"
+    },
+    "severity_levels": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "critical": "Critique"
+    }
+  },
+  "scan": {
+    "title": "Console de Scan",
+    "subtitle": "Scanner les colis et mettre à jour leur statut",
+    "scanQR": "Scanner le Code QR",
+    "manualEntry": "Entrée Manuelle",
+    "scanResult": "Résultat du Scan",
+    "updateStatus": "Mettre à Jour le Statut"
+  },
+  "errors": {
+    "required": "Ce champ est requis",
+    "invalidEmail": "Adresse email invalide",
+    "invalidPhone": "Numéro de téléphone invalide",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "loginFailed": "Échec de la connexion. Veuillez vérifier vos identifiants.",
+    "networkError": "Erreur réseau. Veuillez réessayer.",
+    "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action",
+    "notFound": "Ressource introuvable",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard."
+  },
+  "messages": {
+    "saveSuccess": "Enregistré avec succès",
+    "deleteSuccess": "Supprimé avec succès",
+    "updateSuccess": "Mis à jour avec succès",
+    "createSuccess": "Créé avec succès",
+    "loginSuccess": "Connexion réussie",
+    "logoutSuccess": "Déconnexion réussie",
+    "operationFailed": "L'opération a échoué"
+  }
+}
