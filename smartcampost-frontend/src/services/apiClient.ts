@@ -5,6 +5,9 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
+// Define RequestInit type for ESLint compatibility
+type HttpRequestInit = globalThis.RequestInit;
+
 export interface PaginatedResponse<T> {
   content: T[];
   totalPages: number;
@@ -35,7 +38,10 @@ class HttpClient {
     return null;
   }
 
-  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  async request<T>(
+    endpoint: string,
+    options: HttpRequestInit = {},
+  ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
 
@@ -48,7 +54,7 @@ class HttpClient {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const config: RequestInit = {
+    const config: HttpRequestInit = {
       ...options,
       headers,
     };
