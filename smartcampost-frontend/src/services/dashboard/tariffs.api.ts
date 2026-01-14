@@ -6,30 +6,27 @@ import { httpClient, PaginatedResponse } from "../apiClient";
 // ---- Types ----
 export interface TariffResponse {
   id: string;
-  name: string;
   serviceType: string;
-  basePrice: number;
-  pricePerKg: number;
-  currency: string;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
+  originZone: string;
+  destinationZone: string;
+  weightBracket: string;
+  price: number;
 }
 
 export interface CreateTariffRequest {
-  name: string;
+  name?: string;
   serviceType: string;
-  basePrice: number;
-  pricePerKg: number;
+  originZone: string;
+  destinationZone: string;
+  weightBracket: string;
+  price: number;
+  basePrice?: number;
+  pricePerKg?: number;
   currency?: string;
 }
 
 export interface UpdateTariffRequest {
-  name?: string;
-  serviceType?: string;
-  basePrice?: number;
-  pricePerKg?: number;
-  active?: boolean;
+  price?: number;
 }
 
 export interface TariffQuoteRequest {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { routeByRole } from "@/lib/routeByRole";
@@ -23,6 +25,7 @@ interface LoginRequest {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { login, isLoading } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,10 +42,10 @@ export default function Login() {
         email: data.phoneOrEmail,
         password: data.password,
       });
-      toast.success("Login successful!");
+      toast.success(t('messages.loginSuccess'));
       navigate(routeByRole(res.user.role as any), { replace: true });
     } catch (err: any) {
-      toast.error(err?.message || "Login failed. Please try again.");
+      toast.error(err?.message || t('errors.loginFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -52,23 +55,25 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-between items-start mb-4">
+            <div></div>
             <Package className="w-12 h-12 text-blue-600" />
+            <LanguageSwitcher variant="compact" />
           </div>
-          <CardTitle>Welcome Back</CardTitle>
+          <CardTitle>{t('common.welcome')}</CardTitle>
           <CardDescription>
-            Sign in to your SmartCAMPOST account
+            {t('auth.loginSubtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phoneOrEmail">Phone or Email</Label>
+              <Label htmlFor="phoneOrEmail">{t('common.phone')} / {t('common.email')}</Label>
               <Input
                 id="phoneOrEmail"
-                placeholder="Enter your phone or email"
+                placeholder={t('common.phone')}
                 {...register("phoneOrEmail", {
-                  required: "This field is required",
+                  required: t('errors.required'),
                 })}
               />
               {errors.phoneOrEmail && (
@@ -80,19 +85,19 @@ export default function Login() {
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('common.password')}</Label>
                 <Link
                   to="/auth/reset-password"
                   className="text-sm text-blue-600 hover:underline"
                 >
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
-                {...register("password", { required: "Password is required" })}
+                placeholder={t('common.password')}
+                {...register("password", { required: t('errors.required') })}
               />
               {errors.password && (
                 <p className="text-sm text-destructive">
@@ -106,7 +111,7 @@ export default function Login() {
               className="w-full"
               disabled={isSubmitting || isLoading}
             >
-              {isSubmitting || isLoading ? "Signing in..." : "Sign In"}
+              {isSubmitting || isLoading ? t('common.loading') : t('auth.signIn')}
             </Button>
 
             <div className="text-center space-y-2">
@@ -114,15 +119,15 @@ export default function Login() {
                 to="/auth/login-otp"
                 className="text-sm text-blue-600 hover:underline block"
               >
-                Login with OTP instead
+                {t('auth.sendOtp')}
               </Link>
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                {t('auth.noAccount')}{" "}
                 <Link
                   to="/auth/register"
                   className="text-blue-600 hover:underline"
                 >
-                  Register
+                  {t('auth.signUp')}
                 </Link>
               </p>
             </div>

@@ -20,10 +20,16 @@ public class AgencyServiceImpl implements AgencyService {
 
     @Override
     public AgencyResponse createAgency(AgencyRequest request) {
+        // Auto-generate agencyCode if not provided
+        String agencyCode = request.getAgencyCode();
+        if (agencyCode == null || agencyCode.isBlank()) {
+            agencyCode = "AG-" + System.currentTimeMillis();
+        }
+
         Agency agency = Agency.builder()
                 .id(UUID.randomUUID())
                 .agencyName(request.getAgencyName())
-                .agencyCode(request.getAgencyCode())
+                .agencyCode(agencyCode)
                 .city(request.getCity())
                 .region(request.getRegion())
                 .build();

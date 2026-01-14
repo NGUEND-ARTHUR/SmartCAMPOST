@@ -446,8 +446,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String) {
-                String email = (String) auth.getPrincipal();
-                return userAccountRepository.findByEmail(email).orElse(null);
+                String phone = (String) auth.getPrincipal();
+                return userAccountRepository.findByPhone(phone).orElse(null);
             }
         } catch (Exception e) {
             log.debug("Could not get current user for verification logging", e);

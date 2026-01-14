@@ -45,17 +45,20 @@ export default function TariffManagement() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTariff, setEditingTariff] = useState<{
     id: string;
-    name: string;
     serviceType: string;
-    basePrice: number;
-    pricePerKg: number;
-    active: boolean;
+    originZone: string;
+    destinationZone: string;
+    weightBracket: string;
+    price: number;
   } | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     serviceType: "STANDARD",
-    basePrice: 0,
-    pricePerKg: 0,
+    originZone: "",
+    destinationZone: "",
+    weightBracket: "0-5kg",
+    basePrice: "",
+    pricePerKg: "",
     currency: "XAF",
   });
 
@@ -73,18 +76,32 @@ export default function TariffManagement() {
     setFormData({
       name: "",
       serviceType: "STANDARD",
-      basePrice: 0,
-      pricePerKg: 0,
+      originZone: "",
+      destinationZone: "",
+      weightBracket: "0-5kg",
+      basePrice: "",
+      pricePerKg: "",
       currency: "XAF",
     });
   };
 
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
   const handleCreate = () => {
-    if (!formData.name || formData.basePrice <= 0) {
-      toast.error("Name and base price are required");
+    if (!formData.originZone || !formData.destinationZone || !formData.basePrice) {
+      toast.error("Origin zone, destination zone and price are required");
       return;
     }
-    createTariff.mutate(formData, {
+    const payload = {
+      serviceType: formData.serviceType,
+      originZone: formData.originZone,
+      destinationZone: formData.destinationZone,
+      weightBracket: formData.weightBracket,
+      price: Number(formData.basePrice) || 0,
+    };
+    createTariff.mutate(payload, {
       onSuccess: () => {
         toast.success("Tariff created successfully");
         setIsCreateOpen(false);
@@ -109,11 +126,7 @@ export default function TariffManagement() {
       {
         id: editingTariff.id,
         data: {
-          name: editingTariff.name,
-          serviceType: editingTariff.serviceType,
-          basePrice: editingTariff.basePrice,
-          pricePerKg: editingTariff.pricePerKg,
-          active: editingTariff.active,
+          price: editingTariff.price,
         },
       },
       {
@@ -175,9 +188,7 @@ export default function TariffManagement() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={handleInputChange("name")}
                   placeholder="e.g., Standard Domestic"
                 />
               </div>
@@ -204,12 +215,50 @@ export default function TariffManagement() {
                   <Input
                     id="currency"
                     value={formData.currency}
-                    onChange={(e) =>
-                      setFormData({ ...formData, currency: e.target.value })
-                    }
+                    onChange={handleInputChange("currency")}
                     placeholder="XAF"
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="originZone">Origin Zone *</Label>
+                  <Input
+                    id="originZone"
+                    value={formData.originZone}
+                    onChange={handleInputChange("originZone")}
+                    placeholder="e.g., YAOUNDE"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="destinationZone">Destination Zone *</Label>
+                  <Input
+                    id="destinationZone"
+                    value={formData.destinationZone}
+                    onChange={handleInputChange("destinationZone")}
+                    placeholder="e.g., DOUALA"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="weightBracket">Weight Bracket</Label>
+                <Select
+                  value={formData.weightBracket}
+                  onValueChange={(v: string) =>
+                    setFormData({ ...formData, weightBracket: v })
+                  }
+                >
+                  <SelectTrigger id="weightBracket">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0-5kg">0-5 kg</SelectItem>
+                    <SelectItem value="5-10kg">5-10 kg</SelectItem>
+                    <SelectItem value="10-20kg">10-20 kg</SelectItem>
+                    <SelectItem value="20-50kg">20-50 kg</SelectItem>
+                    <SelectItem value="50+kg">50+ kg</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -218,12 +267,8 @@ export default function TariffManagement() {
                     id="basePrice"
                     type="number"
                     value={formData.basePrice}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        basePrice: Number(e.target.value),
-                      })
-                    }
+                    onChange={handleInputChange("basePrice")}
+                    placeholder="0"
                   />
                 </div>
                 <div className="space-y-2">
@@ -232,12 +277,8 @@ export default function TariffManagement() {
                     id="pricePerKg"
                     type="number"
                     value={formData.pricePerKg}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        pricePerKg: Number(e.target.value),
-                      })
-                    }
+                    onChange={handleInputChange("pricePerKg")}
+                    placeholder="0"
                   />
                 </div>
               </div>
@@ -300,39 +341,31 @@ export default function TariffManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
                     <TableHead>Service Type</TableHead>
-                    <TableHead>Base Price</TableHead>
-                    <TableHead>Per Kg</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Origin Zone</TableHead>
+                    <TableHead>Destination Zone</TableHead>
+                    <TableHead>Weight Bracket</TableHead>
+                    <TableHead>Price</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tariffs.map((tariff) => (
                     <TableRow key={tariff.id}>
-                      <TableCell className="font-medium">
-                        {tariff.name}
-                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{tariff.serviceType}</Badge>
                       </TableCell>
-                      <TableCell>
-                        {tariff.basePrice.toLocaleString()} {tariff.currency}
+                      <TableCell className="font-medium">
+                        {tariff.originZone}
                       </TableCell>
                       <TableCell>
-                        {tariff.pricePerKg.toLocaleString()} {tariff.currency}
+                        {tariff.destinationZone}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          className={
-                            tariff.active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }
-                        >
-                          {tariff.active ? "Active" : "Inactive"}
-                        </Badge>
+                        {tariff.weightBracket}
+                      </TableCell>
+                      <TableCell>
+                        {Number(tariff.price).toLocaleString()} XAF
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -342,11 +375,11 @@ export default function TariffManagement() {
                             onClick={() =>
                               handleEdit({
                                 id: tariff.id,
-                                name: tariff.name,
                                 serviceType: tariff.serviceType,
-                                basePrice: tariff.basePrice,
-                                pricePerKg: tariff.pricePerKg,
-                                active: tariff.active,
+                                originZone: tariff.originZone,
+                                destinationZone: tariff.destinationZone,
+                                weightBracket: tariff.weightBracket,
+                                price: Number(tariff.price),
                               })
                             }
                           >
@@ -398,61 +431,42 @@ export default function TariffManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Tariff</DialogTitle>
-            <DialogDescription>Update tariff configuration</DialogDescription>
+            <DialogDescription>Update tariff price</DialogDescription>
           </DialogHeader>
           {editingTariff && (
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Tariff Name</Label>
-                <Input
-                  value={editingTariff.name}
-                  onChange={(e) =>
-                    setEditingTariff({ ...editingTariff, name: e.target.value })
-                  }
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Service Type</Label>
+                  <Input value={editingTariff.serviceType} disabled />
+                </div>
+                <div className="space-y-2">
+                  <Label>Weight Bracket</Label>
+                  <Input value={editingTariff.weightBracket} disabled />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Base Price</Label>
-                  <Input
-                    type="number"
-                    value={editingTariff.basePrice}
-                    onChange={(e) =>
-                      setEditingTariff({
-                        ...editingTariff,
-                        basePrice: Number(e.target.value),
-                      })
-                    }
-                  />
+                  <Label>Origin Zone</Label>
+                  <Input value={editingTariff.originZone} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Price per Kg</Label>
-                  <Input
-                    type="number"
-                    value={editingTariff.pricePerKg}
-                    onChange={(e) =>
-                      setEditingTariff({
-                        ...editingTariff,
-                        pricePerKg: Number(e.target.value),
-                      })
-                    }
-                  />
+                  <Label>Destination Zone</Label>
+                  <Input value={editingTariff.destinationZone} disabled />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="active"
-                  aria-label="Tariff active status"
-                  checked={editingTariff.active}
+              <div className="space-y-2">
+                <Label>Price (XAF)</Label>
+                <Input
+                  type="number"
+                  value={editingTariff.price}
                   onChange={(e) =>
                     setEditingTariff({
                       ...editingTariff,
-                      active: e.target.checked,
+                      price: Number(e.target.value),
                     })
                   }
                 />
-                <Label htmlFor="active">Active</Label>
               </div>
             </div>
           )}

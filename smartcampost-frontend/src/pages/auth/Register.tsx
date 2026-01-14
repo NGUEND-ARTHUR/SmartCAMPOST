@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Package as PackageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,14 +20,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { RegisterRequest } from "@/types";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
 
 export function Register() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<"FR" | "EN">("EN");
+  const [language, setLanguage] = useState<"FR" | "EN">(
+    i18n.language === 'fr' ? "FR" : "EN"
+  );
+
+  // Sync form language with i18n
+  useEffect(() => {
+    const lang = i18n.language === 'fr' ? "FR" : "EN";
+    setLanguage(lang);
+  }, [i18n.language]);
+
+  // When user changes language in form, also update i18n
+  const handleLanguageChange = (val: string) => {
+    setLanguage(val as "FR" | "EN");
+    i18n.changeLanguage(val.toLowerCase());
+    localStorage.setItem('i18nextLng', val.toLowerCase());
+  };
 
   const {
     register,
@@ -52,10 +70,10 @@ export function Register() {
         password: data.password,
       });
 
-      toast.success("Registration successful! Please login.");
+      toast.success(t('messages.createSuccess'));
       navigate("/auth/login");
     } catch (error) {
-      toast.error("Registration failed. Please try again.");
+      toast.error(t('errors.serverError'));
     } finally {
       setIsLoading(false);
     }
@@ -68,17 +86,40 @@ export function Register() {
           <div className="flex justify-center mb-4">
             <PackageIcon className="w-12 h-12 text-blue-600" />
           </div>
-          <CardTitle>Create Account</CardTitle>
-          <CardDescription>Join SmartCAMPOST today</CardDescription>
+          <CardTitle>{t('auth.registerTitle')}</CardTitle>
+          <CardDescription>{t('auth.registerSubtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Language selector at the top */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label>{t('auth.preferredLanguage')}</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={language === "FR" ? "default" : "outline"}
+                  onClick={() => handleLanguageChange("FR")}
+                  className="flex-1"
+                >
+                  🇫🇷 Français
+                </Button>
+                <Button
+                  type="button"
+                  variant={language === "EN" ? "default" : "outline"}
+                  onClick={() => handleLanguageChange("EN")}
+                  className="flex-1"
+                >
+                  🇬🇧 English
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fullName">{t('auth.fullName')}</Label>
               <Input
                 id="fullName"
-                placeholder="Enter your full name"
-                {...register("fullName", { required: "Full name is required" })}
+                placeholder={t('auth.fullName')}
+                {...register("fullName", { required: t('errors.required') })}
               />
               {errors.fullName && (
                 <p className="text-sm text-destructive">
@@ -88,13 +129,13 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t('auth.phoneNumber')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="phone"
                   placeholder="+237 6XX XXX XXX"
                   {...register("phone", {
-                    required: "Phone number is required",
+                    required: t('errors.required'),
                   })}
                 />
                 <Button
@@ -102,23 +143,23 @@ export function Register() {
                   variant="outline"
                   onClick={async () => {
                     if (!phoneValue) {
-                      toast.error("Enter phone number first");
+                      toast.error(t('errors.required'));
                       return;
                     }
                     setIsSendingOtp(true);
                     try {
                       await apiClient.sendOtp(phoneValue);
                       setOtpSent(true);
-                      toast.success("OTP sent to phone");
+                      toast.success(t('messages.success'));
                     } catch (err) {
-                      toast.error("Failed to send OTP");
+                      toast.error(t('errors.serverError'));
                     } finally {
                       setIsSendingOtp(false);
                     }
                   }}
                   disabled={isSendingOtp}
                 >
-                  {isSendingOtp ? "Sending..." : "Send OTP"}
+                  {isSendingOtp ? "..." : t('auth.sendOtp')}
                 </Button>
               </div>
               {errors.phone && (
@@ -134,7 +175,7 @@ export function Register() {
                 <Input
                   id="otp"
                   placeholder="Enter OTP"
-                  {...register("otp", { required: "OTP is required" })}
+                  {...register("otp", { required: t('errors.required') })}
                 />
                 {errors.otp && (
                   <p className="text-sm text-destructive">
@@ -145,7 +186,7 @@ export function Register() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email (Optional)</Label>
+              <Label htmlFor="email">{t('common.email')} ({t('common.optional')})</Label>
               <Input
                 id="email"
                 type="email"
@@ -155,32 +196,16 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="language">Preferred Language</Label>
-              <Select
-                value={language}
-                onValueChange={(val: string) => setLanguage(val as "FR" | "EN")}
-              >
-                <SelectTrigger
-                  placeholder={language === "EN" ? "English" : "Français"}
-                />
-                <SelectContent>
-                  <SelectItem value="EN">English</SelectItem>
-                  <SelectItem value="FR">Français</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('common.password')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Create a password"
+                placeholder={t('common.password')}
                 {...register("password", {
-                  required: "Password is required",
+                  required: t('errors.required'),
                   minLength: {
                     value: 6,
-                    message: "Password must be at least 6 characters",
+                    message: t('errors.passwordTooShort'),
                   },
                 })}
               />
@@ -192,13 +217,13 @@ export function Register() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create Account"}
+              {isLoading ? t('common.loading') : t('common.register')}
             </Button>
 
             <p className="text-sm text-muted-foreground text-center">
-              Already have an account?{" "}
+              {t('auth.haveAccount')}{" "}
               <Link to="/auth/login" className="text-blue-600 hover:underline">
-                Sign in
+                {t('auth.signIn')}
               </Link>
             </p>
           </form>

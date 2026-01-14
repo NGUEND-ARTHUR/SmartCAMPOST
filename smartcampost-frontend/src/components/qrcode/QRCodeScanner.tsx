@@ -210,21 +210,28 @@ export function QRCodeScanner({
 
   // Auto-start scanning
   useEffect(() => {
-    if (autoStart) {
-      startScanning();
+    let mounted = true;
+    
+    if (autoStart && mounted) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        if (mounted) {
+          startScanning().catch(console.error);
+        }
+      }, 500);
+      return () => {
+        mounted = false;
+        clearTimeout(timer);
+        stopScanning();
+      };
     }
 
     return () => {
+      mounted = false;
       stopScanning();
     };
-  }, []);
-
-  // Restart when facing mode changes
-  useEffect(() => {
-    if (isScanning) {
-      stopScanning().then(() => startScanning());
-    }
-  }, [facingMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   const clearHistory = () => {
     setScanHistory([]);
