@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface AnomalyResult {
 }
 
 export default function Analytics() {
+  const { t } = useTranslation();
   const [parcelId, setParcelId] = useState("");
   const [paymentId, setPaymentId] = useState("");
   const [etaLoading, setEtaLoading] = useState(false);

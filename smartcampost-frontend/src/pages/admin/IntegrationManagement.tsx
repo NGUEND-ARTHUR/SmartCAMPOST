@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Settings,
   Plus,
@@ -67,6 +68,7 @@ interface EditingIntegration extends IntegrationFormData {
 }
 
 export default function IntegrationManagement() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);

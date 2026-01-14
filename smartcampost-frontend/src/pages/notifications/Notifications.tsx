@@ -1,8 +1,10 @@
 import { Bell } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
 
 export default function Notifications() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div>

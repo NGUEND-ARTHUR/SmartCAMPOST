@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DollarSign, Plus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -39,6 +40,7 @@ import {
 import { toast } from "sonner";
 
 export default function TariffManagement() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [serviceTypeFilter, setServiceTypeFilter] = useState<string>("ALL");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -107,10 +109,16 @@ export default function TariffManagement() {
         setIsCreateOpen(false);
         resetForm();
       },
-      onError: (err) =>
-        toast.error(
-          err instanceof Error ? err.message : "Failed to create tariff",
-        ),
+      onError: (err) => {
+        const errorMsg = err instanceof Error ? err.message : "Failed to create tariff";
+        if (errorMsg.includes("already exists") || errorMsg.includes("CONFLICT") || errorMsg.includes("409")) {
+          toast.error("Tariff Already Exists", {
+            description: `A tariff for ${formData.originZone} → ${formData.destinationZone} (${formData.serviceType}, ${formData.weightBracket}) already exists. Please modify the existing tariff instead.`,
+          });
+        } else {
+          toast.error(errorMsg);
+        }
+      },
     });
   };
 

@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Package, Users, Truck, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardSummary } from "@/hooks";
+import { getErrorMessage } from "@/lib/errorHandler";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useDashboardSummary();
   const metrics = data?.metrics ?? {};
 
@@ -10,9 +13,9 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t("dashboard.admin.title")}</h1>
           <p className="text-muted-foreground">
-            Administration, roles, and system settings.
+            {t("dashboard.admin.systemOverview")}
           </p>
         </div>
 
@@ -23,8 +26,7 @@ export default function AdminDashboard() {
         ) : error ? (
           <Card>
             <CardContent className="pt-6 text-center text-destructive">
-              Error loading dashboard data:{" "}
-              {error instanceof Error ? error.message : "Unknown error"}
+              {t("dashboard.loadingError")}: {getErrorMessage(error, t)}
             </CardContent>
           </Card>
         ) : (
@@ -32,7 +34,7 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Parcels
+                  {t("dashboard.stats.totalParcels")}
                 </CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -41,14 +43,14 @@ export default function AdminDashboard() {
                   {(metrics.totalParcels as number) ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  All parcels in system
+                  {t("parcels.title")}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Users
+                  {t("users.activeUsers")}
                 </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -57,14 +59,14 @@ export default function AdminDashboard() {
                   {(metrics.activeUsers as number) ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Registered clients
+                  {t("users.registeredClients")}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Couriers
+                  {t("dashboard.stats.activeCouriers")}
                 </CardTitle>
                 <Truck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -72,13 +74,15 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold">
                   {(metrics.activeCouriers as number) ?? 0}
                 </div>
-                <p className="text-xs text-muted-foreground">On duty today</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("dashboard.stats.onDutyToday")}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Pending Issues
+                  {t("dashboard.stats.pendingIssues")}
                 </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -87,7 +91,7 @@ export default function AdminDashboard() {
                   {(metrics.pendingIssues as number) ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Require attention
+                  {t("dashboard.stats.requireAttention")}
                 </p>
               </CardContent>
             </Card>

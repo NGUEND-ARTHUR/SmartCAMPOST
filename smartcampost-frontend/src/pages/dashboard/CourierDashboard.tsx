@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Package,
   Truck,
@@ -11,6 +12,7 @@ import {
 import { useCourierPickups, useMyParcels } from "@/hooks";
 
 export default function CourierDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "pickup" | "delivery">("all");
 

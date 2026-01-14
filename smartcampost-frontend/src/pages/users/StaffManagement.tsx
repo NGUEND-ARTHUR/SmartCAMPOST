@@ -172,7 +172,9 @@ export default function StaffManagement() {
 
     // If role is COURIER, use courier creation
     if (formData.role === "COURIER") {
-      const vehicleId = formData.vehicleId || `VH-${Date.now().toString(36).toUpperCase()}`;
+      // Generate vehicleId matching pattern [A-Z, 0-9, -] (3-20 chars)
+      const generatedId = `VH-${Date.now().toString(36).toUpperCase()}`;
+      const vehicleId = formData.vehicleId?.toUpperCase().replace(/[^A-Z0-9-]/g, '') || generatedId;
       createCourier.mutate(
         {
           fullName: formData.fullName,

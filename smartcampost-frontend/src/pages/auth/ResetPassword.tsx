@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Package } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState<"request" | "confirm">("request");
   const [phone, setPhone] = useState("");

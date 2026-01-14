@@ -3,6 +3,7 @@
  * Courier page for confirming deliveries with QR scan, OTP verification, and proof of delivery
  */
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeliveryConfirmation } from "@/components/qrcode";
@@ -10,6 +11,7 @@ import { useSendDeliveryOtp, useVerifyDeliveryOtp } from "@/hooks";
 import { toast } from "sonner";
 
 export default function ConfirmDelivery() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const sendOtp = useSendDeliveryOtp();
   const verifyOtp = useVerifyDeliveryOtp();

@@ -17,6 +17,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { routeByRole } from "@/lib/routeByRole";
+import { API_ERROR_CODES, ApiError } from "@/lib/api";
 
 interface LoginRequest {
   phoneOrEmail: string;
@@ -35,6 +36,27 @@ export default function Login() {
     formState: { errors },
   } = useForm<LoginRequest>();
 
+  const getErrorMessage = (err: unknown): string => {
+    // Check if it's an ApiError with a code
+    if (err && typeof err === 'object' && 'code' in err) {
+      const apiError = err as ApiError;
+      const i18nKey = API_ERROR_CODES[apiError.code];
+      if (i18nKey) {
+        return t(i18nKey);
+      }
+      // If we have a message from the server, use it
+      if (apiError.message) {
+        return apiError.message;
+      }
+    }
+    // Fallback for Error objects
+    if (err instanceof Error) {
+      return err.message;
+    }
+    // Default fallback
+    return t('errors.loginFailed');
+  };
+
   const onSubmit = async (data: LoginRequest) => {
     setIsSubmitting(true);
     try {
@@ -44,8 +66,8 @@ export default function Login() {
       });
       toast.success(t('messages.loginSuccess'));
       navigate(routeByRole(res.user.role as any), { replace: true });
-    } catch (err: any) {
-      toast.error(err?.message || t('errors.loginFailed'));
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

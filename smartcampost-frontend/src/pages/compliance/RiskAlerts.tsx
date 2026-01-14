@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ShieldAlert, Loader2, AlertTriangle, User } from "lucide-react";
 import {
   Card,
@@ -29,6 +30,7 @@ const severityColors: Record<string, string> = {
 };
 
 export default function RiskAlerts() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useRiskAlerts(page, 20);
   const freezeUser = useRiskFreezeUser();

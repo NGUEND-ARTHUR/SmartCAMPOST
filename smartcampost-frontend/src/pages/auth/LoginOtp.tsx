@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Package } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -17,6 +18,7 @@ import { useAuthStore } from "@/store/authStore";
 import { routeByRole } from "@/lib/routeByRole";
 
 export default function LoginOtp() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MapPin, Plus, Edit, Trash2, Home, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +62,7 @@ const labelIcons: Record<string, any> = {
 };
 
 export default function Addresses() {
+  const { t } = useTranslation();
   const [addresses, setAddresses] = useState<Address[]>(mockAddresses);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
