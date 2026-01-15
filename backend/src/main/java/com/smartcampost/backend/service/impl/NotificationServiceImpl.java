@@ -134,15 +134,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Page<NotificationResponse> listNotifications(int page, int size) {
-        UserAccount user = getCurrentUser();
-        if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to list all notifications");
-        }
+        public com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listNotifications(int page, int size) {
+                UserAccount user = getCurrentUser();
+                if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
+                        throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to list all notifications");
+                }
 
-        return notificationRepository.findAll(PageRequest.of(page, size))
-                .map(this::toResponse);
-    }
+                Page<Notification> notifPage = notificationRepository.findAll(PageRequest.of(page, size));
+                List<NotificationResponse> content = notifPage.getContent().stream().map(this::toResponse).collect(Collectors.toList());
+                return com.smartcampost.backend.dto.common.PageResponse.<NotificationResponse>builder()
+                                .content(content)
+                                .page(notifPage.getNumber())
+                                .size(notifPage.getSize())
+                                .totalElements(notifPage.getTotalElements())
+                                .totalPages(notifPage.getTotalPages())
+                                .build();
+        }
 
     @Override
     public NotificationResponse retryNotification(UUID id) {

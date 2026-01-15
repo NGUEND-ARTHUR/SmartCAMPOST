@@ -23,7 +23,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { useCreateParcel } from "@/hooks";
+import { useCreateParcel, useMyAddresses } from "@/hooks";
 
 interface ParcelFormData {
   senderAddress: string;
@@ -57,6 +57,9 @@ export function CreateParcel() {
   );
 
   const createParcel = useCreateParcel();
+  const { data: addresses = [], isLoading: addressesLoading } = useMyAddresses();
+  const [senderAddressId, setSenderAddressId] = useState<string>("");
+  const [recipientAddressId, setRecipientAddressId] = useState<string>("");
   const {
     register,
     handleSubmit,
@@ -72,22 +75,14 @@ export function CreateParcel() {
   ];
 
   const onSubmit = async (data: ParcelFormData) => {
+    if (!senderAddressId || !recipientAddressId) {
+      toast.error("Please select both sender and recipient addresses.");
+      return;
+    }
     createParcel.mutate(
       {
-        senderAddress: {
-          fullName: "Sender",
-          phone: "",
-          addressLine: data.senderAddress || "",
-          city: "",
-          country: "Cameroon",
-        },
-        recipientAddress: {
-          fullName: data.recipientName || "Recipient",
-          phone: data.recipientPhone || "",
-          addressLine: data.recipientAddress || "",
-          city: data.recipientCity || "",
-          country: "Cameroon",
-        },
+        senderAddressId,
+        recipientAddressId,
         weight: data.weight,
         isFragile: isFragile,
         serviceType,
@@ -178,17 +173,16 @@ export function CreateParcel() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="senderAddress">Sender Address</Label>
-                  <Select>
+                  <Select value={senderAddressId} onValueChange={setSenderAddressId} disabled={addressesLoading}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select sender address" />
+                      <SelectValue placeholder={addressesLoading ? "Loading..." : "Select sender address"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="home">
-                        Home - Douala, Cameroon
-                      </SelectItem>
-                      <SelectItem value="office">
-                        Office - Yaoundé, Cameroon
-                      </SelectItem>
+                      {addresses.map(addr => (
+                        <SelectItem key={addr.id} value={addr.id}>
+                          {addr.label || addr.addressLine}, {addr.city}, {addr.country}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Button variant="link" className="p-0 h-auto">
@@ -198,17 +192,16 @@ export function CreateParcel() {
 
                 <div className="space-y-2">
                   <Label htmlFor="recipientAddress">Recipient Address</Label>
-                  <Select>
+                  <Select value={recipientAddressId} onValueChange={setRecipientAddressId} disabled={addressesLoading}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select recipient address" />
+                      <SelectValue placeholder={addressesLoading ? "Loading..." : "Select recipient address"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="client1">
-                        Client 1 - Bafoussam, Cameroon
-                      </SelectItem>
-                      <SelectItem value="client2">
-                        Client 2 - Garoua, Cameroon
-                      </SelectItem>
+                      {addresses.map(addr => (
+                        <SelectItem key={addr.id} value={addr.id}>
+                          {addr.label || addr.addressLine}, {addr.city}, {addr.country}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Button variant="link" className="p-0 h-auto">

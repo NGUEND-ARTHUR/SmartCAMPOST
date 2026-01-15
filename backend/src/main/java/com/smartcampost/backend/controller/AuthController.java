@@ -3,6 +3,7 @@ package com.smartcampost.backend.controller;
 import com.smartcampost.backend.dto.auth.*;
 import com.smartcampost.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    @Value("${spring.profiles.active:dev}")
+    private String activeProfile;
 
     private final AuthService authService;
 
@@ -43,9 +47,16 @@ public class AuthController {
     // =================== OTP GENERIC ===================
 
     @PostMapping("/send-otp")
-    public ResponseEntity<Void> sendOtp(@RequestBody SendOtpRequest request) {
-        authService.sendOtp(request.getPhone());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> sendOtp(@RequestBody SendOtpRequest request) {
+        String otp = authService.sendOtp(request.getPhone());
+        // Only expose OTP in DEV profile
+        if (activeProfile.equalsIgnoreCase("dev") || activeProfile.equalsIgnoreCase("local")) {
+            return ResponseEntity.ok(
+                SendOtpResponse.builder().otp(otp).build()
+            );
+        } else {
+            return ResponseEntity.ok().build();
+        }
     }
 
     @PostMapping("/verify-otp")

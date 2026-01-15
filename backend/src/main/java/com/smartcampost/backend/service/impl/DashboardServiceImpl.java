@@ -9,6 +9,8 @@ import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.RiskAlertRepository;
 import com.smartcampost.backend.repository.SupportTicketRepository;
+import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.repository.ClientRepository;
 import com.smartcampost.backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ public class DashboardServiceImpl implements DashboardService {
     private final PaymentRepository paymentRepository;
     private final SupportTicketRepository supportTicketRepository;
     private final RiskAlertRepository riskAlertRepository;
+    private final UserAccountRepository userAccountRepository;
+    private final ClientRepository clientRepository;
 
     @Override
     public DashboardSummaryResponse getSummary() {
@@ -61,6 +65,16 @@ public class DashboardServiceImpl implements DashboardService {
             metrics.put("totalTickets", totalTickets);
             metrics.put("totalRiskAlerts", totalRiskAlerts);
             metrics.put("totalRevenue", totalRevenue);
+
+            // === NEW: activeUsers (not frozen) ===
+            long activeUsers = userAccountRepository.findAll().stream()
+                .filter(u -> u.getFrozen() != null && !u.getFrozen())
+                .count();
+            metrics.put("activeUsers", activeUsers);
+
+            // === NEW: registeredClients ===
+            long registeredClients = clientRepository.count();
+            metrics.put("registeredClients", registeredClients);
 
             // ===============================
             // Delivered parcels metric

@@ -57,9 +57,9 @@ public class AuthServiceImpl implements AuthService {
 
         // 2) Vérifier OTP
         boolean validOtp = otpService.validateOtp(
-                request.getPhone(),
-                request.getOtp(),
-                OtpPurpose.REGISTER
+            request.getPhone(),
+            request.getOtp(),
+            OtpPurpose.REGISTER
         );
 
         if (!validOtp) {
@@ -71,26 +71,29 @@ public class AuthServiceImpl implements AuthService {
 
         // 4) Créer Client
         Client client = Client.builder()
-                .id(UUID.randomUUID())
-                .fullName(request.getFullName())
-                .phone(request.getPhone())
-                .email(request.getEmail())
-                .preferredLanguage(request.getPreferredLanguage())
-                .passwordHash(encodedPassword)
-                .build();
+            .id(UUID.randomUUID())
+            .fullName(request.getFullName())
+            .phone(request.getPhone())
+            .email(request.getEmail())
+            .preferredLanguage(request.getPreferredLanguage())
+            .passwordHash(encodedPassword)
+            .build();
 
         clientRepository.save(client);
 
         // 5) Créer UserAccount
         UserAccount account = UserAccount.builder()
-                .id(UUID.randomUUID())
-                .phone(request.getPhone())
-                .passwordHash(encodedPassword)
-                .role(UserRole.CLIENT)
-                .entityId(client.getId())
-                .build();
+            .id(UUID.randomUUID())
+            .phone(request.getPhone())
+            .passwordHash(encodedPassword)
+            .role(UserRole.CLIENT)
+            .entityId(client.getId())
+            .build();
 
         userAccountRepository.save(account);
+
+        // 6) Mark OTP as used only after successful registration
+        otpService.consumeOtp(request.getPhone(), request.getOtp(), OtpPurpose.REGISTER);
 
         // 6) JWT Token
         String token = jwtService.generateToken(account);
@@ -168,8 +171,8 @@ public class AuthServiceImpl implements AuthService {
     // OTP GENERIC
     // ============================================================
     @Override
-    public void sendOtp(String phone) {
-        otpService.generateOtp(phone, OtpPurpose.REGISTER);
+    public String sendOtp(String phone) {
+        return otpService.generateOtp(phone, OtpPurpose.REGISTER);
     }
 
     @Override

@@ -51,9 +51,16 @@ export default function Pickups() {
   const pickups = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
+  // UUID v4 regex (simple, covers most cases)
+  const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
   const handleRequestPickup = () => {
     if (!selectedParcel || !selectedDate || !selectedTimeWindow) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+    if (!uuidV4Regex.test(selectedParcel)) {
+      toast.error("Invalid parcel selection. Please choose a valid parcel.");
       return;
     }
     createPickup.mutate(

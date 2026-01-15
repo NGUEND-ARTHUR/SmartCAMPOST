@@ -65,13 +65,15 @@ const roleColors: Record<string, string> = {
   COURIER: "bg-green-100 text-green-800",
 };
 
-const roleLabels: Record<string, string> = {
-  STAFF: "Staff",
-  ADMIN: "Admin",
-  FINANCE: "Finance",
-  RISK: "Risk Manager",
-  COURIER: "Courier",
-};
+function getRoleLabels(t: (key: string) => string) {
+  return {
+    STAFF: t('roles.staff'),
+    ADMIN: t('roles.admin'),
+    FINANCE: t('roles.finance'),
+    RISK: t('roles.riskManager'),
+    COURIER: t('roles.courier'),
+  };
+}
 
 // Unified member type for staff + couriers
 interface UnifiedMember {
@@ -88,6 +90,7 @@ interface UnifiedMember {
 
 export default function StaffManagement() {
   const { t } = useTranslation();
+  const roleLabels = getRoleLabels(t);
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -166,7 +169,7 @@ export default function StaffManagement() {
 
   const handleCreate = () => {
     if (!formData.fullName || !formData.phone || !formData.password) {
-      toast.error("Name, phone, and password are required");
+      toast.error(t('staffManagement.requiredFields'));
       return;
     }
 
@@ -184,13 +187,13 @@ export default function StaffManagement() {
         },
         {
           onSuccess: () => {
-            toast.success("Courier created successfully");
+            toast.success(t('staffManagement.courierCreated'));
             setIsCreateOpen(false);
             resetForm();
           },
           onError: (err) =>
             toast.error(
-              err instanceof Error ? err.message : "Failed to create courier",
+              err instanceof Error ? err.message : t('staffManagement.failedCreateCourier'),
             ),
         },
       );
@@ -198,13 +201,13 @@ export default function StaffManagement() {
       // Use staff creation for other roles
       createStaff.mutate(formData, {
         onSuccess: () => {
-          toast.success("Staff member created successfully");
+          toast.success(t('staffManagement.staffCreated'));
           setIsCreateOpen(false);
           resetForm();
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to create staff",
+            err instanceof Error ? err.message : t('staffManagement.failedCreateStaff'),
           ),
       });
     }
@@ -218,7 +221,7 @@ export default function StaffManagement() {
           onSuccess: () => toast.success(`Courier status updated to ${newStatus}`),
           onError: (err) =>
             toast.error(
-              err instanceof Error ? err.message : "Failed to update status",
+              err instanceof Error ? err.message : t('staffManagement.failedUpdateStatus'),
             ),
         },
       );
@@ -229,7 +232,7 @@ export default function StaffManagement() {
           onSuccess: () => toast.success(`Staff status updated to ${newStatus}`),
           onError: (err) =>
             toast.error(
-              err instanceof Error ? err.message : "Failed to update status",
+              err instanceof Error ? err.message : t('staffManagement.failedUpdateStatus'),
             ),
         },
       );
@@ -246,7 +249,7 @@ export default function StaffManagement() {
           ),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update role",
+            err instanceof Error ? err.message : t('staffManagement.failedUpdateRole'),
           ),
       },
     );
@@ -256,9 +259,9 @@ export default function StaffManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Staff Management</h1>
+          <h1 className="text-3xl font-bold">{t('staffManagement.title')}</h1>
           <p className="text-muted-foreground">
-            Manage staff members, administrators, and their roles
+            {t('staffManagement.subtitle')}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -282,7 +285,7 @@ export default function StaffManagement() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="fullName">{t('staffManagement.fullName')} *</Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}

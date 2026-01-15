@@ -24,22 +24,22 @@ interface ScanEvent {
 }
 
 const statusOptions = [
-  { value: "CREATED", label: "CREATED" },
-  { value: "AT_ORIGIN_AGENCY", label: "AT_ORIGIN_AGENCY" },
-  { value: "IN_TRANSIT", label: "IN_TRANSIT" },
-  { value: "ARRIVED_HUB", label: "ARRIVED_HUB" },
-  { value: "DEPARTED_HUB", label: "DEPARTED_HUB" },
-  { value: "ARRIVED_DESTINATION", label: "ARRIVED_DESTINATION" },
-  { value: "OUT_FOR_DELIVERY", label: "OUT_FOR_DELIVERY" },
-  { value: "DELIVERED", label: "DELIVERED" },
-  { value: "RETURNED", label: "RETURNED" },
+  { value: "CREATED", label: t("scan.status.created") },
+  { value: "AT_ORIGIN_AGENCY", label: t("scan.status.atOriginAgency") },
+  { value: "IN_TRANSIT", label: t("scan.status.inTransit") },
+  { value: "ARRIVED_HUB", label: t("scan.status.arrivedHub") },
+  { value: "DEPARTED_HUB", label: t("scan.status.departedHub") },
+  { value: "ARRIVED_DESTINATION", label: t("scan.status.arrivedDestination") },
+  { value: "OUT_FOR_DELIVERY", label: t("scan.status.outForDelivery") },
+  { value: "DELIVERED", label: t("scan.status.delivered") },
+  { value: "RETURNED", label: t("scan.status.returned") },
 ];
 
 export default function ScanConsole() {
   const { t } = useTranslation();
   const [barcode, setBarcode] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0].value);
-  const [location, setLocation] = useState("NY Distribution Center");
+  const [location, setLocation] = useState(t("scan.defaultLocation"));
   const [scanHistory, setScanHistory] = useState<ScanEvent[]>([]);
   const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,7 +53,7 @@ export default function ScanConsole() {
 
   const handleScan = async () => {
     if (!barcode.trim()) {
-      toast.error("Please enter a tracking number");
+      toast.error(t("scan.error.enterTrackingNumber"));
       return;
     }
 
@@ -73,8 +73,8 @@ export default function ScanConsole() {
             success: true,
           };
           setScanHistory([newScan, ...scanHistory]);
-          toast.success(`Scanned: ${barcode}`, {
-            description: `Event type: ${selectedStatus}`,
+          toast.success(t("scan.success.scanned", { barcode }), {
+            description: t("scan.success.eventType", { status: selectedStatus }),
           });
           setBarcode("");
           inputRef.current?.focus();
@@ -88,9 +88,9 @@ export default function ScanConsole() {
             success: false,
           };
           setScanHistory([newScan, ...scanHistory]);
-          toast.error("Scan failed", {
+          toast.error(t("scan.error.failed"), {
             description:
-              error instanceof Error ? error.message : "Unknown error",
+              error instanceof Error ? error.message : t("scan.error.unknown"),
           });
         },
       },
@@ -105,7 +105,7 @@ export default function ScanConsole() {
 
   const clearHistory = () => {
     setScanHistory([]);
-    toast.info("Scan history cleared");
+    toast.info(t("scan.info.historyCleared"));
   };
 
   // Handle QR code scan from camera
@@ -132,8 +132,8 @@ export default function ScanConsole() {
             success: true,
           };
           setScanHistory([newScan, ...scanHistory]);
-          toast.success(`QR Scanned: ${trackingRef}`, {
-            description: `Event type: ${selectedStatus}`,
+          toast.success(t("scan.success.qrScanned", { trackingRef }), {
+            description: t("scan.success.eventType", { status: selectedStatus }),
           });
           setBarcode("");
         },
@@ -146,8 +146,8 @@ export default function ScanConsole() {
             success: false,
           };
           setScanHistory([newScan, ...scanHistory]);
-          toast.error("Scan failed", {
-            description: error instanceof Error ? error.message : "Unknown error",
+          toast.error(t("scan.error.failed"), {
+            description: error instanceof Error ? error.message : t("scan.error.unknown"),
           });
         },
       }
@@ -159,10 +159,8 @@ export default function ScanConsole() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="mb-2">Scan Console</h1>
-          <p className="text-gray-600">
-            Scan parcels and update their status in real-time
-          </p>
+          <h1 className="mb-2">{t("scan.title")}</h1>
+          <p className="text-gray-600">{t("scan.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -181,7 +179,7 @@ export default function ScanConsole() {
                   }`}
                 >
                   <Camera className="w-4 h-4" />
-                  Camera Scan
+                  {t("scan.mode.camera")}
                 </button>
                 <button
                   onClick={() => setScanMode("manual")}
@@ -192,7 +190,7 @@ export default function ScanConsole() {
                   }`}
                 >
                   <Keyboard className="w-4 h-4" />
-                  Manual Entry
+                  {t("scan.mode.manual")}
                 </button>
               </div>
 
@@ -210,13 +208,13 @@ export default function ScanConsole() {
                   {/* Status Selection for Camera Mode */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Update Status To *
+                      {t("scan.status.label")}
                     </label>
                     <select
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      title="Select status to update"
+                      title={t("scan.status.selectTitle")}
                     >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -229,15 +227,15 @@ export default function ScanConsole() {
                   {/* Location for Camera Mode */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location
+                      {t("scan.location.label")}
                     </label>
                     <input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      title="Enter location"
-                      placeholder="Enter scan location"
+                      title={t("scan.location.title")}
+                      placeholder={t("scan.location.placeholder")}
                     />
                   </div>
                 </div>
@@ -250,13 +248,13 @@ export default function ScanConsole() {
                     </div>
                   </div>
 
-                  <h2 className="text-center mb-6">Quick Scan</h2>
+                  <h2 className="text-center mb-6">{t("scan.quickScan")}</h2>
 
                   <div className="space-y-4">
                     {/* Barcode Input */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tracking Number / Barcode *
+                        {t("scan.trackingNumber.label")}
                       </label>
                       <input
                         ref={inputRef}
@@ -264,7 +262,7 @@ export default function ScanConsole() {
                         value={barcode}
                         onChange={(e) => setBarcode(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Scan or type tracking number..."
+                        placeholder={t("scan.trackingNumber.placeholder")}
                         className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         disabled={recordScan.isPending}
                       />
@@ -273,14 +271,14 @@ export default function ScanConsole() {
                     {/* Status Selection */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Update Status To *
+                        {t("scan.status.label")}
                       </label>
                       <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
                         className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         disabled={recordScan.isPending}
-                        title="Select status to update"
+                        title={t("scan.status.selectTitle")}
                       >
                         {statusOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -293,7 +291,7 @@ export default function ScanConsole() {
                     {/* Location */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Location
+                        {t("scan.location.label")}
                       </label>
                       <input
                         type="text"
@@ -301,8 +299,8 @@ export default function ScanConsole() {
                         onChange={(e) => setLocation(e.target.value)}
                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         disabled={recordScan.isPending}
-                        title="Enter location"
-                        placeholder="Enter scan location"
+                        title={t("scan.location.title")}
+                        placeholder={t("scan.location.placeholder")}
                       />
                     </div>
 
@@ -315,12 +313,12 @@ export default function ScanConsole() {
                       {recordScan.isPending ? (
                         <>
                           <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                          Scanning...
+                          {t("scan.button.scanning")}
                         </>
                       ) : (
                         <>
                           <Scan className="w-5 h-5 mr-2" />
-                          Scan & Update
+                          {t("scan.button.scanAndUpdate")}
                         </>
                       )}
                     </button>
@@ -330,13 +328,11 @@ export default function ScanConsole() {
 
               {/* Tips */}
               <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900 font-medium mb-2">
-                  Quick Tips:
-                </p>
+                <p className="text-sm text-blue-900 font-medium mb-2">{t("scan.tips.title")}</p>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Use a barcode scanner for faster processing</li>
-                  <li>• Press Enter to scan after typing</li>
-                  <li>• Scanner automatically focuses on next scan</li>
+                  <li>{t("scan.tips.barcodeScanner")}</li>
+                  <li>{t("scan.tips.pressEnter")}</li>
+                  <li>{t("scan.tips.autoFocus")}</li>
                 </ul>
               </div>
             </div>
@@ -346,7 +342,7 @@ export default function ScanConsole() {
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Today's Scans</p>
+                    <p className="text-sm text-gray-500 mb-1">{t("scan.todaysScans")}</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {scanHistory.length}
                     </p>
@@ -357,7 +353,7 @@ export default function ScanConsole() {
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Success Rate</p>
+                    <p className="text-sm text-gray-500 mb-1">{t("scan.successRate")}</p>
                     <p className="text-2xl font-bold text-gray-900">100%</p>
                   </div>
                   <Package className="w-8 h-8 text-blue-600" />
@@ -371,7 +367,7 @@ export default function ScanConsole() {
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center">
                 <History className="w-5 h-5 text-gray-400 mr-2" />
-                <h2 className="font-semibold">Scan History</h2>
+                <h2 className="font-semibold">{t("scan.history.title")}</h2>
               </div>
               {scanHistory.length > 0 && (
                 <button
@@ -379,7 +375,7 @@ export default function ScanConsole() {
                   className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
                 >
                   <RefreshCw className="w-4 h-4 mr-1" />
-                  Clear
+                  {t("scan.history.clear")}
                 </button>
               )}
             </div>
@@ -388,10 +384,8 @@ export default function ScanConsole() {
               {scanHistory.length === 0 ? (
                 <div className="p-12 text-center">
                   <Scan className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No scans yet</p>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Start scanning to see history
-                  </p>
+                  <p className="text-gray-500">{t("scan.history.noScans")}</p>
+                  <p className="text-sm text-gray-400 mt-1">{t("scan.history.hint")}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200">
@@ -416,7 +410,7 @@ export default function ScanConsole() {
                               {scan.trackingNumber}
                             </p>
                             <p className="text-sm text-gray-600 mt-1">
-                              Status: {scan.status}
+                              {t("scan.history.status", { status: scan.status })}
                             </p>
                             <p className="text-xs text-gray-400 mt-1">
                               {new Date(scan.timestamp).toLocaleString()}

@@ -5,7 +5,7 @@ import com.smartcampost.backend.dto.notification.TriggerNotificationRequest;
 import com.smartcampost.backend.service.NotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import com.smartcampost.backend.dto.common.PageResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +31,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<NotificationResponse>> list(
+    public ResponseEntity<PageResponse<NotificationResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
