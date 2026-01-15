@@ -44,6 +44,8 @@ import {
   useAssignAgentAgency,
   useAgencies,
 } from "@/hooks";
+
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
@@ -53,6 +55,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AgentManagement() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -98,18 +101,18 @@ export default function AgentManagement() {
 
   const handleCreate = () => {
     if (!formData.fullName || !formData.phone || !formData.password) {
-      toast.error("Name, phone, and password are required");
+      toast.error(t("agents.form.requiredFields"));
       return;
     }
     createAgent.mutate(formData, {
       onSuccess: () => {
-        toast.success("Agent created successfully");
+        toast.success(t("agents.create.success"));
         setIsCreateOpen(false);
         resetForm();
       },
       onError: (err) =>
         toast.error(
-          err instanceof Error ? err.message : "Failed to create agent",
+          err instanceof Error ? err.message : t("agents.create.error"),
         ),
     });
   };
@@ -118,10 +121,10 @@ export default function AgentManagement() {
     updateStatus.mutate(
       { id: agentId, data: { status: newStatus } },
       {
-        onSuccess: () => toast.success(`Agent status updated to ${newStatus}`),
+        onSuccess: () => toast.success(t("agents.status.updated", { status: newStatus })),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update status",
+            err instanceof Error ? err.message : t("agents.status.error"),
           ),
       },
     );
@@ -135,21 +138,21 @@ export default function AgentManagement() {
 
   const handleAssignAgency = () => {
     if (!selectedAgentId || !selectedAgencyId) {
-      toast.error("Please select an agency");
+      toast.error(t("agents.assign.selectAgency"));
       return;
     }
     assignAgency.mutate(
       { id: selectedAgentId, data: { agencyId: selectedAgencyId } },
       {
         onSuccess: () => {
-          toast.success("Agency assigned successfully");
+          toast.success(t("agents.assign.success"));
           setIsAssignOpen(false);
           setSelectedAgentId(null);
           setSelectedAgencyId("");
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to assign agency",
+            err instanceof Error ? err.message : t("agents.assign.error"),
           ),
       },
     );
@@ -159,9 +162,9 @@ export default function AgentManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Agent Management</h1>
+          <h1 className="text-3xl font-bold">{t("agents.title")}</h1>
           <p className="text-muted-foreground">
-            Manage field agents and their agency assignments
+            {t("agents.subtitle")}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -173,42 +176,42 @@ export default function AgentManagement() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Agent
+              {t("agents.add")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Agent</DialogTitle>
+              <DialogTitle>{t("agents.create.title")}</DialogTitle>
               <DialogDescription>
-                Add a new field agent to the system
+                {t("agents.create.subtitle")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="fullName">{t("agents.form.fullName")}</Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })
                   }
-                  placeholder="John Doe"
+                  placeholder={t("agents.form.fullNamePlaceholder")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
+                  <Label htmlFor="phone">{t("agents.form.phone")}</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder="+237 6XX XXX XXX"
+                    placeholder={t("agents.form.phonePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("agents.form.email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -216,12 +219,12 @@ export default function AgentManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="agent@campost.cm"
+                    placeholder={t("agents.form.emailPlaceholder")}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">{t("agents.form.password")}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -229,11 +232,11 @@ export default function AgentManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder="••••••••"
+                  placeholder={t("agents.form.passwordPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="agencyId">Assign to Agency</Label>
+                <Label htmlFor="agencyId">{t("agents.form.assignAgency")}</Label>
                 <Select
                   value={formData.agencyId}
                   onValueChange={(value: string) =>
@@ -241,7 +244,7 @@ export default function AgentManagement() {
                   }
                 >
                   <SelectTrigger id="agencyId">
-                    <SelectValue placeholder="Select an agency" />
+                    <SelectValue placeholder={t("agents.form.selectAgencyPlaceholder")}/>
                   </SelectTrigger>
                   <SelectContent>
                     {agencies.map((agency) => (
@@ -255,13 +258,13 @@ export default function AgentManagement() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={createAgent.isPending}>
                 {createAgent.isPending && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                Create Agent
+                {t("agents.create.action")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -271,12 +274,12 @@ export default function AgentManagement() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>All Agents</CardTitle>
+            <CardTitle>{t("agents.list.title")}</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search agents..."
+                  placeholder={t("agents.list.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-52"
@@ -285,13 +288,13 @@ export default function AgentManagement() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("agents.list.statusPlaceholder")}/>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  <SelectItem value="ALL">{t("agents.status.all")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("agents.status.active")}</SelectItem>
+                  <SelectItem value="INACTIVE">{t("agents.status.inactive")}</SelectItem>
+                  <SelectItem value="SUSPENDED">{t("agents.status.suspended")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -305,19 +308,19 @@ export default function AgentManagement() {
           ) : error ? (
             <EmptyState
               icon={UserCheck}
-              title="Error loading agents"
+              title={t("agents.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : filteredAgents.length === 0 ? (
             <EmptyState
               icon={UserCheck}
-              title="No agents found"
+              title={t("agents.list.emptyTitle")}
               description={
                 searchQuery || statusFilter !== "ALL"
-                  ? "Try adjusting your filters"
-                  : "Add your first agent to get started"
+                  ? t("agents.list.emptyFiltered")
+                  : t("agents.list.emptyDefault")
               }
             />
           ) : (
@@ -325,11 +328,11 @@ export default function AgentManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Agency</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("agents.list.agent")}</TableHead>
+                    <TableHead>{t("agents.list.contact")}</TableHead>
+                    <TableHead>{t("agents.list.agency")}</TableHead>
+                    <TableHead>{t("agents.list.status")}</TableHead>
+                    <TableHead>{t("agents.list.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -368,7 +371,7 @@ export default function AgentManagement() {
                             size="sm"
                             onClick={() => handleOpenAssign(agent.id)}
                           >
-                            Assign Agency
+                            {t("agents.assign.action")}
                           </Button>
                         )}
                       </TableCell>
@@ -394,11 +397,9 @@ export default function AgentManagement() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ACTIVE">Active</SelectItem>
-                              <SelectItem value="INACTIVE">Inactive</SelectItem>
-                              <SelectItem value="SUSPENDED">
-                                Suspended
-                              </SelectItem>
+                              <SelectItem value="ACTIVE">{t("agents.status.active")}</SelectItem>
+                              <SelectItem value="INACTIVE">{t("agents.status.inactive")}</SelectItem>
+                              <SelectItem value="SUSPENDED">{t("agents.status.suspended")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -415,10 +416,10 @@ export default function AgentManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -426,7 +427,7 @@ export default function AgentManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}
@@ -438,19 +439,19 @@ export default function AgentManagement() {
       <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign Agency</DialogTitle>
+            <DialogTitle>{t("agents.assign.title")}</DialogTitle>
             <DialogDescription>
-              Select an agency to assign to this agent
+              {t("agents.assign.subtitle")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="assignAgency">Agency</Label>
+            <Label htmlFor="assignAgency">{t("agents.form.assignAgency")}</Label>
             <Select
               value={selectedAgencyId}
               onValueChange={setSelectedAgencyId}
             >
               <SelectTrigger id="assignAgency">
-                <SelectValue placeholder="Select an agency" />
+                <SelectValue placeholder={t("agents.form.selectAgencyPlaceholder")}/>
               </SelectTrigger>
               <SelectContent>
                 {agencies.map((agency) => (
@@ -463,7 +464,7 @@ export default function AgentManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleAssignAgency}
@@ -472,7 +473,7 @@ export default function AgentManagement() {
               {assignAgency.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Assign
+              {t("agents.assign.action")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -34,8 +34,8 @@ export default function ClientManagement() {
 
   const clients = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
-
-  const filteredClients = clients.filter((c) => {
+              <Input
+                placeholder={t('clientManagement.searchPlaceholder')}
     const search = searchQuery.toLowerCase();
     return (
       c.fullName.toLowerCase().includes(search) ||
@@ -51,19 +51,19 @@ export default function ClientManagement() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Client Management</h1>
+              title={t('clientManagement.errorLoading')}
+        <h1 className="text-3xl font-bold">{t('clientManagement.title')}</h1>
         <p className="text-muted-foreground">
-          View and manage registered clients
+          {t('clientManagement.subtitle')}
         </p>
       </div>
 
       <Card>
-        <CardHeader>
+              title={t('clientManagement.noClientsFound')}
           <div className="flex items-center justify-between">
             <CardTitle>All Clients</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  ? t('clientManagement.tryAdjustingSearch')
+                  : t('clientManagement.registeredClientsAppearHere')
               <Input
                 placeholder="Search clients..."
                 value={searchQuery}

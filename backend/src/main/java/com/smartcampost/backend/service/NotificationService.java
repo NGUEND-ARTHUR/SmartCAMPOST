@@ -4,7 +4,6 @@ import com.smartcampost.backend.dto.notification.NotificationResponse;
 import com.smartcampost.backend.dto.notification.TriggerNotificationRequest;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.PickupRequest;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,7 +15,7 @@ public interface NotificationService {
 
     NotificationResponse getNotification(UUID id);
 
-    Page<NotificationResponse> listNotifications(int page, int size);
+    com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listNotifications(int page, int size);
 
     NotificationResponse retryNotification(UUID id);
 

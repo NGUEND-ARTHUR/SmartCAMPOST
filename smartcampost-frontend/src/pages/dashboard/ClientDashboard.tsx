@@ -117,7 +117,7 @@ export function ClientDashboard() {
                   {recentParcels.map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between border rounded-lg p-3"
+                      className="flex items-center justify-between border rounded-lg p-3 gap-2"
                     >
                       <div>
                         <div className="font-medium">
@@ -127,13 +127,29 @@ export function ClientDashboard() {
                           {t(`parcels.status.${p.status?.toLowerCase().replace(/_/g, '')}`, p.status?.replace(/_/g, " "))}
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/client/parcels/${p.id}`)}
-                      >
-                        {t("common.view")}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/client/parcels/${p.id}`)}
+                        >
+                          {t("common.view")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/client/parcels/${p.id}#tracking`)}
+                        >
+                          {t("parcelList.actions.track")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(`/client/parcels/${p.id}?print=label`, '_blank')}
+                        >
+                          {t("parcelList.actions.printLabel")}
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

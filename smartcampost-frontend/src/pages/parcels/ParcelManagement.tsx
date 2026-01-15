@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Filter, Package, Search, ShieldAlert, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ const statusBadge: Record<AdminParcelStatus, string> = {
 };
 
 export default function ParcelManagement() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,59 +93,59 @@ export default function ParcelManagement() {
   };
 
   const handleFlag = (trackingRef: string) => {
-    toast.success("Flagged for review", { description: trackingRef });
+    toast.success(t("parcelManagement.flagged"), { description: trackingRef });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Parcel Management</h1>
+        <h1 className="text-3xl font-bold">{t("parcelManagement.title")}</h1>
         <p className="text-muted-foreground">
-          Search, triage and take action on operational parcels
+          {t("parcelManagement.subtitle")}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Parcels</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.total")}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.all}</div>
-            <p className="text-xs text-muted-foreground">Across all statuses</p>
+            <p className="text-xs text-muted-foreground">{t("parcelManagement.stats.allStatuses")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.active")}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.inTransit}</div>
             <p className="text-xs text-muted-foreground">
-              In transit / out for delivery
+              {t("parcelManagement.stats.inTransit")}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.delivered")}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.delivered}</div>
-            <p className="text-xs text-muted-foreground">Completed shipments</p>
+            <p className="text-xs text-muted-foreground">{t("parcelManagement.stats.completed")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Exceptions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.exceptions")}</CardTitle>
             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.exceptions}</div>
-            <p className="text-xs text-muted-foreground">Need attention</p>
+            <p className="text-xs text-muted-foreground">{t("parcelManagement.stats.needAttention")}</p>
           </CardContent>
         </Card>
       </div>
@@ -155,7 +157,7 @@ export default function ParcelManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by tracking # or client…"
+                  placeholder={t("parcelManagement.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -167,20 +169,18 @@ export default function ParcelManagement() {
                 value={statusFilter}
                 onValueChange={(v: string) => setStatusFilter(v as any)}
               >
-                <SelectTrigger className="w-52" title="Filter by status">
+                <SelectTrigger className="w-52" title={t("parcelManagement.filterByStatus")!}>
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t("parcelManagement.filterByStatus")!} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="CREATED">Created</SelectItem>
-                  <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
-                  <SelectItem value="OUT_FOR_DELIVERY">
-                    Out for Delivery
-                  </SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                  <SelectItem value="RETURNED">Returned</SelectItem>
-                  <SelectItem value="EXCEPTION">Exception</SelectItem>
+                  <SelectItem value="ALL">{t("parcelManagement.status.all")}</SelectItem>
+                  <SelectItem value="CREATED">{t("parcelManagement.status.created")}</SelectItem>
+                  <SelectItem value="IN_TRANSIT">{t("parcelManagement.status.inTransit")}</SelectItem>
+                  <SelectItem value="OUT_FOR_DELIVERY">{t("parcelManagement.status.outForDelivery")}</SelectItem>
+                  <SelectItem value="DELIVERED">{t("parcelManagement.status.delivered")}</SelectItem>
+                  <SelectItem value="RETURNED">{t("parcelManagement.status.returned")}</SelectItem>
+                  <SelectItem value="EXCEPTION">{t("parcelManagement.status.exception")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -188,13 +188,13 @@ export default function ParcelManagement() {
                 value={serviceFilter}
                 onValueChange={(v: string) => setServiceFilter(v as any)}
               >
-                <SelectTrigger className="w-44" title="Filter by service">
-                  <SelectValue placeholder="Service" />
+                <SelectTrigger className="w-44" title={t("parcelManagement.filterByService")!}>
+                  <SelectValue placeholder={t("parcelManagement.filterByService")!} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Service</SelectItem>
-                  <SelectItem value="EXPRESS">Express</SelectItem>
-                  <SelectItem value="STANDARD">Standard</SelectItem>
+                  <SelectItem value="ALL">{t("parcelManagement.service.all")}</SelectItem>
+                  <SelectItem value="EXPRESS">{t("parcelManagement.service.express")}</SelectItem>
+                  <SelectItem value="STANDARD">{t("parcelManagement.service.standard")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -208,19 +208,19 @@ export default function ParcelManagement() {
           ) : error ? (
             <EmptyState
               icon={Package}
-              title="Error loading parcels"
+              title={t("parcelManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : filteredParcels.length === 0 ? (
             <EmptyState
               icon={Package}
-              title="No parcels found"
+              title={t("parcelManagement.noParcelsFound")}
               description={
                 searchQuery || statusFilter !== "ALL" || serviceFilter !== "ALL"
-                  ? "Try adjusting your search or filters"
-                  : "Operational parcels will appear here"
+                  ? t("parcelManagement.tryAdjustingSearch")
+                  : t("parcelManagement.operationalParcelsAppearHere")
               }
             />
           ) : (
@@ -228,12 +228,12 @@ export default function ParcelManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Tracking</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Update</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("parcelManagement.table.tracking")}</TableHead>
+                    <TableHead>{t("parcelManagement.table.client")}</TableHead>
+                    <TableHead>{t("parcelManagement.table.service")}</TableHead>
+                    <TableHead>{t("parcelManagement.table.status")}</TableHead>
+                    <TableHead>{t("parcelManagement.table.lastUpdate")}</TableHead>
+                    <TableHead>{t("parcelManagement.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -259,7 +259,7 @@ export default function ParcelManagement() {
                               statusBadge[status] || "bg-gray-100 text-gray-800"
                             }
                           >
-                            {status.toString().replace(/_/g, " ")}
+                            {t(`parcelManagement.status.${status.toLowerCase()}`)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -274,14 +274,28 @@ export default function ParcelManagement() {
                               variant="ghost"
                               onClick={() => handleView(p.id)}
                             >
-                              View
+                              {t("parcelManagement.actions.view")}
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleFlag(trackingRef)}
                             >
-                              Flag
+                              {t("parcelManagement.actions.flag")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => window.open(`/dashboard/parcels/${p.id}#tracking`, '_blank')}
+                            >
+                              {t("parcelManagement.actions.track")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => window.open(`/dashboard/parcels/${p.id}?print=label`, '_blank')}
+                            >
+                              {t("parcelManagement.actions.printLabel")}
                             </Button>
                           </div>
                         </TableCell>

@@ -60,7 +60,7 @@ export interface Parcel {
   id: string;
   trackingNumber?: string;
   status?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ScanEvent {
@@ -92,7 +92,7 @@ export interface PickupRequest {
   id: string;
   parcelId?: string;
   address?: Address | string;
-  items?: any[];
+  items?: unknown[];
   requestedDate?: string;
   timeWindow?: string;
   courierId?: string;

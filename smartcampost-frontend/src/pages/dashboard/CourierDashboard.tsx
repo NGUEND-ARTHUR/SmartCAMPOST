@@ -82,26 +82,26 @@ export default function CourierDashboard() {
     type === "pickup" ? Package : Truck;
 
   const cards = [
-    { title: "Pending Pickups", value: stats.pendingPickups, icon: Package },
+    { title: t("courierDashboard.stats.pendingPickups"), value: stats.pendingPickups, icon: Package },
     {
-      title: "Pending Deliveries",
+      title: t("courierDashboard.stats.pendingDeliveries"),
       value: stats.pendingDeliveries,
       icon: Truck,
     },
     {
-      title: "Completed Today",
+      title: t("courierDashboard.stats.completedToday"),
       value: stats.completedToday,
       icon: CheckCircle2,
     },
-    { title: "Distance (km)", value: stats.totalDistance, icon: MapPin },
+    { title: t("courierDashboard.stats.distanceKm"), value: stats.totalDistance, icon: MapPin },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
-          <h1 className="mb-2">Courier Dashboard</h1>
-          <p className="text-gray-600">Manage your pickups and deliveries</p>
+          <h1 className="mb-2">{t("courierDashboard.title")}</h1>
+          <p className="text-gray-600">{t("courierDashboard.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -133,7 +133,7 @@ export default function CourierDashboard() {
                     : "border-transparent text-gray-500"
                 }`}
               >
-                All Tasks ({tasks.length})
+                {t("courierDashboard.tabs.allTasks", { count: tasks.length })}
               </button>
 
               <button
@@ -144,7 +144,7 @@ export default function CourierDashboard() {
                     : "border-transparent text-gray-500"
                 }`}
               >
-                Pickups ({tasks.filter((t) => t.type === "pickup").length})
+                {t("courierDashboard.tabs.pickups", { count: tasks.filter((t) => t.type === "pickup").length })}
               </button>
 
               <button
@@ -155,7 +155,7 @@ export default function CourierDashboard() {
                     : "border-transparent text-gray-500"
                 }`}
               >
-                Deliveries ({tasks.filter((t) => t.type === "delivery").length})
+                {t("courierDashboard.tabs.deliveries", { count: tasks.filter((t) => t.type === "delivery").length })}
               </button>
             </nav>
           </div>
@@ -244,16 +244,27 @@ export default function CourierDashboard() {
             <div className="bg-white rounded-lg shadow p-12 text-center">
               <div className="max-w-sm mx-auto">
                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="mb-2 text-gray-900">No tasks found</h3>
+                <h3 className="mb-2 text-gray-900">{t("courierDashboard.noTasksFound")}</h3>
                 <p className="text-gray-500">
-                  There are no {filter !== "all" ? filter : ""} tasks at the
-                  moment.
+                  {t("courierDashboard.noTasksMessage", { filter: filter !== "all" ? t(`courierDashboard.tabs.${filter}`) : "" })}
                 </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
+                          )
+                        }
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
+                      >
+                        {t("courierDashboard.actions.startTask")}
+                      </button>
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
+                          )
+                        }
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm whitespace-nowrap"
+                      >
+                        {t("courierDashboard.actions.viewDetails")}
+                      </button>

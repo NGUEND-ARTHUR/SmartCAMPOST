@@ -231,8 +231,9 @@ class ApiClient {
     });
   }
 
-  async sendOtp(phone: string): Promise<void> {
-    return this.request<void>("/auth/send-otp", {
+  async sendOtp(phone: string): Promise<{ otp?: string }> {
+    // In DEV, backend returns { otp: "123456" }, otherwise empty object
+    return this.request<{ otp?: string }>("/auth/send-otp", {
       method: "POST",
       body: JSON.stringify({ phone }),
     });

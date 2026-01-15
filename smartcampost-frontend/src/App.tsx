@@ -153,6 +153,12 @@ function App() {
           <Route path="tariffs" element={<TariffManagement />} />
           <Route path="integrations" element={<IntegrationManagement />} />
           <Route path="accounts" element={<UserAccountManagement />} />
+          {/* Finance Management */}
+          <Route path="finance" element={<FinanceDashboard />} />
+          <Route path="finance/create" element={<(require('./pages/admin/CreateFinancePage').default)} />} />
+          {/* Risk Management */}
+          <Route path="risk" element={<(require('./pages/admin/RiskDashboard').default)} />} />
+          <Route path="risk/create" element={<(require('./pages/admin/CreateRiskPage').default)} />} />
         </Route>
 
         <Route

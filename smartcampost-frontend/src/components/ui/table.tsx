@@ -1,16 +1,16 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export const Table = ({ children, className }: any) => (
+export const Table = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={cn("w-full overflow-auto", className)}>
     <table className="w-full table-auto">{children}</table>
   </div>
 );
 
-export const TableHeader = ({ children }: any) => (
+export const TableHeader = ({ children }: { children: React.ReactNode }) => (
   <thead className="bg-gray-50">{children}</thead>
 );
-export const TableBody = ({ children }: any) => <tbody>{children}</tbody>;
+export const TableBody = ({ children }: { children: React.ReactNode }) => <tbody>{children}</tbody>;
 export const TableRow = ({ children, className }: any) => (
   <tr className={cn("border-b", className)}>{children}</tr>
 );

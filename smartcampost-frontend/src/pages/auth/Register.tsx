@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -57,23 +57,29 @@ export function Register() {
 
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
   const onSubmit = async (data: RegisterRequest) => {
     setIsLoading(true);
     try {
-      // Call backend register
       await apiClient.register({
         fullName: data.fullName,
         phone: data.phone,
         email: data.email,
         preferredLanguage: language,
         password: data.password,
+        otp: otpValue,
       });
-
       toast.success(t('messages.createSuccess'));
       navigate("/auth/login");
-    } catch (error) {
-      toast.error(t('errors.serverError'));
+    } catch (error: any) {
+      // Show specific backend error if available
+      if (error?.code && error?.message) {
+        toast.error(t(`errors.${error.code}`) || error.message);
+      } else {
+        toast.error(t('errors.serverError'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -148,10 +154,22 @@ export function Register() {
                     }
                     setIsSendingOtp(true);
                     try {
-                      await apiClient.sendOtp(phoneValue);
+                      // Get OTP from backend (DEV only)
+                      const response = await apiClient.sendOtp(phoneValue);
                       setOtpSent(true);
-                      toast.success(t('messages.success'));
-                    } catch (err) {
+                      if (response && response.otp) {
+                        setOtpValue(response.otp);
+                        // Auto-focus and fill OTP field
+                        setTimeout(() => {
+                          if (otpInputRef.current) {
+                            otpInputRef.current.value = response.otp ?? "";
+                          }
+                        }, 100);
+                        toast.success(t('messages.success') + ` (OTP: ${response.otp})`);
+                      } else {
+                        toast.success(t('messages.success'));
+                      }
+                    } catch (err: any) {
                       toast.error(t('errors.serverError'));
                     } finally {
                       setIsSendingOtp(false);
@@ -175,7 +193,10 @@ export function Register() {
                 <Input
                   id="otp"
                   placeholder="Enter OTP"
-                  {...register("otp", { required: t('errors.required') })}
+                  value={otpValue}
+                  ref={otpInputRef}
+                  onChange={e => setOtpValue(e.target.value)}
+                  required
                 />
                 {errors.otp && (
                   <p className="text-sm text-destructive">

@@ -43,6 +43,7 @@ const statusColors: Record<string, string> = {
 
 export default function CourierManagement() {
   const [page, setPage] = useState(0);
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -79,7 +80,7 @@ export default function CourierManagement() {
 
   const handleCreate = () => {
     if (!formData.fullName || !formData.phone || !formData.password) {
-      toast.error("Name, phone, and password are required");
+      toast.error(t('courierManagement.requiredFields'));
       return;
     }
     // Auto-generate vehicleId if not provided
@@ -89,13 +90,13 @@ export default function CourierManagement() {
     };
     createCourier.mutate(payload, {
       onSuccess: () => {
-        toast.success("Courier created successfully");
+        toast.success(t('courierManagement.courierCreated'));
         setIsCreateOpen(false);
         resetForm();
       },
       onError: (err) =>
         toast.error(
-          err instanceof Error ? err.message : "Failed to create courier",
+          err instanceof Error ? err.message : t('courierManagement.failedCreateCourier'),
         ),
     });
   };
@@ -105,10 +106,10 @@ export default function CourierManagement() {
       { id: courierId, data: { status: newStatus } },
       {
         onSuccess: () =>
-          toast.success(`Courier status updated to ${newStatus}`),
+          toast.success(t('courierManagement.statusUpdated', { status: newStatus })),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update status",
+            err instanceof Error ? err.message : t('courierManagement.failedUpdateStatus'),
           ),
       },
     );
@@ -118,9 +119,9 @@ export default function CourierManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Courier Management</h1>
+          <h1 className="text-3xl font-bold">{t('courierManagement.title')}</h1>
           <p className="text-muted-foreground">
-            Manage delivery couriers and their assignments
+            {t('courierManagement.subtitle')}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -144,29 +145,29 @@ export default function CourierManagement() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="fullName">{t('courierManagement.fullName')} *</Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })
                   }
-                  placeholder="John Doe"
+                  placeholder={t('courierManagement.fullNamePlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone *</Label>
+                <Label htmlFor="phone">{t('courierManagement.phone')} *</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  placeholder="+237 6XX XXX XXX"
+                  placeholder={t('courierManagement.phonePlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">{t('courierManagement.password')} *</Label>
                 <Input
                   id="password"
                   type="password"
@@ -174,18 +175,18 @@ export default function CourierManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder={t('courierManagement.passwordPlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicleId">Vehicle ID (optional)</Label>
+                <Label htmlFor="vehicleId">{t('courierManagement.vehicleIdOptional')}</Label>
                 <Input
                   id="vehicleId"
                   value={formData.vehicleId}
                   onChange={(e) =>
                     setFormData({ ...formData, vehicleId: e.target.value })
                   }
-                  placeholder="Enter vehicle identifier"
+                  placeholder={t('courierManagement.vehicleIdPlaceholder')}
                 />
               </div>
             </div>
@@ -212,7 +213,7 @@ export default function CourierManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search couriers..."
+                  placeholder={t('courierManagement.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-52"
@@ -221,7 +222,7 @@ export default function CourierManagement() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('courierManagement.statusPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Status</SelectItem>

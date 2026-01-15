@@ -254,7 +254,7 @@ export default function TrackingMap({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="h-[400px] relative">
+        <div className="h-100 relative">
           <MapContainer
             center={mapCenter}
             zoom={mapZoom}
@@ -318,7 +318,7 @@ export default function TrackingMap({
                   icon={transitIcon}
                 >
                   <Popup>
-                    <div className="min-w-[150px]">
+                    <div className="min-w-37.5">
                       <strong className="flex items-center gap-1">
                         <Package className="w-4 h-4" />
                         Checkpoint {index + 1}
@@ -359,7 +359,7 @@ export default function TrackingMap({
           </MapContainer>
 
           {/* Legend */}
-          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg z-[1000] text-xs">
+          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg z-1000 text-xs">
             <div className="font-semibold mb-2">Legend</div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">

@@ -27,7 +27,7 @@ public class OtpServiceImpl implements OtpService {
     private final SecureRandom random = new SecureRandom();
 
     @Override
-    public void generateOtp(String phone, OtpPurpose purpose) {
+    public String generateOtp(String phone, OtpPurpose purpose) {
         Instant now = Instant.now();
 
         // 1) Cooldown par téléphone + purpose (REGISTER, RESET_PASSWORD, LOGIN)
@@ -59,30 +59,35 @@ public class OtpServiceImpl implements OtpService {
                 .build();
 
         otpCodeRepository.save(otp);
-
         // 5) Envoyer (mock: log/console)
         log.info("📲 OTP for {} [{}] is {}", phone, purpose, code);
         System.out.println("OTP FOR " + phone + " (" + purpose + "): " + code);
+        return code;
     }
 
     @Override
     public boolean validateOtp(String phone, String otp, OtpPurpose purpose) {
         Instant now = Instant.now();
-
         return otpCodeRepository
                 .findTopByPhoneAndPurposeAndUsedIsFalseAndExpiresAtAfterOrderByCreatedAtDesc(
                         phone, purpose, now
                 )
-                .map(record -> {
-                    if (!record.getCode().equals(otp)) {
-                        return false;
-                    }
-                    // Marquer comme utilisé pour ne pas le réutiliser
+                .map(record -> record.getCode().equals(otp))
+                .orElse(false);
+    }
+
+    @Override
+    public void consumeOtp(String phone, String otp, OtpPurpose purpose) {
+        Instant now = Instant.now();
+        otpCodeRepository
+                .findTopByPhoneAndPurposeAndUsedIsFalseAndExpiresAtAfterOrderByCreatedAtDesc(
+                        phone, purpose, now
+                )
+                .filter(record -> record.getCode().equals(otp))
+                .ifPresent(record -> {
                     record.setUsed(true);
                     otpCodeRepository.save(record);
-                    return true;
-                })
-                .orElse(false);
+                });
     }
 
     private String generateRandomOtp(int length) {

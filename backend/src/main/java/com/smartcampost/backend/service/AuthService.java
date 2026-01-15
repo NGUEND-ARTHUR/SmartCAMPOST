@@ -11,7 +11,10 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
 
     // =================== OTP GÉNÉRIQUE ===================
-    void sendOtp(String phone);
+    /**
+     * Sends an OTP and returns the code (for DEV only).
+     */
+    String sendOtp(String phone);
     boolean verifyOtp(String phone, String otp);
 
     // =================== CHANGE PASSWORD ===================
