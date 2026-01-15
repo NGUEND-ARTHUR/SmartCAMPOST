@@ -171,8 +171,9 @@ public class AuthServiceImpl implements AuthService {
     // OTP GENERIC
     // ============================================================
     @Override
-    public String sendOtp(String phone) {
-        return otpService.generateOtp(phone, OtpPurpose.REGISTER);
+    public SendOtpResponse sendOtp(String phone) {
+        String otp = otpService.generateOtp(phone, OtpPurpose.REGISTER);
+        return SendOtpResponse.builder().otp(otp).build();
     }
 
     @Override

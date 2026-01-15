@@ -48,12 +48,10 @@ public class AuthController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody SendOtpRequest request) {
-        String otp = authService.sendOtp(request.getPhone());
+        SendOtpResponse response = authService.sendOtp(request.getPhone());
         // Only expose OTP in DEV profile
         if (activeProfile.equalsIgnoreCase("dev") || activeProfile.equalsIgnoreCase("local")) {
-            return ResponseEntity.ok(
-                SendOtpResponse.builder().otp(otp).build()
-            );
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.ok().build();
         }

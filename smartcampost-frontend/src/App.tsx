@@ -1,3 +1,6 @@
+import React from "react";
+import CreateFinancePage from "./pages/admin/CreateFinancePage";
+import CreateRiskPage from "./pages/admin/CreateRiskPage";
 import {
   BrowserRouter as Router,
   Routes,
@@ -20,7 +23,11 @@ import { Support } from "./pages/support";
 // Courier pages
 import { CourierDashboard } from "./pages/dashboard";
 import { CourierPickups, PickupDetail } from "./pages/pickups";
-import { CourierDeliveries, DeliveryDetail, ConfirmDelivery } from "./pages/deliveries";
+import {
+  CourierDeliveries,
+  DeliveryDetail,
+  ConfirmDelivery,
+} from "./pages/deliveries";
 
 // Staff/Agent/Admin pages
 import {
@@ -155,10 +162,10 @@ function App() {
           <Route path="accounts" element={<UserAccountManagement />} />
           {/* Finance Management */}
           <Route path="finance" element={<FinanceDashboard />} />
-          <Route path="finance/create" element={<(require('./pages/admin/CreateFinancePage').default)} />} />
+          <Route path="finance/create" element={<CreateFinancePage />} />
           {/* Risk Management */}
-          <Route path="risk" element={<(require('./pages/admin/RiskDashboard').default)} />} />
-          <Route path="risk/create" element={<(require('./pages/admin/CreateRiskPage').default)} />} />
+          <Route path="risk" element={<RiskDashboard />} />
+          <Route path="risk/create" element={<CreateRiskPage />} />
         </Route>
 
         <Route
@@ -206,7 +213,6 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      
       {/* AI Chatbot - Available on all pages */}
       <AIChatbot />
     </Router>

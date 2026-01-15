@@ -14,7 +14,7 @@ public interface AuthService {
     /**
      * Sends an OTP and returns the code (for DEV only).
      */
-    String sendOtp(String phone);
+    SendOtpResponse sendOtp(String phone);
     boolean verifyOtp(String phone, String otp);
 
     // =================== CHANGE PASSWORD ===================
