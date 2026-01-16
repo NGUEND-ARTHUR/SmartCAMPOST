@@ -21,3 +21,5 @@ build/
 # Environment / secrets
 .env
 *.pem
+.vercel
+.env*.local
