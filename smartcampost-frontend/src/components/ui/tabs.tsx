@@ -1,13 +1,13 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export const Tabs = ({
-  children,
-  value,
-  onValueChange,
-  className,
-  ...props
-}: React.PropsWithChildren<{ className?: string }>) => (
+interface TabsProps {
+  value?: string;
+  onValueChange?: (v: string) => void;
+  className?: string;
+}
+
+export const Tabs = ({ children, value, onValueChange, className, ...props }: React.PropsWithChildren<TabsProps>) => (
   <div className={cn(className)} {...props}>
     {children}
   </div>
@@ -17,18 +17,18 @@ export const TabsList = ({ children, className }: { children: React.ReactNode; c
   <div className={cn("flex space-x-2", className)}>{children}</div>
 );
 
-export const TabsTrigger = ({ children, value, onClick, className }: { children: React.ReactNode; value?: string; onClick?: () => void; className?: string }) => (
+export const TabsTrigger = ({ children, value, onClick, className }: { children: React.ReactNode; value?: string; onClick?: (v: string) => void; className?: string }) => (
   <button
     type="button"
-    onClick={() => onClick?.(value)}
+    onClick={() => onClick?.(value as string)}
     className={cn("px-3 py-2 rounded-md border", className)}
   >
     {children}
   </button>
 );
 
-export const TabsContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn(className)}>{children}</div>
+export const TabsContent = ({ children, className, value }: { children: React.ReactNode; className?: string; value?: string }) => (
+  <div data-tabs-value={value} className={cn(className)}>{children}</div>
 );
 
 // Components exported via named declarations above; no additional export list.

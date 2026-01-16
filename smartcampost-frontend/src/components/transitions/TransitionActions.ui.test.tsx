@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
@@ -11,7 +11,7 @@ describe("transition action visibility (UI)", () => {
       { type: "PARCEL_SET_STATUS", to: "CANCELLED" },
     );
 
-    render(
+    const { getByRole } = render(
       <ActionButton
         variant="destructive"
         disabled={!decision.allowed}
@@ -25,7 +25,7 @@ describe("transition action visibility (UI)", () => {
       </ActionButton>,
     );
 
-    const btn = screen.getByRole("button", { name: "Cancel" });
+    const btn = getByRole("button", { name: "Cancel" });
     expect(btn).toBeDisabled();
 
     // Tooltip is implemented via title on wrapper

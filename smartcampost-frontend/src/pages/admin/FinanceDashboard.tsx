@@ -142,7 +142,7 @@ export default function FinanceDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value) => `$${value}`} />
+                <Tooltip formatter={(value: any) => `$${value}`} />
                 <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
@@ -156,7 +156,7 @@ export default function FinanceDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="method" />
                 <YAxis />
-                <Tooltip formatter={(value) => `$${value}`} />
+                <Tooltip formatter={(value: any) => `$${value}`} />
                 <Bar dataKey="amount" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>

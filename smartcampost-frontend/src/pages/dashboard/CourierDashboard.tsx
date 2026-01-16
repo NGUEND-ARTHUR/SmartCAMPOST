@@ -248,23 +248,27 @@ export default function CourierDashboard() {
                 <p className="text-gray-500">
                   {t("courierDashboard.noTasksMessage", { filter: filter !== "all" ? t(`courierDashboard.tabs.${filter}`) : "" })}
                 </p>
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
-                          )
-                        }
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
-                      >
-                        {t("courierDashboard.actions.startTask")}
-                      </button>
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
-                          )
-                        }
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm whitespace-nowrap"
-                      >
-                        {t("courierDashboard.actions.viewDetails")}
-                      </button>
+                <div className="mt-6 flex justify-center space-x-3">
+                  <button
+                    onClick={() => navigate(`/courier/pickups`)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
+                  >
+                    {t("courierDashboard.actions.goToPickups")}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/courier/deliveries`)}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm whitespace-nowrap"
+                  >
+                    {t("courierDashboard.actions.goToDeliveries")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+
+}

@@ -74,6 +74,9 @@ interface TrackingMapProps {
   destinationLng?: number;
   currentStatus?: string;
   showAnimation?: boolean;
+  // Optional shorthand coordinates used by some pages
+  lat?: number;
+  lng?: number;
 }
 
 // Component to animate the map view
@@ -146,6 +149,8 @@ export default function TrackingMap({
   originLng,
   destinationLat,
   destinationLng,
+  lat,
+  lng,
   currentStatus = "IN_TRANSIT",
   showAnimation = true,
 }: TrackingMapProps) {
@@ -164,6 +169,9 @@ export default function TrackingMap({
 
     if (originLat && originLng) {
       route.push([originLat, originLng]);
+    } else if (lat && lng) {
+      // fallback: if shorthand lat/lng provided, treat as starting point
+      route.push([lat, lng]);
     }
 
     route.push(...eventPositions);
