@@ -65,7 +65,7 @@ const roleColors: Record<string, string> = {
   COURIER: "bg-green-100 text-green-800",
 };
 
-function getRoleLabels(t: (key: string) => string) {
+function getRoleLabels(t: (key: string) => string): Record<string, string> {
   return {
     STAFF: t('roles.staff'),
     ADMIN: t('roles.admin'),

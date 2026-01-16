@@ -246,6 +246,25 @@ class ApiClient {
     });
     return res.verified;
   }
+
+  // Convenience HTTP helpers
+  public async get<T = any>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  public async post<T = any>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, { method: 'POST', body: body ? JSON.stringify(body) : undefined });
+  }
+
+  public async put<T = any>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, { method: 'PUT', body: body ? JSON.stringify(body) : undefined });
+  }
+
+  public async delete<T = any>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
 }
 
 export const apiClient = new ApiClient();
+
+export default apiClient;

@@ -53,16 +53,17 @@ const priorityColors: Record<TicketPriority, string> = {
   HIGH: "bg-orange-100 text-orange-800",
   URGENT: "bg-red-100 text-red-800",
 };
-const categoryLabels: Record<TicketCategory, string> = {
-  DELIVERY: t("support.category.delivery"),
-  PAYMENT: t("support.category.payment"),
-  DAMAGED: t("support.category.damaged"),
-  LOST: t("support.category.lost"),
-  OTHER: t("support.category.other"),
-};
+// category labels rely on translations; will be created inside component where `t` is available
 
 export default function Support() {
   const { t } = useTranslation();
+  const categoryLabels: Record<string, string> = {
+    DELIVERY: t("support.category.delivery"),
+    PAYMENT: t("support.category.payment"),
+    DAMAGED: t("support.category.damaged"),
+    LOST: t("support.category.lost"),
+    OTHER: t("support.category.other"),
+  };
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -342,7 +343,7 @@ export default function Support() {
                                 {t(`support.status.${ticket.status.replace("_", "").toLowerCase()}`)}
                               </Badge>
                               <Badge variant="outline">
-                                {t(`support.category.${ticket.category.toLowerCase()}`)}
+                                {ticket.category ? categoryLabels[ticket.category] : ""}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2">

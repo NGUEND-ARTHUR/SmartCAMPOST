@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Users, Loader2, Search, Eye, Mail, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -22,6 +23,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useClients, useClient } from "@/hooks";
 
 export default function ClientManagement() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -34,13 +36,13 @@ export default function ClientManagement() {
 
   const clients = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
-              <Input
-                placeholder={t('clientManagement.searchPlaceholder')}
+
+  const filteredClients = clients.filter((c) => {
     const search = searchQuery.toLowerCase();
     return (
-      c.fullName.toLowerCase().includes(search) ||
-      c.phone.includes(search) ||
-      (c.email?.toLowerCase().includes(search) ?? false)
+      (c.fullName || "").toLowerCase().includes(search) ||
+      (c.phone || "").includes(search) ||
+      ((c.email || "").toLowerCase().includes(search) ?? false)
     );
   });
 
@@ -51,21 +53,18 @@ export default function ClientManagement() {
 
   return (
     <div className="space-y-6">
-              title={t('clientManagement.errorLoading')}
-        <h1 className="text-3xl font-bold">{t('clientManagement.title')}</h1>
-        <p className="text-muted-foreground">
-          {t('clientManagement.subtitle')}
-        </p>
+      <div>
+        <h1 className="text-3xl font-bold">{t("clientManagement.title")}</h1>
+        <p className="text-muted-foreground">{t("clientManagement.subtitle")}</p>
       </div>
 
       <Card>
-              title={t('clientManagement.noClientsFound')}
+        <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>All Clients</CardTitle>
-                  ? t('clientManagement.tryAdjustingSearch')
-                  : t('clientManagement.registeredClientsAppearHere')
+            <div className="flex items-center space-x-2">
               <Input
-                placeholder="Search clients..."
+                placeholder={t("clientManagement.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -81,19 +80,15 @@ export default function ClientManagement() {
           ) : error ? (
             <EmptyState
               icon={Users}
-              title="Error loading clients"
-              description={
-                error instanceof Error ? error.message : "An error occurred"
-              }
+              title={t("clientManagement.errorLoading")}
+              description={error instanceof Error ? error.message : "An error occurred"}
             />
           ) : filteredClients.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="No clients found"
+              title={t("clientManagement.noClientsFound")}
               description={
-                searchQuery
-                  ? "Try adjusting your search"
-                  : "Registered clients will appear here"
+                searchQuery ? t("clientManagement.tryAdjustingSearch") : t("clientManagement.registeredClientsAppearHere")
               }
             />
           ) : (
@@ -115,9 +110,7 @@ export default function ClientManagement() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{client.fullName}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {client.id.slice(0, 8)}
-                          </div>
+                          <div className="text-xs text-muted-foreground">{client.id.slice(0, 8)}</div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -136,18 +129,10 @@ export default function ClientManagement() {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm">
-                        {client.preferredLanguage || "fr"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(client.createdAt).toLocaleDateString()}
-                      </TableCell>
+                      <TableCell className="text-sm">{client.preferredLanguage || "fr"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{new Date(client.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDetails(client.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleViewDetails(client.id)}>
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
@@ -158,23 +143,11 @@ export default function ClientManagement() {
               </Table>
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  >
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
                     Previous
                   </Button>
-                  <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
+                  <span className="text-sm text-muted-foreground self-center">Page {page + 1} of {totalPages}</span>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
                     Next
                   </Button>
                 </div>
@@ -187,8 +160,8 @@ export default function ClientManagement() {
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Client Details</DialogTitle>
-            <DialogDescription>View client information</DialogDescription>
+            <DialogTitle>{t("clientManagement.clientDetails")}</DialogTitle>
+            <DialogDescription>{t("clientManagement.viewClientInformation")}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {detailLoading ? (
@@ -211,37 +184,25 @@ export default function ClientManagement() {
                     <p className="font-medium">{clientDetail.email || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      Preferred Language
-                    </p>
-                    <p className="font-medium">
-                      {clientDetail.preferredLanguage || "fr"}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Preferred Language</p>
+                    <p className="font-medium">{clientDetail.preferredLanguage || "fr"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Client ID</p>
-                    <p className="font-medium font-mono text-xs">
-                      {clientDetail.id}
-                    </p>
+                    <p className="font-medium font-mono text-xs">{clientDetail.id}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">User ID</p>
-                    <p className="font-medium font-mono text-xs">
-                      {clientDetail.userId}
-                    </p>
+                    <p className="font-medium font-mono text-xs">{clientDetail.userId}</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground">Registered on</p>
-                  <p className="font-medium">
-                    {new Date(clientDetail.createdAt).toLocaleString()}
-                  </p>
+                  <p className="font-medium">{new Date(clientDetail.createdAt).toLocaleString()}</p>
                 </div>
               </div>
             ) : (
-              <p className="text-center text-muted-foreground">
-                Client not found
-              </p>
+              <p className="text-center text-muted-foreground">Client not found</p>
             )}
           </div>
         </DialogContent>

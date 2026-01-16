@@ -23,23 +23,24 @@ interface ScanEvent {
   success: boolean;
 }
 
-const statusOptions = [
-  { value: "CREATED", label: t("scan.status.created") },
-  { value: "AT_ORIGIN_AGENCY", label: t("scan.status.atOriginAgency") },
-  { value: "IN_TRANSIT", label: t("scan.status.inTransit") },
-  { value: "ARRIVED_HUB", label: t("scan.status.arrivedHub") },
-  { value: "DEPARTED_HUB", label: t("scan.status.departedHub") },
-  { value: "ARRIVED_DESTINATION", label: t("scan.status.arrivedDestination") },
-  { value: "OUT_FOR_DELIVERY", label: t("scan.status.outForDelivery") },
-  { value: "DELIVERED", label: t("scan.status.delivered") },
-  { value: "RETURNED", label: t("scan.status.returned") },
-];
 
 export default function ScanConsole() {
   const { t } = useTranslation();
   const [barcode, setBarcode] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState(statusOptions[0].value);
+  const [selectedStatus, setSelectedStatus] = useState<string>("CREATED");
   const [location, setLocation] = useState(t("scan.defaultLocation"));
+
+  const statusOptions = [
+    { value: "CREATED", label: t("scan.status.created") },
+    { value: "AT_ORIGIN_AGENCY", label: t("scan.status.atOriginAgency") },
+    { value: "IN_TRANSIT", label: t("scan.status.inTransit") },
+    { value: "ARRIVED_HUB", label: t("scan.status.arrivedHub") },
+    { value: "DEPARTED_HUB", label: t("scan.status.departedHub") },
+    { value: "ARRIVED_DESTINATION", label: t("scan.status.arrivedDestination") },
+    { value: "OUT_FOR_DELIVERY", label: t("scan.status.outForDelivery") },
+    { value: "DELIVERED", label: t("scan.status.delivered") },
+    { value: "RETURNED", label: t("scan.status.returned") },
+  ];
   const [scanHistory, setScanHistory] = useState<ScanEvent[]>([]);
   const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
   const inputRef = useRef<HTMLInputElement>(null);
