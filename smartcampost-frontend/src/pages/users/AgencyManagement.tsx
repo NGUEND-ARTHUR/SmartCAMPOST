@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Building2,
   Plus,
@@ -70,9 +70,11 @@ export default function AgencyManagement() {
     );
   });
 
-  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-  };
+  // Input change handler (unused in current UI but kept for future forms)
+  const _handleInputChange =
+    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
   const resetForm = () => {
     setFormData({
@@ -165,7 +167,9 @@ export default function AgencyManagement() {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             placeholder={t("agencies.form.namePlaceholder")}
           />
         </div>
@@ -174,7 +178,9 @@ export default function AgencyManagement() {
           <Input
             id="code"
             value={formData.code}
-            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, code: e.target.value }))
+            }
             placeholder={t("agencies.form.codePlaceholder")}
           />
         </div>
@@ -184,7 +190,9 @@ export default function AgencyManagement() {
         <Input
           id="address"
           value={formData.address}
-          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, address: e.target.value }))
+          }
           placeholder={t("agencies.form.addressPlaceholder")}
         />
       </div>
@@ -194,7 +202,9 @@ export default function AgencyManagement() {
           <Input
             id="city"
             value={formData.city}
-            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, city: e.target.value }))
+            }
             placeholder={t("agencies.form.cityPlaceholder")}
           />
         </div>
@@ -203,7 +213,9 @@ export default function AgencyManagement() {
           <Input
             id="region"
             value={formData.region}
-            onChange={(e) => setFormData(prev => ({ ...prev, region: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, region: e.target.value }))
+            }
             placeholder={t("agencies.form.regionPlaceholder")}
           />
         </div>
@@ -212,7 +224,9 @@ export default function AgencyManagement() {
           <Input
             id="country"
             value={formData.country}
-            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, country: e.target.value }))
+            }
             placeholder={t("agencies.form.countryPlaceholder")}
           />
         </div>
@@ -223,7 +237,9 @@ export default function AgencyManagement() {
           <Input
             id="phone"
             value={formData.phone}
-            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, phone: e.target.value }))
+            }
             placeholder={t("agencies.form.phonePlaceholder")}
           />
         </div>
@@ -233,7 +249,9 @@ export default function AgencyManagement() {
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, email: e.target.value }))
+            }
             placeholder={t("agencies.form.emailPlaceholder")}
           />
         </div>
@@ -246,9 +264,7 @@ export default function AgencyManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t("agencies.title")}</h1>
-          <p className="text-muted-foreground">
-            {t("agencies.subtitle")}
-          </p>
+          <p className="text-muted-foreground">{t("agencies.subtitle")}</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -271,11 +287,19 @@ export default function AgencyManagement() {
             </DialogHeader>
             {formFields}
             <DialogFooter>
-              <Button variant="outline" onClick={() => { setIsCreateOpen(false); resetForm(); }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreateOpen(false);
+                  resetForm();
+                }}
+              >
                 {t("common.cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={createAgency.isPending}>
-                {createAgency.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {createAgency.isPending && (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                )}
                 {t("agencies.create.action")}
               </Button>
             </DialogFooter>
@@ -308,7 +332,9 @@ export default function AgencyManagement() {
               icon={Building2}
               title={t("agencies.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredAgencies.length === 0 ? (
@@ -377,7 +403,9 @@ export default function AgencyManagement() {
                               : "bg-gray-100 text-gray-800"
                           }
                         >
-                          {agency.isActive ? t("agencies.status.active") : t("agencies.status.inactive")}
+                          {agency.isActive
+                            ? t("agencies.status.active")
+                            : t("agencies.status.inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -425,15 +453,26 @@ export default function AgencyManagement() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t("agencies.update.title")}</DialogTitle>
-            <DialogDescription>{t("agencies.update.subtitle")}</DialogDescription>
+            <DialogDescription>
+              {t("agencies.update.subtitle")}
+            </DialogDescription>
           </DialogHeader>
           {formFields}
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setIsEditOpen(false); resetForm(); setSelectedAgency(null); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditOpen(false);
+                resetForm();
+                setSelectedAgency(null);
+              }}
+            >
               {t("common.cancel")}
             </Button>
             <Button onClick={handleUpdate} disabled={updateAgency.isPending}>
-              {updateAgency.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {updateAgency.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               {t("agencies.update.action")}
             </Button>
           </DialogFooter>

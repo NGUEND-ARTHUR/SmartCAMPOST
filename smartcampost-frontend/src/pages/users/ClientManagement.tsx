@@ -55,7 +55,9 @@ export default function ClientManagement() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{t("clientManagement.title")}</h1>
-        <p className="text-muted-foreground">{t("clientManagement.subtitle")}</p>
+        <p className="text-muted-foreground">
+          {t("clientManagement.subtitle")}
+        </p>
       </div>
 
       <Card>
@@ -81,14 +83,18 @@ export default function ClientManagement() {
             <EmptyState
               icon={Users}
               title={t("clientManagement.errorLoading")}
-              description={error instanceof Error ? error.message : "An error occurred"}
+              description={
+                error instanceof Error ? error.message : "An error occurred"
+              }
             />
           ) : filteredClients.length === 0 ? (
             <EmptyState
               icon={Users}
               title={t("clientManagement.noClientsFound")}
               description={
-                searchQuery ? t("clientManagement.tryAdjustingSearch") : t("clientManagement.registeredClientsAppearHere")
+                searchQuery
+                  ? t("clientManagement.tryAdjustingSearch")
+                  : t("clientManagement.registeredClientsAppearHere")
               }
             />
           ) : (
@@ -110,7 +116,9 @@ export default function ClientManagement() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{client.fullName}</div>
-                          <div className="text-xs text-muted-foreground">{client.id.slice(0, 8)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {client.id.slice(0, 8)}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -129,10 +137,18 @@ export default function ClientManagement() {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm">{client.preferredLanguage || "fr"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{new Date(client.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-sm">
+                        {client.preferredLanguage || "fr"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(client.createdAt).toLocaleDateString()}
+                      </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm" onClick={() => handleViewDetails(client.id)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewDetails(client.id)}
+                        >
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
@@ -143,11 +159,23 @@ export default function ClientManagement() {
               </Table>
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-4">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
                     Previous
                   </Button>
-                  <span className="text-sm text-muted-foreground self-center">Page {page + 1} of {totalPages}</span>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+                  <span className="text-sm text-muted-foreground self-center">
+                    Page {page + 1} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
                     Next
                   </Button>
                 </div>
@@ -161,7 +189,9 @@ export default function ClientManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("clientManagement.clientDetails")}</DialogTitle>
-            <DialogDescription>{t("clientManagement.viewClientInformation")}</DialogDescription>
+            <DialogDescription>
+              {t("clientManagement.viewClientInformation")}
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {detailLoading ? (
@@ -184,25 +214,37 @@ export default function ClientManagement() {
                     <p className="font-medium">{clientDetail.email || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Preferred Language</p>
-                    <p className="font-medium">{clientDetail.preferredLanguage || "fr"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Preferred Language
+                    </p>
+                    <p className="font-medium">
+                      {clientDetail.preferredLanguage || "fr"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Client ID</p>
-                    <p className="font-medium font-mono text-xs">{clientDetail.id}</p>
+                    <p className="font-medium font-mono text-xs">
+                      {clientDetail.id}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">User ID</p>
-                    <p className="font-medium font-mono text-xs">{clientDetail.userId}</p>
+                    <p className="font-medium font-mono text-xs">
+                      {clientDetail.userId}
+                    </p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground">Registered on</p>
-                  <p className="font-medium">{new Date(clientDetail.createdAt).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(clientDetail.createdAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
             ) : (
-              <p className="text-center text-muted-foreground">Client not found</p>
+              <p className="text-center text-muted-foreground">
+                Client not found
+              </p>
             )}
           </div>
         </DialogContent>

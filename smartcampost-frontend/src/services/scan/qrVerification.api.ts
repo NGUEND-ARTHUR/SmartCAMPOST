@@ -73,10 +73,7 @@ export interface SecureQrPayload {
 export async function verifyQrCode(
   request: QrVerificationRequest,
 ): Promise<QrVerificationResponse> {
-  return httpClient.post<QrVerificationResponse>(
-    "/qr/verify",
-    request,
-  );
+  return httpClient.post<QrVerificationResponse>("/qr/verify", request);
 }
 
 /**
@@ -87,9 +84,7 @@ export async function verifyQrCodeContent(
   qrContent: string,
 ): Promise<QrVerificationResponse> {
   const encodedContent = encodeURIComponent(qrContent);
-  return httpClient.get<QrVerificationResponse>(
-    `/qr/verify/${encodedContent}`,
-  );
+  return httpClient.get<QrVerificationResponse>(`/qr/verify/${encodedContent}`);
 }
 
 /**
@@ -98,9 +93,7 @@ export async function verifyQrCodeContent(
 export async function regenerateSecureQrCode(
   parcelId: string,
 ): Promise<SecureQrPayload> {
-  return httpClient.post<SecureQrPayload>(
-    `/qr/secure/${parcelId}`,
-  );
+  return httpClient.post<SecureQrPayload>(`/qr/secure/${parcelId}`);
 }
 
 /**
@@ -122,7 +115,9 @@ export async function revokeAllQrCodesForParcel(
   reason?: string,
 ): Promise<void> {
   const reasonParam = encodeURIComponent(reason || "Bulk revocation");
-  await httpClient.delete(`/qr/revoke/parcel/${parcelId}?reason=${reasonParam}`);
+  await httpClient.delete(
+    `/qr/revoke/parcel/${parcelId}?reason=${reasonParam}`,
+  );
 }
 
 // ==================== HELPER FUNCTIONS ====================

@@ -50,9 +50,7 @@ export function ParcelList() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t("parcelList.title")}</h1>
-          <p className="text-muted-foreground">
-            {t("parcelList.subtitle")}
-          </p>
+          <p className="text-muted-foreground">{t("parcelList.subtitle")}</p>
         </div>
         <Button onClick={() => navigate("/client/parcels/create")}>
           <Plus className="w-4 h-4 mr-2" />
@@ -76,20 +74,41 @@ export function ParcelList() {
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-44" title={t("parcelList.filterByStatus")!}>
+                <SelectTrigger
+                  className="w-full sm:w-44"
+                  title={t("parcelList.filterByStatus")!}
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder={t("parcelList.filterByStatus")!} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("parcelList.status.all")}</SelectItem>
-                  <SelectItem value="CREATED">{t("parcelList.status.created")}</SelectItem>
-                  <SelectItem value="ACCEPTED">{t("parcelList.status.accepted")}</SelectItem>
-                  <SelectItem value="IN_TRANSIT">{t("parcelList.status.inTransit")}</SelectItem>
-                  <SelectItem value="ARRIVED_HUB">{t("parcelList.status.arrivedHub")}</SelectItem>
-                  <SelectItem value="OUT_FOR_DELIVERY">{t("parcelList.status.outForDelivery")}</SelectItem>
-                  <SelectItem value="DELIVERED">{t("parcelList.status.delivered")}</SelectItem>
-                  <SelectItem value="RETURNED">{t("parcelList.status.returned")}</SelectItem>
-                  <SelectItem value="CANCELLED">{t("parcelList.status.cancelled")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("parcelList.status.all")}
+                  </SelectItem>
+                  <SelectItem value="CREATED">
+                    {t("parcelList.status.created")}
+                  </SelectItem>
+                  <SelectItem value="ACCEPTED">
+                    {t("parcelList.status.accepted")}
+                  </SelectItem>
+                  <SelectItem value="IN_TRANSIT">
+                    {t("parcelList.status.inTransit")}
+                  </SelectItem>
+                  <SelectItem value="ARRIVED_HUB">
+                    {t("parcelList.status.arrivedHub")}
+                  </SelectItem>
+                  <SelectItem value="OUT_FOR_DELIVERY">
+                    {t("parcelList.status.outForDelivery")}
+                  </SelectItem>
+                  <SelectItem value="DELIVERED">
+                    {t("parcelList.status.delivered")}
+                  </SelectItem>
+                  <SelectItem value="RETURNED">
+                    {t("parcelList.status.returned")}
+                  </SelectItem>
+                  <SelectItem value="CANCELLED">
+                    {t("parcelList.status.cancelled")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -105,7 +124,9 @@ export function ParcelList() {
               icon={Package}
               title={t("parcelList.errorLoading")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredParcels.length === 0 ? (
@@ -169,22 +190,29 @@ export function ParcelList() {
                         >
                           {t("parcelList.actions.viewDetails")}
                         </Button>
-                        </TableCell>
-                        <TableCell className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate(`/client/parcels/${parcel.id}#tracking`)}
-                          >
-                            {t("parcelList.actions.track")}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(`/client/parcels/${parcel.id}?print=label`, '_blank')}
-                          >
-                            {t("parcelList.actions.printLabel")}
-                          </Button>
+                      </TableCell>
+                      <TableCell className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/client/parcels/${parcel.id}#tracking`)
+                          }
+                        >
+                          {t("parcelList.actions.track")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            window.open(
+                              `/client/parcels/${parcel.id}?print=label`,
+                              "_blank",
+                            )
+                          }
+                        >
+                          {t("parcelList.actions.printLabel")}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

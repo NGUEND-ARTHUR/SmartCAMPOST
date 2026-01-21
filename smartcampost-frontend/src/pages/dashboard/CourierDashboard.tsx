@@ -82,7 +82,11 @@ export default function CourierDashboard() {
     type === "pickup" ? Package : Truck;
 
   const cards = [
-    { title: t("courierDashboard.stats.pendingPickups"), value: stats.pendingPickups, icon: Package },
+    {
+      title: t("courierDashboard.stats.pendingPickups"),
+      value: stats.pendingPickups,
+      icon: Package,
+    },
     {
       title: t("courierDashboard.stats.pendingDeliveries"),
       value: stats.pendingDeliveries,
@@ -93,7 +97,11 @@ export default function CourierDashboard() {
       value: stats.completedToday,
       icon: CheckCircle2,
     },
-    { title: t("courierDashboard.stats.distanceKm"), value: stats.totalDistance, icon: MapPin },
+    {
+      title: t("courierDashboard.stats.distanceKm"),
+      value: stats.totalDistance,
+      icon: MapPin,
+    },
   ];
 
   return (
@@ -144,7 +152,9 @@ export default function CourierDashboard() {
                     : "border-transparent text-gray-500"
                 }`}
               >
-                {t("courierDashboard.tabs.pickups", { count: tasks.filter((t) => t.type === "pickup").length })}
+                {t("courierDashboard.tabs.pickups", {
+                  count: tasks.filter((t) => t.type === "pickup").length,
+                })}
               </button>
 
               <button
@@ -155,7 +165,9 @@ export default function CourierDashboard() {
                     : "border-transparent text-gray-500"
                 }`}
               >
-                {t("courierDashboard.tabs.deliveries", { count: tasks.filter((t) => t.type === "delivery").length })}
+                {t("courierDashboard.tabs.deliveries", {
+                  count: tasks.filter((t) => t.type === "delivery").length,
+                })}
               </button>
             </nav>
           </div>
@@ -244,9 +256,16 @@ export default function CourierDashboard() {
             <div className="bg-white rounded-lg shadow p-12 text-center">
               <div className="max-w-sm mx-auto">
                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="mb-2 text-gray-900">{t("courierDashboard.noTasksFound")}</h3>
+                <h3 className="mb-2 text-gray-900">
+                  {t("courierDashboard.noTasksFound")}
+                </h3>
                 <p className="text-gray-500">
-                  {t("courierDashboard.noTasksMessage", { filter: filter !== "all" ? t(`courierDashboard.tabs.${filter}`) : "" })}
+                  {t("courierDashboard.noTasksMessage", {
+                    filter:
+                      filter !== "all"
+                        ? t(`courierDashboard.tabs.${filter}`)
+                        : "",
+                  })}
                 </p>
                 <div className="mt-6 flex justify-center space-x-3">
                   <button
@@ -265,10 +284,8 @@ export default function CourierDashboard() {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
   );
-
 }

@@ -134,9 +134,7 @@ export default function Support() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t("support.title")}</h1>
-          <p className="text-muted-foreground">
-            {t("support.subtitle")}
-          </p>
+          <p className="text-muted-foreground">{t("support.subtitle")}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -165,14 +163,26 @@ export default function Support() {
                   }
                 >
                   <SelectTrigger id="category">
-                    <SelectValue placeholder={t("support.form.categoryPlaceholder")} />
+                    <SelectValue
+                      placeholder={t("support.form.categoryPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DELIVERY">{t("support.category.delivery")}</SelectItem>
-                    <SelectItem value="PAYMENT">{t("support.category.payment")}</SelectItem>
-                    <SelectItem value="DAMAGED">{t("support.category.damaged")}</SelectItem>
-                    <SelectItem value="LOST">{t("support.category.lost")}</SelectItem>
-                    <SelectItem value="OTHER">{t("support.category.other")}</SelectItem>
+                    <SelectItem value="DELIVERY">
+                      {t("support.category.delivery")}
+                    </SelectItem>
+                    <SelectItem value="PAYMENT">
+                      {t("support.category.payment")}
+                    </SelectItem>
+                    <SelectItem value="DAMAGED">
+                      {t("support.category.damaged")}
+                    </SelectItem>
+                    <SelectItem value="LOST">
+                      {t("support.category.lost")}
+                    </SelectItem>
+                    <SelectItem value="OTHER">
+                      {t("support.category.other")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -185,7 +195,9 @@ export default function Support() {
                   }
                 >
                   <SelectTrigger id="parcelId">
-                    <SelectValue placeholder={t("support.form.parcelPlaceholder")} />
+                    <SelectValue
+                      placeholder={t("support.form.parcelPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {parcels.map((p) => (
@@ -208,7 +220,9 @@ export default function Support() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">{t("support.form.description")}</Label>
+                <Label htmlFor="description">
+                  {t("support.form.description")}
+                </Label>
                 <Textarea
                   id="description"
                   placeholder={t("support.form.descriptionPlaceholder")}
@@ -225,7 +239,9 @@ export default function Support() {
                 {t("common.cancel")}
               </Button>
               <Button onClick={handleSubmit} disabled={createTicket.isPending}>
-                {createTicket.isPending ? t("support.create.creating") : t("support.create.action")}
+                {createTicket.isPending
+                  ? t("support.create.creating")
+                  : t("support.create.action")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -236,25 +252,33 @@ export default function Support() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{ticketStats.open}</div>
-            <p className="text-xs text-muted-foreground">{t("support.stats.open")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("support.stats.open")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{ticketStats.inProgress}</div>
-            <p className="text-xs text-muted-foreground">{t("support.stats.inProgress")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("support.stats.inProgress")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{ticketStats.resolved}</div>
-            <p className="text-xs text-muted-foreground">{t("support.stats.resolved")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("support.stats.resolved")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{ticketStats.total}</div>
-            <p className="text-xs text-muted-foreground">{t("support.stats.total")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("support.stats.total")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -275,16 +299,29 @@ export default function Support() {
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-44" title="Filter by status">
+                <SelectTrigger
+                  className="w-full sm:w-44"
+                  title="Filter by status"
+                >
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder={t("support.list.statusPlaceholder")}/>
+                  <SelectValue
+                    placeholder={t("support.list.statusPlaceholder")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">{t("support.status.all")}</SelectItem>
-                  <SelectItem value="OPEN">{t("support.status.open")}</SelectItem>
-                  <SelectItem value="IN_PROGRESS">{t("support.status.inProgress")}</SelectItem>
-                  <SelectItem value="RESOLVED">{t("support.status.resolved")}</SelectItem>
-                  <SelectItem value="CLOSED">{t("support.status.closed")}</SelectItem>
+                  <SelectItem value="OPEN">
+                    {t("support.status.open")}
+                  </SelectItem>
+                  <SelectItem value="IN_PROGRESS">
+                    {t("support.status.inProgress")}
+                  </SelectItem>
+                  <SelectItem value="RESOLVED">
+                    {t("support.status.resolved")}
+                  </SelectItem>
+                  <SelectItem value="CLOSED">
+                    {t("support.status.closed")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -300,7 +337,9 @@ export default function Support() {
               icon={HelpCircle}
               title={t("support.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredTickets.length === 0 ? (
@@ -340,19 +379,30 @@ export default function Support() {
                                   statusColors[ticket.status as TicketStatus]
                                 }
                               >
-                                {t(`support.status.${ticket.status.replace("_", "").toLowerCase()}`)}
+                                {t(
+                                  `support.status.${ticket.status.replace("_", "").toLowerCase()}`,
+                                )}
                               </Badge>
                               <Badge variant="outline">
-                                {ticket.category ? categoryLabels[ticket.category] : ""}
+                                {ticket.category
+                                  ? categoryLabels[ticket.category]
+                                  : ""}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2">
                               {ticket.message}
                             </p>
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span>{t("support.list.ticketId", { id: ticket.id.slice(0, 8) })}</span>
                               <span>
-                                {t("support.list.created")}: {new Date(ticket.createdAt).toLocaleDateString()}
+                                {t("support.list.ticketId", {
+                                  id: ticket.id.slice(0, 8),
+                                })}
+                              </span>
+                              <span>
+                                {t("support.list.created")}:{" "}
+                                {new Date(
+                                  ticket.createdAt,
+                                ).toLocaleDateString()}
                               </span>
                             </div>
                           </div>

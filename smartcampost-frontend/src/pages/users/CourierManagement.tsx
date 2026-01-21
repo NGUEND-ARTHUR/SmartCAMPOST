@@ -81,23 +81,26 @@ export default function CourierManagement() {
 
   const handleCreate = () => {
     if (!formData.fullName || !formData.phone || !formData.password) {
-      toast.error(t('courierManagement.requiredFields'));
+      toast.error(t("courierManagement.requiredFields"));
       return;
     }
     // Auto-generate vehicleId if not provided
     const payload = {
       ...formData,
-      vehicleId: formData.vehicleId || `VH-${Date.now().toString(36).toUpperCase()}`,
+      vehicleId:
+        formData.vehicleId || `VH-${Date.now().toString(36).toUpperCase()}`,
     };
     createCourier.mutate(payload, {
       onSuccess: () => {
-        toast.success(t('courierManagement.courierCreated'));
+        toast.success(t("courierManagement.courierCreated"));
         setIsCreateOpen(false);
         resetForm();
       },
       onError: (err) =>
         toast.error(
-          err instanceof Error ? err.message : t('courierManagement.failedCreateCourier'),
+          err instanceof Error
+            ? err.message
+            : t("courierManagement.failedCreateCourier"),
         ),
     });
   };
@@ -107,10 +110,14 @@ export default function CourierManagement() {
       { id: courierId, data: { status: newStatus } },
       {
         onSuccess: () =>
-          toast.success(t('courierManagement.statusUpdated', { status: newStatus })),
+          toast.success(
+            t("courierManagement.statusUpdated", { status: newStatus }),
+          ),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : t('courierManagement.failedUpdateStatus'),
+            err instanceof Error
+              ? err.message
+              : t("courierManagement.failedUpdateStatus"),
           ),
       },
     );
@@ -120,9 +127,9 @@ export default function CourierManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{t('courierManagement.title')}</h1>
+          <h1 className="text-3xl font-bold">{t("courierManagement.title")}</h1>
           <p className="text-muted-foreground">
-            {t('courierManagement.subtitle')}
+            {t("courierManagement.subtitle")}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -146,29 +153,33 @@ export default function CourierManagement() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">{t('courierManagement.fullName')} *</Label>
+                <Label htmlFor="fullName">
+                  {t("courierManagement.fullName")} *
+                </Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })
                   }
-                  placeholder={t('courierManagement.fullNamePlaceholder')}
+                  placeholder={t("courierManagement.fullNamePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">{t('courierManagement.phone')} *</Label>
+                <Label htmlFor="phone">{t("courierManagement.phone")} *</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  placeholder={t('courierManagement.phonePlaceholder')}
+                  placeholder={t("courierManagement.phonePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t('courierManagement.password')} *</Label>
+                <Label htmlFor="password">
+                  {t("courierManagement.password")} *
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -176,18 +187,20 @@ export default function CourierManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder={t('courierManagement.passwordPlaceholder')}
+                  placeholder={t("courierManagement.passwordPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicleId">{t('courierManagement.vehicleIdOptional')}</Label>
+                <Label htmlFor="vehicleId">
+                  {t("courierManagement.vehicleIdOptional")}
+                </Label>
                 <Input
                   id="vehicleId"
                   value={formData.vehicleId}
                   onChange={(e) =>
                     setFormData({ ...formData, vehicleId: e.target.value })
                   }
-                  placeholder={t('courierManagement.vehicleIdPlaceholder')}
+                  placeholder={t("courierManagement.vehicleIdPlaceholder")}
                 />
               </div>
             </div>
@@ -214,7 +227,7 @@ export default function CourierManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('courierManagement.searchPlaceholder')}
+                  placeholder={t("courierManagement.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-52"
@@ -223,7 +236,9 @@ export default function CourierManagement() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder={t('courierManagement.statusPlaceholder')} />
+                  <SelectValue
+                    placeholder={t("courierManagement.statusPlaceholder")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Status</SelectItem>

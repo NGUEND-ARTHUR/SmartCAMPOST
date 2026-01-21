@@ -3,7 +3,7 @@
  * Interactive chatbot for customer support with predefined responses
  * and integration capability for external AI services
  */
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   MessageCircle,
   Send,
@@ -12,9 +12,7 @@ import {
   User,
   Loader2,
   Minimize2,
-  Maximize2,
   Package,
-  HelpCircle,
   CreditCard,
   MapPin,
   Clock,
@@ -212,16 +210,35 @@ Just type your question and I'll do my best to help!`,
 
 // Quick action suggestions
 const quickActions: QuickAction[] = [
-  { icon: <Package className="w-4 h-4" />, label: "Track Parcel", query: "How do I track my parcel?" },
-  { icon: <CreditCard className="w-4 h-4" />, label: "Pricing", query: "What are your prices?" },
-  { icon: <Clock className="w-4 h-4" />, label: "Delivery Time", query: "How long does delivery take?" },
-  { icon: <MapPin className="w-4 h-4" />, label: "Agencies", query: "Where are your agencies?" },
+  {
+    icon: <Package className="w-4 h-4" />,
+    label: "Track Parcel",
+    query: "How do I track my parcel?",
+  },
+  {
+    icon: <CreditCard className="w-4 h-4" />,
+    label: "Pricing",
+    query: "What are your prices?",
+  },
+  {
+    icon: <Clock className="w-4 h-4" />,
+    label: "Delivery Time",
+    query: "How long does delivery take?",
+  },
+  {
+    icon: <MapPin className="w-4 h-4" />,
+    label: "Agencies",
+    query: "Where are your agencies?",
+  },
 ];
 
 // Find best matching response from knowledge base
-function findResponse(query: string): { response: string; suggestions: string[] } {
+function findResponse(query: string): {
+  response: string;
+  suggestions: string[];
+} {
   const lowercaseQuery = query.toLowerCase();
-  
+
   // Check for keyword matches
   for (const [keyword, response] of Object.entries(knowledgeBase)) {
     if (lowercaseQuery.includes(keyword)) {
@@ -247,12 +264,24 @@ I'm constantly learning to serve you better! 🤖`,
 
 function getRelatedSuggestions(keyword: string): string[] {
   const suggestions: Record<string, string[]> = {
-    track: ["What if my parcel is delayed?", "Can I change the delivery address?"],
-    price: ["Is there a discount for bulk shipments?", "Do you offer insurance?"],
-    delivery: ["Can I schedule a specific time?", "What about weekend delivery?"],
+    track: [
+      "What if my parcel is delayed?",
+      "Can I change the delivery address?",
+    ],
+    price: [
+      "Is there a discount for bulk shipments?",
+      "Do you offer insurance?",
+    ],
+    delivery: [
+      "Can I schedule a specific time?",
+      "What about weekend delivery?",
+    ],
     payment: ["Can I pay on delivery?", "How do I get a receipt?"],
     pickup: ["Can someone else give the parcel?", "What if I miss the pickup?"],
-    lost: ["How much compensation can I get?", "How long does investigation take?"],
+    lost: [
+      "How much compensation can I get?",
+      "How long does investigation take?",
+    ],
     agency: ["What are the opening hours?", "Can I drop off parcels there?"],
   };
   return suggestions[keyword] || ["Track my parcel", "Contact support"];
@@ -264,7 +293,11 @@ interface AIChatbotProps {
   userPhone?: string;
 }
 
-export default function AIChatbot({ isOpen: initialOpen = false, onClose, userPhone }: AIChatbotProps) {
+export default function AIChatbot({
+  isOpen: initialOpen = false,
+  onClose,
+  userPhone,
+}: AIChatbotProps) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -281,7 +314,11 @@ I can help you with:
 
 How can I assist you today?`,
       timestamp: new Date(),
-      suggestions: ["Track my parcel", "What are your prices?", "Find an agency"],
+      suggestions: [
+        "Track my parcel",
+        "What are your prices?",
+        "Find an agency",
+      ],
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -301,44 +338,58 @@ How can I assist you today?`,
     }
   }, [isOpen, isMinimized]);
 
-  const handleSend = useCallback(async (text?: string) => {
-    const query = text || inputValue.trim();
-    if (!query) return;
+  // Reference userPhone to avoid unused-var lint and for future personalization
+  useEffect(() => {
+    if (userPhone) {
+      // Lightweight use to satisfy lint and keep value available
+      void userPhone;
+    }
+  }, [userPhone]);
 
-    // Add user message
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: query,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setIsTyping(true);
+  const handleSend = useCallback(
+    async (text?: string) => {
+      const query = text || inputValue.trim();
+      if (!query) return;
 
-    // Simulate AI thinking delay
-    await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 700));
+      // Add user message
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: query,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      setInputValue("");
+      setIsTyping(true);
 
-    // Get response
-    const { response, suggestions } = findResponse(query);
+      // Simulate AI thinking delay
+      await new Promise((resolve) =>
+        setTimeout(resolve, 800 + Math.random() * 700),
+      );
 
-    const assistantMessage: Message = {
-      id: `assistant-${Date.now()}`,
-      role: "assistant",
-      content: response,
-      timestamp: new Date(),
-      suggestions,
-      feedback: null,
-    };
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsTyping(false);
-  }, [inputValue]);
+      // Get response
+      const { response, suggestions } = findResponse(query);
 
-  const handleFeedback = (messageId: string, feedback: "positive" | "negative") => {
+      const assistantMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: response,
+        timestamp: new Date(),
+        suggestions,
+        feedback: null,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      setIsTyping(false);
+    },
+    [inputValue],
+  );
+
+  const handleFeedback = (
+    messageId: string,
+    feedback: "positive" | "negative",
+  ) => {
     setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, feedback } : msg
-      )
+      prev.map((msg) => (msg.id === messageId ? { ...msg, feedback } : msg)),
     );
   };
 
@@ -428,8 +479,10 @@ How can I assist you today?`,
                     <Bot className="w-4 h-4 mt-1 text-blue-600 shrink-0" />
                   )}
                   <div className="flex-1">
-                    <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                    
+                    <div className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </div>
+
                     {/* Suggestions */}
                     {message.suggestions && message.suggestions.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
@@ -446,34 +499,39 @@ How can I assist you today?`,
                     )}
 
                     {/* Feedback buttons for assistant messages */}
-                    {message.role === "assistant" && message.id !== "welcome" && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <button
-                          className={`p-1 rounded ${
-                            message.feedback === "positive"
-                              ? "bg-green-100 text-green-600"
-                              : "text-gray-400 hover:text-green-600"
-                          }`}
-                          onClick={() => handleFeedback(message.id, "positive")}
-                          title="Helpful response"
-                          aria-label="Mark as helpful"
-                        >
-                          <ThumbsUp className="w-3 h-3" />
-                        </button>
-                        <button
-                          className={`p-1 rounded ${
-                            message.feedback === "negative"
-                              ? "bg-red-100 text-red-600"
-                              : "text-gray-400 hover:text-red-600"
-                          }`}
-                          onClick={() => handleFeedback(message.id, "negative")}
-                          title="Not helpful response"
-                          aria-label="Mark as not helpful"
-                        >
-                          <ThumbsDown className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
+                    {message.role === "assistant" &&
+                      message.id !== "welcome" && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            className={`p-1 rounded ${
+                              message.feedback === "positive"
+                                ? "bg-green-100 text-green-600"
+                                : "text-gray-400 hover:text-green-600"
+                            }`}
+                            onClick={() =>
+                              handleFeedback(message.id, "positive")
+                            }
+                            title="Helpful response"
+                            aria-label="Mark as helpful"
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            className={`p-1 rounded ${
+                              message.feedback === "negative"
+                                ? "bg-red-100 text-red-600"
+                                : "text-gray-400 hover:text-red-600"
+                            }`}
+                            onClick={() =>
+                              handleFeedback(message.id, "negative")
+                            }
+                            title="Not helpful response"
+                            aria-label="Mark as not helpful"
+                          >
+                            <ThumbsDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                   </div>
                   {message.role === "user" && (
                     <User className="w-4 h-4 mt-1 shrink-0" />

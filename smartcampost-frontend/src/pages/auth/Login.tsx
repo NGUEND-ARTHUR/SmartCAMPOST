@@ -38,7 +38,7 @@ export default function Login() {
 
   const getErrorMessage = (err: unknown): string => {
     // Check if it's an ApiError with a code
-    if (err && typeof err === 'object' && 'code' in err) {
+    if (err && typeof err === "object" && "code" in err) {
       const apiError = err as ApiError;
       const i18nKey = API_ERROR_CODES[apiError.code];
       if (i18nKey) {
@@ -54,7 +54,7 @@ export default function Login() {
       return err.message;
     }
     // Default fallback
-    return t('errors.loginFailed');
+    return t("errors.loginFailed");
   };
 
   const onSubmit = async (data: LoginRequest) => {
@@ -64,8 +64,8 @@ export default function Login() {
         email: data.phoneOrEmail,
         password: data.password,
       });
-      toast.success(t('messages.loginSuccess'));
-      navigate(routeByRole(res.user.role as any), { replace: true });
+      toast.success(t("messages.loginSuccess"));
+      navigate(routeByRole(res.user.role), { replace: true });
     } catch (err: unknown) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -82,20 +82,20 @@ export default function Login() {
             <Package className="w-12 h-12 text-blue-600" />
             <LanguageSwitcher variant="compact" />
           </div>
-          <CardTitle>{t('common.welcome')}</CardTitle>
-          <CardDescription>
-            {t('auth.loginSubtitle')}
-          </CardDescription>
+          <CardTitle>{t("common.welcome")}</CardTitle>
+          <CardDescription>{t("auth.loginSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phoneOrEmail">{t('common.phone')} / {t('common.email')}</Label>
+              <Label htmlFor="phoneOrEmail">
+                {t("common.phone")} / {t("common.email")}
+              </Label>
               <Input
                 id="phoneOrEmail"
-                placeholder={t('common.phone')}
+                placeholder={t("common.phone")}
                 {...register("phoneOrEmail", {
-                  required: t('errors.required'),
+                  required: t("errors.required"),
                 })}
               />
               {errors.phoneOrEmail && (
@@ -107,19 +107,19 @@ export default function Login() {
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label htmlFor="password">{t('common.password')}</Label>
+                <Label htmlFor="password">{t("common.password")}</Label>
                 <Link
                   to="/auth/reset-password"
                   className="text-sm text-blue-600 hover:underline"
                 >
-                  {t('auth.forgotPassword')}
+                  {t("auth.forgotPassword")}
                 </Link>
               </div>
               <Input
                 id="password"
                 type="password"
-                placeholder={t('common.password')}
-                {...register("password", { required: t('errors.required') })}
+                placeholder={t("common.password")}
+                {...register("password", { required: t("errors.required") })}
               />
               {errors.password && (
                 <p className="text-sm text-destructive">
@@ -133,7 +133,9 @@ export default function Login() {
               className="w-full"
               disabled={isSubmitting || isLoading}
             >
-              {isSubmitting || isLoading ? t('common.loading') : t('auth.signIn')}
+              {isSubmitting || isLoading
+                ? t("common.loading")
+                : t("auth.signIn")}
             </Button>
 
             <div className="text-center space-y-2">
@@ -141,15 +143,15 @@ export default function Login() {
                 to="/auth/login-otp"
                 className="text-sm text-blue-600 hover:underline block"
               >
-                {t('auth.sendOtp')}
+                {t("auth.sendOtp")}
               </Link>
               <p className="text-sm text-muted-foreground">
-                {t('auth.noAccount')}{" "}
+                {t("auth.noAccount")}{" "}
                 <Link
                   to="/auth/register"
                   className="text-blue-600 hover:underline"
                 >
-                  {t('auth.signUp')}
+                  {t("auth.signUp")}
                 </Link>
               </p>
             </div>

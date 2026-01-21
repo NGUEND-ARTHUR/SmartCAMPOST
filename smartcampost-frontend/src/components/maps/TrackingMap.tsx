@@ -130,7 +130,10 @@ function AnimatedParcelMarker({
   if (positions.length === 0) return null;
 
   return (
-    <Marker position={positions[currentIndex] || positions[0]} icon={parcelIcon}>
+    <Marker
+      position={positions[currentIndex] || positions[0]}
+      icon={parcelIcon}
+    >
       <Popup>
         <div className="text-center">
           <strong>📦 Your Parcel</strong>
@@ -181,7 +184,15 @@ export default function TrackingMap({
     }
 
     return route;
-  }, [originLat, originLng, destinationLat, destinationLng, eventPositions]);
+  }, [
+    originLat,
+    originLng,
+    destinationLat,
+    destinationLng,
+    lat,
+    lng,
+    eventPositions,
+  ]);
 
   // Calculate map center
   const mapCenter: [number, number] = useMemo(() => {
@@ -224,7 +235,14 @@ export default function TrackingMap({
       return [originLat, originLng];
     }
     return null;
-  }, [currentStatus, destinationLat, destinationLng, eventPositions, originLat, originLng]);
+  }, [
+    currentStatus,
+    destinationLat,
+    destinationLng,
+    eventPositions,
+    originLat,
+    originLng,
+  ]);
 
   if (!trackingId && fullRoute.length === 0) {
     return (

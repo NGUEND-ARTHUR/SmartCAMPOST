@@ -128,12 +128,14 @@ export default function ClientPayments() {
                           size="sm"
                           onClick={async () => {
                             try {
-                              if (!p.parcelId) return alert("Parcel ID missing");
+                              if (!p.parcelId)
+                                return alert("Parcel ID missing");
                               const receipt = await receiptService.getByParcel(
                                 p.parcelId!,
                               );
                               const w = window.open("", "_blank");
-                              if (!w) return alert("Unable to open print window");
+                              if (!w)
+                                return alert("Unable to open print window");
                               const html = `
                                 <html>
                                 <head>
@@ -143,14 +145,14 @@ export default function ClientPayments() {
                                 <body>
                                   <h2>Receipt ${receipt.receiptNumber}</h2>
                                   <p><strong>Parcel:</strong> ${receipt.trackingRef || receipt.parcelId}</p>
-                                  <p><strong>Delivered At:</strong> ${receipt.deliveredAt || ''}</p>
-                                  <p><strong>Receiver:</strong> ${receipt.receiverName || ''}</p>
-                                  <p><strong>Courier:</strong> ${receipt.courierName || ''}</p>
+                                  <p><strong>Delivered At:</strong> ${receipt.deliveredAt || ""}</p>
+                                  <p><strong>Receiver:</strong> ${receipt.receiverName || ""}</p>
+                                  <p><strong>Courier:</strong> ${receipt.courierName || ""}</p>
                                   <p><strong>Amount:</strong> ${receipt.totalAmount ?? 0} ${"XAF"}</p>
-                                  <p><strong>Payment method:</strong> ${receipt.paymentMethod || ''}</p>
+                                  <p><strong>Payment method:</strong> ${receipt.paymentMethod || ""}</p>
                                   <hr />
-                                  <p>Generated: ${receipt.generatedAt || ''}</p>
-                                  ${receipt.pdfUrl ? `<p><a href="${receipt.pdfUrl}" target="_blank">Open PDF</a></p>` : ''}
+                                  <p>Generated: ${receipt.generatedAt || ""}</p>
+                                  ${receipt.pdfUrl ? `<p><a href="${receipt.pdfUrl}" target="_blank">Open PDF</a></p>` : ""}
                                 </body>
                                 </html>
                               `;
@@ -158,8 +160,12 @@ export default function ClientPayments() {
                               w.document.write(html);
                               w.document.close();
                               w.print();
-                            } catch (err: any) {
-                              alert(err?.message || "Failed to load receipt");
+                            } catch (err: unknown) {
+                              const msg =
+                                (err as { message?: string } | undefined)
+                                  ?.message ??
+                                String(err ?? "Failed to load receipt");
+                              alert(msg);
                             }
                           }}
                         >

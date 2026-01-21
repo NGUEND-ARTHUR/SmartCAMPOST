@@ -10,7 +10,14 @@ interface CheckboxProps {
   "aria-label"?: string;
 }
 
-export const Checkbox = ({ checked, onCheckedChange, id, className, title, "aria-label": ariaLabel }: CheckboxProps) => (
+export const Checkbox = ({
+  checked,
+  onCheckedChange,
+  id,
+  className,
+  title,
+  "aria-label": ariaLabel,
+}: CheckboxProps) => (
   <input
     id={id}
     type="checkbox"

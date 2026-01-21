@@ -5,7 +5,14 @@
  */
 import { useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Printer, Download, Copy, Package, MapPin, Calendar } from "lucide-react";
+import {
+  Printer,
+  Download,
+  Copy,
+  Package,
+  MapPin,
+  Calendar,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -275,7 +282,9 @@ export function QRCodeDisplay({
       toast.success("QR Code downloaded");
     };
 
-    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+    img.src =
+      "data:image/svg+xml;base64," +
+      btoa(unescape(encodeURIComponent(svgData)));
   };
 
   const handleCopyTracking = async () => {
@@ -311,7 +320,9 @@ export function QRCodeDisplay({
             {/* Header */}
             <div className="header text-center border-b pb-2 mb-3">
               <h1 className="text-sm font-bold text-primary">SMARTCAMPOST</h1>
-              <p className="text-xs text-muted-foreground">Suivi de Colis / Parcel Tracking</p>
+              <p className="text-xs text-muted-foreground">
+                Suivi de Colis / Parcel Tracking
+              </p>
             </div>
 
             {/* QR Code */}
@@ -341,10 +352,14 @@ export function QRCodeDisplay({
                 {/* Route Info */}
                 {(senderCity || recipientCity) && (
                   <div className="route flex items-center justify-center gap-2 text-xs mt-3 bg-muted/50 rounded p-2">
-                    <span className="font-medium">{senderCity || "Origin"}</span>
+                    <span className="font-medium">
+                      {senderCity || "Origin"}
+                    </span>
                     <MapPin className="h-3 w-3" />
                     <span>→</span>
-                    <span className="font-medium">{recipientCity || "Destination"}</span>
+                    <span className="font-medium">
+                      {recipientCity || "Destination"}
+                    </span>
                   </div>
                 )}
 
@@ -352,20 +367,32 @@ export function QRCodeDisplay({
                 <div className="mt-3 space-y-1 text-xs">
                   {senderName && (
                     <div className="info-row flex justify-between">
-                      <span className="info-label text-muted-foreground">Expéditeur:</span>
-                      <span className="info-value font-medium">{senderName}</span>
+                      <span className="info-label text-muted-foreground">
+                        Expéditeur:
+                      </span>
+                      <span className="info-value font-medium">
+                        {senderName}
+                      </span>
                     </div>
                   )}
                   {recipientName && (
                     <div className="info-row flex justify-between">
-                      <span className="info-label text-muted-foreground">Destinataire:</span>
-                      <span className="info-value font-medium">{recipientName}</span>
+                      <span className="info-label text-muted-foreground">
+                        Destinataire:
+                      </span>
+                      <span className="info-value font-medium">
+                        {recipientName}
+                      </span>
                     </div>
                   )}
                   {serviceType && (
                     <div className="info-row flex justify-between">
-                      <span className="info-label text-muted-foreground">Service:</span>
-                      <span className="info-value font-medium">{serviceType}</span>
+                      <span className="info-label text-muted-foreground">
+                        Service:
+                      </span>
+                      <span className="info-value font-medium">
+                        {serviceType}
+                      </span>
                     </div>
                   )}
                   {createdAt && (
@@ -374,7 +401,9 @@ export function QRCodeDisplay({
                         <Calendar className="h-3 w-3" />
                         Date:
                       </span>
-                      <span className="info-value font-medium">{formatDate(createdAt)}</span>
+                      <span className="info-value font-medium">
+                        {formatDate(createdAt)}
+                      </span>
                     </div>
                   )}
                 </div>

@@ -29,12 +29,27 @@ export default function PickupQrPage() {
 
   useEffect(() => {
     if (!pickupId) return;
-    setLoading(true);
-    apiClient
-      .post(`/api/qr/pickup/${pickupId}/temporary`)
-      .then((res) => setQrData(res.data))
-      .catch(() => toast.error(t("pickup.qr.error")))
-      .finally(() => setLoading(false));
+    let mounted = true;
+
+    const fetchQr = async () => {
+      try {
+        setLoading(true);
+        const data = await apiClient.post<TemporaryQrData>(
+          `/api/qr/pickup/${pickupId}/temporary`,
+        );
+        if (!mounted) return;
+        setQrData(data);
+      } catch {
+        if (mounted) toast.error(t("pickup.qr.error"));
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchQr();
+    return () => {
+      mounted = false;
+    };
   }, [pickupId, t]);
 
   if (loading) {
@@ -78,7 +93,9 @@ export default function PickupQrPage() {
             showActions={true}
           />
           <div className="mt-4 text-xs text-muted-foreground">
-            {t("pickup.qr.validUntil", { date: new Date(qrData.expiresAt).toLocaleString() })}
+            {t("pickup.qr.validUntil", {
+              date: new Date(qrData.expiresAt).toLocaleString(),
+            })}
           </div>
         </CardContent>
       </Card>

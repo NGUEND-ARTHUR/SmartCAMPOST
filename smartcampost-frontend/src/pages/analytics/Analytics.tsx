@@ -1,11 +1,26 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Clock, AlertTriangle, Search, Loader2, Package, CreditCard, TrendingUp, MapPin } from "lucide-react";
+import {
+  Clock,
+  AlertTriangle,
+  Search,
+  Loader2,
+  Package,
+  CreditCard,
+  TrendingUp,
+  MapPin,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface ETAResult {
@@ -31,7 +46,9 @@ export default function Analytics() {
   const [etaLoading, setEtaLoading] = useState(false);
   const [anomalyLoading, setAnomalyLoading] = useState(false);
   const [etaResult, setEtaResult] = useState<ETAResult | null>(null);
-  const [anomalyResult, setAnomalyResult] = useState<AnomalyResult | null>(null);
+  const [anomalyResult, setAnomalyResult] = useState<AnomalyResult | null>(
+    null,
+  );
 
   const handleEtaSearch = async () => {
     if (!parcelId.trim()) {
@@ -40,12 +57,14 @@ export default function Analytics() {
     }
     setEtaLoading(true);
     setEtaResult(null);
-    
+
     // Simulate API call - replace with actual API when available
     setTimeout(() => {
       setEtaResult({
         parcelId: parcelId,
-        estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        estimatedDelivery: new Date(
+          Date.now() + 2 * 24 * 60 * 60 * 1000,
+        ).toLocaleDateString(),
         currentLocation: "Douala Hub",
         status: "IN_TRANSIT",
         confidence: 85,
@@ -62,24 +81,31 @@ export default function Analytics() {
     }
     setAnomalyLoading(true);
     setAnomalyResult(null);
-    
+
     // Simulate API call - replace with actual API when available
     setTimeout(() => {
       const riskScore = Math.random() * 100;
       setAnomalyResult({
         paymentId: paymentId,
         riskScore: Math.round(riskScore),
-        anomalyType: riskScore > 70 ? "HIGH_VALUE" : riskScore > 40 ? "UNUSUAL_PATTERN" : "NORMAL",
-        details: riskScore > 70 
-          ? "This payment exceeds typical transaction amounts for this user"
-          : riskScore > 40 
-          ? "Minor deviation from normal payment patterns detected"
-          : "No anomalies detected in this payment",
-        recommendation: riskScore > 70 
-          ? "Manual review recommended before processing"
-          : riskScore > 40 
-          ? "Continue with standard verification"
-          : "Payment appears normal, proceed as usual",
+        anomalyType:
+          riskScore > 70
+            ? "HIGH_VALUE"
+            : riskScore > 40
+              ? "UNUSUAL_PATTERN"
+              : "NORMAL",
+        details:
+          riskScore > 70
+            ? "This payment exceeds typical transaction amounts for this user"
+            : riskScore > 40
+              ? "Minor deviation from normal payment patterns detected"
+              : "No anomalies detected in this payment",
+        recommendation:
+          riskScore > 70
+            ? "Manual review recommended before processing"
+            : riskScore > 40
+              ? "Continue with standard verification"
+              : "Payment appears normal, proceed as usual",
       });
       setAnomalyLoading(false);
       toast.success("Anomaly check completed");
@@ -87,8 +113,12 @@ export default function Analytics() {
   };
 
   const getRiskBadge = (score: number) => {
-    if (score > 70) return <Badge className="bg-red-100 text-red-800">High Risk</Badge>;
-    if (score > 40) return <Badge className="bg-yellow-100 text-yellow-800">Medium Risk</Badge>;
+    if (score > 70)
+      return <Badge className="bg-red-100 text-red-800">High Risk</Badge>;
+    if (score > 40)
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800">Medium Risk</Badge>
+      );
     return <Badge className="bg-green-100 text-green-800">Low Risk</Badge>;
   };
 
@@ -116,7 +146,9 @@ export default function Analytics() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <div className="flex-1">
-                <Label htmlFor="parcelId" className="sr-only">Parcel ID</Label>
+                <Label htmlFor="parcelId" className="sr-only">
+                  Parcel ID
+                </Label>
                 <Input
                   id="parcelId"
                   placeholder="Enter Parcel ID (e.g., PKG-12345)"
@@ -141,7 +173,9 @@ export default function Analytics() {
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{etaResult.parcelId}</span>
                   </div>
-                  <Badge className="bg-blue-100 text-blue-800">{etaResult.status}</Badge>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {etaResult.status}
+                  </Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -152,18 +186,24 @@ export default function Analytics() {
                     <p className="text-muted-foreground">Confidence</p>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-2 bg-blue-600 rounded-full w-[${etaResult.confidence}%]`}
                         />
                       </div>
-                      <span className="font-medium">{etaResult.confidence}%</span>
+                      <span className="font-medium">
+                        {etaResult.confidence}%
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Current Location:</span>
-                  <span className="font-medium">{etaResult.currentLocation}</span>
+                  <span className="text-muted-foreground">
+                    Current Location:
+                  </span>
+                  <span className="font-medium">
+                    {etaResult.currentLocation}
+                  </span>
                 </div>
               </div>
             )}
@@ -184,7 +224,9 @@ export default function Analytics() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <div className="flex-1">
-                <Label htmlFor="paymentId" className="sr-only">Payment ID</Label>
+                <Label htmlFor="paymentId" className="sr-only">
+                  Payment ID
+                </Label>
                 <Input
                   id="paymentId"
                   placeholder="Enter Payment ID (e.g., PAY-67890)"
@@ -207,7 +249,9 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{anomalyResult.paymentId}</span>
+                    <span className="font-medium">
+                      {anomalyResult.paymentId}
+                    </span>
                   </div>
                   {getRiskBadge(anomalyResult.riskScore)}
                 </div>
@@ -216,14 +260,19 @@ export default function Analytics() {
                     <p className="text-muted-foreground text-sm">Risk Score</p>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-2 rounded-full w-[${anomalyResult.riskScore}%] ${
-                            anomalyResult.riskScore > 70 ? 'bg-red-500' :
-                            anomalyResult.riskScore > 40 ? 'bg-yellow-500' : 'bg-green-500'
+                            anomalyResult.riskScore > 70
+                              ? "bg-red-500"
+                              : anomalyResult.riskScore > 40
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
                           }`}
                         />
                       </div>
-                      <span className="font-medium">{anomalyResult.riskScore}%</span>
+                      <span className="font-medium">
+                        {anomalyResult.riskScore}%
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -234,7 +283,9 @@ export default function Analytics() {
                     <TrendingUp className="h-4 w-4 mt-0.5 text-blue-600" />
                     <div>
                       <p className="text-sm font-medium">Recommendation</p>
-                      <p className="text-sm text-muted-foreground">{anomalyResult.recommendation}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {anomalyResult.recommendation}
+                      </p>
                     </div>
                   </div>
                 </div>

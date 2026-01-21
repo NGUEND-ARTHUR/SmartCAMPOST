@@ -30,12 +30,12 @@ export function Register() {
   const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState<"FR" | "EN">(
-    i18n.language === 'fr' ? "FR" : "EN"
+    i18n.language === "fr" ? "FR" : "EN",
   );
 
   // Sync form language with i18n
   useEffect(() => {
-    const lang = i18n.language === 'fr' ? "FR" : "EN";
+    const lang = i18n.language === "fr" ? "FR" : "EN";
     setLanguage(lang);
   }, [i18n.language]);
 
@@ -43,7 +43,7 @@ export function Register() {
   const handleLanguageChange = (val: string) => {
     setLanguage(val as "FR" | "EN");
     i18n.changeLanguage(val.toLowerCase());
-    localStorage.setItem('i18nextLng', val.toLowerCase());
+    localStorage.setItem("i18nextLng", val.toLowerCase());
   };
 
   const {
@@ -71,14 +71,14 @@ export function Register() {
         password: data.password,
         otp: otpValue,
       });
-      toast.success(t('messages.createSuccess'));
+      toast.success(t("messages.createSuccess"));
       navigate("/auth/login");
-    } catch (error: any) {
-      // Show specific backend error if available
-      if (error?.code && error?.message) {
-        toast.error(t(`errors.${error.code}`) || error.message);
+    } catch (error: unknown) {
+      const apiErr = error as { code?: string; message?: string } | undefined;
+      if (apiErr && apiErr.code && apiErr.message) {
+        toast.error(t(`errors.${apiErr.code}`) || apiErr.message);
       } else {
-        toast.error(t('errors.serverError'));
+        toast.error(t("errors.serverError"));
       }
     } finally {
       setIsLoading(false);
@@ -92,14 +92,14 @@ export function Register() {
           <div className="flex justify-center mb-4">
             <PackageIcon className="w-12 h-12 text-blue-600" />
           </div>
-          <CardTitle>{t('auth.registerTitle')}</CardTitle>
-          <CardDescription>{t('auth.registerSubtitle')}</CardDescription>
+          <CardTitle>{t("auth.registerTitle")}</CardTitle>
+          <CardDescription>{t("auth.registerSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Language selector at the top */}
             <div className="space-y-2">
-              <Label>{t('auth.preferredLanguage')}</Label>
+              <Label>{t("auth.preferredLanguage")}</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -121,11 +121,11 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">{t('auth.fullName')}</Label>
+              <Label htmlFor="fullName">{t("auth.fullName")}</Label>
               <Input
                 id="fullName"
-                placeholder={t('auth.fullName')}
-                {...register("fullName", { required: t('errors.required') })}
+                placeholder={t("auth.fullName")}
+                {...register("fullName", { required: t("errors.required") })}
               />
               {errors.fullName && (
                 <p className="text-sm text-destructive">
@@ -135,13 +135,13 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">{t('auth.phoneNumber')}</Label>
+              <Label htmlFor="phone">{t("auth.phoneNumber")}</Label>
               <div className="flex gap-2">
                 <Input
                   id="phone"
                   placeholder="+237 6XX XXX XXX"
                   {...register("phone", {
-                    required: t('errors.required'),
+                    required: t("errors.required"),
                   })}
                 />
                 <Button
@@ -149,7 +149,7 @@ export function Register() {
                   variant="outline"
                   onClick={async () => {
                     if (!phoneValue) {
-                      toast.error(t('errors.required'));
+                      toast.error(t("errors.required"));
                       return;
                     }
                     setIsSendingOtp(true);
@@ -165,19 +165,24 @@ export function Register() {
                             otpInputRef.current.value = response.otp ?? "";
                           }
                         }, 100);
-                        toast.success(t('messages.success') + ` (OTP: ${response.otp})`);
+                        toast.success(
+                          t("messages.success") + ` (OTP: ${response.otp})`,
+                        );
                       } else {
-                        toast.success(t('messages.success'));
+                        toast.success(t("messages.success"));
                       }
-                    } catch (err: any) {
-                      toast.error(t('errors.serverError'));
+                    } catch (err: unknown) {
+                      const msg =
+                        (err as { message?: string } | undefined)?.message ??
+                        t("errors.serverError");
+                      toast.error(msg);
                     } finally {
                       setIsSendingOtp(false);
                     }
                   }}
                   disabled={isSendingOtp}
                 >
-                  {isSendingOtp ? "..." : t('auth.sendOtp')}
+                  {isSendingOtp ? "..." : t("auth.sendOtp")}
                 </Button>
               </div>
               {errors.phone && (
@@ -195,7 +200,7 @@ export function Register() {
                   placeholder="Enter OTP"
                   value={otpValue}
                   ref={otpInputRef}
-                  onChange={e => setOtpValue(e.target.value)}
+                  onChange={(e) => setOtpValue(e.target.value)}
                   required
                 />
                 {errors.otp && (
@@ -207,7 +212,9 @@ export function Register() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">{t('common.email')} ({t('common.optional')})</Label>
+              <Label htmlFor="email">
+                {t("common.email")} ({t("common.optional")})
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -217,16 +224,16 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">{t('common.password')}</Label>
+              <Label htmlFor="password">{t("common.password")}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder={t('common.password')}
+                placeholder={t("common.password")}
                 {...register("password", {
-                  required: t('errors.required'),
+                  required: t("errors.required"),
                   minLength: {
                     value: 6,
-                    message: t('errors.passwordTooShort'),
+                    message: t("errors.passwordTooShort"),
                   },
                 })}
               />
@@ -238,13 +245,13 @@ export function Register() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t('common.loading') : t('common.register')}
+              {isLoading ? t("common.loading") : t("common.register")}
             </Button>
 
             <p className="text-sm text-muted-foreground text-center">
-              {t('auth.haveAccount')}{" "}
+              {t("auth.haveAccount")}{" "}
               <Link to="/auth/login" className="text-blue-600 hover:underline">
-                {t('auth.signIn')}
+                {t("auth.signIn")}
               </Link>
             </p>
           </form>

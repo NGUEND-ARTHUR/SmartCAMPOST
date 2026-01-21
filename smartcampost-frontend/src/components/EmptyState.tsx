@@ -1,12 +1,20 @@
 import * as React from "react";
 
+interface EmptyStateProps {
+  icon?: React.ComponentType<Record<string, unknown>> | null;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  actionLabel?: React.ReactNode;
+  onAction?: () => void;
+}
+
 export const EmptyState = ({
   icon: Icon,
   title,
   description,
   actionLabel,
   onAction,
-}: any) => {
+}: EmptyStateProps) => {
   return (
     <div className="text-center py-12">
       {Icon && (

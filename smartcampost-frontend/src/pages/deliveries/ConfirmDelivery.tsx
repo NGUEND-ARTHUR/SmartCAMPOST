@@ -21,7 +21,7 @@ export default function ConfirmDelivery() {
       await sendOtp.mutateAsync({ parcelId, phoneNumber: phone });
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : "Failed to send OTP"
+        error instanceof Error ? error.message : "Failed to send OTP",
       );
     }
   };
@@ -59,11 +59,11 @@ export default function ConfirmDelivery() {
       // 2. Store proof of delivery (photo, signature, location)
       // 3. Generate digital receipt
       // 4. Send notification to client
-      
+
       toast.success("Delivery confirmed successfully");
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : "Failed to confirm delivery"
+        error instanceof Error ? error.message : "Failed to confirm delivery",
       );
     }
   };
@@ -73,11 +73,7 @@ export default function ConfirmDelivery() {
       <div className="max-w-xl mx-auto p-6">
         {/* Header */}
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            className="mb-4"
-            onClick={() => navigate(-1)}
-          >
+          <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
