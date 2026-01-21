@@ -3,13 +3,12 @@
  * Camera-based QR code scanning for agents to scan parcel QR codes
  * Uses html5-qrcode library for cross-platform camera access
  */
-import { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import {
   Camera,
   CameraOff,
   FlipHorizontal,
-  Flashlight,
   CheckCircle,
   XCircle,
   Loader2,
@@ -53,7 +52,9 @@ export function QRCodeScanner({
 }: QRCodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [facingMode, setFacingMode] = useState<"environment" | "user">(
+    "environment",
+  );
   const [lastScan, setLastScan] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [hasCamera, setHasCamera] = useState(true);
@@ -73,7 +74,7 @@ export function QRCodeScanner({
   const parseQRCode = useCallback((decodedText: string): ScanResult => {
     try {
       const data = JSON.parse(decodedText) as QRCodeData;
-      
+
       // Validate it's a SmartCAMPOST QR code
       if (data.type !== "SMARTCAMPOST_PARCEL") {
         return {
@@ -117,7 +118,7 @@ export function QRCodeScanner({
   const handleScanSuccess = useCallback(
     (decodedText: string) => {
       const now = Date.now();
-      
+
       // Debounce scans
       if (now - lastScanTimeRef.current < scanDelay) {
         return;
@@ -146,7 +147,7 @@ export function QRCodeScanner({
         stopScanning();
       }
     },
-    [continuous, onScan, onError, parseQRCode, scanDelay]
+    [continuous, onScan, onError, parseQRCode, scanDelay],
   );
 
   const startScanning = useCallback(async () => {
@@ -202,7 +203,7 @@ export function QRCodeScanner({
         handleScanSuccess,
         () => {
           // QR code scan error (no QR code found in frame) - this is expected
-        }
+        },
       );
 
       setIsScanning(true);
@@ -211,7 +212,8 @@ export function QRCodeScanner({
       console.error("Camera error:", err);
       setIsLoading(false);
       setIsScanning(false);
-      const errorMessage = err instanceof Error ? err.message : "Camera access denied";
+      const errorMessage =
+        err instanceof Error ? err.message : "Camera access denied";
       setCameraError(errorMessage);
       toast.error("Camera Error", { description: errorMessage });
       onError?.(errorMessage);
@@ -241,7 +243,7 @@ export function QRCodeScanner({
   // Auto-start scanning
   useEffect(() => {
     let mounted = true;
-    
+
     if (autoStart && mounted) {
       // Small delay to ensure DOM is ready
       const timer = setTimeout(() => {
@@ -296,9 +298,9 @@ export function QRCodeScanner({
                   <>
                     <XCircle className="h-12 w-12 mb-2 text-destructive" />
                     <p className="text-center px-4">{cameraError}</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="mt-4"
                       onClick={() => {
                         setCameraError(null);
@@ -393,7 +395,9 @@ export function QRCodeScanner({
               <div className="text-sm space-y-1">
                 <p>
                   <span className="text-muted-foreground">Tracking Ref:</span>{" "}
-                  <span className="font-mono font-bold">{lastScan.data.trackingRef}</span>
+                  <span className="font-mono font-bold">
+                    {lastScan.data.trackingRef}
+                  </span>
                 </p>
                 {lastScan.data.parcelId && (
                   <p>

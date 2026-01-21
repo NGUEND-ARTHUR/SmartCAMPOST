@@ -11,20 +11,20 @@ export const API_ERROR_CODES: Record<string, string> = {
   ACCOUNT_DISABLED: "errors.accountDisabled",
   INVALID_OTP: "errors.invalidOtp",
   OTP_EXPIRED: "errors.otpExpired",
-  
+
   // Validation errors
   VALIDATION_ERROR: "errors.validationError",
   INVALID_INPUT: "errors.invalidInput",
   DUPLICATE_ENTRY: "errors.duplicateEntry",
-  
+
   // Resource errors
   NOT_FOUND: "errors.notFound",
   CONFLICT: "errors.conflict",
-  
+
   // Server errors
   INTERNAL_ERROR: "errors.serverError",
   SERVICE_UNAVAILABLE: "errors.serviceUnavailable",
-  
+
   // Network errors
   NETWORK_ERROR: "errors.networkError",
   TIMEOUT: "errors.timeout",
@@ -36,6 +36,16 @@ export interface ApiError {
   status: number;
   details?: Record<string, string>;
 }
+
+type RawAuth = {
+  role?: string;
+  userId?: string;
+  entityId?: string;
+  phone?: string;
+  fullName?: string;
+  accessToken?: string;
+  token?: string;
+};
 
 class ApiClient {
   private baseURL: string;
@@ -66,54 +76,73 @@ class ApiClient {
 
   private getErrorCodeFromStatus(status: number): string {
     switch (status) {
-      case 400: return "VALIDATION_ERROR";
-      case 401: return "INVALID_CREDENTIALS";
-      case 403: return "UNAUTHORIZED";
-      case 404: return "NOT_FOUND";
-      case 409: return "CONFLICT";
-      case 423: return "ACCOUNT_LOCKED";
-      case 500: return "INTERNAL_ERROR";
-      case 503: return "SERVICE_UNAVAILABLE";
-      default: return "UNKNOWN_ERROR";
+      case 400:
+        return "VALIDATION_ERROR";
+      case 401:
+        return "INVALID_CREDENTIALS";
+      case 403:
+        return "UNAUTHORIZED";
+      case 404:
+        return "NOT_FOUND";
+      case 409:
+        return "CONFLICT";
+      case 423:
+        return "ACCOUNT_LOCKED";
+      case 500:
+        return "INTERNAL_ERROR";
+      case 503:
+        return "SERVICE_UNAVAILABLE";
+      default:
+        return "UNKNOWN_ERROR";
     }
   }
 
   private getDefaultMessage(status: number): string {
     switch (status) {
-      case 400: return "Invalid request data";
-      case 401: return "Invalid credentials";
-      case 403: return "Access denied";
-      case 404: return "Resource not found";
-      case 409: return "Resource already exists";
-      case 423: return "Account is locked";
-      case 500: return "Server error";
-      case 503: return "Service temporarily unavailable";
-      default: return "An error occurred";
+      case 400:
+        return "Invalid request data";
+      case 401:
+        return "Invalid credentials";
+      case 403:
+        return "Access denied";
+      case 404:
+        return "Resource not found";
+      case 409:
+        return "Resource already exists";
+      case 423:
+        return "Account is locked";
+      case 500:
+        return "Server error";
+      case 503:
+        return "Service temporarily unavailable";
+      default:
+        return "An error occurred";
     }
   }
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {},
+    options: Record<string, unknown> = {},
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-
-    const config: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      ...options,
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...((options.headers as Record<string, string>) || {}),
     };
+
+    const config = {
+      ...(options as Record<string, unknown>),
+      headers,
+    } as RequestInit;
 
     let res: Response;
     try {
-      res = await fetch(url, config);
-    } catch (networkError) {
-      // Network error (no connection, DNS failure, etc.)
+      res = await fetch(url, config as RequestInit);
+    } catch {
       const error: ApiError = {
         code: "NETWORK_ERROR",
-        message: "Unable to connect to server. Please check your internet connection.",
+        message:
+          "Unable to connect to server. Please check your internet connection.",
         status: 0,
       };
       throw error;
@@ -124,8 +153,7 @@ class ApiClient {
       const error = this.parseErrorResponse(res.status, text);
       throw error;
     }
-    
-    // Some endpoints return empty 200 responses (void). Safely handle empty body.
+
     const text = await res.text().catch(() => "");
     if (!text) {
       return {} as T;
@@ -133,7 +161,6 @@ class ApiClient {
     try {
       return JSON.parse(text) as T;
     } catch {
-      // Fallback: return raw text when JSON parsing fails
       return text as unknown as T;
     }
   }
@@ -146,7 +173,7 @@ class ApiClient {
       password: credentials.password,
     };
 
-    const auth = await this.request<any>("/auth/login", {
+    const auth = await this.request<RawAuth>("/auth/login", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -224,8 +251,8 @@ class ApiClient {
     });
   }
 
-  async register(data: RegisterRequest): Promise<any> {
-    return this.request("/auth/register", {
+  async register(data: RegisterRequest): Promise<unknown> {
+    return this.request<unknown>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -248,20 +275,26 @@ class ApiClient {
   }
 
   // Convenience HTTP helpers
-  public async get<T = any>(endpoint: string) {
-    return this.request<T>(endpoint, { method: 'GET' });
+  public async get<T = unknown>(endpoint: string) {
+    return this.request<T>(endpoint, { method: "GET" });
   }
 
-  public async post<T = any>(endpoint: string, body?: any) {
-    return this.request<T>(endpoint, { method: 'POST', body: body ? JSON.stringify(body) : undefined });
+  public async post<T = unknown>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, {
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
-  public async put<T = any>(endpoint: string, body?: any) {
-    return this.request<T>(endpoint, { method: 'PUT', body: body ? JSON.stringify(body) : undefined });
+  public async put<T = unknown>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, {
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
-  public async delete<T = any>(endpoint: string) {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  public async delete<T = unknown>(endpoint: string) {
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 }
 

@@ -168,7 +168,7 @@ export const parcelService = {
     return httpClient.patch(`/parcels/${id}/accept`);
   },
 
-  /** 
+  /**
    * Accept with full validation - Agent/Courier validates parcel details.
    * This endpoint allows the agent to:
    * - Confirm the parcel description is accurate

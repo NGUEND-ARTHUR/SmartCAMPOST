@@ -67,11 +67,11 @@ const roleColors: Record<string, string> = {
 
 function getRoleLabels(t: (key: string) => string): Record<string, string> {
   return {
-    STAFF: t('roles.staff'),
-    ADMIN: t('roles.admin'),
-    FINANCE: t('roles.finance'),
-    RISK: t('roles.riskManager'),
-    COURIER: t('roles.courier'),
+    STAFF: t("roles.staff"),
+    ADMIN: t("roles.admin"),
+    FINANCE: t("roles.finance"),
+    RISK: t("roles.riskManager"),
+    COURIER: t("roles.courier"),
   };
 }
 
@@ -107,7 +107,10 @@ export default function StaffManagement() {
   });
 
   const { data, isLoading, error } = useStaffList(page, 20);
-  const { data: couriersData, isLoading: couriersLoading } = useCouriers(0, 100);
+  const { data: couriersData, isLoading: couriersLoading } = useCouriers(
+    0,
+    100,
+  );
   const { data: agenciesData } = useAgencies(0, 100);
   const createStaff = useCreateStaff();
   const createCourier = useCreateCourier();
@@ -169,7 +172,7 @@ export default function StaffManagement() {
 
   const handleCreate = () => {
     if (!formData.fullName || !formData.phone || !formData.password) {
-      toast.error(t('staffManagement.requiredFields'));
+      toast.error(t("staffManagement.requiredFields"));
       return;
     }
 
@@ -177,7 +180,9 @@ export default function StaffManagement() {
     if (formData.role === "COURIER") {
       // Generate vehicleId matching pattern [A-Z, 0-9, -] (3-20 chars)
       const generatedId = `VH-${Date.now().toString(36).toUpperCase()}`;
-      const vehicleId = formData.vehicleId?.toUpperCase().replace(/[^A-Z0-9-]/g, '') || generatedId;
+      const vehicleId =
+        formData.vehicleId?.toUpperCase().replace(/[^A-Z0-9-]/g, "") ||
+        generatedId;
       createCourier.mutate(
         {
           fullName: formData.fullName,
@@ -187,13 +192,15 @@ export default function StaffManagement() {
         },
         {
           onSuccess: () => {
-            toast.success(t('staffManagement.courierCreated'));
+            toast.success(t("staffManagement.courierCreated"));
             setIsCreateOpen(false);
             resetForm();
           },
           onError: (err) =>
             toast.error(
-              err instanceof Error ? err.message : t('staffManagement.failedCreateCourier'),
+              err instanceof Error
+                ? err.message
+                : t("staffManagement.failedCreateCourier"),
             ),
         },
       );
@@ -201,13 +208,15 @@ export default function StaffManagement() {
       // Use staff creation for other roles
       createStaff.mutate(formData, {
         onSuccess: () => {
-          toast.success(t('staffManagement.staffCreated'));
+          toast.success(t("staffManagement.staffCreated"));
           setIsCreateOpen(false);
           resetForm();
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : t('staffManagement.failedCreateStaff'),
+            err instanceof Error
+              ? err.message
+              : t("staffManagement.failedCreateStaff"),
           ),
       });
     }
@@ -218,10 +227,13 @@ export default function StaffManagement() {
       updateCourierStatus.mutate(
         { id: member.id, data: { status: newStatus } },
         {
-          onSuccess: () => toast.success(`Courier status updated to ${newStatus}`),
+          onSuccess: () =>
+            toast.success(`Courier status updated to ${newStatus}`),
           onError: (err) =>
             toast.error(
-              err instanceof Error ? err.message : t('staffManagement.failedUpdateStatus'),
+              err instanceof Error
+                ? err.message
+                : t("staffManagement.failedUpdateStatus"),
             ),
         },
       );
@@ -229,10 +241,13 @@ export default function StaffManagement() {
       updateStatus.mutate(
         { id: member.id, data: { status: newStatus } },
         {
-          onSuccess: () => toast.success(`Staff status updated to ${newStatus}`),
+          onSuccess: () =>
+            toast.success(`Staff status updated to ${newStatus}`),
           onError: (err) =>
             toast.error(
-              err instanceof Error ? err.message : t('staffManagement.failedUpdateStatus'),
+              err instanceof Error
+                ? err.message
+                : t("staffManagement.failedUpdateStatus"),
             ),
         },
       );
@@ -249,7 +264,9 @@ export default function StaffManagement() {
           ),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : t('staffManagement.failedUpdateRole'),
+            err instanceof Error
+              ? err.message
+              : t("staffManagement.failedUpdateRole"),
           ),
       },
     );
@@ -259,9 +276,9 @@ export default function StaffManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{t('staffManagement.title')}</h1>
+          <h1 className="text-3xl font-bold">{t("staffManagement.title")}</h1>
           <p className="text-muted-foreground">
-            {t('staffManagement.subtitle')}
+            {t("staffManagement.subtitle")}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -285,7 +302,9 @@ export default function StaffManagement() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">{t('staffManagement.fullName')} *</Label>
+                <Label htmlFor="fullName">
+                  {t("staffManagement.fullName")} *
+                </Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}
@@ -379,13 +398,13 @@ export default function StaffManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {agencies.map((agency) => (
-                        <SelectItem key={agency.id} value={agency.id}>
-                          {agency.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                          <SelectItem key={agency.id} value={agency.id}>
+                            {agency.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
               </div>
             </div>
@@ -393,11 +412,16 @@ export default function StaffManagement() {
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreate} disabled={createStaff.isPending || createCourier.isPending}>
+              <Button
+                onClick={handleCreate}
+                disabled={createStaff.isPending || createCourier.isPending}
+              >
                 {(createStaff.isPending || createCourier.isPending) && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                {formData.role === "COURIER" ? "Create Courier" : "Create Staff"}
+                {formData.role === "COURIER"
+                  ? "Create Courier"
+                  : "Create Staff"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -448,7 +472,7 @@ export default function StaffManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          {(isLoading || couriersLoading) ? (
+          {isLoading || couriersLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
@@ -484,14 +508,20 @@ export default function StaffManagement() {
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => (
-                    <TableRow key={`${member.isCourier ? 'c' : 's'}-${member.id}`}>
+                    <TableRow
+                      key={`${member.isCourier ? "c" : "s"}-${member.id}`}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {member.isCourier && <Truck className="w-4 h-4 text-green-600" />}
+                          {member.isCourier && (
+                            <Truck className="w-4 h-4 text-green-600" />
+                          )}
                           <div>
                             <div className="font-medium">{member.fullName}</div>
                             <div className="text-xs text-muted-foreground">
-                              {member.isCourier && member.vehicleId ? member.vehicleId : member.id.slice(0, 8)}
+                              {member.isCourier && member.vehicleId
+                                ? member.vehicleId
+                                : member.id.slice(0, 8)}
                             </div>
                           </div>
                         </div>
@@ -511,7 +541,11 @@ export default function StaffManagement() {
                           variant="outline"
                           className={`flex items-center gap-1 w-fit ${roleColors[member.role] || ""}`}
                         >
-                          {member.isCourier ? <Truck className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                          {member.isCourier ? (
+                            <Truck className="w-3 h-3" />
+                          ) : (
+                            <ShieldCheck className="w-3 h-3" />
+                          )}
                           {roleLabels[member.role] || member.role}
                         </Badge>
                       </TableCell>

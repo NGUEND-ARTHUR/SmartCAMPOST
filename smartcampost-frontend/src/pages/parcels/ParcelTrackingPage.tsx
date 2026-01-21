@@ -31,8 +31,8 @@ export default function ParcelTrackingPage() {
     }
     setLoading(true);
     apiClient
-      .get(`/api/qr/tracking/${trackingRef}`)
-      .then((res) => setData(res.data))
+      .get<ParcelTrackingData>(`/api/qr/tracking/${trackingRef}`)
+      .then((res) => setData(res))
       .catch(() => toast.error(t("tracking.notFound")))
       .finally(() => setLoading(false));
   };
@@ -52,7 +52,11 @@ export default function ParcelTrackingPage() {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
             <Button onClick={handleSearch} disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
             </Button>
           </div>
           {data && (
@@ -65,19 +69,29 @@ export default function ParcelTrackingPage() {
                 showActions={true}
               />
               <div className="mt-4">
-                <div className="font-semibold mb-2">{t("tracking.timeline")}</div>
+                <div className="font-semibold mb-2">
+                  {t("tracking.timeline")}
+                </div>
                 <ul className="text-xs space-y-1">
                   {data.timeline.map((item, idx) => (
                     <li key={idx}>
-                      <span className="font-medium">{t(`tracking.status.${item.status}`)}</span> - {new Date(item.date).toLocaleString()}
+                      <span className="font-medium">
+                        {t(`tracking.status.${item.status}`)}
+                      </span>{" "}
+                      - {new Date(item.date).toLocaleString()}
                     </li>
                   ))}
                 </ul>
               </div>
               {data.lastLocation && (
                 <div className="mt-6">
-                  <div className="font-semibold mb-2">{t("tracking.mapTitle")}</div>
-                  <TrackingMap lat={data.lastLocation.lat} lng={data.lastLocation.lng} />
+                  <div className="font-semibold mb-2">
+                    {t("tracking.mapTitle")}
+                  </div>
+                  <TrackingMap
+                    lat={data.lastLocation.lat}
+                    lng={data.lastLocation.lng}
+                  />
                 </div>
               )}
             </>

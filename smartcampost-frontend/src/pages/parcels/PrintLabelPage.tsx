@@ -38,12 +38,27 @@ export default function PrintLabelPage() {
 
   useEffect(() => {
     if (!parcelId) return;
-    setLoading(true);
-    apiClient
-      .get(`/api/qr/label/${parcelId}`)
-      .then((res) => setLabel(res.data))
-      .catch(() => toast.error(t("label.print.error")))
-      .finally(() => setLoading(false));
+    let mounted = true;
+
+    const fetchLabel = async () => {
+      try {
+        setLoading(true);
+        const data = await apiClient.get<QrLabelData>(
+          `/api/qr/label/${parcelId}`,
+        );
+        if (!mounted) return;
+        setLabel(data);
+      } catch (err) {
+        if (mounted) toast.error(t("label.print.error"));
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchLabel();
+    return () => {
+      mounted = false;
+    };
   }, [parcelId, t]);
 
   if (loading) {
@@ -74,15 +89,39 @@ export default function PrintLabelPage() {
             {t("label.print.instructions")}
           </div>
           <div className="border rounded p-4 bg-white">
-            <img src={`data:image/png;base64,${label.qrCodeImage}`} alt="QR Code" className="mx-auto mb-2" style={{ width: 150, height: 150 }} />
-            <div className="text-center font-mono text-sm font-bold mb-2">{label.trackingRef}</div>
-            <div className="text-xs text-muted-foreground mb-1">{label.labelTitle}</div>
-            <div className="text-xs mb-1">{t("label.print.sender")}: {label.senderName} ({label.senderCity})</div>
-            <div className="text-xs mb-1">{t("label.print.recipient")}: {label.recipientName} ({label.recipientCity})</div>
-            <div className="text-xs mb-1">{t("label.print.amount")}: {label.totalAmount} {label.currency} ({label.paymentStatus})</div>
-            <div className="text-xs mb-1">{t("label.print.size")}: {label.labelSize}</div>
-            <div className="text-xs mb-1">{t("label.print.copies")}: {label.copiesCount}</div>
-            <div className="text-xs text-muted-foreground mt-2">{t("label.print.printedAt", { date: new Date(label.printedAt).toLocaleString() })}</div>
+            <img
+              src={`data:image/png;base64,${label.qrCodeImage}`}
+              alt="QR Code"
+              className="mx-auto mb-2 w-[150px] h-[150px]"
+            />
+            <div className="text-center font-mono text-sm font-bold mb-2">
+              {label.trackingRef}
+            </div>
+            <div className="text-xs text-muted-foreground mb-1">
+              {label.labelTitle}
+            </div>
+            <div className="text-xs mb-1">
+              {t("label.print.sender")}: {label.senderName} ({label.senderCity})
+            </div>
+            <div className="text-xs mb-1">
+              {t("label.print.recipient")}: {label.recipientName} (
+              {label.recipientCity})
+            </div>
+            <div className="text-xs mb-1">
+              {t("label.print.amount")}: {label.totalAmount} {label.currency} (
+              {label.paymentStatus})
+            </div>
+            <div className="text-xs mb-1">
+              {t("label.print.size")}: {label.labelSize}
+            </div>
+            <div className="text-xs mb-1">
+              {t("label.print.copies")}: {label.copiesCount}
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              {t("label.print.printedAt", {
+                date: new Date(label.printedAt).toLocaleString(),
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -23,7 +23,6 @@ interface ScanEvent {
   success: boolean;
 }
 
-
 export default function ScanConsole() {
   const { t } = useTranslation();
   const [barcode, setBarcode] = useState("");
@@ -36,7 +35,10 @@ export default function ScanConsole() {
     { value: "IN_TRANSIT", label: t("scan.status.inTransit") },
     { value: "ARRIVED_HUB", label: t("scan.status.arrivedHub") },
     { value: "DEPARTED_HUB", label: t("scan.status.departedHub") },
-    { value: "ARRIVED_DESTINATION", label: t("scan.status.arrivedDestination") },
+    {
+      value: "ARRIVED_DESTINATION",
+      label: t("scan.status.arrivedDestination"),
+    },
     { value: "OUT_FOR_DELIVERY", label: t("scan.status.outForDelivery") },
     { value: "DELIVERED", label: t("scan.status.delivered") },
     { value: "RETURNED", label: t("scan.status.returned") },
@@ -75,7 +77,9 @@ export default function ScanConsole() {
           };
           setScanHistory([newScan, ...scanHistory]);
           toast.success(t("scan.success.scanned", { barcode }), {
-            description: t("scan.success.eventType", { status: selectedStatus }),
+            description: t("scan.success.eventType", {
+              status: selectedStatus,
+            }),
           });
           setBarcode("");
           inputRef.current?.focus();
@@ -110,7 +114,10 @@ export default function ScanConsole() {
   };
 
   // Handle QR code scan from camera
-  const handleQRScan = (result: { success: boolean; data?: { trackingRef: string; parcelId?: string } }) => {
+  const handleQRScan = (result: {
+    success: boolean;
+    data?: { trackingRef: string; parcelId?: string };
+  }) => {
     if (!result.success || !result.data) return;
 
     const trackingRef = result.data.trackingRef;
@@ -134,7 +141,9 @@ export default function ScanConsole() {
           };
           setScanHistory([newScan, ...scanHistory]);
           toast.success(t("scan.success.qrScanned", { trackingRef }), {
-            description: t("scan.success.eventType", { status: selectedStatus }),
+            description: t("scan.success.eventType", {
+              status: selectedStatus,
+            }),
           });
           setBarcode("");
         },
@@ -148,10 +157,11 @@ export default function ScanConsole() {
           };
           setScanHistory([newScan, ...scanHistory]);
           toast.error(t("scan.error.failed"), {
-            description: error instanceof Error ? error.message : t("scan.error.unknown"),
+            description:
+              error instanceof Error ? error.message : t("scan.error.unknown"),
           });
         },
-      }
+      },
     );
   };
 
@@ -329,7 +339,9 @@ export default function ScanConsole() {
 
               {/* Tips */}
               <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900 font-medium mb-2">{t("scan.tips.title")}</p>
+                <p className="text-sm text-blue-900 font-medium mb-2">
+                  {t("scan.tips.title")}
+                </p>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>{t("scan.tips.barcodeScanner")}</li>
                   <li>{t("scan.tips.pressEnter")}</li>
@@ -343,7 +355,9 @@ export default function ScanConsole() {
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">{t("scan.todaysScans")}</p>
+                    <p className="text-sm text-gray-500 mb-1">
+                      {t("scan.todaysScans")}
+                    </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {scanHistory.length}
                     </p>
@@ -354,7 +368,9 @@ export default function ScanConsole() {
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">{t("scan.successRate")}</p>
+                    <p className="text-sm text-gray-500 mb-1">
+                      {t("scan.successRate")}
+                    </p>
                     <p className="text-2xl font-bold text-gray-900">100%</p>
                   </div>
                   <Package className="w-8 h-8 text-blue-600" />
@@ -386,7 +402,9 @@ export default function ScanConsole() {
                 <div className="p-12 text-center">
                   <Scan className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">{t("scan.history.noScans")}</p>
-                  <p className="text-sm text-gray-400 mt-1">{t("scan.history.hint")}</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    {t("scan.history.hint")}
+                  </p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200">
@@ -411,7 +429,9 @@ export default function ScanConsole() {
                               {scan.trackingNumber}
                             </p>
                             <p className="text-sm text-gray-600 mt-1">
-                              {t("scan.history.status", { status: scan.status })}
+                              {t("scan.history.status", {
+                                status: scan.status,
+                              })}
                             </p>
                             <p className="text-xs text-gray-400 mt-1">
                               {new Date(scan.timestamp).toLocaleString()}

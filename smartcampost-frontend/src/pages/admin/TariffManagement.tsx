@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DollarSign, Plus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,12 +87,17 @@ export default function TariffManagement() {
     });
   };
 
-  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-  };
+  const handleInputChange =
+    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
   const handleCreate = () => {
-    if (!formData.originZone || !formData.destinationZone || !formData.basePrice) {
+    if (
+      !formData.originZone ||
+      !formData.destinationZone ||
+      !formData.basePrice
+    ) {
       toast.error("Origin zone, destination zone and price are required");
       return;
     }
@@ -110,8 +115,13 @@ export default function TariffManagement() {
         resetForm();
       },
       onError: (err) => {
-        const errorMsg = err instanceof Error ? err.message : "Failed to create tariff";
-        if (errorMsg.includes("already exists") || errorMsg.includes("CONFLICT") || errorMsg.includes("409")) {
+        const errorMsg =
+          err instanceof Error ? err.message : "Failed to create tariff";
+        if (
+          errorMsg.includes("already exists") ||
+          errorMsg.includes("CONFLICT") ||
+          errorMsg.includes("409")
+        ) {
           toast.error("Tariff Already Exists", {
             description: `A tariff for ${formData.originZone} → ${formData.destinationZone} (${formData.serviceType}, ${formData.weightBracket}) already exists. Please modify the existing tariff instead.`,
           });
@@ -366,12 +376,8 @@ export default function TariffManagement() {
                       <TableCell className="font-medium">
                         {tariff.originZone}
                       </TableCell>
-                      <TableCell>
-                        {tariff.destinationZone}
-                      </TableCell>
-                      <TableCell>
-                        {tariff.weightBracket}
-                      </TableCell>
+                      <TableCell>{tariff.destinationZone}</TableCell>
+                      <TableCell>{tariff.weightBracket}</TableCell>
                       <TableCell>
                         {Number(tariff.price).toLocaleString()} XAF
                       </TableCell>

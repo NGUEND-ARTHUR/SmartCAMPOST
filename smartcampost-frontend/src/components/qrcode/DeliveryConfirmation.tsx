@@ -6,7 +6,7 @@
  * 3. Proof of delivery (photo, signature, location)
  * 4. Transaction closure
  */
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   Camera,
   CheckCircle,
@@ -17,11 +17,16 @@ import {
   MapPin,
   Package,
   Shield,
-  Upload,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -61,7 +66,10 @@ interface DeliveryConfirmationProps {
 
 type Step = "scan" | "verify" | "proof" | "complete";
 
-export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmationProps) {
+export function DeliveryConfirmation({
+  onConfirm,
+  onSendOtp,
+}: DeliveryConfirmationProps) {
   const [step, setStep] = useState<Step>("scan");
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [otpCode, setOtpCode] = useState("");
@@ -77,21 +85,27 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
   const [isDrawing, setIsDrawing] = useState(false);
 
   // Handle QR scan result
-  const handleScan = useCallback(async (result: { success: boolean; data?: { trackingRef: string; parcelId?: string } }) => {
-    if (!result.success || !result.data) return;
+  const handleScan = useCallback(
+    async (result: {
+      success: boolean;
+      data?: { trackingRef: string; parcelId?: string };
+    }) => {
+      if (!result.success || !result.data) return;
 
-    // In real app, fetch delivery info from backend
-    const info: DeliveryInfo = {
-      trackingRef: result.data.trackingRef,
-      parcelId: result.data.parcelId || result.data.trackingRef,
-      recipientName: "John Doe", // Would come from API
-      recipientPhone: "+237 6XX XXX XXX",
-      recipientAddress: "123 Main St, Douala",
-    };
+      // In real app, fetch delivery info from backend
+      const info: DeliveryInfo = {
+        trackingRef: result.data.trackingRef,
+        parcelId: result.data.parcelId || result.data.trackingRef,
+        recipientName: "John Doe", // Would come from API
+        recipientPhone: "+237 6XX XXX XXX",
+        recipientAddress: "123 Main St, Douala",
+      };
 
-    setDeliveryInfo(info);
-    setStep("verify");
-  }, []);
+      setDeliveryInfo(info);
+      setStep("verify");
+    },
+    [],
+  );
 
   // Send OTP to recipient
   const handleSendOtp = async () => {
@@ -172,12 +186,16 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
         setIsLocating(false);
         toast.error("Location error", { description: error.message });
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   };
 
   // Signature canvas handlers
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
+  ) => {
     setIsDrawing(true);
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
@@ -186,14 +204,20 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const x =
+      "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y =
+      "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
 
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
+  ) => {
     if (!isDrawing) return;
 
     const canvas = signatureCanvasRef.current;
@@ -203,8 +227,10 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const x =
+      "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y =
+      "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
 
     ctx.lineTo(x, y);
     ctx.strokeStyle = "#000";
@@ -283,8 +309,8 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
                 step === s
                   ? "bg-primary text-primary-foreground"
                   : idx < ["scan", "verify", "proof", "complete"].indexOf(step)
-                  ? "bg-green-500 text-white"
-                  : "bg-muted text-muted-foreground"
+                    ? "bg-green-500 text-white"
+                    : "bg-muted text-muted-foreground"
               }`}
             >
               {idx < ["scan", "verify", "proof", "complete"].indexOf(step) ? (
@@ -333,7 +359,9 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
             <div className="p-3 bg-muted rounded-lg space-y-2">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
-                <span className="font-mono font-medium">{deliveryInfo.trackingRef}</span>
+                <span className="font-mono font-medium">
+                  {deliveryInfo.trackingRef}
+                </span>
               </div>
               <Separator />
               <div className="text-sm space-y-1">
@@ -372,7 +400,7 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
                   <CheckCircle className="h-4 w-4" />
                   OTP sent to {deliveryInfo.recipientPhone}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Enter OTP Code
@@ -383,7 +411,9 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
                     pattern="[0-9]*"
                     maxLength={6}
                     value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                    onChange={(e) =>
+                      setOtpCode(e.target.value.replace(/\D/g, ""))
+                    }
                     placeholder="Enter 4-6 digit code"
                     className="text-center text-2xl tracking-widest"
                   />
@@ -449,7 +479,9 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
                     variant="destructive"
                     size="sm"
                     className="absolute top-2 right-2"
-                    onClick={() => setProof((prev) => ({ ...prev, photo: undefined }))}
+                    onClick={() =>
+                      setProof((prev) => ({ ...prev, photo: undefined }))
+                    }
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -523,7 +555,8 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
                   <div className="text-sm">
                     <p className="font-medium">Location captured</p>
                     <p className="text-muted-foreground">
-                      {proof.location.latitude.toFixed(6)}, {proof.location.longitude.toFixed(6)}
+                      {proof.location.latitude.toFixed(6)},{" "}
+                      {proof.location.longitude.toFixed(6)}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Accuracy: {Math.round(proof.location.accuracy)}m
@@ -555,7 +588,10 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
               <Input
                 value={proof.receiverName || ""}
                 onChange={(e) =>
-                  setProof((prev) => ({ ...prev, receiverName: e.target.value }))
+                  setProof((prev) => ({
+                    ...prev,
+                    receiverName: e.target.value,
+                  }))
                 }
                 placeholder="Name of person receiving"
               />
@@ -591,7 +627,11 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
               Confirm Delivery
             </Button>
 
-            <Button variant="ghost" onClick={() => setStep("verify")} className="w-full">
+            <Button
+              variant="ghost"
+              onClick={() => setStep("verify")}
+              className="w-full"
+            >
               Back
             </Button>
           </CardContent>
@@ -607,7 +647,10 @@ export function DeliveryConfirmation({ onConfirm, onSendOtp }: DeliveryConfirmat
             </div>
             <h2 className="text-2xl font-bold">Delivery Confirmed!</h2>
             <p className="text-muted-foreground">
-              Parcel <span className="font-mono font-medium">{deliveryInfo.trackingRef}</span>{" "}
+              Parcel{" "}
+              <span className="font-mono font-medium">
+                {deliveryInfo.trackingRef}
+              </span>{" "}
               has been successfully delivered.
             </p>
 

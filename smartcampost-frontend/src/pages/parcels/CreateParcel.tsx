@@ -57,7 +57,8 @@ export function CreateParcel() {
   );
 
   const createParcel = useCreateParcel();
-  const { data: addresses = [], isLoading: addressesLoading } = useMyAddresses();
+  const { data: addresses = [], isLoading: addressesLoading } =
+    useMyAddresses();
   const [senderAddressId, setSenderAddressId] = useState<string>("");
   const [recipientAddressId, setRecipientAddressId] = useState<string>("");
   const {
@@ -159,10 +160,15 @@ export function CreateParcel() {
               <div className="absolute top-0 left-0 h-1 bg-gray-200 w-full" />
               <div
                 className={`absolute top-0 left-0 h-1 bg-blue-600 transition-all duration-300 ${
-                  currentStep === 0 ? "w-0" : 
-                  currentStep === 1 ? "w-1/4" : 
-                  currentStep === 2 ? "w-1/2" : 
-                  currentStep === 3 ? "w-3/4" : "w-full"
+                  currentStep === 0
+                    ? "w-0"
+                    : currentStep === 1
+                      ? "w-1/4"
+                      : currentStep === 2
+                        ? "w-1/2"
+                        : currentStep === 3
+                          ? "w-3/4"
+                          : "w-full"
                 }`}
               />
             </div>
@@ -173,14 +179,25 @@ export function CreateParcel() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="senderAddress">Sender Address</Label>
-                  <Select value={senderAddressId} onValueChange={setSenderAddressId} disabled={addressesLoading}>
+                  <Select
+                    value={senderAddressId}
+                    onValueChange={setSenderAddressId}
+                    disabled={addressesLoading}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder={addressesLoading ? "Loading..." : "Select sender address"} />
+                      <SelectValue
+                        placeholder={
+                          addressesLoading
+                            ? "Loading..."
+                            : "Select sender address"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {addresses.map(addr => (
+                      {addresses.map((addr) => (
                         <SelectItem key={addr.id} value={addr.id}>
-                          {addr.label || addr.addressLine}, {addr.city}, {addr.country}
+                          {addr.label || addr.addressLine}, {addr.city},{" "}
+                          {addr.country}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -192,14 +209,25 @@ export function CreateParcel() {
 
                 <div className="space-y-2">
                   <Label htmlFor="recipientAddress">Recipient Address</Label>
-                  <Select value={recipientAddressId} onValueChange={setRecipientAddressId} disabled={addressesLoading}>
+                  <Select
+                    value={recipientAddressId}
+                    onValueChange={setRecipientAddressId}
+                    disabled={addressesLoading}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder={addressesLoading ? "Loading..." : "Select recipient address"} />
+                      <SelectValue
+                        placeholder={
+                          addressesLoading
+                            ? "Loading..."
+                            : "Select recipient address"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {addresses.map(addr => (
+                      {addresses.map((addr) => (
                         <SelectItem key={addr.id} value={addr.id}>
-                          {addr.label || addr.addressLine}, {addr.city}, {addr.country}
+                          {addr.label || addr.addressLine}, {addr.city},{" "}
+                          {addr.country}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -285,7 +313,9 @@ export function CreateParcel() {
                   <Label>Service Type</Label>
                   <Tabs
                     value={serviceType}
-                    onValueChange={(v: string) => setServiceType(v as any)}
+                    onValueChange={(v: string) =>
+                      setServiceType(v as "STANDARD" | "EXPRESS")
+                    }
                   >
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="STANDARD">Standard</TabsTrigger>
@@ -310,7 +340,9 @@ export function CreateParcel() {
                   <Label>Delivery Option</Label>
                   <Tabs
                     value={deliveryOption}
-                    onValueChange={(v: string) => setDeliveryOption(v as any)}
+                    onValueChange={(v: string) =>
+                      setDeliveryOption(v as "AGENCY" | "HOME")
+                    }
                   >
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="AGENCY">Agency Pickup</TabsTrigger>
@@ -339,7 +371,9 @@ export function CreateParcel() {
                   <Label>Payment Option</Label>
                   <Tabs
                     value={paymentOption}
-                    onValueChange={(v: string) => setPaymentOption(v as any)}
+                    onValueChange={(v: string) =>
+                      setPaymentOption(v as "PREPAID" | "COD")
+                    }
                   >
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="PREPAID">Prepaid</TabsTrigger>

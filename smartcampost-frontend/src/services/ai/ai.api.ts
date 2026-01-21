@@ -84,7 +84,7 @@ export const aiService = {
    * Optimize route for courier deliveries
    */
   optimizeRoute(
-    request: RouteOptimizationRequest
+    request: RouteOptimizationRequest,
   ): Promise<RouteOptimizationResponse> {
     return httpClient.post("/ai/optimize-route", request);
   },
@@ -100,7 +100,7 @@ export const aiService = {
    * Predict delivery time
    */
   predictDelivery(
-    request: DeliveryPredictionRequest
+    request: DeliveryPredictionRequest,
   ): Promise<DeliveryPredictionResponse> {
     return httpClient.post("/ai/predict-delivery", request);
   },

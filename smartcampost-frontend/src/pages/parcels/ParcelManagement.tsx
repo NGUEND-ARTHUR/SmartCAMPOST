@@ -108,17 +108,23 @@ export default function ParcelManagement() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.total")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("parcelManagement.stats.total")}
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.all}</div>
-            <p className="text-xs text-muted-foreground">{t("parcelManagement.stats.allStatuses")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("parcelManagement.stats.allStatuses")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.active")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("parcelManagement.stats.active")}
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -130,22 +136,30 @@ export default function ParcelManagement() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.delivered")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("parcelManagement.stats.delivered")}
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.delivered}</div>
-            <p className="text-xs text-muted-foreground">{t("parcelManagement.stats.completed")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("parcelManagement.stats.completed")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("parcelManagement.stats.exceptions")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("parcelManagement.stats.exceptions")}
+            </CardTitle>
             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.exceptions}</div>
-            <p className="text-xs text-muted-foreground">{t("parcelManagement.stats.needAttention")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("parcelManagement.stats.needAttention")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -167,34 +181,68 @@ export default function ParcelManagement() {
             <div className="flex gap-2">
               <Select
                 value={statusFilter}
-                onValueChange={(v: string) => setStatusFilter(v as any)}
+                onValueChange={(v: string) =>
+                  setStatusFilter(v as "ALL" | AdminParcelStatus)
+                }
               >
-                <SelectTrigger className="w-52" title={t("parcelManagement.filterByStatus")!}>
+                <SelectTrigger
+                  className="w-52"
+                  title={t("parcelManagement.filterByStatus")!}
+                >
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder={t("parcelManagement.filterByStatus")!} />
+                  <SelectValue
+                    placeholder={t("parcelManagement.filterByStatus")!}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("parcelManagement.status.all")}</SelectItem>
-                  <SelectItem value="CREATED">{t("parcelManagement.status.created")}</SelectItem>
-                  <SelectItem value="IN_TRANSIT">{t("parcelManagement.status.inTransit")}</SelectItem>
-                  <SelectItem value="OUT_FOR_DELIVERY">{t("parcelManagement.status.outForDelivery")}</SelectItem>
-                  <SelectItem value="DELIVERED">{t("parcelManagement.status.delivered")}</SelectItem>
-                  <SelectItem value="RETURNED">{t("parcelManagement.status.returned")}</SelectItem>
-                  <SelectItem value="EXCEPTION">{t("parcelManagement.status.exception")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("parcelManagement.status.all")}
+                  </SelectItem>
+                  <SelectItem value="CREATED">
+                    {t("parcelManagement.status.created")}
+                  </SelectItem>
+                  <SelectItem value="IN_TRANSIT">
+                    {t("parcelManagement.status.inTransit")}
+                  </SelectItem>
+                  <SelectItem value="OUT_FOR_DELIVERY">
+                    {t("parcelManagement.status.outForDelivery")}
+                  </SelectItem>
+                  <SelectItem value="DELIVERED">
+                    {t("parcelManagement.status.delivered")}
+                  </SelectItem>
+                  <SelectItem value="RETURNED">
+                    {t("parcelManagement.status.returned")}
+                  </SelectItem>
+                  <SelectItem value="EXCEPTION">
+                    {t("parcelManagement.status.exception")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
               <Select
                 value={serviceFilter}
-                onValueChange={(v: string) => setServiceFilter(v as any)}
+                onValueChange={(v: string) =>
+                  setServiceFilter(v as "ALL" | "EXPRESS" | "STANDARD")
+                }
               >
-                <SelectTrigger className="w-44" title={t("parcelManagement.filterByService")!}>
-                  <SelectValue placeholder={t("parcelManagement.filterByService")!} />
+                <SelectTrigger
+                  className="w-44"
+                  title={t("parcelManagement.filterByService")!}
+                >
+                  <SelectValue
+                    placeholder={t("parcelManagement.filterByService")!}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("parcelManagement.service.all")}</SelectItem>
-                  <SelectItem value="EXPRESS">{t("parcelManagement.service.express")}</SelectItem>
-                  <SelectItem value="STANDARD">{t("parcelManagement.service.standard")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("parcelManagement.service.all")}
+                  </SelectItem>
+                  <SelectItem value="EXPRESS">
+                    {t("parcelManagement.service.express")}
+                  </SelectItem>
+                  <SelectItem value="STANDARD">
+                    {t("parcelManagement.service.standard")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -210,7 +258,9 @@ export default function ParcelManagement() {
               icon={Package}
               title={t("parcelManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredParcels.length === 0 ? (
@@ -228,11 +278,15 @@ export default function ParcelManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("parcelManagement.table.tracking")}</TableHead>
+                    <TableHead>
+                      {t("parcelManagement.table.tracking")}
+                    </TableHead>
                     <TableHead>{t("parcelManagement.table.client")}</TableHead>
                     <TableHead>{t("parcelManagement.table.service")}</TableHead>
                     <TableHead>{t("parcelManagement.table.status")}</TableHead>
-                    <TableHead>{t("parcelManagement.table.lastUpdate")}</TableHead>
+                    <TableHead>
+                      {t("parcelManagement.table.lastUpdate")}
+                    </TableHead>
                     <TableHead>{t("parcelManagement.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -259,7 +313,9 @@ export default function ParcelManagement() {
                               statusBadge[status] || "bg-gray-100 text-gray-800"
                             }
                           >
-                            {t(`parcelManagement.status.${status.toLowerCase()}`)}
+                            {t(
+                              `parcelManagement.status.${status.toLowerCase()}`,
+                            )}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -286,14 +342,24 @@ export default function ParcelManagement() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => window.open(`/dashboard/parcels/${p.id}#tracking`, '_blank')}
+                              onClick={() =>
+                                window.open(
+                                  `/dashboard/parcels/${p.id}#tracking`,
+                                  "_blank",
+                                )
+                              }
                             >
                               {t("parcelManagement.actions.track")}
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => window.open(`/dashboard/parcels/${p.id}?print=label`, '_blank')}
+                              onClick={() =>
+                                window.open(
+                                  `/dashboard/parcels/${p.id}?print=label`,
+                                  "_blank",
+                                )
+                              }
                             >
                               {t("parcelManagement.actions.printLabel")}
                             </Button>

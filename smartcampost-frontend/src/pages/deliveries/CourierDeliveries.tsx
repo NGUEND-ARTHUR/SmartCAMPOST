@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Package, Loader2, Map, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Tabs not used in this view
 import { EmptyState } from "@/components/EmptyState";
 import { CourierNavigationMap } from "@/components/maps";
 import { useMyParcels } from "@/hooks";
@@ -19,7 +19,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CourierDeliveries() {
-  const { t } = useTranslation();
+  useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "map">("map");
@@ -35,21 +35,38 @@ export default function CourierDeliveries() {
     (p) => p.status === "OUT_FOR_DELIVERY" || p.status === "IN_TRANSIT",
   );
 
-  // Convert deliveries to map stops format
-  const mapStops = deliveries.map((d, index) => ({
-    id: d.id,
-    type: "DELIVERY" as const,
-    location: {
-      lat: 4.0511 + Math.random() * 0.1, // Mock coordinates - would come from backend
-      lng: 9.7679 + Math.random() * 0.1,
-      address: `Delivery location ${index + 1}`,
-    },
-    parcelId: d.id,
-    trackingCode: d.trackingRef || d.id.slice(0, 10),
-    clientName: "Customer",
-    clientPhone: "+237 XXX XXX XXX",
-    priority: 1,
-  }));
+  // Convert deliveries to map stops format (memoized to avoid impure calls on every render)
+  // Stable pseudo-random generator based on id to avoid Math.random() during render
+  const stableRandom = (s: string) => {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return (h % 1000) / 1000;
+  };
+
+  const mapStops = useMemo(
+    () =>
+      deliveries.map((d, index) => {
+        const r = stableRandom(d.id + String(index));
+        return {
+          id: d.id,
+          type: "DELIVERY" as const,
+          location: {
+            lat: 4.0511 + r * 0.1,
+            lng: 9.7679 + r * 0.1,
+            address: `Delivery location ${index + 1}`,
+          },
+          parcelId: d.id,
+          trackingCode: d.trackingRef || d.id.slice(0, 10),
+          clientName: "Customer",
+          clientPhone: "+237 XXX XXX XXX",
+          priority: 1,
+        };
+      }),
+    [deliveries],
+  );
 
   const handleStopComplete = (stopId: string) => {
     toast.success(`Delivery ${stopId.slice(0, 8)} marked as complete`);
@@ -121,64 +138,64 @@ export default function CourierDeliveries() {
             <CardTitle>Deliveries</CardTitle>
           </CardHeader>
           <CardContent>
-              <div className="space-y-3">
-                {deliveries.map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex items-center justify-between border rounded-lg p-3 bg-white"
-                  >
-                    <div>
-                      <div className="font-medium">
-                        {d.trackingRef || d.id.slice(0, 10)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Recipient • Unknown city
-                      </div>
+            <div className="space-y-3">
+              {deliveries.map((d) => (
+                <div
+                  key={d.id}
+                  className="flex items-center justify-between border rounded-lg p-3 bg-white"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {d.trackingRef || d.id.slice(0, 10)}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge
-                        className={
-                          statusColors[d.status || ""] ||
-                          "bg-gray-100 text-gray-800"
-                        }
-                      >
-                        {(d.status || "UNKNOWN").replace(/_/g, " ")}
-                      </Badge>
-                      <Button
-                        onClick={() => navigate(`/courier/deliveries/${d.id}`)}
-                      >
-                        Start
-                      </Button>
+                    <div className="text-sm text-muted-foreground">
+                      Recipient • Unknown city
                     </div>
                   </div>
-                ))}
-              </div>
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Next
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      className={
+                        statusColors[d.status || ""] ||
+                        "bg-gray-100 text-gray-800"
+                      }
+                    >
+                      {(d.status || "UNKNOWN").replace(/_/g, " ")}
+                    </Badge>
+                    <Button
+                      onClick={() => navigate(`/courier/deliveries/${d.id}`)}
+                    >
+                      Start
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground self-center">
+                  Page {page + 1} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

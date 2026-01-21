@@ -105,7 +105,7 @@ function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const R = 6371; // Earth's radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -123,7 +123,7 @@ function calculateDistance(
 // Simple route optimization using nearest neighbor algorithm
 function optimizeRoute(
   start: Location,
-  stops: Stop[]
+  stops: Stop[],
 ): { optimizedStops: Stop[]; totalDistance: number } {
   if (stops.length === 0) return { optimizedStops: [], totalDistance: 0 };
 
@@ -142,7 +142,7 @@ function optimizeRoute(
         current.lat,
         current.lng,
         stop.location.lat,
-        stop.location.lng
+        stop.location.lng,
       );
       if (distance < nearestDistance) {
         nearestDistance = distance;
@@ -166,7 +166,7 @@ export default function CourierNavigationMap({
   onNavigate,
 }: CourierNavigationMapProps) {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(
-    courierLocation || null
+    courierLocation || null,
   );
   const [isLocating, setIsLocating] = useState(false);
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
@@ -190,7 +190,7 @@ export default function CourierNavigationMap({
           // Fallback to Douala center
           setCurrentLocation({ lat: 4.0511, lng: 9.7679 });
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        { enableHighAccuracy: true, timeout: 10000 },
       );
     } else {
       setIsLocating(false);
@@ -201,8 +201,10 @@ export default function CourierNavigationMap({
   // Get location on mount
   useEffect(() => {
     if (!currentLocation) {
-      getCurrentLocation();
+      const id = window.setTimeout(() => getCurrentLocation(), 0);
+      return () => window.clearTimeout(id);
     }
+    return undefined;
   }, [currentLocation, getCurrentLocation]);
 
   // Optimize route
@@ -468,7 +470,7 @@ export default function CourierNavigationMap({
                       </div>
                     </Popup>
                   </Marker>
-                )
+                ),
               )}
             </MapContainer>
           </div>
@@ -521,7 +523,7 @@ export default function CourierNavigationMap({
                     <Navigation className="w-4 h-4" />
                   </Button>
                 </div>
-              )
+              ),
             )}
           </div>
         </CardContent>

@@ -137,7 +137,10 @@ export default function Payments() {
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-44" title="Filter by status">
+                <SelectTrigger
+                  className="w-full sm:w-44"
+                  title="Filter by status"
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>

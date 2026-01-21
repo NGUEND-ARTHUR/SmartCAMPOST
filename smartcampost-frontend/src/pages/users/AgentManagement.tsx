@@ -121,7 +121,8 @@ export default function AgentManagement() {
     updateStatus.mutate(
       { id: agentId, data: { status: newStatus } },
       {
-        onSuccess: () => toast.success(t("agents.status.updated", { status: newStatus })),
+        onSuccess: () =>
+          toast.success(t("agents.status.updated", { status: newStatus })),
         onError: (err) =>
           toast.error(
             err instanceof Error ? err.message : t("agents.status.error"),
@@ -163,9 +164,7 @@ export default function AgentManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">{t("agents.title")}</h1>
-          <p className="text-muted-foreground">
-            {t("agents.subtitle")}
-          </p>
+          <p className="text-muted-foreground">{t("agents.subtitle")}</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -236,7 +235,9 @@ export default function AgentManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="agencyId">{t("agents.form.assignAgency")}</Label>
+                <Label htmlFor="agencyId">
+                  {t("agents.form.assignAgency")}
+                </Label>
                 <Select
                   value={formData.agencyId}
                   onValueChange={(value: string) =>
@@ -244,7 +245,9 @@ export default function AgentManagement() {
                   }
                 >
                   <SelectTrigger id="agencyId">
-                    <SelectValue placeholder={t("agents.form.selectAgencyPlaceholder")}/>
+                    <SelectValue
+                      placeholder={t("agents.form.selectAgencyPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {agencies.map((agency) => (
@@ -288,13 +291,21 @@ export default function AgentManagement() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder={t("agents.list.statusPlaceholder")}/>
+                  <SelectValue
+                    placeholder={t("agents.list.statusPlaceholder")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">{t("agents.status.all")}</SelectItem>
-                  <SelectItem value="ACTIVE">{t("agents.status.active")}</SelectItem>
-                  <SelectItem value="INACTIVE">{t("agents.status.inactive")}</SelectItem>
-                  <SelectItem value="SUSPENDED">{t("agents.status.suspended")}</SelectItem>
+                  <SelectItem value="ACTIVE">
+                    {t("agents.status.active")}
+                  </SelectItem>
+                  <SelectItem value="INACTIVE">
+                    {t("agents.status.inactive")}
+                  </SelectItem>
+                  <SelectItem value="SUSPENDED">
+                    {t("agents.status.suspended")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -310,7 +321,9 @@ export default function AgentManagement() {
               icon={UserCheck}
               title={t("agents.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredAgents.length === 0 ? (
@@ -397,9 +410,15 @@ export default function AgentManagement() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ACTIVE">{t("agents.status.active")}</SelectItem>
-                              <SelectItem value="INACTIVE">{t("agents.status.inactive")}</SelectItem>
-                              <SelectItem value="SUSPENDED">{t("agents.status.suspended")}</SelectItem>
+                              <SelectItem value="ACTIVE">
+                                {t("agents.status.active")}
+                              </SelectItem>
+                              <SelectItem value="INACTIVE">
+                                {t("agents.status.inactive")}
+                              </SelectItem>
+                              <SelectItem value="SUSPENDED">
+                                {t("agents.status.suspended")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -440,18 +459,20 @@ export default function AgentManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("agents.assign.title")}</DialogTitle>
-            <DialogDescription>
-              {t("agents.assign.subtitle")}
-            </DialogDescription>
+            <DialogDescription>{t("agents.assign.subtitle")}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="assignAgency">{t("agents.form.assignAgency")}</Label>
+            <Label htmlFor="assignAgency">
+              {t("agents.form.assignAgency")}
+            </Label>
             <Select
               value={selectedAgencyId}
               onValueChange={setSelectedAgencyId}
             >
               <SelectTrigger id="assignAgency">
-                <SelectValue placeholder={t("agents.form.selectAgencyPlaceholder")}/>
+                <SelectValue
+                  placeholder={t("agents.form.selectAgencyPlaceholder")}
+                />
               </SelectTrigger>
               <SelectContent>
                 {agencies.map((agency) => (
