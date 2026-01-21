@@ -3,6 +3,7 @@ import { Search, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import {
   Table,
@@ -13,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Payment } from "@/types";
+import { receiptService } from "@/services/payments/receipts.api";
 
 const statusColors: Record<string, string> = {
   INIT: "bg-gray-100 text-gray-800",
@@ -94,6 +96,7 @@ export default function ClientPayments() {
                   <TableHead>Method</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -118,6 +121,53 @@ export default function ClientPayments() {
                       {p.createdAt
                         ? new Date(p.createdAt).toLocaleString()
                         : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {p.status === "SUCCESS" && p.parcelId ? (
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              if (!p.parcelId) return alert("Parcel ID missing");
+                              const receipt = await receiptService.getByParcel(
+                                p.parcelId!,
+                              );
+                              const w = window.open("", "_blank");
+                              if (!w) return alert("Unable to open print window");
+                              const html = `
+                                <html>
+                                <head>
+                                  <title>Receipt ${receipt.receiptNumber}</title>
+                                  <style>body{font-family:Arial,Helvetica,sans-serif;padding:24px}</style>
+                                </head>
+                                <body>
+                                  <h2>Receipt ${receipt.receiptNumber}</h2>
+                                  <p><strong>Parcel:</strong> ${receipt.trackingRef || receipt.parcelId}</p>
+                                  <p><strong>Delivered At:</strong> ${receipt.deliveredAt || ''}</p>
+                                  <p><strong>Receiver:</strong> ${receipt.receiverName || ''}</p>
+                                  <p><strong>Courier:</strong> ${receipt.courierName || ''}</p>
+                                  <p><strong>Amount:</strong> ${receipt.totalAmount ?? 0} ${"XAF"}</p>
+                                  <p><strong>Payment method:</strong> ${receipt.paymentMethod || ''}</p>
+                                  <hr />
+                                  <p>Generated: ${receipt.generatedAt || ''}</p>
+                                  ${receipt.pdfUrl ? `<p><a href="${receipt.pdfUrl}" target="_blank">Open PDF</a></p>` : ''}
+                                </body>
+                                </html>
+                              `;
+                              w.document.open();
+                              w.document.write(html);
+                              w.document.close();
+                              w.print();
+                            } catch (err: any) {
+                              alert(err?.message || "Failed to load receipt");
+                            }
+                          }}
+                        >
+                          View / Print
+                        </Button>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
