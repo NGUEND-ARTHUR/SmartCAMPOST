@@ -293,6 +293,13 @@ class ApiClient {
     });
   }
 
+  public async patch<T = unknown>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
   public async delete<T = unknown>(endpoint: string) {
     return this.request<T>(endpoint, { method: "DELETE" });
   }

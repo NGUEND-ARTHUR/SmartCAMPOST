@@ -20,4 +20,4 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
   },
-} as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+} as any);

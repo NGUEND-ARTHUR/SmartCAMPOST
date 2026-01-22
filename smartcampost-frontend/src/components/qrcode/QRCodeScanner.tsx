@@ -114,6 +114,17 @@ export function QRCodeScanner({
       };
     }
   }, []);
+  const stopScanning = useCallback(async () => {
+    if (scannerRef.current?.isScanning) {
+      try {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
+      } catch (err) {
+        console.error("Error stopping scanner:", err);
+      }
+    }
+    setIsScanning(false);
+  }, []);
 
   const handleScanSuccess = useCallback(
     (decodedText: string) => {
@@ -147,7 +158,7 @@ export function QRCodeScanner({
         stopScanning();
       }
     },
-    [continuous, onScan, onError, parseQRCode, scanDelay],
+    [continuous, onScan, onError, parseQRCode, scanDelay, stopScanning],
   );
 
   const startScanning = useCallback(async () => {
@@ -219,18 +230,6 @@ export function QRCodeScanner({
       onError?.(errorMessage);
     }
   }, [facingMode, handleScanSuccess, onError, isMounted]);
-
-  const stopScanning = useCallback(async () => {
-    if (scannerRef.current?.isScanning) {
-      try {
-        await scannerRef.current.stop();
-        await scannerRef.current.clear();
-      } catch (err) {
-        console.error("Error stopping scanner:", err);
-      }
-    }
-    setIsScanning(false);
-  }, []);
 
   const toggleCamera = useCallback(async () => {
     await stopScanning();

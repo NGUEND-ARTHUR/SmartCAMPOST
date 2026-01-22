@@ -10,7 +10,7 @@ export function ClientDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, isLoading } = useMyParcels(0, 100);
-  const parcels = data?.content ?? [];
+  const parcels = useMemo(() => data?.content ?? [], [data]);
 
   const stats = useMemo(() => {
     const inTransit = parcels.filter(

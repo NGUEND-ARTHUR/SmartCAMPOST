@@ -45,7 +45,7 @@ export default function StaffDashboard() {
   const [roleFilter, setRoleFilter] = useState<"ALL" | StaffRole>("ALL");
 
   const { data, isLoading, error } = useStaffList(page, 50);
-  const staffList = data?.content ?? [];
+  const staffList = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;
 
   const filtered = useMemo(() => {

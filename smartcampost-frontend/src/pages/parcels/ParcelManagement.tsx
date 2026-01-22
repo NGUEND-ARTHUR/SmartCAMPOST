@@ -55,7 +55,7 @@ export default function ParcelManagement() {
   >("ALL");
 
   const { data, isLoading, error } = useParcels(page, 50);
-  const parcels = data?.content ?? [];
+  const parcels = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;
 
   const filteredParcels = useMemo(() => {

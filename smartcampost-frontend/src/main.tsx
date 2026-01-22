@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "sonner";
 import "./index.css";
 import "./i18n"; // Initialize i18n
+import "leaflet/dist/leaflet.css";
 import App from "./App.tsx";
 
 const queryClient = new QueryClient({

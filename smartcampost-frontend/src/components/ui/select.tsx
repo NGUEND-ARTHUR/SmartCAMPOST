@@ -8,7 +8,7 @@ type SelectContextType<T = string> = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const SelectContext = React.createContext<SelectContextType<unknown> | null>(null);
+const SelectContext = React.createContext<SelectContextType<any> | null>(null);
 
 type SelectProps<T = string> = React.PropsWithChildren<{
   value?: T;
@@ -45,9 +45,7 @@ export const SelectTrigger = ({
   className?: string;
   placeholder?: React.ReactNode;
 }) => {
-  const ctx = React.useContext(
-    SelectContext as React.Context<SelectContextType<unknown> | null>,
-  );
+  const ctx = React.useContext(SelectContext);
 
   return (
     <button
@@ -85,9 +83,7 @@ export const SelectValue = ({
 }: {
   placeholder?: React.ReactNode;
 }) => {
-  const ctx = React.useContext(
-    SelectContext as React.Context<SelectContextType<unknown> | null>,
-  );
+  const ctx = React.useContext(SelectContext);
   return (
     <span className="text-sm text-muted-foreground">
       {(ctx?.value as unknown as React.ReactNode) ?? placeholder}
