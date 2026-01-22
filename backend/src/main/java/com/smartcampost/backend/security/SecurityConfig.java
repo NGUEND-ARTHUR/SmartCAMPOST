@@ -39,6 +39,7 @@ public class SecurityConfig {
                         // ===================================================
                         .requestMatchers(
                             "/actuator/**",
+                            "/api/payments/mtn/**",
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/send-otp",

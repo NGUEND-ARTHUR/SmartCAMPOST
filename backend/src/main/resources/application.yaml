@@ -28,6 +28,13 @@ spring:
 server:
   port: 8080
 
+# MTN Mobile Money credentials for local testing (move to secure env in production)
+MTN_CONSUMER_KEY: xTZAlZAqwp4AKPR3BVkYECi4rZgEaZbn
+MTN_CONSUMER_SECRET: RlbUxdfmZzwo68xf
+# Optional: set these to real MTN sandbox/production endpoints
+MTN_TOKEN_URL: ""
+MTN_INIT_URL: ""
+
 # SmartCAMPOST QR Code Security Configuration
 smartcampost:
   qr:
