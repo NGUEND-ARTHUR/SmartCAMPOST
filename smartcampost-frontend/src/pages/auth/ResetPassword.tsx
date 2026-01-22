@@ -40,8 +40,11 @@ export default function ResetPassword() {
       await apiClient.requestPasswordReset({ identifier: phone.trim() });
       toast.success("OTP sent");
       setStep("confirm");
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to request reset");
+    } catch (e: unknown) {
+      const msg =
+        (e as { message?: string } | undefined)?.message ??
+        String(e ?? "Failed to request reset");
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -58,8 +61,11 @@ export default function ResetPassword() {
       });
       toast.success("Password reset successful");
       navigate("/auth/login", { replace: true });
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to reset password");
+    } catch (e: unknown) {
+      const msg =
+        (e as { message?: string } | undefined)?.message ??
+        String(e ?? "Failed to reset password");
+      toast.error(msg);
     } finally {
       setBusy(false);
     }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MapPin, Plus, Edit, Trash2, Home, Briefcase } from "lucide-react";
+import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,7 +56,7 @@ const mockAddresses: Address[] = [
   },
 ];
 
-const labelIcons: Record<string, any> = {
+const labelIcons: Record<string, ComponentType<any>> = {
   Home: Home,
   Office: Briefcase,
   Warehouse: MapPin,

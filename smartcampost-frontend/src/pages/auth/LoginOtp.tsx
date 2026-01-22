@@ -40,8 +40,11 @@ export default function LoginOtp() {
       await apiClient.requestOtpLogin({ identifier: phone.trim() });
       toast.success("OTP sent");
       setStep("confirm");
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to send OTP");
+    } catch (e: unknown) {
+      const msg =
+        (e as { message?: string } | undefined)?.message ??
+        String(e ?? "Failed to send OTP");
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -56,9 +59,12 @@ export default function LoginOtp() {
         otp: otp.trim(),
       });
       setAuth(res.user, res.token);
-      navigate(routeByRole(res.user.role as any), { replace: true });
-    } catch (e: any) {
-      toast.error(e?.message || "Invalid OTP");
+      navigate(routeByRole(res.user.role), { replace: true });
+    } catch (e: unknown) {
+      const msg =
+        (e as { message?: string } | undefined)?.message ??
+        String(e ?? "Invalid OTP");
+      toast.error(msg);
     } finally {
       setBusy(false);
     }

@@ -1,15 +1,30 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const SelectContext = React.createContext<any>(null);
+type SelectContextType<T = string> = {
+  value?: T;
+  onValueChange?: ((v: T) => void) | React.Dispatch<React.SetStateAction<T>>;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
-export const Select = ({
+const SelectContext = React.createContext<SelectContextType<unknown> | null>(null);
+
+type SelectProps<T = string> = React.PropsWithChildren<{
+  value?: T;
+  onValueChange?: (v: T) => void;
+  className?: string;
+  disabled?: boolean;
+}> &
+  React.HTMLAttributes<HTMLDivElement>;
+
+export function Select<T = string>({
   children,
   value,
   onValueChange,
   className,
   ...props
-}: any) => {
+}: SelectProps<T>) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -19,10 +34,20 @@ export const Select = ({
       </div>
     </SelectContext.Provider>
   );
-};
+}
 
-export const SelectTrigger = ({ children, className, placeholder }: any) => {
-  const ctx = React.useContext(SelectContext);
+export const SelectTrigger = ({
+  children,
+  className,
+  placeholder,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  className?: string;
+  placeholder?: React.ReactNode;
+}) => {
+  const ctx = React.useContext(
+    SelectContext as React.Context<SelectContextType<unknown> | null>,
+  );
 
   return (
     <button
@@ -32,9 +57,10 @@ export const SelectTrigger = ({ children, className, placeholder }: any) => {
         "w-full rounded-md border px-3 py-2 text-left flex items-center justify-between bg-white",
         className,
       )}
+      {...props}
     >
       <span className="text-sm text-muted-foreground">
-        {ctx?.value || placeholder || children}
+        {(ctx?.value as unknown as React.ReactNode) ?? placeholder ?? children}
       </span>
       <svg
         className={cn(
@@ -54,16 +80,25 @@ export const SelectTrigger = ({ children, className, placeholder }: any) => {
   );
 };
 
-export const SelectValue = ({ placeholder }: any) => {
-  const ctx = React.useContext(SelectContext);
+export const SelectValue = ({
+  placeholder,
+}: {
+  placeholder?: React.ReactNode;
+}) => {
+  const ctx = React.useContext(
+    SelectContext as React.Context<SelectContextType<unknown> | null>,
+  );
   return (
     <span className="text-sm text-muted-foreground">
-      {ctx?.value || placeholder}
+      {(ctx?.value as unknown as React.ReactNode) ?? placeholder}
     </span>
   );
 };
 
-export const SelectContent = ({ children, className }: any) => {
+export const SelectContent = ({
+  children,
+  className,
+}: React.PropsWithChildren<{ className?: string }>) => {
   const ctx = React.useContext(SelectContext);
   if (!ctx?.open) return null;
 
@@ -79,7 +114,10 @@ export const SelectContent = ({ children, className }: any) => {
   );
 };
 
-export const SelectItem = ({ value, children }: any) => {
+export const SelectItem = ({
+  value,
+  children,
+}: React.PropsWithChildren<{ value: string | number }>) => {
   const ctx = React.useContext(SelectContext);
   const handleClick = () => {
     ctx?.onValueChange?.(value);

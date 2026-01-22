@@ -10,6 +10,8 @@ import {
   Camera,
   Loader2,
 } from "lucide-react";
+import type { ComponentType } from "react";
+import type { ParcelStatus as TransitionParcelStatus } from "@/lib/transitions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +32,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useParcel, useScanEventsForParcel } from "@/hooks";
 import { toast } from "sonner";
 
-const eventIcons: Record<string, any> = {
+const eventIcons: Record<string, ComponentType<any>> = {
   CREATED: Package,
   AT_ORIGIN_AGENCY: MapPin,
   IN_TRANSIT: Truck,
@@ -85,7 +87,7 @@ export default function ParcelDetail() {
   }
 
   const cancelDecision = canTransition(
-    { kind: "parcel", status: parcel.status as any },
+    { kind: "parcel", status: parcel.status as TransitionParcelStatus },
     { type: "PARCEL_SET_STATUS", to: "CANCELLED" },
   );
   const canCancel = cancelDecision.allowed;
