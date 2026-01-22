@@ -32,7 +32,7 @@ const statusColors: Record<PaymentStatusLocal, string> = {
 export default function FinanceDashboard() {
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = usePayments(page, 50);
-  const payments = data?.content ?? [];
+  const payments = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;
 
   const totals = useMemo(() => {

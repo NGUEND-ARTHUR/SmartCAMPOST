@@ -118,10 +118,13 @@ export default function StaffManagement() {
   const updateRole = useUpdateStaffRole();
   const updateCourierStatus = useUpdateCourierStatus();
 
-  const staffList = data?.content ?? [];
-  const courierList = couriersData?.content ?? [];
+  const staffList = useMemo(() => data?.content ?? [], [data]);
+  const courierList = useMemo(
+    () => couriersData?.content ?? [],
+    [couriersData],
+  );
   const totalPages = data?.totalPages ?? 0;
-  const agencies = agenciesData?.content ?? [];
+  const agencies = useMemo(() => agenciesData?.content ?? [], [agenciesData]);
 
   // Merge staff and couriers into a unified list
   const unifiedList = useMemo<UnifiedMember[]>(() => {

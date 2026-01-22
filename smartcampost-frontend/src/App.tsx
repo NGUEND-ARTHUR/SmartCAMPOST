@@ -1,6 +1,10 @@
 import React from "react";
 import CreateFinancePage from "./pages/admin/CreateFinancePage";
 import CreateRiskPage from "./pages/admin/CreateRiskPage";
+import ApiCoverage from "./pages/debug/ApiCoverage";
+import MapViewer from "./pages/maps/MapViewer";
+import PickupMap from "./pages/maps/PickupMap";
+import TrackingMap from "./pages/maps/TrackingMap";
 import {
   BrowserRouter as Router,
   Routes,
@@ -60,6 +64,7 @@ import {
   UserAccountManagement,
 } from "./pages/admin";
 import { AIChatbot } from "./components/chat";
+import MtnTest from "./pages/payments/MtnTest";
 
 function App() {
   return (
@@ -145,6 +150,7 @@ function App() {
           }
         >
           <Route index element={<AdminDashboard />} />
+          <Route path="api-coverage" element={<ApiCoverage />} />
           <Route path="parcels" element={<ParcelManagement />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="staff" element={<StaffDashboard />} />
@@ -212,6 +218,10 @@ function App() {
         <Route path="/admin/risk" element={<Navigate to="/risk" replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/maps/viewer" element={<MapViewer />} />
+        <Route path="/maps/pickups" element={<PickupMap />} />
+        <Route path="/maps/tracking" element={<TrackingMap />} />
+        <Route path="/mtn-test" element={<MtnTest />} />
       </Routes>
       {/* AI Chatbot - Available on all pages */}
       <AIChatbot />

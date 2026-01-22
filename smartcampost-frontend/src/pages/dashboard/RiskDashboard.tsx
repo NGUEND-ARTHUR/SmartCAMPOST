@@ -39,7 +39,7 @@ const stateStyles: Record<AlertState, string> = {
 export default function RiskDashboard() {
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useRiskAlerts(page, 50);
-  const alerts = data?.content ?? [];
+  const alerts = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;
 
   const metrics = useMemo(() => {
