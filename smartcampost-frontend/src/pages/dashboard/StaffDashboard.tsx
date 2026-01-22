@@ -122,7 +122,9 @@ export default function StaffDashboard() {
             <div className="flex gap-2">
               <Select
                 value={roleFilter}
-                onValueChange={(v: string) => setRoleFilter(v as any)}
+                onValueChange={(v: string) =>
+                  setRoleFilter(v as "ALL" | StaffRole)
+                }
               >
                 <SelectTrigger className="w-52" title="Filter by role">
                   <Filter className="mr-2 h-4 w-4" />
