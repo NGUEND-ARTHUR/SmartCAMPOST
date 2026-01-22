@@ -145,27 +145,37 @@ export default function ApiCoverage() {
 
             {/* Path params inputs */}
             <div className="mt-2">
-              {[...ep.path.matchAll(/\{([^}]+)\}/g)].map((m) => (
-                <div key={m[1]} className="mt-1">
-                  <label className="block text-xs">{m[1]}</label>
-                  <input
-                    className="border rounded w-full p-1 text-sm"
-                    value={pathParams[`${ep.id}::${m[1]}`] || ""}
-                    onChange={(e) =>
-                      setPathParams((p) => ({
-                        ...p,
-                        [`${ep.id}::${m[1]}`]: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              ))}
+              {[...ep.path.matchAll(/\{([^}]+)\}/g)].map((m) => {
+                const key = m[1];
+                const inputId = `param-${ep.id}::${key}`;
+                return (
+                  <div key={key} className="mt-1">
+                    <label htmlFor={inputId} className="block text-xs">
+                      {key}
+                    </label>
+                    <input
+                      id={inputId}
+                      className="border rounded w-full p-1 text-sm"
+                      value={pathParams[`${ep.id}::${key}`] || ""}
+                      onChange={(e) =>
+                        setPathParams((p) => ({
+                          ...p,
+                          [`${ep.id}::${key}`]: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                );
+              })}
             </div>
 
             {/* Body input */}
             <div className="mt-2">
-              <label className="block text-xs">Request body (JSON)</label>
+              <label htmlFor={`body-${ep.id}`} className="block text-xs">
+                Request body (JSON)
+              </label>
               <textarea
+                id={`body-${ep.id}`}
                 className="border rounded w-full p-1 text-sm h-24"
                 value={bodies[ep.id] || ""}
                 onChange={(e) =>
