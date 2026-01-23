@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/ui/languageswitcher";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { routeByRole } from "@/lib/routeByRole";

@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/ui/languageswitcher";
 import { RegisterRequest } from "@/types";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";

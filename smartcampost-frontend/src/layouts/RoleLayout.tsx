@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { AppRole } from "@/lib/routeByRole";
 import { Button } from "@/components/ui/button";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/ui/languageswitcher";
 import { useAuthStore } from "@/store/authStore";
 
 type NavItem = { to: string; labelKey: string };
