@@ -47,11 +47,6 @@ type RawAuth = {
 };
 
 class ApiClient {
-  private baseURL: string;
-
-  constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL;
-  }
 
   private parseErrorResponse(status: number, responseText: string): ApiError {
     // Try to parse as JSON first
