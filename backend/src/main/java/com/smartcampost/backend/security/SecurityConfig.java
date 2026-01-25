@@ -188,12 +188,25 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:5173", 
-            "http://localhost:5174", 
-            "http://localhost:5175", 
-            "http://localhost:5176"
-        ));
+        // Allow origins from environment variable CORS_ALLOWED_ORIGINS (comma-separated),
+        // fall back to localhost dev ports. If not provided, allow all origins via patterns.
+        String env = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (env != null && !env.isBlank()) {
+            List<String> origins = Arrays.stream(env.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+            configuration.setAllowedOrigins(origins);
+        } else {
+            configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:5175",
+                "http://localhost:5176"
+            ));
+            // also allow all origin patterns (useful for deployed previews)
+            configuration.setAllowedOriginPatterns(List.of("*"));
+        }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
