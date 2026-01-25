@@ -3,7 +3,9 @@ import axios from "axios";
 const rawBase = import.meta.env.VITE_API_URL as string | undefined;
 
 function normalizeBase(url?: string) {
-  if (!url) return "https://smartcampost-backend.onrender.com/api";
+  // Prefer explicit VITE_API_URL from environment. If missing, fall back to localhost for dev.
+  const fallback = "http://localhost:8080/api";
+  if (!url) return fallback;
   const trimmed = url.replace(/\/+$/, "");
   if (trimmed.endsWith("/api")) return trimmed;
   return `${trimmed}/api`;
