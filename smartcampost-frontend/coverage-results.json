@@ -5,7 +5,7 @@
         "ok":  false,
         "path":  "/auth/register",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/auth/register",
+        "uri":  "https://smartcampost-backend.onrender.com/api/auth/register",
         "status":  400
     },
     {
@@ -14,7 +14,7 @@
         "ok":  false,
         "path":  "/auth/login",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/auth/login",
+        "uri":  "https://smartcampost-backend.onrender.com/api/auth/login",
         "status":  404
     },
     {
@@ -23,7 +23,7 @@
         "ok":  false,
         "path":  "/auth/send-otp",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/auth/send-otp",
+        "uri":  "https://smartcampost-backend.onrender.com/api/auth/send-otp",
         "status":  400
     },
     {
@@ -34,7 +34,7 @@
         "ok":  true,
         "path":  "/auth/verify-otp",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/auth/verify-otp",
+        "uri":  "https://smartcampost-backend.onrender.com/api/auth/verify-otp",
         "status":  200
     },
     {
@@ -43,7 +43,7 @@
         "ok":  false,
         "path":  "/parcels",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/parcels",
+        "uri":  "https://smartcampost-backend.onrender.com/api/parcels",
         "status":  403
     },
     {
@@ -52,7 +52,7 @@
         "ok":  false,
         "path":  "/parcels/me",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/parcels/me",
+        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/me",
         "status":  403
     },
     {
@@ -61,7 +61,7 @@
         "ok":  false,
         "path":  "/parcels/{parcelId}",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/parcels/1",
+        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/1",
         "status":  403
     },
     {
@@ -70,7 +70,7 @@
         "ok":  false,
         "path":  "/parcels/tracking/{trackingRef}",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/parcels/tracking/1",
+        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/tracking/1",
         "status":  403
     },
     {
@@ -79,7 +79,7 @@
         "ok":  false,
         "path":  "/parcels",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/parcels",
+        "uri":  "https://smartcampost-backend.onrender.com/api/parcels",
         "status":  403
     },
     {
@@ -88,7 +88,7 @@
         "ok":  false,
         "path":  "/parcels/{parcelId}/status",
         "method":  "PATCH",
-        "uri":  "http://localhost:8080/api/parcels/1/status",
+        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/1/status",
         "status":  403
     },
     {
@@ -97,7 +97,7 @@
         "ok":  false,
         "path":  "/pickups",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/pickups",
+        "uri":  "https://smartcampost-backend.onrender.com/api/pickups",
         "status":  403
     },
     {
@@ -106,7 +106,7 @@
         "ok":  false,
         "path":  "/pickups/me",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/pickups/me",
+        "uri":  "https://smartcampost-backend.onrender.com/api/pickups/me",
         "status":  403
     },
     {
@@ -115,7 +115,7 @@
         "ok":  false,
         "path":  "/pickups/{pickupId}",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/pickups/1",
+        "uri":  "https://smartcampost-backend.onrender.com/api/pickups/1",
         "status":  403
     },
     {
@@ -124,7 +124,7 @@
         "ok":  false,
         "path":  "/pickups/{pickupId}/assign-courier",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/pickups/1/assign-courier",
+        "uri":  "https://smartcampost-backend.onrender.com/api/pickups/1/assign-courier",
         "status":  403
     },
     {
@@ -133,7 +133,7 @@
         "ok":  false,
         "path":  "/payments/init",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/payments/init",
+        "uri":  "https://smartcampost-backend.onrender.com/api/payments/init",
         "status":  403
     },
     {
@@ -142,7 +142,7 @@
         "ok":  false,
         "path":  "/payments/confirm",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/payments/confirm",
+        "uri":  "https://smartcampost-backend.onrender.com/api/payments/confirm",
         "status":  403
     },
     {
@@ -151,7 +151,7 @@
         "ok":  false,
         "path":  "/notifications/trigger",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/notifications/trigger",
+        "uri":  "https://smartcampost-backend.onrender.com/api/notifications/trigger",
         "status":  403
     },
     {
@@ -160,7 +160,7 @@
         "ok":  false,
         "path":  "/qr/parcel/{parcelId}",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/qr/parcel/1",
+        "uri":  "https://smartcampost-backend.onrender.com/api/qr/parcel/1",
         "status":  403
     },
     {
@@ -169,7 +169,7 @@
         "ok":  false,
         "path":  "/qr/label/{parcelId}",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/qr/label/1",
+        "uri":  "https://smartcampost-backend.onrender.com/api/qr/label/1",
         "status":  403
     },
     {
@@ -178,7 +178,7 @@
         "ok":  false,
         "path":  "/ai/optimize-route",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/ai/optimize-route",
+        "uri":  "https://smartcampost-backend.onrender.com/api/ai/optimize-route",
         "status":  403
     },
     {
@@ -187,7 +187,7 @@
         "ok":  false,
         "path":  "/ai/chat",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/ai/chat",
+        "uri":  "https://smartcampost-backend.onrender.com/api/ai/chat",
         "status":  403
     },
     {
@@ -196,7 +196,7 @@
         "ok":  false,
         "path":  "/admin/users",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/admin/users",
+        "uri":  "https://smartcampost-backend.onrender.com/api/admin/users",
         "status":  403
     },
     {
@@ -205,7 +205,7 @@
         "ok":  false,
         "path":  "/admin/users/{userId}/freeze",
         "method":  "PATCH",
-        "uri":  "http://localhost:8080/api/admin/users/1/freeze",
+        "uri":  "https://smartcampost-backend.onrender.com/api/admin/users/1/freeze",
         "status":  403
     },
     {
@@ -214,7 +214,7 @@
         "ok":  false,
         "path":  "/agencies",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/agencies",
+        "uri":  "https://smartcampost-backend.onrender.com/api/agencies",
         "status":  403
     },
     {
@@ -223,7 +223,7 @@
         "ok":  false,
         "path":  "/integrations",
         "method":  "GET",
-        "uri":  "http://localhost:8080/api/integrations",
+        "uri":  "https://smartcampost-backend.onrender.com/api/integrations",
         "status":  403
     },
     {
@@ -232,7 +232,7 @@
         "ok":  false,
         "path":  "/geo/geocode",
         "method":  "POST",
-        "uri":  "http://localhost:8080/api/geo/geocode",
+        "uri":  "https://smartcampost-backend.onrender.com/api/geo/geocode",
         "status":  403
     }
 ]

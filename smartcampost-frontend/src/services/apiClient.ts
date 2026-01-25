@@ -1,12 +1,4 @@
-/**
- * Centralized HTTP client with token management
- */
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-
-// Define RequestInit type for ESLint compatibility
-type HttpRequestInit = globalThis.RequestInit;
+import axiosInstance from "@/lib/axiosClient";
 
 export interface PaginatedResponse<T> {
   content: T[];
@@ -18,92 +10,31 @@ export interface PaginatedResponse<T> {
   last: boolean;
 }
 
-class HttpClient {
-  private baseURL: string;
-
-  constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL;
+class AxiosHttpClient {
+  async request<T = unknown>(endpoint: string, config: Record<string, unknown> = {}): Promise<T> {
+    const res = await axiosInstance.request<T>({ url: endpoint, ...(config as any) });
+    return res.data as T;
   }
 
-  private getToken(): string | null {
-    try {
-      const stored = localStorage.getItem("auth-storage");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed?.state?.token || null;
-      }
-    } catch {
-      // ignore
-    }
-    return null;
-  }
-
-  async request<T>(
-    endpoint: string,
-    options: HttpRequestInit = {},
-  ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const token = this.getToken();
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(options.headers as Record<string, string>),
-    };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const config: HttpRequestInit = {
-      ...options,
-      headers,
-    };
-
-    const res = await fetch(url, config);
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
-    }
-
-    const text = await res.text();
-    if (!text) return {} as T;
-
-    try {
-      return JSON.parse(text) as T;
-    } catch {
-      return text as unknown as T;
-    }
-  }
-
-  get<T>(endpoint: string): Promise<T> {
+  get<T = unknown>(endpoint: string) {
     return this.request<T>(endpoint, { method: "GET" });
   }
 
-  post<T>(endpoint: string, body?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  post<T = unknown>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, { method: "POST", data: body });
   }
 
-  put<T>(endpoint: string, body?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  put<T = unknown>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, { method: "PUT", data: body });
   }
 
-  patch<T>(endpoint: string, body?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  patch<T = unknown>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, { method: "PATCH", data: body });
   }
 
-  delete<T>(endpoint: string): Promise<T> {
+  delete<T = unknown>(endpoint: string) {
     return this.request<T>(endpoint, { method: "DELETE" });
   }
 }
 
-export const httpClient = new HttpClient();
+export const httpClient = new AxiosHttpClient();
