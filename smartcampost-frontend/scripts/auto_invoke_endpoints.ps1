@@ -1,5 +1,11 @@
 $ErrorActionPreference = 'Continue'
-$base = "http://localhost:8080/api"
+$base = $env:VITE_API_URL
+if (-not $base -or $base -eq '') {
+  $base = "https://smartcampost-backend.onrender.com/api"
+} else {
+  $base = $base.TrimEnd('/')
+  if (-not $base.EndsWith('/api')) { $base = $base + '/api' }
+}
 $file = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) '..\src\services\coverage\coverage.api.ts'
 $file = Resolve-Path $file
 $text = Get-Content $file -Raw

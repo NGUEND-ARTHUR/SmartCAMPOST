@@ -1,6 +1,5 @@
 import { LoginRequest, LoginResponse, RegisterRequest } from "@/types";
-
-const API_BASE_URL = "http://localhost:8080/api"; // backend URL
+import axiosInstance from "@/lib/axiosClient";
 
 // Error codes mapped to i18n keys
 export const API_ERROR_CODES: Record<string, string> = {
@@ -120,48 +119,23 @@ class ApiClient {
     }
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: Record<string, unknown> = {},
-  ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...((options.headers as Record<string, string>) || {}),
-    };
-
-    const config = {
-      ...(options as Record<string, unknown>),
-      headers,
-    } as RequestInit;
-
-    let res: Response;
+  private async request<T>(endpoint: string, options: Record<string, unknown> = {}): Promise<T> {
     try {
-      res = await fetch(url, config as RequestInit);
-    } catch {
-      const error: ApiError = {
+      const res = await axiosInstance.request<T>({ url: endpoint, ...(options as any) });
+      return res.data as T;
+    } catch (err: any) {
+      if (err.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+        const msg = typeof data === "string" ? data : JSON.stringify(data);
+        throw this.parseErrorResponse(status, msg);
+      }
+      const networkErr: ApiError = {
         code: "NETWORK_ERROR",
-        message:
-          "Unable to connect to server. Please check your internet connection.",
+        message: "Unable to connect to server. Please check your internet connection.",
         status: 0,
       };
-      throw error;
-    }
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      const error = this.parseErrorResponse(res.status, text);
-      throw error;
-    }
-
-    const text = await res.text().catch(() => "");
-    if (!text) {
-      return {} as T;
-    }
-    try {
-      return JSON.parse(text) as T;
-    } catch {
-      return text as unknown as T;
+      throw networkErr;
     }
   }
 
