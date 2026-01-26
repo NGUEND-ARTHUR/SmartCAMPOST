@@ -116,7 +116,30 @@ class ApiClient {
 
   private async request<T>(endpoint: string, options: Record<string, unknown> = {}): Promise<T> {
     try {
-      const res = await axiosInstance.request<T>({ url: endpoint, ...(options as any) });
+      const cfg: any = { url: endpoint, ...(options as any) };
+      // map fetch-style `body` to axios `data` so existing callers that pass
+      // `body: JSON.stringify(...)` still send payloads correctly
+      if (cfg.body !== undefined) {
+        // If callers passed a JSON string (legacy code), try to parse it
+        // back to an object so axios sends proper JSON payloads and
+        // Spring's @RequestBody can bind correctly. If parsing fails,
+        // leave the string but ensure Content-Type is application/json.
+        let data = cfg.body;
+        if (typeof data === "string") {
+          try {
+            data = JSON.parse(data as string);
+          } catch {
+            // keep string as-is
+          }
+        }
+        cfg.data = data;
+        delete cfg.body;
+        cfg.headers = cfg.headers || {};
+        if (!cfg.headers["Content-Type"] && !cfg.headers["content-type"]) {
+          cfg.headers["Content-Type"] = "application/json";
+        }
+      }
+      const res = await axiosInstance.request<T>(cfg);
       return res.data as T;
     } catch (err: any) {
       if (err.response) {
@@ -186,7 +209,7 @@ class ApiClient {
   }): Promise<{ message?: string }> {
     return this.request<{ message?: string }>("/auth/login/otp/request", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ phone: payload.identifier }),
     });
   }
 
@@ -196,7 +219,7 @@ class ApiClient {
   }): Promise<LoginResponse> {
     return this.request<LoginResponse>("/auth/login/otp/confirm", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ phone: payload.identifier, otp: payload.otp }),
     });
   }
 
@@ -205,7 +228,7 @@ class ApiClient {
   }): Promise<{ message?: string }> {
     return this.request<{ message?: string }>("/auth/password/reset/request", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ phone: payload.identifier }),
     });
   }
 
@@ -216,7 +239,7 @@ class ApiClient {
   }): Promise<{ message?: string }> {
     return this.request<{ message?: string }>("/auth/password/reset/confirm", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ phone: payload.identifier, otp: payload.otp, newPassword: payload.newPassword }),
     });
   }
 
