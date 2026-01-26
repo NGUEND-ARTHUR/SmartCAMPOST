@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest",
+    "test:e2e": "playwright test",
     "test:ui": "vitest --run"
   },
   "dependencies": {
@@ -70,5 +71,6 @@
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
     "vitest": "^3.2.4"
+    ,"@playwright/test": "^1.39.1"
   }
 }
