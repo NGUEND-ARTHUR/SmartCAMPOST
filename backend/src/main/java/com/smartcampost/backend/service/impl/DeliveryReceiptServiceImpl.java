@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,6 +40,8 @@ public class DeliveryReceiptServiceImpl implements DeliveryReceiptService {
             boolean paymentCollected,
             Double amountCollected,
             String paymentMethod) {
+
+        Objects.requireNonNull(parcel, "parcel is required");
 
         // Check if receipt already exists
         if (receiptRepository.existsByParcel_Id(parcel.getId())) {
@@ -85,6 +88,7 @@ public class DeliveryReceiptServiceImpl implements DeliveryReceiptService {
 
     @Override
     public Optional<DeliveryReceiptResponse> getReceiptByParcelId(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         return receiptRepository.findByParcel_Id(parcelId)
                 .map(receipt -> mapToResponse(receipt, receipt.getParcel(), receipt.getProof()));
     }
@@ -97,6 +101,7 @@ public class DeliveryReceiptServiceImpl implements DeliveryReceiptService {
 
     @Override
     public boolean hasReceipt(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         return receiptRepository.existsByParcel_Id(parcelId);
     }
 

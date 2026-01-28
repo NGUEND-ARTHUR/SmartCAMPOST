@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ public class UssdServiceImpl implements UssdService {
 
     @Override
     public UssdResponse handleUssdRequest(UssdRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
 
         // ============================
         // 🔥 1. Validate incoming request

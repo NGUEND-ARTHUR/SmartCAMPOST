@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AIController {
-
     private final AIService aiService;
+    
 
     /**
      * Optimize delivery route for a courier
@@ -36,6 +36,28 @@ public class AIController {
             @Valid @RequestBody ChatRequest request
     ) {
         return ResponseEntity.ok(aiService.processChat(request));
+    }
+
+    /**
+     * Streaming chat endpoint: returns progressive response chunks
+     */
+    @PostMapping(value = "/chat/stream")
+    public ResponseEntity<org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody> chatStream(
+            @Valid @RequestBody ChatRequest request
+    ) {
+        org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody stream = out -> {
+            ChatResponse resp = aiService.processChat(request);
+            String text = resp.getMessage() != null ? resp.getMessage() : "";
+            int chunkSize = 200;
+            for (int i = 0; i < text.length(); i += chunkSize) {
+                int end = Math.min(text.length(), i + chunkSize);
+                String chunk = text.substring(i, end);
+                out.write(chunk.getBytes());
+                out.flush();
+                try { Thread.sleep(60); } catch (InterruptedException ignored) {}
+            }
+        };
+        return ResponseEntity.ok().header("Content-Type", "text/plain; charset=utf-8").body(stream);
     }
 
     /**

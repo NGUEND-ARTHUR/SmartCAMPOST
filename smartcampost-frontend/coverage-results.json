@@ -1,238 +1,238 @@
 ﻿[
-    {
-        "id":  "auth-register",
-        "error":  "{\"timestamp\":\"2026-01-22T12:35:38.894599800Z\",\"status\":400,\"error\":\"Bad Request\",\"code\":\"OTP_INVALID\",\"message\":\"Invalid or expired OTP\",\"path\":\"/api/auth/register\"}",
-        "ok":  false,
-        "path":  "/auth/register",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/auth/register",
-        "status":  400
+  {
+    "id": "auth-register",
+    "error": "{\"timestamp\":\"2026-01-22T12:35:38.894599800Z\",\"status\":400,\"error\":\"Bad Request\",\"code\":\"OTP_INVALID\",\"message\":\"Invalid or expired OTP\",\"path\":\"/api/auth/register\"}",
+    "ok": false,
+    "path": "/auth/register",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/auth/register",
+    "status": 400
+  },
+  {
+    "id": "auth-login",
+    "error": "{\"timestamp\":\"2026-01-22T12:35:39.018485400Z\",\"status\":404,\"error\":\"Not Found\",\"code\":\"AUTH_USER_NOT_FOUND\",\"message\":\"Invalid credentials\",\"path\":\"/api/auth/login\"}",
+    "ok": false,
+    "path": "/auth/login",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/auth/login",
+    "status": 404
+  },
+  {
+    "id": "auth-send-otp",
+    "error": "{\"timestamp\":\"2026-01-22T12:35:39.297364100Z\",\"status\":400,\"error\":\"Bad Request\",\"code\":\"BUSINESS_ERROR\",\"message\":\"could not execute statement [Column \u0027phone\u0027 cannot be null] [insert into otp_code (code,created_at,expires_at,phone,purpose,used,otp_id) values (?,?,?,?,?,?,?)]; SQL [insert into otp_code (code,created_at,expires_at,phone,purpose,used,otp_id) values (?,?,?,?,?,?,?)]; constraint [null]\",\"path\":\"/api/auth/send-otp\"}",
+    "ok": false,
+    "path": "/auth/send-otp",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/auth/send-otp",
+    "status": 400
+  },
+  {
+    "id": "auth-verify-otp",
+    "data": {
+      "verified": false
     },
-    {
-        "id":  "auth-login",
-        "error":  "{\"timestamp\":\"2026-01-22T12:35:39.018485400Z\",\"status\":404,\"error\":\"Not Found\",\"code\":\"AUTH_USER_NOT_FOUND\",\"message\":\"Invalid credentials\",\"path\":\"/api/auth/login\"}",
-        "ok":  false,
-        "path":  "/auth/login",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/auth/login",
-        "status":  404
-    },
-    {
-        "id":  "auth-send-otp",
-        "error":  "{\"timestamp\":\"2026-01-22T12:35:39.297364100Z\",\"status\":400,\"error\":\"Bad Request\",\"code\":\"BUSINESS_ERROR\",\"message\":\"could not execute statement [Column \u0027phone\u0027 cannot be null] [insert into otp_code (code,created_at,expires_at,phone,purpose,used,otp_id) values (?,?,?,?,?,?,?)]; SQL [insert into otp_code (code,created_at,expires_at,phone,purpose,used,otp_id) values (?,?,?,?,?,?,?)]; constraint [null]\",\"path\":\"/api/auth/send-otp\"}",
-        "ok":  false,
-        "path":  "/auth/send-otp",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/auth/send-otp",
-        "status":  400
-    },
-    {
-        "id":  "auth-verify-otp",
-        "data":  {
-                     "verified":  false
-                 },
-        "ok":  true,
-        "path":  "/auth/verify-otp",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/auth/verify-otp",
-        "status":  200
-    },
-    {
-        "id":  "parcels-create",
-        "error":  "",
-        "ok":  false,
-        "path":  "/parcels",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/parcels",
-        "status":  403
-    },
-    {
-        "id":  "parcels-me",
-        "error":  "",
-        "ok":  false,
-        "path":  "/parcels/me",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/me",
-        "status":  403
-    },
-    {
-        "id":  "parcels-get",
-        "error":  "",
-        "ok":  false,
-        "path":  "/parcels/{parcelId}",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/1",
-        "status":  403
-    },
-    {
-        "id":  "parcels-tracking",
-        "error":  "",
-        "ok":  false,
-        "path":  "/parcels/tracking/{trackingRef}",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/tracking/1",
-        "status":  403
-    },
-    {
-        "id":  "parcels-list",
-        "error":  "",
-        "ok":  false,
-        "path":  "/parcels",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/parcels",
-        "status":  403
-    },
-    {
-        "id":  "parcels-status",
-        "error":  "",
-        "ok":  false,
-        "path":  "/parcels/{parcelId}/status",
-        "method":  "PATCH",
-        "uri":  "https://smartcampost-backend.onrender.com/api/parcels/1/status",
-        "status":  403
-    },
-    {
-        "id":  "pickup-create",
-        "error":  "",
-        "ok":  false,
-        "path":  "/pickups",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/pickups",
-        "status":  403
-    },
-    {
-        "id":  "pickup-me",
-        "error":  "",
-        "ok":  false,
-        "path":  "/pickups/me",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/pickups/me",
-        "status":  403
-    },
-    {
-        "id":  "pickup-get",
-        "error":  "",
-        "ok":  false,
-        "path":  "/pickups/{pickupId}",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/pickups/1",
-        "status":  403
-    },
-    {
-        "id":  "pickup-assign",
-        "error":  "",
-        "ok":  false,
-        "path":  "/pickups/{pickupId}/assign-courier",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/pickups/1/assign-courier",
-        "status":  403
-    },
-    {
-        "id":  "payments-init",
-        "error":  "",
-        "ok":  false,
-        "path":  "/payments/init",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/payments/init",
-        "status":  403
-    },
-    {
-        "id":  "payments-confirm",
-        "error":  "",
-        "ok":  false,
-        "path":  "/payments/confirm",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/payments/confirm",
-        "status":  403
-    },
-    {
-        "id":  "notifications-trigger",
-        "error":  "",
-        "ok":  false,
-        "path":  "/notifications/trigger",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/notifications/trigger",
-        "status":  403
-    },
-    {
-        "id":  "qr-parcel",
-        "error":  "",
-        "ok":  false,
-        "path":  "/qr/parcel/{parcelId}",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/qr/parcel/1",
-        "status":  403
-    },
-    {
-        "id":  "qr-label",
-        "error":  "",
-        "ok":  false,
-        "path":  "/qr/label/{parcelId}",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/qr/label/1",
-        "status":  403
-    },
-    {
-        "id":  "ai-optimize",
-        "error":  "",
-        "ok":  false,
-        "path":  "/ai/optimize-route",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/ai/optimize-route",
-        "status":  403
-    },
-    {
-        "id":  "ai-chat",
-        "error":  "",
-        "ok":  false,
-        "path":  "/ai/chat",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/ai/chat",
-        "status":  403
-    },
-    {
-        "id":  "admin-users",
-        "error":  "",
-        "ok":  false,
-        "path":  "/admin/users",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/admin/users",
-        "status":  403
-    },
-    {
-        "id":  "admin-freeze",
-        "error":  "",
-        "ok":  false,
-        "path":  "/admin/users/{userId}/freeze",
-        "method":  "PATCH",
-        "uri":  "https://smartcampost-backend.onrender.com/api/admin/users/1/freeze",
-        "status":  403
-    },
-    {
-        "id":  "agencies-list",
-        "error":  "",
-        "ok":  false,
-        "path":  "/agencies",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/agencies",
-        "status":  403
-    },
-    {
-        "id":  "integrations-list",
-        "error":  "",
-        "ok":  false,
-        "path":  "/integrations",
-        "method":  "GET",
-        "uri":  "https://smartcampost-backend.onrender.com/api/integrations",
-        "status":  403
-    },
-    {
-        "id":  "geo-geocode",
-        "error":  "",
-        "ok":  false,
-        "path":  "/geo/geocode",
-        "method":  "POST",
-        "uri":  "https://smartcampost-backend.onrender.com/api/geo/geocode",
-        "status":  403
-    }
+    "ok": true,
+    "path": "/auth/verify-otp",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/auth/verify-otp",
+    "status": 200
+  },
+  {
+    "id": "parcels-create",
+    "error": "",
+    "ok": false,
+    "path": "/parcels",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/parcels",
+    "status": 403
+  },
+  {
+    "id": "parcels-me",
+    "error": "",
+    "ok": false,
+    "path": "/parcels/me",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/parcels/me",
+    "status": 403
+  },
+  {
+    "id": "parcels-get",
+    "error": "",
+    "ok": false,
+    "path": "/parcels/{parcelId}",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/parcels/1",
+    "status": 403
+  },
+  {
+    "id": "parcels-tracking",
+    "error": "",
+    "ok": false,
+    "path": "/parcels/tracking/{trackingRef}",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/parcels/tracking/1",
+    "status": 403
+  },
+  {
+    "id": "parcels-list",
+    "error": "",
+    "ok": false,
+    "path": "/parcels",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/parcels",
+    "status": 403
+  },
+  {
+    "id": "parcels-status",
+    "error": "",
+    "ok": false,
+    "path": "/parcels/{parcelId}/status",
+    "method": "PATCH",
+    "uri": "https://smartcampost-backend.onrender.com/api/parcels/1/status",
+    "status": 403
+  },
+  {
+    "id": "pickup-create",
+    "error": "",
+    "ok": false,
+    "path": "/pickups",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/pickups",
+    "status": 403
+  },
+  {
+    "id": "pickup-me",
+    "error": "",
+    "ok": false,
+    "path": "/pickups/me",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/pickups/me",
+    "status": 403
+  },
+  {
+    "id": "pickup-get",
+    "error": "",
+    "ok": false,
+    "path": "/pickups/{pickupId}",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/pickups/1",
+    "status": 403
+  },
+  {
+    "id": "pickup-assign",
+    "error": "",
+    "ok": false,
+    "path": "/pickups/{pickupId}/assign-courier",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/pickups/1/assign-courier",
+    "status": 403
+  },
+  {
+    "id": "payments-init",
+    "error": "",
+    "ok": false,
+    "path": "/payments/init",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/payments/init",
+    "status": 403
+  },
+  {
+    "id": "payments-confirm",
+    "error": "",
+    "ok": false,
+    "path": "/payments/confirm",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/payments/confirm",
+    "status": 403
+  },
+  {
+    "id": "notifications-trigger",
+    "error": "",
+    "ok": false,
+    "path": "/notifications/trigger",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/notifications/trigger",
+    "status": 403
+  },
+  {
+    "id": "qr-parcel",
+    "error": "",
+    "ok": false,
+    "path": "/qr/parcel/{parcelId}",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/qr/parcel/1",
+    "status": 403
+  },
+  {
+    "id": "qr-label",
+    "error": "",
+    "ok": false,
+    "path": "/qr/label/{parcelId}",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/qr/label/1",
+    "status": 403
+  },
+  {
+    "id": "ai-optimize",
+    "error": "",
+    "ok": false,
+    "path": "/ai/optimize-route",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/ai/optimize-route",
+    "status": 403
+  },
+  {
+    "id": "ai-chat",
+    "error": "",
+    "ok": false,
+    "path": "/ai/chat",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/ai/chat",
+    "status": 403
+  },
+  {
+    "id": "admin-users",
+    "error": "",
+    "ok": false,
+    "path": "/admin/users",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/admin/users",
+    "status": 403
+  },
+  {
+    "id": "admin-freeze",
+    "error": "",
+    "ok": false,
+    "path": "/admin/users/{userId}/freeze",
+    "method": "PATCH",
+    "uri": "https://smartcampost-backend.onrender.com/api/admin/users/1/freeze",
+    "status": 403
+  },
+  {
+    "id": "agencies-list",
+    "error": "",
+    "ok": false,
+    "path": "/agencies",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/agencies",
+    "status": 403
+  },
+  {
+    "id": "integrations-list",
+    "error": "",
+    "ok": false,
+    "path": "/integrations",
+    "method": "GET",
+    "uri": "https://smartcampost-backend.onrender.com/api/integrations",
+    "status": 403
+  },
+  {
+    "id": "geo-geocode",
+    "error": "",
+    "ok": false,
+    "path": "/geo/geocode",
+    "method": "POST",
+    "uri": "https://smartcampost-backend.onrender.com/api/geo/geocode",
+    "status": 403
+  }
 ]

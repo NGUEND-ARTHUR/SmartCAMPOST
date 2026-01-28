@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -32,6 +33,8 @@ public class StaffServiceImpl implements StaffService {
     // ================= CREATE STAFF =================
     @Override
     public StaffResponse createStaff(CreateStaffRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
 
         // ✅ Convert role String -> enum
         UserRole role = parseUserRole(request.getRole());
@@ -101,6 +104,7 @@ public class StaffServiceImpl implements StaffService {
     // ================= GET BY ID =================
     @Override
     public StaffResponse getStaffById(UUID staffId) {
+        Objects.requireNonNull(staffId, "staffId is required");
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -120,6 +124,8 @@ public class StaffServiceImpl implements StaffService {
     // ================= UPDATE STATUS =================
     @Override
     public StaffResponse updateStaffStatus(UUID staffId, UpdateStaffStatusRequest request) {
+        Objects.requireNonNull(staffId, "staffId is required");
+        Objects.requireNonNull(request, "request is required");
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -141,6 +147,9 @@ public class StaffServiceImpl implements StaffService {
     // ================= UPDATE ROLE =================
     @Override
     public StaffResponse updateStaffRole(UUID staffId, UpdateStaffRoleRequest request) {
+
+        Objects.requireNonNull(staffId, "staffId is required");
+        Objects.requireNonNull(request, "request is required");
 
         // ✅ Convert role String -> enum
         UserRole role = parseUserRole(request.getRole());

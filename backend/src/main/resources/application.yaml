@@ -24,6 +24,7 @@ spring:
     openai:
       # DO NOT hardcode keys in source. Use an env var:
       api-key: ${OPENAI_API_KEY:}   # leave empty default locally if you prefer
+  # System prompt used for AI assistant (override via env SMARTCAMPOST_AI_SYSTEM_PROMPT)
 
 server:
   port: 8080
@@ -37,6 +38,8 @@ MTN_INIT_URL: ""
 
 # SmartCAMPOST QR Code Security Configuration
 smartcampost:
+  ai:
+    system-prompt: "You are SmartCAMPOST AI, the official intelligent assistant of Cameroon Postal Services. You help users track parcels, understand delivery timelines, resolve issues, manage pickups, payments, and accounts. Be concise, accurate, friendly, and professional. If data is missing, ask clarifying questions. Never hallucinate parcel statuses or user data. When relevant, guide users step-by-step."
   qr:
     # Secret key for HMAC-SHA256 signature (MUST be changed in production!)
     # Use an environment variable: ${QR_SECRET_KEY:defaultKey}

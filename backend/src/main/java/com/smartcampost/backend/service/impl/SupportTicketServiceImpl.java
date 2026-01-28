@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -39,7 +40,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     @Override
     public TicketResponse createTicket(CreateTicketRequest request) {
 
-        UserAccount user = getCurrentUserAccount();
+                Objects.requireNonNull(request, "request is required");
+
+                UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.CLIENT) {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Only clients can open support tickets");
         }
@@ -84,6 +87,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     // ================== GET BY ID ==================
     @Override
     public TicketResponse getTicketById(UUID ticketId) {
+        Objects.requireNonNull(ticketId, "ticketId is required");
         SupportTicket ticket = supportTicketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Ticket not found",
@@ -131,7 +135,10 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     // ================== REPLY ==================
     @Override
     public TicketResponse replyToTicket(UUID ticketId, TicketReplyRequest request) {
-        UserAccount user = getCurrentUserAccount();
+                Objects.requireNonNull(ticketId, "ticketId is required");
+                Objects.requireNonNull(request, "request is required");
+
+                UserAccount user = getCurrentUserAccount();
 
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Not allowed to reply to tickets");
@@ -161,7 +168,10 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     // ================== UPDATE STATUS ==================
     @Override
     public TicketResponse updateTicketStatus(UUID ticketId, UpdateTicketStatusRequest request) {
-        UserAccount user = getCurrentUserAccount();
+                Objects.requireNonNull(ticketId, "ticketId is required");
+                Objects.requireNonNull(request, "request is required");
+
+                UserAccount user = getCurrentUserAccount();
 
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Not allowed to change ticket status");
@@ -198,11 +208,12 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
     // ================== ACCESS CONTROL ==================
     private void enforceAccess(SupportTicket ticket) {
-        UserAccount user = getCurrentUserAccount();
+                Objects.requireNonNull(ticket, "ticket is required");
+                UserAccount user = getCurrentUserAccount();
 
-        if (user.getRole() == UserRole.CLIENT) {
-            if (ticket.getClient() == null ||
-                    !ticket.getClient().getId().equals(user.getEntityId())) {
+                if (user.getRole() == UserRole.CLIENT) {
+                        if (ticket.getClient() == null ||
+                                        !Objects.equals(ticket.getClient().getId(), user.getEntityId())) {
 
                 throw new AuthException(
                         ErrorCode.AUTH_FORBIDDEN,

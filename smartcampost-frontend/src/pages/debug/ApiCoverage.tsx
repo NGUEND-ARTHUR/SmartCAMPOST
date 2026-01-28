@@ -91,36 +91,39 @@ export default function ApiCoverage() {
 
                     <button
                       className="px-3 py-1 bg-green-600 text-white rounded"
-                        onClick={async () => {
-                          const m = (
-                            document.getElementById(
-                              `method-${ep.id}`,
-                            ) as HTMLSelectElement
-                          ).value as any;
-                          const p = (
-                            document.getElementById(
-                              `path-${ep.id}`,
-                            ) as HTMLInputElement
-                          ).value;
-                          try {
-                            const res = await axiosInstance.request({ url: p, method: m });
-                            setResponses((r) => ({
-                              ...r,
-                              ["__custom"]: {
-                                ok: true,
-                                status: 200,
-                                data: res.data,
-                              },
-                            }));
-                          } catch (err: any) {
-                            const data = err?.response?.data ?? String(err);
-                            const status = err?.response?.status ?? 0;
-                            setResponses((r) => ({
-                              ...r,
-                              ["__custom"]: { ok: false, error: data, status },
-                            }));
-                          }
-                        }}
+                      onClick={async () => {
+                        const m = (
+                          document.getElementById(
+                            `method-${ep.id}`,
+                          ) as HTMLSelectElement
+                        ).value as any;
+                        const p = (
+                          document.getElementById(
+                            `path-${ep.id}`,
+                          ) as HTMLInputElement
+                        ).value;
+                        try {
+                          const res = await axiosInstance.request({
+                            url: p,
+                            method: m,
+                          });
+                          setResponses((r) => ({
+                            ...r,
+                            ["__custom"]: {
+                              ok: true,
+                              status: 200,
+                              data: res.data,
+                            },
+                          }));
+                        } catch (err: any) {
+                          const data = err?.response?.data ?? String(err);
+                          const status = err?.response?.status ?? 0;
+                          setResponses((r) => ({
+                            ...r,
+                            ["__custom"]: { ok: false, error: data, status },
+                          }));
+                        }
+                      }}
                       aria-label="Invoke custom request"
                     >
                       Invoke Custom

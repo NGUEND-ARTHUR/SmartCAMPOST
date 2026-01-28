@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -38,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
     // ============================================================
     @Override
     public AuthResponse registerClient(RegisterClientRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
 
         // 1) Vérifier si le téléphone existe déjà → USER_PHONE_EXISTS
         if (userAccountRepository.existsByPhone(request.getPhone())) {
@@ -115,6 +118,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
+        Objects.requireNonNull(request, "request is required");
+
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
                 .orElseThrow(() ->
                         new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials")
@@ -187,6 +192,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void changePassword(ChangePasswordRequest request) {
 
+        Objects.requireNonNull(request, "request is required");
+
         UserAccount user = userAccountRepository.findById(request.getUserId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
@@ -204,6 +211,8 @@ public class AuthServiceImpl implements AuthService {
     // ============================================================
     @Override
     public void requestPasswordReset(String phone) {
+
+        Objects.requireNonNull(phone, "phone is required");
         userAccountRepository.findByPhone(phone)
                 .orElseThrow(() ->
                         new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "No account with this phone"));
@@ -213,6 +222,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void resetPassword(ResetPasswordRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
 
         boolean validOtp = otpService.validateOtp(
                 request.getPhone(),
@@ -246,6 +257,8 @@ public class AuthServiceImpl implements AuthService {
     // ============================================================
     @Override
     public void requestLoginOtp(String phone) {
+
+        Objects.requireNonNull(phone, "phone is required");
         userAccountRepository.findByPhone(phone)
                 .orElseThrow(() ->
                         new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "No account with this phone"));
@@ -255,6 +268,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse loginWithOtp(LoginOtpConfirmRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
 
         boolean validOtp = otpService.validateOtp(
                 request.getPhone(),

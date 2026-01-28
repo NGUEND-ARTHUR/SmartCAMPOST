@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -27,6 +28,12 @@ public class TariffServiceImpl implements TariffService {
 
     @Override
     public TariffResponse createTariff(CreateTariffRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
+        Objects.requireNonNull(request.getServiceType(), "serviceType is required");
+        Objects.requireNonNull(request.getOriginZone(), "originZone is required");
+        Objects.requireNonNull(request.getDestinationZone(), "destinationZone is required");
+        Objects.requireNonNull(request.getWeightBracket(), "weightBracket is required");
 
         ServiceType serviceType = parseServiceType(request.getServiceType());
 
@@ -60,6 +67,8 @@ public class TariffServiceImpl implements TariffService {
 
     @Override
     public TariffResponse updateTariff(UUID tariffId, UpdateTariffRequest request) {
+        Objects.requireNonNull(tariffId, "tariffId is required");
+        Objects.requireNonNull(request, "request is required");
         Tariff tariff = tariffRepository.findById(tariffId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Tariff not found",
@@ -77,6 +86,7 @@ public class TariffServiceImpl implements TariffService {
 
     @Override
     public TariffResponse getTariffById(UUID tariffId) {
+        Objects.requireNonNull(tariffId, "tariffId is required");
         Tariff tariff = tariffRepository.findById(tariffId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Tariff not found",
@@ -102,6 +112,7 @@ public class TariffServiceImpl implements TariffService {
 
     @Override
     public void deleteTariff(UUID tariffId) {
+        Objects.requireNonNull(tariffId, "tariffId is required");
         Tariff tariff = tariffRepository.findById(tariffId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Tariff not found",

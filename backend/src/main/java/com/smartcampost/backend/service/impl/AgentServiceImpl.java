@@ -25,6 +25,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -142,6 +143,7 @@ public class AgentServiceImpl implements AgentService {
     // ============================================================
     @Override
     public AgentResponse getAgentById(UUID agentId) {
+        Objects.requireNonNull(agentId, "agentId is required");
         Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -165,6 +167,8 @@ public class AgentServiceImpl implements AgentService {
     // ============================================================
     @Override
     public AgentResponse updateAgentStatus(UUID agentId, UpdateAgentStatusRequest request) {
+        Objects.requireNonNull(agentId, "agentId is required");
+        Objects.requireNonNull(request, "request is required");
         Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -183,6 +187,8 @@ public class AgentServiceImpl implements AgentService {
     // ============================================================
     @Override
     public AgentResponse assignAgency(UUID agentId, AssignAgentAgencyRequest request) {
+        Objects.requireNonNull(agentId, "agentId is required");
+        Objects.requireNonNull(request, "request is required");
         Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(

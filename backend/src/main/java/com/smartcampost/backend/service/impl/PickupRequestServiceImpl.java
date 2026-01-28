@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -44,6 +45,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== CREATE (US25) ==================
     @Override
     public PickupResponse createPickupRequest(CreatePickupRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
 
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.CLIENT) {
@@ -51,6 +53,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         }
 
         // Récupérer le Parcel
+        Objects.requireNonNull(request.getParcelId(), "parcelId is required");
         Parcel parcel = parcelRepository.findById(request.getParcelId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -91,11 +94,13 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== GET BY ID ==================
     @Override
     public PickupResponse getPickupById(UUID pickupId) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
+
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Pickup not found",
-                        ErrorCode.PICKUP_NOT_FOUND
-                ));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Pickup not found",
+                ErrorCode.PICKUP_NOT_FOUND
+            ));
 
         enforceAccess(pickup);
 
@@ -105,11 +110,12 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== GET BY PARCEL ==================
     @Override
     public PickupResponse getPickupByParcelId(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         PickupRequest pickup = pickupRequestRepository.findByParcel_Id(parcelId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Pickup not found for parcel",
-                        ErrorCode.PICKUP_NOT_FOUND
-                ));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Pickup not found for parcel",
+                ErrorCode.PICKUP_NOT_FOUND
+            ));
 
         enforceAccess(pickup);
 
@@ -123,7 +129,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         if (user.getRole() != UserRole.CLIENT) {
             throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
         }
-
+        Objects.requireNonNull(user.getEntityId(), "current user's entityId is required");
         return pickupRequestRepository
                 .findByParcel_Client_Id(user.getEntityId(), PageRequest.of(page, size))
                 .map(this::toResponse);
@@ -136,7 +142,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         if (user.getRole() != UserRole.COURIER) {
             throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a courier");
         }
-
+        Objects.requireNonNull(user.getEntityId(), "current user's entityId is required");
         return pickupRequestRepository
                 .findByCourier_Id(user.getEntityId(), PageRequest.of(page, size))
                 .map(this::toResponse);
@@ -158,6 +164,8 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== ASSIGN COURIER (US26) ==================
     @Override
     public PickupResponse assignCourier(UUID pickupId, AssignPickupCourierRequest request) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
+        Objects.requireNonNull(request, "request must not be null");
 
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.STAFF && user.getRole() != UserRole.AGENT) {
@@ -165,16 +173,17 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         }
 
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Pickup not found",
-                        ErrorCode.PICKUP_NOT_FOUND
-                ));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Pickup not found",
+                ErrorCode.PICKUP_NOT_FOUND
+            ));
 
+        Objects.requireNonNull(request.getCourierId(), "courierId is required");
         Courier courier = courierRepository.findById(request.getCourierId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Courier not found",
-                        ErrorCode.COURIER_NOT_FOUND
-                ));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Courier not found",
+                ErrorCode.COURIER_NOT_FOUND
+            ));
 
         // Ici tu pourras plus tard ajouter des règles de planning
 
@@ -191,14 +200,16 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== UPDATE STATE (US27) ==================
     @Override
     public PickupResponse updatePickupState(UUID pickupId, UpdatePickupStateRequest request) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
+        Objects.requireNonNull(request, "request must not be null");
 
         UserAccount user = getCurrentUserAccount();
 
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Pickup not found",
-                        ErrorCode.PICKUP_NOT_FOUND
-                ));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Pickup not found",
+                ErrorCode.PICKUP_NOT_FOUND
+            ));
 
         if (user.getRole() == UserRole.COURIER) {
             if (pickup.getCourier() == null ||
@@ -322,9 +333,10 @@ public class PickupRequestServiceImpl implements PickupRequestService {
 
     @Override
     public TemporaryQrData generatePickupQrCode(UUID pickupId) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
 
         // Verify access - only the owning client can get QR
         UserAccount user = getCurrentUserAccount();
@@ -345,6 +357,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     @Override
     @Transactional
     public ConfirmPickupResponse confirmPickupWithQrScan(ConfirmPickupRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
         UserAccount user = getCurrentUserAccount();
 
         // Only agents, couriers, or staff can confirm pickups
@@ -359,13 +372,15 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         if (request.getTemporaryQrToken() != null && !request.getTemporaryQrToken().isEmpty()) {
             // Validate temporary QR and get pickup
             tempQrData = qrCodeService.validateTemporaryQr(request.getTemporaryQrToken());
+            Objects.requireNonNull(tempQrData.getPickupId(), "pickupId from tempQr must not be null");
             pickup = pickupRequestRepository.findById(tempQrData.getPickupId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
         } else if (request.getPickupId() != null) {
+            Objects.requireNonNull(request.getPickupId(), "pickupId is required");
             pickup = pickupRequestRepository.findById(request.getPickupId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
         } else {
             throw new AuthException(ErrorCode.VALIDATION_ERROR,
                     "Either temporaryQrToken or pickupId must be provided");

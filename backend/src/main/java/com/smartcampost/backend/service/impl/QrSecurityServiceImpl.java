@@ -353,15 +353,13 @@ public class QrSecurityServiceImpl implements QrSecurityService {
     }
 
     @Override
-    public QrVerificationToken getValidTokenForParcel(UUID parcelId) {
-        return tokenRepository.findByParcel_IdAndTokenTypeAndValidTrue(parcelId, QrTokenType.PERMANENT)
-                .orElse(null);
+    public java.util.Optional<QrVerificationToken> getValidTokenForParcel(UUID parcelId) {
+        return tokenRepository.findByParcel_IdAndTokenTypeAndValidTrue(parcelId, QrTokenType.PERMANENT);
     }
 
     @Override
-    public QrVerificationToken getValidTokenForPickup(UUID pickupId) {
-        return tokenRepository.findByPickup_IdAndTokenTypeAndValidTrue(pickupId, QrTokenType.TEMPORARY)
-                .orElse(null);
+    public java.util.Optional<QrVerificationToken> getValidTokenForPickup(UUID pickupId) {
+        return tokenRepository.findByPickup_IdAndTokenTypeAndValidTrue(pickupId, QrTokenType.TEMPORARY);
     }
 
     @Override

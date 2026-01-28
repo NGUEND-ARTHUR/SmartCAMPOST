@@ -25,6 +25,11 @@
 	</properties>
 
 	<dependencies>
+				<!-- WebClient for HTTP calls -->
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-webflux</artifactId>
+				</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -51,10 +56,7 @@
 		</dependency>
 
 		<!-- Keep WebFlux only if you really need reactive endpoints -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
@@ -132,10 +134,41 @@
 			<version>3.5.2</version>
 		</dependency>
 
+		<!-- Caffeine cache for FAQ caching and rate limiting -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>3.1.8</version>
+		</dependency>
+
+		<!-- PDFBox for PDF generation (used by InvoiceService and QRService) -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.27</version>
+		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>
 		<dependencies>
+					<!-- PDF generation -->
+					<dependency>
+						<groupId>org.apache.pdfbox</groupId>
+						<artifactId>pdfbox</artifactId>
+						<version>2.1.28</version>
+					</dependency>
+					<!-- ZXing for QR code generation -->
+					<dependency>
+						<groupId>com.google.zxing</groupId>
+						<artifactId>core</artifactId>
+						<version>3.5.1</version>
+					</dependency>
+					<dependency>
+						<groupId>com.google.zxing</groupId>
+						<artifactId>javase</artifactId>
+						<version>3.5.1</version>
+					</dependency>
 			<dependency>
 				<groupId>org.springframework.ai</groupId>
 				<artifactId>spring-ai-bom</artifactId>

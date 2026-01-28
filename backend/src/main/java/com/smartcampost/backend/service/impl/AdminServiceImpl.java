@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -21,6 +22,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public UserAccountResponse freezeAccount(UUID userId, boolean frozen) {
+        Objects.requireNonNull(userId, "userId is required");
         UserAccount account = userAccountRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
 

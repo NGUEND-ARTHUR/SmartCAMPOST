@@ -86,3 +86,18 @@
 .animation-delay-300 {
   animation-delay: 300ms;
 }
+
+/* Map viewport helpers */
+.map-viewport {
+  height: 60vh;
+}
+.map-container {
+  height: 100%;
+}
+
+/* QR preview image size */
+.qr-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}

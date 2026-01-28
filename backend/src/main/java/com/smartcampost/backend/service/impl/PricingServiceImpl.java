@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -26,6 +27,7 @@ public class PricingServiceImpl implements PricingService {
 
     @Override
     public BigDecimal quotePrice(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -39,6 +41,7 @@ public class PricingServiceImpl implements PricingService {
 
     @Override
     public PricingDetail confirmPrice(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -63,6 +66,7 @@ public class PricingServiceImpl implements PricingService {
 
     @Override
     public PricingDetail recalculatePriceForParcel(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -126,7 +130,10 @@ public class PricingServiceImpl implements PricingService {
                 originZone,
                 destZone,
                 weightBracket
-        ).orElse(null);
+        ).orElseThrow(() -> new ResourceNotFoundException(
+                "Pricing tariff not found",
+                ErrorCode.PRICING_TARIFF_NOT_FOUND
+        ));
     }
 
     private String getZoneFromAddress(com.smartcampost.backend.model.Address address) {

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useConfirmPickup } from "@/hooks";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -43,9 +44,30 @@ export default function PickupDetail() {
     }
   };
   const completePickup = () => {
-    setStep("complete");
-    setTimeout(() => navigate("/courier/pickups"), 2000);
+    // Confirm pickup via API if possible
+    (async () => {
+      try {
+        if (photoProof) {
+          await useConfirm.mutateAsync({
+            pickupId: id,
+            photoUrl: photoProof,
+            descriptionConfirmed: true,
+          });
+        } else {
+          await useConfirm.mutateAsync({
+            pickupId: id,
+            descriptionConfirmed: true,
+          });
+        }
+      } catch (e) {
+        // ignore and continue to UI confirmation
+      }
+      setStep("complete");
+      setTimeout(() => navigate("/courier/pickups"), 2000);
+    })();
   };
+
+  const useConfirm = useConfirmPickup();
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -47,7 +47,6 @@ type RawAuth = {
 };
 
 class ApiClient {
-
   private parseErrorResponse(status: number, responseText: string): ApiError {
     // Try to parse as JSON first
     try {
@@ -114,7 +113,10 @@ class ApiClient {
     }
   }
 
-  private async request<T>(endpoint: string, options: Record<string, unknown> = {}): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options: Record<string, unknown> = {},
+  ): Promise<T> {
     try {
       const cfg: any = { url: endpoint, ...(options as any) };
       // map fetch-style `body` to axios `data` so existing callers that pass
@@ -150,7 +152,8 @@ class ApiClient {
       }
       const networkErr: ApiError = {
         code: "NETWORK_ERROR",
-        message: "Unable to connect to server. Please check your internet connection.",
+        message:
+          "Unable to connect to server. Please check your internet connection.",
         status: 0,
       };
       throw networkErr;
@@ -239,7 +242,11 @@ class ApiClient {
   }): Promise<{ message?: string }> {
     return this.request<{ message?: string }>("/auth/password/reset/confirm", {
       method: "POST",
-      body: JSON.stringify({ phone: payload.identifier, otp: payload.otp, newPassword: payload.newPassword }),
+      body: JSON.stringify({
+        phone: payload.identifier,
+        otp: payload.otp,
+        newPassword: payload.newPassword,
+      }),
     });
   }
 

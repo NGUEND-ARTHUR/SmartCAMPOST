@@ -10,7 +10,11 @@ export async function getMtnToken(): Promise<any> {
   }
 }
 
-export async function initMtnPayment(payload: { amount: number; msisdn: string; externalId?: string }) {
+export async function initMtnPayment(payload: {
+  amount: number;
+  msisdn: string;
+  externalId?: string;
+}) {
   // Calls backend to initiate a payment request.
   try {
     return apiClient.post("/payments/mtn/init", payload);

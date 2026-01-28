@@ -13,9 +13,25 @@ import com.smartcampost.backend.dto.qr.TemporaryQrData;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.AuthException;
-import com.smartcampost.backend.model.*;
+import com.smartcampost.backend.model.Parcel;
+import com.smartcampost.backend.model.Client;
+import com.smartcampost.backend.model.Address;
+import com.smartcampost.backend.model.Agency;
+import com.smartcampost.backend.model.ScanEvent;
+import com.smartcampost.backend.model.Payment;
+import com.smartcampost.backend.model.PricingDetail;
+import com.smartcampost.backend.model.PickupRequest;
+import com.smartcampost.backend.model.DeliveryProof;
+import com.smartcampost.backend.model.Courier;
+import com.smartcampost.backend.model.Refund;
 import com.smartcampost.backend.model.enums.PaymentStatus;
-import com.smartcampost.backend.repository.*;
+import com.smartcampost.backend.repository.ParcelRepository;
+import com.smartcampost.backend.repository.PickupRequestRepository;
+import com.smartcampost.backend.repository.ScanEventRepository;
+import com.smartcampost.backend.repository.PaymentRepository;
+import com.smartcampost.backend.repository.RefundRepository;
+import com.smartcampost.backend.repository.PricingDetailRepository;
+import com.smartcampost.backend.repository.DeliveryProofRepository;
 import com.smartcampost.backend.service.QrCodeService;
 import com.smartcampost.backend.service.QrSecurityService;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +73,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public QrCodeData generateQrCode(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
@@ -75,6 +92,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public String generateQrCodeImage(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
@@ -100,6 +118,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public TemporaryQrData generateTemporaryQrForPickup(UUID pickupId) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Pickup request not found", ErrorCode.PICKUP_NOT_FOUND));
@@ -171,6 +190,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public TemporaryQrData validateTemporaryQr(String temporaryQrToken) {
+                Objects.requireNonNull(temporaryQrToken, "temporaryQrToken is required");
         // First try the legacy in-memory cache
         TemporaryQrData tempQr = temporaryQrTokens.get(temporaryQrToken);
 
@@ -200,6 +220,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public QrCodeData convertTemporaryToPermanent(UUID pickupId) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
         PickupRequest pickup = pickupRequestRepository.findById(pickupId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Pickup request not found", ErrorCode.PICKUP_NOT_FOUND));
@@ -208,7 +229,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
         // Invalidate any temporary QR tokens for this pickup
         temporaryQrTokens.entrySet().removeIf(entry ->
-                entry.getValue().getPickupId().equals(pickupId));
+                pickupId.equals(entry.getValue().getPickupId()));
 
         // Generate permanent QR code
         return buildQrCodeData(parcel);
@@ -218,6 +239,7 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public QrLabelData generatePrintableLabel(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
