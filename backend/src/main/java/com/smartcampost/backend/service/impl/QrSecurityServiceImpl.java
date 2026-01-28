@@ -17,6 +17,7 @@ import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.QrSecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -106,7 +107,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 .verificationCount(0)
                 .build();
 
-        tokenRepository.save(tokenEntity);
+        QrVerificationToken savedTokenEntity1 = tokenRepository.save(tokenEntity);
+        if (savedTokenEntity1 == null) throw new IllegalStateException("failed to save token entity");
 
         log.info("Created permanent QR token for parcel {} with token ID {}", 
                 parcel.getTrackingRef(), tokenEntity.getId());
@@ -157,7 +159,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 .verificationCount(0)
                 .build();
 
-        tokenRepository.save(tokenEntity);
+        QrVerificationToken savedTokenEntity2 = tokenRepository.save(tokenEntity);
+        if (savedTokenEntity2 == null) throw new IllegalStateException("failed to save token entity");
 
         log.info("Created temporary QR token for pickup {} with token ID {}, expires at {}", 
                 pickup.getId(), tokenEntity.getId(), expiresAt);
@@ -184,9 +187,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
 
         try {
             // Find token in database
-            Optional<QrVerificationToken> tokenOpt = tokenRepository.findByToken(request.getToken());
-
-            if (tokenOpt.isEmpty()) {
+            QrVerificationToken tokenEntity = tokenRepository.findByToken(request.getToken()).orElse(null);
+            if (tokenEntity == null) {
                 log.warn("QR token not found: potential forgery attempt from IP {}", request.getClientIp());
                 return QrVerificationResponse.failure(
                         VerificationStatus.TOKEN_NOT_FOUND,
@@ -194,8 +196,6 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                         "QR_TOKEN_NOT_FOUND"
                 );
             }
-
-            QrVerificationToken tokenEntity = tokenOpt.get();
 
             // Check if token is revoked
             if (!tokenEntity.isValid()) {
@@ -234,7 +234,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
             // Record verification attempt
             UserAccount verifier = getCurrentUserAccount();
             tokenEntity.recordVerification(verifier, request.getClientIp(), request.getUserAgent());
-            tokenRepository.save(tokenEntity);
+            QrVerificationToken savedTokenEntity3 = tokenRepository.save(tokenEntity);
+            if (savedTokenEntity3 == null) throw new IllegalStateException("failed to save token entity");
 
             // Build success response with parcel/pickup details
             return buildSuccessResponse(tokenEntity);
@@ -333,9 +334,10 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                         "Token not found", ErrorCode.QR_CODE_INVALID));
 
         tokenEntity.revoke(reason);
-        tokenRepository.save(tokenEntity);
+        QrVerificationToken saved = tokenRepository.save(tokenEntity);
+        if (saved == null) throw new IllegalStateException("failed to save token entity");
 
-        log.info("Revoked token {} for reason: {}", tokenEntity.getId(), reason);
+        log.info("Revoked token {} for reason: {}", saved.getId(), reason);
     }
 
     @Override
@@ -440,7 +442,7 @@ public class QrSecurityServiceImpl implements QrSecurityService {
         return builder.build();
     }
 
-    private UserAccount getCurrentUserAccount() {
+    private @Nullable UserAccount getCurrentUserAccount() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String) {

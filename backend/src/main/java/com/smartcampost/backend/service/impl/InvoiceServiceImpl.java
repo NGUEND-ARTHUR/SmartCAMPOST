@@ -80,7 +80,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                 }
 
                 invoice.setPdfLink(out.toString());
-                return invoiceRepository.save(invoice);
+                Invoice saved = invoiceRepository.save(invoice);
+                return Objects.requireNonNull(saved, "failed to save invoice");
             } catch (IOException e) {
                 throw new RuntimeException("Failed to generate invoice PDF", e);
             }
