@@ -25,6 +25,8 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.Objects;
+import org.springframework.lang.Nullable;
 
 @Service
 @RequiredArgsConstructor
@@ -51,48 +53,58 @@ public class ParcelServiceImpl implements ParcelService {
     @Override
     public ParcelResponse createParcel(CreateParcelRequest request) {
 
+        Objects.requireNonNull(request, "request is required");
+        Objects.requireNonNull(request.getSenderAddressId(), "senderAddressId is required");
+        Objects.requireNonNull(request.getRecipientAddressId(), "recipientAddressId is required");
         // 1) récupérer user courant + client
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() != UserRole.CLIENT) {
             throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
         }
 
-        Client client = clientRepository.findById(user.getEntityId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Client not found",
-                        ErrorCode.AUTH_USER_NOT_FOUND
-                ));
+        UUID userEntityId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        Client client = clientRepository.findById(userEntityId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Client not found",
+                ErrorCode.AUTH_USER_NOT_FOUND
+            ));
 
         // 2) addresses
-        Address sender = addressRepository.findById(request.getSenderAddressId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Sender address not found",
-                        ErrorCode.ADDRESS_NOT_FOUND
-                ));
+        UUID senderId = Objects.requireNonNull(request.getSenderAddressId(), "senderAddressId is required");
+        Address sender = addressRepository.findById(senderId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Sender address not found",
+                ErrorCode.ADDRESS_NOT_FOUND
+            ));
 
-        Address recipient = addressRepository.findById(request.getRecipientAddressId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Recipient address not found",
-                        ErrorCode.ADDRESS_NOT_FOUND
-                ));
+        UUID recipientId = Objects.requireNonNull(request.getRecipientAddressId(), "recipientAddressId is required");
+        Address recipient = addressRepository.findById(recipientId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Recipient address not found",
+                ErrorCode.ADDRESS_NOT_FOUND
+            ));
 
         // 3) agences
         Agency originAgency = null;
         if (request.getOriginAgencyId() != null) {
-            originAgency = agencyRepository.findById(request.getOriginAgencyId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Origin agency not found",
-                            ErrorCode.AGENCY_NOT_FOUND
-                    ));
+            UUID originId = request.getOriginAgencyId();
+            Objects.requireNonNull(originId, "originAgencyId is required");
+            originAgency = agencyRepository.findById(originId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Origin agency not found",
+                    ErrorCode.AGENCY_NOT_FOUND
+                ));
         }
 
         Agency destinationAgency = null;
         if (request.getDestinationAgencyId() != null) {
-            destinationAgency = agencyRepository.findById(request.getDestinationAgencyId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Destination agency not found",
-                            ErrorCode.AGENCY_NOT_FOUND
-                    ));
+            UUID destId = request.getDestinationAgencyId();
+            Objects.requireNonNull(destId, "destinationAgencyId is required");
+            destinationAgency = agencyRepository.findById(destId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Destination agency not found",
+                    ErrorCode.AGENCY_NOT_FOUND
+                ));
         }
 
         // 4) Tracking number
@@ -109,15 +121,17 @@ public class ParcelServiceImpl implements ParcelService {
                 .destinationAgency(destinationAgency)
                 .build();
 
-        parcelRepository.save(parcel);
+        Parcel savedParcel = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
 
         return toResponse(parcel);
     }
 
     // ================== GET BY ID ==================
     @Override
-    public ParcelDetailResponse getParcelById(UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+    public ParcelDetailResponse getParcelById(@org.springframework.lang.NonNull UUID parcelId) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -160,7 +174,8 @@ public class ParcelServiceImpl implements ParcelService {
             throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
         }
 
-        return parcelRepository.findByClient_Id(user.getEntityId(), PageRequest.of(page, size))
+        UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        return parcelRepository.findByClient_Id(clientId, PageRequest.of(page, size))
                 .map(this::toResponse);
     }
 
@@ -174,8 +189,9 @@ public class ParcelServiceImpl implements ParcelService {
 
     // ================== UPDATE STATUS ==================
     @Override
-    public ParcelResponse updateParcelStatus(UUID parcelId, UpdateParcelStatusRequest request) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+    public ParcelResponse updateParcelStatus(@org.springframework.lang.NonNull UUID parcelId, UpdateParcelStatusRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -187,15 +203,17 @@ public class ParcelServiceImpl implements ParcelService {
         validateStatusTransition(current, next);
 
         parcel.setStatus(next);
-        parcelRepository.save(parcel);
+        Parcel saved = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(saved, "failed to save parcel");
 
         return toResponse(parcel);
     }
 
     // ================== ACCEPT PARCEL (CREATED -> ACCEPTED) ==================
     @Override
-    public ParcelResponse acceptParcel(UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+    public ParcelResponse acceptParcel(@org.springframework.lang.NonNull UUID parcelId) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -209,7 +227,8 @@ public class ParcelServiceImpl implements ParcelService {
         }
 
         parcel.setStatus(ParcelStatus.ACCEPTED);
-        parcelRepository.save(parcel);
+        Parcel saved = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(saved, "failed to save parcel");
 
         return toResponse(parcel);
     }
@@ -217,8 +236,9 @@ public class ParcelServiceImpl implements ParcelService {
     // ================== ACCEPT PARCEL WITH VALIDATION (CREATED -> ACCEPTED) ==================
     // Agent/Courier validates parcel details: description, weight, adds photo and comments
     @Override
-    public ParcelResponse acceptParcelWithValidation(UUID parcelId, AcceptParcelRequest request) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+    public ParcelResponse acceptParcelWithValidation(@Nullable UUID parcelId, AcceptParcelRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -244,7 +264,12 @@ public class ParcelServiceImpl implements ParcelService {
         UserAccount currentUser = getCurrentUserAccount();
         Staff validatingStaff = null;
         if (currentUser.getRole() == UserRole.AGENT || currentUser.getRole() == UserRole.COURIER) {
-            validatingStaff = staffRepository.findById(currentUser.getEntityId()).orElse(null);
+            UUID validatingStaffId = currentUser.getEntityId();
+            if (validatingStaffId != null) {
+                validatingStaff = staffRepository.findById(validatingStaffId).orElse(null);
+            } else {
+                validatingStaff = null;
+            }
         }
 
         // 4) Store original weight for price recalculation check
@@ -289,12 +314,13 @@ public class ParcelServiceImpl implements ParcelService {
         // 10) Update status to ACCEPTED
         parcel.setStatus(ParcelStatus.ACCEPTED);
 
-        parcelRepository.save(parcel);
+        Parcel saved = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(saved, "failed to save parcel");
 
         // 11) If weight changed and recalculation requested, trigger price recalculation
         if (weightChanged && request.isRecalculatePriceOnWeightChange()) {
             try {
-                pricingService.recalculatePriceForParcel(parcelId);
+                pricingService.recalculatePriceForParcel(id);
             } catch (Exception e) {
                 // Log but don't fail the acceptance
                 // Price can be manually adjusted later
@@ -309,8 +335,9 @@ public class ParcelServiceImpl implements ParcelService {
 
     // ================== CHANGE DELIVERY OPTION (AGENCY ↔ HOME) ==================
     @Override
-    public ParcelResponse changeDeliveryOption(UUID parcelId, ChangeDeliveryOptionRequest request) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+    public ParcelResponse changeDeliveryOption(@Nullable UUID parcelId, ChangeDeliveryOptionRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -329,13 +356,13 @@ public class ParcelServiceImpl implements ParcelService {
         DeliveryOption newOption = request.getNewDeliveryOption();
 
         parcel.setDeliveryOption(newOption);
-        parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(parcelRepository.save(parcel), "failed to save parcel");
 
         // 💰 SPRINT 14: supplément si AGENCY -> HOME avec additionalAmount
         if (oldOption == DeliveryOption.AGENCY
                 && newOption == DeliveryOption.HOME
                 && request.getAdditionalAmount() != null) {
-            paymentService.handleAdditionalDeliveryCharge(parcelId, request.getAdditionalAmount());
+            paymentService.handleAdditionalDeliveryCharge(id, request.getAdditionalAmount());
         }
 
         return toResponse(parcel);
@@ -343,8 +370,9 @@ public class ParcelServiceImpl implements ParcelService {
 
     // ================== UPDATE METADATA (photo + commentaire) ==================
     @Override
-    public ParcelResponse updateParcelMetadata(UUID parcelId, UpdateParcelMetadataRequest request) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+    public ParcelResponse updateParcelMetadata(@Nullable UUID parcelId, UpdateParcelMetadataRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -357,7 +385,8 @@ public class ParcelServiceImpl implements ParcelService {
             parcel.setDescriptionComment(request.getDescriptionComment());
         }
 
-        parcelRepository.save(parcel);
+        Parcel saved = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(saved, "failed to save parcel");
         return toResponse(parcel);
     }
 
@@ -413,7 +442,8 @@ public class ParcelServiceImpl implements ParcelService {
 
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            UUID nonNullUserId = Objects.requireNonNull(userId);
+            return userAccountRepository.findById(nonNullUserId)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND

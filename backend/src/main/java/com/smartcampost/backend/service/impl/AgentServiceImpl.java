@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,8 @@ public class AgentServiceImpl implements AgentService {
     // CREATE AGENT
     // ============================================================
     @Override
-    public AgentResponse createAgent(CreateAgentRequest request) {
+        public AgentResponse createAgent(@NonNull CreateAgentRequest request) {
+                Objects.requireNonNull(request, "request is required");
 
         // Générer staffNumber si non fourni
         String staffNumber = request.getStaffNumber();
@@ -82,32 +84,39 @@ public class AgentServiceImpl implements AgentService {
 
         // récupérer l'agence si fournie
         Agency agency = null;
-        if (request.getAgencyId() != null) {
-            agency = agencyRepository.findById(request.getAgencyId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException(
+        UUID requestedAgencyId = request.getAgencyId();
+        if (requestedAgencyId != null) {
+            UUID agencyId = Objects.requireNonNull(requestedAgencyId, "agencyId is required");
+            agency = Objects.requireNonNull(
+                    agencyRepository.findById(agencyId)
+                            .orElseThrow(() -> new ResourceNotFoundException(
                                     "Agency not found",
                                     ErrorCode.AGENCY_NOT_FOUND
-                            ));
+                            )),
+                    "agency is required"
+            );
         }
 
         // hash du mot de passe
         String encodedPassword = encoder.encode(request.getPassword());
 
         // chercher Staff existant ou en créer un nouveau
-        Staff staff = staffRepository.findByPhone(request.getPhone())
-                .orElseGet(() -> {
-                    Staff newStaff = Staff.builder()
-                            .id(UUID.randomUUID())
-                            .fullName(request.getFullName())
-                            .phone(request.getPhone())
-                            .role(UserRole.AGENT.name())
-                            .passwordHash(encodedPassword)
-                            .status(StaffStatus.ACTIVE)
-                            .hiredAt(java.time.LocalDate.now())
-                            .build();
-                    return staffRepository.save(newStaff);
-                });
+                var staffOptional = staffRepository.findByPhone(request.getPhone());
+                Staff staff = staffOptional.orElse(null);
+                if (staff == null) {
+                        Staff newStaff = Staff.builder()
+                                        .id(UUID.randomUUID())
+                                        .fullName(request.getFullName())
+                                        .phone(request.getPhone())
+                                        .role(UserRole.AGENT.name())
+                                        .passwordHash(encodedPassword)
+                                        .status(StaffStatus.ACTIVE)
+                                        .hiredAt(java.time.LocalDate.now())
+                                        .build();
+                        Staff savedStaff = staffRepository.save(newStaff);
+                        if (savedStaff == null) throw new IllegalStateException("failed to save staff");
+                        staff = savedStaff;
+                }
 
         // créer Agent
         Agent agent = Agent.builder()
@@ -122,7 +131,7 @@ public class AgentServiceImpl implements AgentService {
                 .createdAt(Instant.now())
                 .build();
 
-        agentRepository.save(agent);
+        Agent savedAgent = Objects.requireNonNull(agentRepository.save(agent), "failed to save agent");
 
         // créer UserAccount pour login Agent
         UserAccount account = UserAccount.builder()
@@ -130,12 +139,11 @@ public class AgentServiceImpl implements AgentService {
                 .phone(request.getPhone())
                 .passwordHash(encodedPassword)
                 .role(UserRole.AGENT)
-                .entityId(agent.getId())
+                .entityId(savedAgent.getId())
                 .build();
+        account = Objects.requireNonNull(userAccountRepository.save(account), "failed to save account");
 
-        userAccountRepository.save(account);
-
-        return toResponse(agent);
+        return toResponse(savedAgent);
     }
 
     // ============================================================
@@ -177,9 +185,9 @@ public class AgentServiceImpl implements AgentService {
                         ));
 
         agent.setStatus(request.getStatus());
-        agentRepository.save(agent);
+        Agent saved = Objects.requireNonNull(agentRepository.save(agent), "failed to save agent");
 
-        return toResponse(agent);
+        return toResponse(saved);
     }
 
     // ============================================================
@@ -198,18 +206,21 @@ public class AgentServiceImpl implements AgentService {
 
         Agency agency = null;
         if (request.getAgencyId() != null) {
-            agency = agencyRepository.findById(request.getAgencyId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException(
+            UUID reqAgencyId = Objects.requireNonNull(request.getAgencyId(), "agencyId is required");
+            agency = Objects.requireNonNull(
+                    agencyRepository.findById(reqAgencyId)
+                            .orElseThrow(() -> new ResourceNotFoundException(
                                     "Agency not found",
                                     ErrorCode.AGENCY_NOT_FOUND
-                            ));
+                            )),
+                    "agency is required"
+            );
         }
 
-        agent.setAgency(agency);
-        agentRepository.save(agent);
+                agent.setAgency(agency);
+                Agent saved = Objects.requireNonNull(agentRepository.save(agent), "failed to save agent");
 
-        return toResponse(agent);
+                return toResponse(saved);
     }
 
     // ================= HELPERS =================

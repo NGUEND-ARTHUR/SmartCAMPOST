@@ -124,11 +124,12 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
 
-        sendAndUpdate(notif);
+        sendAndUpdate(savedNotif);
 
-        return toResponse(notif);
+        return toResponse(savedNotif);
     }
 
     @Override
@@ -174,11 +175,12 @@ public class NotificationServiceImpl implements NotificationService {
         notif.setStatus(NotificationStatus.PENDING);
         notif.setErrorMessage(null);
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
 
-        sendAndUpdate(notif);
+        sendAndUpdate(savedNotif);
 
-        return toResponse(notif);
+        return toResponse(savedNotif);
     }
 
     @Override
@@ -230,8 +232,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     @Override
@@ -262,8 +265,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     @Override
@@ -293,8 +297,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: notification lors de la création du colis
@@ -325,8 +330,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     // 🔥 SPRINT 15: notification when parcel is validated/accepted by agent
@@ -363,8 +369,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: notification "out for delivery"
@@ -395,8 +402,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: notification when parcel is in transit
@@ -427,8 +435,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: notification when parcel arrives at destination agency
@@ -467,8 +476,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+        Notification savedNotif = notificationRepository.save(notif);
+        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+        sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: reminder for uncollected parcels at agency
@@ -504,9 +514,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
-        Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+                Objects.requireNonNull(notif, "notification must not be null");
+                Notification savedNotif = notificationRepository.save(notif);
+                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+                sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: notification when delivery is rescheduled
@@ -542,9 +553,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
-        Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+                Objects.requireNonNull(notif, "notification must not be null");
+                Notification savedNotif = notificationRepository.save(notif);
+                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+                sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: notification when delivery attempt fails
@@ -576,9 +588,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
-        Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+                Objects.requireNonNull(notif, "notification must not be null");
+                Notification savedNotif = notificationRepository.save(notif);
+                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+                sendAndUpdate(savedNotif);
     }
 
     // 🔥 NEW: envoi spécifique pour OTP de livraison
@@ -608,9 +621,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
-        Objects.requireNonNull(notif, "notification must not be null");
-        notificationRepository.save(notif);
-        sendAndUpdate(notif);
+                Objects.requireNonNull(notif, "notification must not be null");
+                Notification savedNotif = notificationRepository.save(notif);
+                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
+                sendAndUpdate(savedNotif);
     }
 
     // ======================== PRIVATE HELPERS ========================
@@ -642,7 +656,8 @@ public class NotificationServiceImpl implements NotificationService {
             notif.setErrorMessage(ex.getMessage());
         }
 
-        notificationRepository.save(notif);
+        Notification saved = notificationRepository.save(notif);
+        if (saved == null) throw new IllegalStateException("failed to save notification");
     }
 
     private String buildDefaultSubject(NotificationType type) {
@@ -679,10 +694,10 @@ public class NotificationServiceImpl implements NotificationService {
             );
         }
 
-        String subject = auth.getName();
+                String subject = Objects.requireNonNull(auth.getName(), "authentication name is required");
 
-        try {
-            UUID userId = UUID.fromString(subject);
+                try {
+                        UUID userId = UUID.fromString(subject);
             return userAccountRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",

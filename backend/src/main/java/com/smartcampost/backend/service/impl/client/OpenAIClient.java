@@ -6,10 +6,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Objects;
+import org.springframework.lang.NonNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,16 +23,18 @@ public class OpenAIClient {
 
     private final WebClient webClient;
 
-    public OpenAIClient(
-            @Value("${OPENAI_API_KEY:}") String apiKey,
-            @Value("${OPENAI_API_URL:https://api.openai.com}") String apiUrl
-    ) {
+        public OpenAIClient(
+            @Value("${OPENAI_API_KEY:}") @NonNull String apiKey,
+            @Value("${OPENAI_API_URL:https://api.openai.com}") @NonNull String apiUrl
+        ) {
+        String effectiveKey = Objects.requireNonNullElse(apiKey, "");
+        String effectiveUrl = Objects.requireNonNullElse(apiUrl, "https://api.openai.com");
         this.webClient = WebClient.builder()
-                .baseUrl(apiUrl)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-    }
+            .baseUrl(effectiveUrl)
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + effectiveKey)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
+        }
 
     /**
      * Call chat completions endpoint (non-streaming)
@@ -55,15 +60,24 @@ public class OpenAIClient {
 
     private Mono<String> handleResponse(ClientResponse response) {
         if (response.statusCode().is2xxSuccessful()) {
-            return response.bodyToMono(Map.class)
+            return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
+                    })
                     .flatMap(map -> {
                         try {
-                            List choices = (List) map.get("choices");
-                            if (choices != null && !choices.isEmpty()) {
-                                Map first = (Map) choices.get(0);
-                                Map message = (Map) first.get("message");
-                                if (message != null && message.get("content") != null) {
-                                    return Mono.just(message.get("content").toString());
+                            Object choicesObj = map.get("choices");
+                            if (choicesObj instanceof List) {
+                                List<?> choices = (List<?>) choicesObj;
+                                Object firstObj = choices.stream().findFirst().orElse(null);
+                                if (firstObj instanceof Map) {
+                                    Map<?, ?> first = (Map<?, ?>) firstObj;
+                                    Object messageObj = first.get("message");
+                                    if (messageObj instanceof Map) {
+                                        Map<?, ?> message = (Map<?, ?>) messageObj;
+                                        Object content = message.get("content");
+                                        if (content != null) {
+                                            return Mono.just(content.toString());
+                                        }
+                                    }
                                 }
                             }
                         } catch (Exception e) {

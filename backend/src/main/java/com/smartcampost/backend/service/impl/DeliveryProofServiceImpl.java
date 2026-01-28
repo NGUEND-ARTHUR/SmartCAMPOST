@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +47,8 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
     // ========= Impl de la méthode principale de l’interface =========
     @Override
     @Transactional
-    public DeliveryProof captureProof(UUID parcelId,
-                                      DeliveryProofType proofType,
+    public DeliveryProof captureProof(@NonNull UUID parcelId,
+                                      @NonNull DeliveryProofType proofType,
                                       String details,
                                       String capturedBy) {
         Objects.requireNonNull(parcelId, "parcelId is required");
@@ -74,7 +75,9 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
                 .timestamp(Instant.now())
                 .build();
 
-        return deliveryProofRepository.save(proof);
+        DeliveryProof saved = deliveryProofRepository.save(proof);
+        DeliveryProof nonNullSaved = Objects.requireNonNull(saved, "failed to save delivery proof");
+        return nonNullSaved;
     }
 
     @Override
