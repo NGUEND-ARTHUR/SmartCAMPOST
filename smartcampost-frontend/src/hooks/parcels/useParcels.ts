@@ -92,6 +92,18 @@ export function useAcceptParcel() {
   });
 }
 
+export function useValidateAndAccept() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      parcelService.validateAndAccept(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: parcelKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: parcelKeys.lists() });
+    },
+  });
+}
+
 export function useChangeDeliveryOption() {
   const queryClient = useQueryClient();
   return useMutation({

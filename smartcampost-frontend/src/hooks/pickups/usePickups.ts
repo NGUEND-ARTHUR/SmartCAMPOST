@@ -105,6 +105,21 @@ export function useUpdatePickupState() {
   });
 }
 
+export function useConfirmPickup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => pickupService.confirmPickup(data),
+    onSuccess: (_, data) => {
+      if (data && data.pickupId) {
+        queryClient.invalidateQueries({
+          queryKey: pickupKeys.detail(data.pickupId),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: pickupKeys.lists() });
+    },
+  });
+}
+
 // Alias for backward compatibility
 export const useAssignCourier = () => {
   const assignPickupCourier = useAssignPickupCourier();

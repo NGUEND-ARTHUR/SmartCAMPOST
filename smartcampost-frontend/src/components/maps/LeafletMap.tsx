@@ -1,5 +1,12 @@
 import React from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  Circle,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -33,7 +40,7 @@ function FitBounds({ markers }: { markers?: MapProps["markers"] }) {
 }
 
 export default function LeafletMap({
-  center = [3.8480, 11.5021],
+  center = [3.848, 11.5021],
   zoom = 12,
   height = "400px",
   markers = [],
@@ -41,7 +48,11 @@ export default function LeafletMap({
 }: MapProps) {
   return (
     <div className="w-full rounded overflow-hidden">
-      <MapContainer center={center} zoom={zoom} style={{ height, width: "100%" }}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        style={{ height, width: "100%" }}
+      >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {markers.map((m) => (
           <Marker key={m.id} position={m.position}>

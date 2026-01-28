@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -74,6 +75,7 @@ public class CourierServiceImpl implements CourierService {
     // ================= GET BY ID =================
     @Override
     public CourierResponse getCourierById(UUID courierId) {
+        Objects.requireNonNull(courierId, "courierId is required");
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -93,6 +95,8 @@ public class CourierServiceImpl implements CourierService {
     // ================= UPDATE STATUS =================
     @Override
     public CourierResponse updateCourierStatus(UUID courierId, UpdateCourierStatusRequest request) {
+        Objects.requireNonNull(courierId, "courierId is required");
+        Objects.requireNonNull(request, "request is required");
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -109,6 +113,8 @@ public class CourierServiceImpl implements CourierService {
     // ================= UPDATE VEHICLE =================
     @Override
     public CourierResponse updateCourierVehicle(UUID courierId, UpdateCourierVehicleRequest request) {
+        Objects.requireNonNull(courierId, "courierId is required");
+        Objects.requireNonNull(request, "request is required");
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(

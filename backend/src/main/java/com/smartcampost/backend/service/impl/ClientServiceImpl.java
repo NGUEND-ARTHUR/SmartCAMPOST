@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -39,6 +40,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponse getClientById(UUID clientId) {
+        Objects.requireNonNull(clientId, "clientId is required");
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Client not found",
@@ -56,6 +58,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponse updateMyPreferredLanguage(UpdatePreferredLanguageRequest request) {
+        Objects.requireNonNull(request, "request is required");
         Client client = getCurrentClient();
         client.setPreferredLanguage(request.getPreferredLanguage());
         clientRepository.save(client);
@@ -64,6 +67,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponse updateMyProfile(UpdateClientProfileRequest request) {
+        Objects.requireNonNull(request, "request is required");
 
         // Récupérer l'utilisateur et le client courant
         UserAccount user = getCurrentUserAccount();

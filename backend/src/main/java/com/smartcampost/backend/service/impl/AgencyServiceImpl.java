@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ public class AgencyServiceImpl implements AgencyService {
 
     @Override
     public AgencyResponse getAgency(UUID id) {
+        Objects.requireNonNull(id, "id is required");
         Agency agency = agencyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Agency not found: " + id));
         return toResponse(agency);
@@ -55,6 +57,8 @@ public class AgencyServiceImpl implements AgencyService {
 
     @Override
     public AgencyResponse updateAgency(UUID id, AgencyRequest request) {
+        Objects.requireNonNull(id, "id is required");
+        Objects.requireNonNull(request, "request is required");
         Agency agency = agencyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Agency not found: " + id));
 

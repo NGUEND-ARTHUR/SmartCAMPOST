@@ -3,9 +3,13 @@ import LeafletMap from "@/components/maps/LeafletMap";
 
 export default function MapViewer() {
   // Example markers for demo; can be replaced with real data
-  const markers: Array<{ id: string; position: [number, number]; label?: string }> = [
-    { id: "pickup-1", position: [3.8480, 11.5021], label: "Main Hub" },
-    { id: "pickup-2", position: [3.8600, 11.5100], label: "Agency B" },
+  const markers: Array<{
+    id: string;
+    position: [number, number];
+    label?: string;
+  }> = [
+    { id: "pickup-1", position: [3.848, 11.5021], label: "Main Hub" },
+    { id: "pickup-2", position: [3.86, 11.51], label: "Agency B" },
   ];
 
   return (

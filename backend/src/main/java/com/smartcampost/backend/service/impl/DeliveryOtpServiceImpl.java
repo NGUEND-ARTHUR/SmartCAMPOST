@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
     @Override
     @Transactional
     public void sendDeliveryOtp(UUID parcelId, String phoneNumber) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(phoneNumber, "phoneNumber is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new IllegalArgumentException("Parcel not found"));
 
@@ -50,6 +53,8 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
     @Override
     @Transactional
     public boolean validateDeliveryOtp(UUID parcelId, String otpCode) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(otpCode, "otpCode is required");
         DeliveryOtp otp = deliveryOtpRepository
                 .findTopByParcelIdAndConsumedFalseOrderByCreatedAtDesc(parcelId)
                 .orElseThrow(() -> new IllegalArgumentException("No active OTP for parcel"));

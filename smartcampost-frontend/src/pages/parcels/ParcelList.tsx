@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Package, Search, Filter, Plus, Loader2 } from "lucide-react";
+import {
+  Package,
+  Search,
+  Filter,
+  Plus,
+  Loader2,
+  Bell,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -22,6 +30,8 @@ import {
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
+import NotificationsDrawer from "@/components/NotificationsDrawer";
+import { exportToCsv } from "@/lib/exportCsv";
 import { useMyParcels } from "@/hooks";
 
 export function ParcelList() {
@@ -52,10 +62,32 @@ export function ParcelList() {
           <h1 className="text-3xl font-bold">{t("parcelList.title")}</h1>
           <p className="text-muted-foreground">{t("parcelList.subtitle")}</p>
         </div>
-        <Button onClick={() => navigate("/client/parcels/create")}>
-          <Plus className="w-4 h-4 mr-2" />
-          {t("parcelList.createParcel")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <NotificationsDrawer />
+          <Button
+            variant="ghost"
+            onClick={() =>
+              exportToCsv(
+                "parcels_export.csv",
+                filteredParcels.map((p) => ({
+                  id: p.id,
+                  trackingRef: p.trackingRef,
+                  status: p.status,
+                  serviceType: p.serviceType,
+                  deliveryOption: p.deliveryOption,
+                  createdAt: p.createdAt,
+                })),
+              )
+            }
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+          <Button onClick={() => navigate("/client/parcels/create")}>
+            <Plus className="w-4 h-4 mr-2" />
+            {t("parcelList.createParcel")}
+          </Button>
+        </div>
       </div>
 
       <Card>

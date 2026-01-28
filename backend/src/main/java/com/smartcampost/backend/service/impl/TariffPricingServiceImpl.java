@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,11 @@ public class TariffPricingServiceImpl implements TariffPricingService {
 
     @Override
     public TariffQuoteResponse quotePrice(TariffQuoteRequest request) {
+
+                Objects.requireNonNull(request, "request is required");
+                Objects.requireNonNull(request.getServiceType(), "serviceType is required");
+                Objects.requireNonNull(request.getOriginZone(), "originZone is required");
+                Objects.requireNonNull(request.getDestinationZone(), "destinationZone is required");
 
         // 1) Convertir serviceType en enum
         ServiceType serviceType;

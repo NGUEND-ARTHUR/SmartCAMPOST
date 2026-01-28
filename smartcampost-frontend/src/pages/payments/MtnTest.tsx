@@ -14,7 +14,11 @@ export default function MtnTest() {
   };
 
   const doInit = async () => {
-    const r = await initMtnPayment({ amount, msisdn: phone, externalId: Date.now().toString() });
+    const r = await initMtnPayment({
+      amount,
+      msisdn: phone,
+      externalId: Date.now().toString(),
+    });
     setRes(r);
   };
 
@@ -23,15 +27,24 @@ export default function MtnTest() {
       <h1 className="text-2xl font-bold mb-4">MTN Mobile Money Test</h1>
       <div className="grid gap-2 max-w-sm">
         <label className="text-sm">Phone (MSISDN)</label>
-        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+2376XXXXXXXX" />
+        <Input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+2376XXXXXXXX"
+        />
         <label className="text-sm">Amount</label>
-        <Input value={String(amount)} onChange={(e) => setAmount(Number(e.target.value))} />
+        <Input
+          value={String(amount)}
+          onChange={(e) => setAmount(Number(e.target.value))}
+        />
         <div className="flex gap-2">
           <Button onClick={doToken}>Get Token</Button>
           <Button onClick={doInit}>Init Payment</Button>
         </div>
         <div className="mt-4">
-          <pre className="bg-gray-100 p-2 rounded text-xs">{res ? JSON.stringify(res, null, 2) : "(no response)"}</pre>
+          <pre className="bg-gray-100 p-2 rounded text-xs">
+            {res ? JSON.stringify(res, null, 2) : "(no response)"}
+          </pre>
         </div>
       </div>
     </div>

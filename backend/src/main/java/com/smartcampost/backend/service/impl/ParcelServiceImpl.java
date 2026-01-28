@@ -41,7 +41,7 @@ public class ParcelServiceImpl implements ParcelService {
     // 🔥 SPRINT 14: services ajoutés
     private final NotificationService notificationService;
     private final PaymentService paymentService;
-    
+
     // 🔥 SPRINT 15: pricing service for weight-based recalculation
     private final PricingService pricingService;
 
@@ -107,27 +107,9 @@ public class ParcelServiceImpl implements ParcelService {
                 .recipientAddress(recipient)
                 .originAgency(originAgency)
                 .destinationAgency(destinationAgency)
-                .weight(request.getWeight())
-                .dimensions(request.getDimensions())
-                .declaredValue(request.getDeclaredValue())
-                .fragile(request.isFragile())
-                .serviceType(request.getServiceType())
-                .deliveryOption(request.getDeliveryOption())
-                .status(ParcelStatus.CREATED)
-                .createdAt(Instant.now())
-                .expectedDeliveryAt(null) // ou calcul si tu veux
-
-                // 🔥 SPRINT 14: nouveaux champs
-                .paymentOption(request.getPaymentOption())
-                .photoUrl(request.getPhotoUrl())
-                .descriptionComment(request.getDescriptionComment())
-                // -----------------------------
                 .build();
 
         parcelRepository.save(parcel);
-
-        // 🔔 SPRINT 14: notification à la création du colis
-        notificationService.notifyParcelCreated(parcel);
 
         return toResponse(parcel);
     }

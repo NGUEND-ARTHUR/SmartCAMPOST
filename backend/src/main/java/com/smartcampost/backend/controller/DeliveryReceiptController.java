@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+import org.springframework.lang.NonNull;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/receipts")
@@ -31,7 +33,7 @@ public class DeliveryReceiptController {
     private final UserAccountRepository userAccountRepository;
 
     @GetMapping("/parcel/{parcelId}")
-    public ResponseEntity<DeliveryReceiptResponse> getByParcel(@PathVariable UUID parcelId) {
+    public ResponseEntity<DeliveryReceiptResponse> getByParcel(@PathVariable @NonNull UUID parcelId) {
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
@@ -61,7 +63,8 @@ public class DeliveryReceiptController {
         // Enforce client access: clients can only access receipts for their parcels
         UserAccount user = getCurrentUserAccount();
         if (user.getRole() == UserRole.CLIENT) {
-            Parcel parcel = parcelRepository.findById(receipt.getParcelId())
+            UUID rid = Objects.requireNonNull(receipt.getParcelId(), "receipt.parcelId");
+            Parcel parcel = parcelRepository.findById(rid)
                     .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
             if (!parcel.getClient().getId().equals(user.getEntityId())) {
                 throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "You do not own this parcel");

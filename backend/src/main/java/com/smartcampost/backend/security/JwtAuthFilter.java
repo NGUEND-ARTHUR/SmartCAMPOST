@@ -5,7 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,10 +19,10 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    @Autowired(required = false)
+    private JwtService jwtService;
 
     @Override
     protected void doFilterInternal(
@@ -36,7 +36,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            if (jwtService.validateToken(token) &&
+            if (jwtService != null && jwtService.validateToken(token) &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 Claims claims = jwtService.extractClaims(token);

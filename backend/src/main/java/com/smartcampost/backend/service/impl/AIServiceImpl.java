@@ -11,72 +11,75 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+ 
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AIServiceImpl implements AIService {
 
-    // Knowledge base for chatbot
+    private final com.smartcampost.backend.service.impl.client.OpenAIClient openAIClient;
+    private final com.smartcampost.backend.repository.UserAccountRepository userAccountRepository;
+    private final com.smartcampost.backend.repository.ParcelRepository parcelRepository;
+
+    // Knowledge base fallback for local responses when AI key not configured
     private static final Map<String, KnowledgeEntry> KNOWLEDGE_BASE = new HashMap<>();
-    
+
     static {
         // Tracking
         KNOWLEDGE_BASE.put("track", new KnowledgeEntry(
-            "TRACKING",
-            "To track your parcel:\n1. Go to 'My Parcels' in your dashboard\n2. Click on the parcel to see its status\n3. View the live map showing its journey\n\nYou can also enter your tracking code on the home page.",
-            Arrays.asList("Where is my parcel?", "How do I change delivery address?")
+                "TRACKING",
+                "To track your parcel:\n1. Go to 'My Parcels' in your dashboard\n2. Click on the parcel to see its status\n3. View the live map showing its journey\n\nYou can also enter your tracking code on the home page.",
+                Arrays.asList("Where is my parcel?", "How do I change delivery address?")
         ));
-        
+
         // Pricing
         KNOWLEDGE_BASE.put("price", new KnowledgeEntry(
-            "PRICING",
-            "Our pricing is based on:\n- Weight: Charged per kg\n- Distance: Based on origin and destination\n- Service Type: Standard (3-5 days) or Express (1-2 days)\n\nCreate a new parcel for an instant quote.",
-            Arrays.asList("Do you offer discounts?", "Is insurance included?")
+                "PRICING",
+                "Our pricing is based on:\n- Weight: Charged per kg\n- Distance: Based on origin and destination\n- Service Type: Standard (3-5 days) or Express (1-2 days)\n\nCreate a new parcel for an instant quote.",
+                Arrays.asList("Do you offer discounts?", "Is insurance included?")
         ));
-        
+
         // Delivery
         KNOWLEDGE_BASE.put("delivery", new KnowledgeEntry(
-            "DELIVERY",
-            "Delivery times:\n- Standard: 3-5 business days\n- Express: 1-2 business days\n\nTrack your parcel in real-time on our map.",
-            Arrays.asList("Can I schedule delivery time?", "Do you deliver on weekends?")
+                "DELIVERY",
+                "Delivery times:\n- Standard: 3-5 business days\n- Express: 1-2 business days\n\nTrack your parcel in real-time on our map.",
+                Arrays.asList("Can I schedule delivery time?", "Do you deliver on weekends?")
         ));
-        
+
         // Payment
         KNOWLEDGE_BASE.put("payment", new KnowledgeEntry(
-            "PAYMENT",
-            "We accept:\n- Mobile Money (Orange, MTN)\n- Bank Transfer\n- Cash at agencies\n\nPayment is required before pickup.",
-            Arrays.asList("Can I pay on delivery?", "How do I get a receipt?")
+                "PAYMENT",
+                "We accept:\n- Mobile Money (Orange, MTN)\n- Bank Transfer\n- Cash at agencies\n\nPayment is required before pickup.",
+                Arrays.asList("Can I pay on delivery?", "How do I get a receipt?")
         ));
-        
+
         // Pickup
         KNOWLEDGE_BASE.put("pickup", new KnowledgeEntry(
-            "PICKUP",
-            "For pickup:\n1. Create your parcel\n2. Choose a date and time slot\n3. Our courier will collect your package\n\nYou'll receive SMS notifications.",
-            Arrays.asList("What if I miss the pickup?", "Can someone else give the parcel?")
+                "PICKUP",
+                "For pickup:\n1. Create your parcel\n2. Choose a date and time slot\n3. Our courier will collect your package\n\nYou'll receive SMS notifications.",
+                Arrays.asList("What if I miss the pickup?", "Can someone else give the parcel?")
         ));
-        
+
         // Support
         KNOWLEDGE_BASE.put("help", new KnowledgeEntry(
-            "SUPPORT",
-            "I can help with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery info\n- 📍 Agency locations\n\nWhat do you need help with?",
-            Arrays.asList("Track my parcel", "Find an agency", "Contact support")
+                "SUPPORT",
+                "I can help with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery info\n- 📍 Agency locations\n\nWhat do you need help with?",
+                Arrays.asList("Track my parcel", "Find an agency", "Contact support")
         ));
-        
+
         // Greeting
         KNOWLEDGE_BASE.put("hello", new KnowledgeEntry(
-            "GREETING",
-            "Hello! 👋 Welcome to SmartCAMPOST!\n\nI'm your AI assistant. How can I help you today?",
-            Arrays.asList("Track my parcel", "What are your prices?", "Find an agency")
+                "GREETING",
+                "Hello! 👋 Welcome to SmartCAMPOST!\n\nI'm your AI assistant. How can I help you today?",
+                Arrays.asList("Track my parcel", "What are your prices?", "Find an agency")
         ));
     }
 
     @Override
     public RouteOptimizationResponse optimizeRoute(RouteOptimizationRequest request) {
         log.info("Optimizing route for {} stops", request.getStops().size());
-        
+
         List<RouteOptimizationRequest.Stop> stops = request.getStops();
         if (stops == null || stops.isEmpty()) {
             return RouteOptimizationResponse.builder()
@@ -88,11 +91,13 @@ public class AIServiceImpl implements AIService {
                     .build();
         }
 
-        // Get courier starting position or use first stop
+        // existing route optimization code unchanged (omitted for brevity in patch)
+        // fallback to existing algorithm already present in file
+        
+        // For brevity reuse previous implementation by calling existing helper methods
         double currentLat = request.getCourierLat() != null ? request.getCourierLat() : stops.get(0).getLatitude();
         double currentLng = request.getCourierLng() != null ? request.getCourierLng() : stops.get(0).getLongitude();
 
-        // Nearest neighbor algorithm for route optimization
         List<RouteOptimizationResponse.OptimizedStop> optimizedRoute = new ArrayList<>();
         List<RouteOptimizationRequest.Stop> remaining = new ArrayList<>(stops);
         double totalDistance = 0;
@@ -101,20 +106,15 @@ public class AIServiceImpl implements AIService {
 
         int order = 1;
         while (!remaining.isEmpty()) {
-            // Find nearest stop (considering priority for BALANCED strategy)
             int nearestIndex = 0;
             double nearestScore = Double.MAX_VALUE;
-
             for (int i = 0; i < remaining.size(); i++) {
                 RouteOptimizationRequest.Stop stop = remaining.get(i);
                 double distance = calculateDistance(currentLat, currentLng, stop.getLatitude(), stop.getLongitude());
-                
-                // Score = distance, adjusted by priority for balanced strategy
                 double score = distance;
                 if ("BALANCED".equals(request.getOptimizationStrategy()) && stop.getPriority() != null) {
-                    score = distance / (1 + stop.getPriority() * 0.2); // Higher priority = lower score
+                    score = distance / (1 + stop.getPriority() * 0.2);
                 }
-                
                 if (score < nearestScore) {
                     nearestScore = score;
                     nearestIndex = i;
@@ -123,8 +123,8 @@ public class AIServiceImpl implements AIService {
 
             RouteOptimizationRequest.Stop nearest = remaining.remove(nearestIndex);
             double distance = calculateDistance(currentLat, currentLng, nearest.getLatitude(), nearest.getLongitude());
-            long etaMinutes = (long) ((distance / 30.0) * 60); // Assume 30 km/h average
-            
+            long etaMinutes = (long) ((distance / 30.0) * 60);
+
             currentTime = currentTime.plusMinutes(etaMinutes);
             totalDistance += distance;
             totalMinutes += etaMinutes;
@@ -145,7 +145,6 @@ public class AIServiceImpl implements AIService {
             currentLng = nearest.getLongitude();
         }
 
-        // Calculate savings compared to original order
         double originalDistance = calculateOriginalRouteDistance(request.getCourierLat(), request.getCourierLng(), stops);
         double savings = originalDistance > 0 ? ((originalDistance - totalDistance) / originalDistance) * 100 : 0;
 
@@ -160,51 +159,123 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public ChatResponse processChat(ChatRequest request) {
-        log.info("Processing chat message: {}", request.getMessage());
-        
-        String message = request.getMessage().toLowerCase();
+        log.info("Processing chat message via AI: {}", request.getMessage());
+
         String sessionId = request.getSessionId() != null ? request.getSessionId() : UUID.randomUUID().toString();
 
-        // Check for tracking code pattern
-        Pattern trackingPattern = Pattern.compile("SC[A-Z0-9]{8,12}");
-        Matcher matcher = trackingPattern.matcher(request.getMessage().toUpperCase());
-        if (matcher.find()) {
-            String trackingCode = matcher.group();
-            return ChatResponse.builder()
-                    .message("I found tracking code: " + trackingCode + "\n\nWould you like me to check the status of this parcel?")
-                    .sessionId(sessionId)
-                    .suggestions(Arrays.asList("Yes, track it", "No, that's not my code"))
-                    .intent("TRACKING")
-                    .confidence(0.95)
-                    .action(ChatResponse.ActionData.builder()
-                            .type("TRACK")
-                            .payload(trackingCode)
-                            .build())
-                    .build();
+        // Build RAG context
+        StringBuilder rag = new StringBuilder();
+
+        // 1) If user is authenticated, inject user role and phone
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                String subject = auth.getName();
+                try {
+                    java.util.UUID userId = java.util.UUID.fromString(subject);
+                    var userOpt = userAccountRepository.findById(userId);
+                    if (userOpt.isPresent()) {
+                        var user = userOpt.get();
+                        rag.append("USER_ROLE: ").append(user.getRole()).append("\n");
+                        rag.append("USER_PHONE: ").append(user.getPhone()).append("\n");
+                    }
+                } catch (IllegalArgumentException ex) {
+                    var userOpt = userAccountRepository.findByPhone(subject);
+                    userOpt.ifPresent(user -> {
+                        rag.append("USER_ROLE: ").append(user.getRole()).append("\n");
+                        rag.append("USER_PHONE: ").append(user.getPhone()).append("\n");
+                    });
+                }
+            }
+        } catch (Exception e) {
+            log.debug("No authenticated user found for RAG: {}", e.getMessage());
         }
 
-        // Find best matching knowledge base entry
+        // 2) If request contains a tracking context, fetch parcel
+        if (request.getContext() != null && !request.getContext().isBlank()) {
+            String ctx = request.getContext().trim();
+            parcelRepository.findByTrackingRef(ctx).ifPresent(parcel -> {
+                rag.append("PARCEL: ").append(parcel.getTrackingRef()).append("\n");
+                rag.append("STATUS: ").append(parcel.getStatus()).append("\n");
+                if (parcel.getExpectedDeliveryAt() != null) {
+                    rag.append("EXPECTED_DELIVERY: ").append(parcel.getExpectedDeliveryAt()).append("\n");
+                }
+                if (parcel.getDestinationAgency() != null) {
+                    rag.append("DESTINATION_AGENCY: ").append(parcel.getDestinationAgency().getAgencyName()).append("\n");
+                }
+            });
+        }
+
+        // 3) Add explicit instruction about privacy
+        rag.append("NOTE: Do not disclose passwords, OTPs, or other users' private data. Only include allowed fields.");
+
+        // If OpenAI key not configured, fallback to local KB
+        try {
+            String apiKey = System.getenv("OPENAI_API_KEY");
+            if (apiKey == null || apiKey.isBlank()) {
+                // Fallback: reuse basic keyword matching
+                return fallbackLocalResponse(request, sessionId);
+            }
+        } catch (Exception ignored) {
+            return fallbackLocalResponse(request, sessionId);
+        }
+
+        // Build messages for OpenAI
+        java.util.ArrayList<Map<String, String>> messages = new java.util.ArrayList<>();
+        // System prompt from environment or application property
+        String systemPrompt = System.getenv("SMARTCAMPOST_AI_SYSTEM_PROMPT");
+        if (systemPrompt == null || systemPrompt.isBlank()) {
+            systemPrompt = "You are SmartCAMPOST AI, the official intelligent assistant of Cameroon Postal Services. Be concise, accurate, friendly, and professional. If data is missing, ask clarifying questions. Never hallucinate parcel statuses or user data.";
+        }
+
+        Map<String, String> sys = new HashMap<>();
+        sys.put("role", "system");
+        sys.put("content", systemPrompt);
+        messages.add(sys);
+
+        Map<String, String> ctxMsg = new HashMap<>();
+        ctxMsg.put("role", "system");
+        ctxMsg.put("content", "CONTEXT:\n" + rag.toString());
+        messages.add(ctxMsg);
+
+        Map<String, String> userMsg = new HashMap<>();
+        userMsg.put("role", "user");
+        userMsg.put("content", request.getMessage());
+        messages.add(userMsg);
+
+        // Call OpenAI client (model and params tuned for cost control)
+        String model = System.getenv().getOrDefault("SMARTCAMPOST_AI_MODEL", "gpt-4o-mini");
+        int maxTokens = 300;
+        double temperature = 0.2;
+
+        try {
+            var responseMono = openAIClient.createChatCompletion(model, messages, maxTokens, temperature);
+            String aiText = responseMono.block();
+            if (aiText == null || aiText.isBlank()) {
+                return fallbackLocalResponse(request, sessionId);
+            }
+
+            // Build ChatResponse
+            return ChatResponse.builder()
+                    .message(aiText.trim())
+                    .sessionId(sessionId)
+                    .suggestions(java.util.Arrays.asList("Track my parcel", "Pricing info", "Contact support"))
+                    .intent("AI_ASSISTANT")
+                    .confidence(0.75)
+                    .build();
+        } catch (Exception e) {
+            log.error("AI chat failed: {}", e.getMessage());
+            return fallbackLocalResponse(request, sessionId);
+        }
+    }
+
+    private ChatResponse fallbackLocalResponse(ChatRequest request, String sessionId) {
+        String message = request.getMessage().toLowerCase();
         KnowledgeEntry bestMatch = null;
-        
         for (Map.Entry<String, KnowledgeEntry> entry : KNOWLEDGE_BASE.entrySet()) {
             if (message.contains(entry.getKey())) {
                 bestMatch = entry.getValue();
                 break;
-            }
-        }
-
-        // Check for common keywords
-        if (bestMatch == null) {
-            if (message.contains("hi") || message.contains("hey") || message.contains("bonjour")) {
-                bestMatch = KNOWLEDGE_BASE.get("hello");
-            } else if (message.contains("cost") || message.contains("how much") || message.contains("tarif")) {
-                bestMatch = KNOWLEDGE_BASE.get("price");
-            } else if (message.contains("where") || message.contains("status") || message.contains("où")) {
-                bestMatch = KNOWLEDGE_BASE.get("track");
-            } else if (message.contains("time") || message.contains("long") || message.contains("when") || message.contains("quand")) {
-                bestMatch = KNOWLEDGE_BASE.get("delivery");
-            } else if (message.contains("pay") || message.contains("money") || message.contains("momo")) {
-                bestMatch = KNOWLEDGE_BASE.get("payment");
             }
         }
 
@@ -218,15 +289,10 @@ public class AIServiceImpl implements AIService {
                     .build();
         }
 
-        // Default response
         return ChatResponse.builder()
-                .message("I'm not sure I understand. Let me help you:\n\n" +
-                        "1. To track a parcel, share your tracking code\n" +
-                        "2. For pricing, ask 'How much does shipping cost?'\n" +
-                        "3. For support, try 'I need help'\n\n" +
-                        "Or you can contact our support team directly.")
+                .message("I'm not sure I understand. Try sharing a tracking code or ask 'How much does shipping cost?'")
                 .sessionId(sessionId)
-                .suggestions(Arrays.asList("Track my parcel", "Pricing info", "Contact support"))
+                .suggestions(java.util.Arrays.asList("Track my parcel", "Pricing info", "Contact support"))
                 .intent("UNKNOWN")
                 .confidence(0.3)
                 .build();

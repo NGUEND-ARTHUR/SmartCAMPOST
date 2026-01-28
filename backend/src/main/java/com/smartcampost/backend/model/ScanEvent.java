@@ -59,6 +59,35 @@ public class ScanEvent {
     @Column(name = "location_note", length = 255)
     private String locationNote;
 
+    // Compatibility fields (legacy API expects these)
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "source", length = 50)
+    private String source;
+
+    @Column(name = "scan_type", length = 60)
+    private String scanType;
+
+    // scannedBy kept as string for compatibility with legacy numeric or uuid principal names
+    @Column(name = "scanned_by", length = 64)
+    private String scannedBy;
+
+    @Column(name = "role", length = 40)
+    private String role;
+
+    @Column(name = "address", length = 500)
+    private String address;
+
+    // Convenience accessors for legacy code
+    public java.util.UUID getEventId() { return this.id; }
+    public java.util.UUID getParcelId() { return this.parcel != null ? this.parcel.getId() : null; }
+    public void setParcelId(java.util.UUID pid) { if (this.parcel == null) { this.parcel = new Parcel(); } this.parcel.setId(pid); }
+    public void setScannedBy(long who) { this.scannedBy = String.valueOf(who); }
+
     @PrePersist
     void onCreate() {
         if (id == null) {

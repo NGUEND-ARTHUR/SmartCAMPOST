@@ -29,7 +29,13 @@ import { ScanEvent, Parcel } from "@/types";
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
 import { EmptyState } from "@/components/EmptyState";
-import { useParcel, useScanEventsForParcel } from "@/hooks";
+import {
+  useParcel,
+  useScanEventsForParcel,
+  useUpdateParcelStatus,
+  useAcceptParcel,
+  useValidateAndAccept,
+} from "@/hooks";
 import { toast } from "sonner";
 
 const eventIcons: Record<string, ComponentType<any>> = {
@@ -48,6 +54,11 @@ export default function ParcelDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  // mutation hooks must be declared at top-level to respect rules of hooks
+  const updateStatus = useUpdateParcelStatus();
+  const useAccept = useAcceptParcel();
+  const useValidate = useValidateAndAccept();
+
   const {
     data: parcel,
     isLoading: parcelLoading,
@@ -55,6 +66,7 @@ export default function ParcelDetail() {
   } = useParcel(id || "");
   const { data: scanEvents = [], isLoading: eventsLoading } =
     useScanEventsForParcel(id || "");
+  // mutation hooks must be called unconditionally
 
   const isLoading = parcelLoading || eventsLoading;
 
@@ -316,19 +328,67 @@ export default function ParcelDetail() {
             </Button>
             <Button variant="outline">Download Receipt</Button>
             <Button variant="outline">Report Issue</Button>
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                try {
+                  await useAccept.mutateAsync(parcel.id);
+                  toast.success("Parcel accepted");
+                } catch (e) {
+                  toast.error("Accept failed");
+                }
+              }}
+            >
+              Accept
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                // simple prompt-based validate flow
+                const confirm = window.prompt(
+                  "Confirm description is accurate? (y/n)",
+                );
+                if (!confirm || confirm.toLowerCase() !== "y") return;
+                const photo = window.prompt(
+                  "Optional: paste photo URL or leave blank",
+                );
+                try {
+                  await useValidate.mutateAsync({
+                    id: parcel.id,
+                    data: {
+                      descriptionConfirmed: true,
+                      photoUrl: photo || undefined,
+                    },
+                  });
+                  toast.success("Parcel validated and accepted");
+                } catch (e) {
+                  toast.error("Validation failed");
+                }
+              }}
+            >
+              Validate & Accept
+            </Button>
             <ActionButton
               variant="destructive"
-              disabled={!canCancel}
+              disabled={!canCancel || (updateStatus as any).isLoading}
               tooltip={
                 !canCancel && "reason" in cancelDecision
                   ? cancelDecision.reason
                   : undefined
               }
-              onClick={() => {
+              onClick={async () => {
                 if (!canCancel) return;
-                toast.success("Cancel parcel (UI only)", {
-                  description: `Parcel ${id}`,
-                });
+                try {
+                  await updateStatus.mutateAsync({
+                    id: parcel.id,
+                    data: { status: "CANCELLED" },
+                  });
+                  toast.success("Parcel cancelled", {
+                    description: `Parcel ${parcel.trackingRef}`,
+                  });
+                } catch (e) {
+                  toast.error("Failed to cancel parcel");
+                }
               }}
             >
               Cancel Parcel

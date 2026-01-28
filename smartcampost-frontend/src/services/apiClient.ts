@@ -11,8 +11,14 @@ export interface PaginatedResponse<T> {
 }
 
 class AxiosHttpClient {
-  async request<T = unknown>(endpoint: string, config: Record<string, unknown> = {}): Promise<T> {
-    const res = await axiosInstance.request<T>({ url: endpoint, ...(config as any) });
+  async request<T = unknown>(
+    endpoint: string,
+    config: Record<string, unknown> = {},
+  ): Promise<T> {
+    const res = await axiosInstance.request<T>({
+      url: endpoint,
+      ...(config as any),
+    });
     return res.data as T;
   }
 

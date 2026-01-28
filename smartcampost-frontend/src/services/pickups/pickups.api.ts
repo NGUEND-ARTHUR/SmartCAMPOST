@@ -80,4 +80,16 @@ export const pickupService = {
   ): Promise<PickupResponse> {
     return httpClient.patch(`/pickups/${id}/state`, data);
   },
+
+  generateQr(id: string) {
+    return httpClient.post(`/pickups/${id}/qr`);
+  },
+
+  getByTemporaryQr(token: string) {
+    return httpClient.get(`/pickups/qr/${token}`);
+  },
+
+  confirmPickup(data: any) {
+    return httpClient.post(`/pickups/confirm`, data);
+  },
 };

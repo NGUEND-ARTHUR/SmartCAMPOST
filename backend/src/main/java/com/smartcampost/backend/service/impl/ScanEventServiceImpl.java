@@ -5,11 +5,19 @@ import com.smartcampost.backend.dto.scan.ScanEventResponse;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
-import com.smartcampost.backend.model.*;
+import com.smartcampost.backend.model.ScanEvent;
+import com.smartcampost.backend.model.Parcel;
+import com.smartcampost.backend.model.Agency;
+import com.smartcampost.backend.model.Agent;
+import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ScanEventType;
 import com.smartcampost.backend.model.enums.UserRole;
-import com.smartcampost.backend.repository.*;
+import com.smartcampost.backend.repository.ScanEventRepository;
+import com.smartcampost.backend.repository.ParcelRepository;
+import com.smartcampost.backend.repository.AgencyRepository;
+import com.smartcampost.backend.repository.AgentRepository;
+import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ScanEventService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,6 +45,10 @@ public class ScanEventServiceImpl implements ScanEventService {
     // ================== RECORD SCAN EVENT (US38 + US40) ==================
     @Override
     public ScanEventResponse recordScanEvent(ScanEventCreateRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
+        Objects.requireNonNull(request.getParcelId(), "parcelId is required");
+        Objects.requireNonNull(request.getEventType(), "eventType is required");
 
         UserAccount currentUser = getCurrentUser();
 
@@ -65,17 +78,18 @@ public class ScanEventServiceImpl implements ScanEventService {
         Agent agent = null;
         if (request.getAgentId() != null) {
             agent = agentRepository.findById(request.getAgentId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Agent not found",
-                            ErrorCode.AGENT_NOT_FOUND
-                    ));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Agent not found",
+                    ErrorCode.AGENT_NOT_FOUND
+                ));
         } else if (currentUser.getRole() == UserRole.AGENT) {
             // si pas d’agentId dans le body mais user courant est un AGENT
+            Objects.requireNonNull(currentUser.getEntityId(), "current user entityId is required");
             agent = agentRepository.findById(currentUser.getEntityId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Agent not found for current user",
-                            ErrorCode.AGENT_NOT_FOUND
-                    ));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Agent not found for current user",
+                    ErrorCode.AGENT_NOT_FOUND
+                ));
         }
 
         // String -> Enum (ScanEventType)
@@ -143,6 +157,7 @@ public class ScanEventServiceImpl implements ScanEventService {
     @Override
     public List<ScanEventResponse> getHistoryForParcel(UUID parcelId) {
 
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -152,7 +167,7 @@ public class ScanEventServiceImpl implements ScanEventService {
         // contrôle d’accès lecture :
         UserAccount user = getCurrentUser();
         if (user.getRole() == UserRole.CLIENT
-                && !parcel.getClient().getId().equals(user.getEntityId())) {
+            && !Objects.equals(parcel.getClient().getId(), user.getEntityId())) {
             throw new AuthException(
                     ErrorCode.BUSINESS_ERROR,
                     "You cannot access this parcel’s tracking"

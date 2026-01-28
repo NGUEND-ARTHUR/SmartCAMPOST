@@ -27,6 +27,7 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== GET ONE ALERT ==================
     @Override
     public RiskAlertResponse getRiskAlertById(UUID id) {
+                Objects.requireNonNull(id, "id is required");
         ensureBackoffice();
 
         RiskAlert alert = riskAlertRepository.findById(id)
@@ -62,6 +64,8 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== RESOLVE ALERT ==================
     @Override
     public RiskAlertResponse resolveRiskAlert(UUID id, ResolveRiskAlertRequest request) {
+                Objects.requireNonNull(id, "id is required");
+                Objects.requireNonNull(request, "request is required");
         ensureBackoffice();
 
         RiskAlert alert = riskAlertRepository.findById(id)
@@ -151,6 +155,7 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== FREEZE ACCOUNT ==================
     @Override
     public void freezeAccount(UUID userId) {
+                Objects.requireNonNull(userId, "userId is required");
         ensureBackoffice();
 
         UserAccount account = userAccountRepository.findById(userId)
@@ -173,6 +178,7 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== UNFREEZE ACCOUNT ==================
     @Override
     public void unfreezeAccount(UUID userId) {
+                Objects.requireNonNull(userId, "userId is required");
         ensureBackoffice();
 
         UserAccount account = userAccountRepository.findById(userId)

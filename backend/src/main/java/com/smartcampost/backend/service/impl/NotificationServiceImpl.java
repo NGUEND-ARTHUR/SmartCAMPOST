@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationResponse triggerNotification(TriggerNotificationRequest request) {
 
-        UserAccount user = getCurrentUser();
+                Objects.requireNonNull(request, "request must not be null");
+
+                UserAccount user = getCurrentUser();
         // Seuls STAFF / AGENT / ADMIN déclenchent manuellement
         if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
             throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to trigger notifications manually");
@@ -48,7 +51,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         Parcel parcel = null;
         if (request.getParcelId() != null) {
-            parcel = parcelRepository.findById(request.getParcelId())
+            UUID pid = request.getParcelId();
+            Objects.requireNonNull(pid, "parcelId is required");
+            parcel = parcelRepository.findById(pid)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Parcel not found",
                             ErrorCode.PARCEL_NOT_FOUND
@@ -57,7 +62,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         PickupRequest pickup = null;
         if (request.getPickupId() != null) {
-            pickup = pickupRequestRepository.findById(request.getPickupId())
+            UUID pkid = request.getPickupId();
+            Objects.requireNonNull(pkid, "pickupId is required");
+            pickup = pickupRequestRepository.findById(pkid)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Pickup not found",
                             ErrorCode.PICKUP_NOT_FOUND
@@ -116,6 +123,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
 
         sendAndUpdate(notif);
@@ -125,6 +133,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponse getNotification(UUID id) {
+        Objects.requireNonNull(id, "id is required");
+
         Notification notif = notificationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Notification not found",
@@ -153,15 +163,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponse retryNotification(UUID id) {
+        Objects.requireNonNull(id, "id is required");
+
         Notification notif = notificationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Notification not found",
                         ErrorCode.NOTIFICATION_NOT_FOUND
                 ));
-
         notif.setRetryCount(notif.getRetryCount() + 1);
         notif.setStatus(NotificationStatus.PENDING);
         notif.setErrorMessage(null);
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
 
         sendAndUpdate(notif);
@@ -171,6 +183,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationResponse> listForParcel(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         return notificationRepository.findByParcel_IdOrderByCreatedAtDesc(parcelId)
                 .stream()
                 .map(this::toResponse)
@@ -179,6 +192,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationResponse> listForPickup(UUID pickupId) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
         return notificationRepository.findByPickupRequest_IdOrderByCreatedAtDesc(pickupId)
                 .stream()
                 .map(this::toResponse)
@@ -189,6 +203,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void notifyPickupRequested(PickupRequest pickup) {
+                Objects.requireNonNull(pickup, "pickup is required");
         Parcel parcel = pickup.getParcel();
         Client client = parcel.getClient();
 
@@ -214,12 +229,14 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
 
     @Override
     public void notifyPickupCompleted(PickupRequest pickup) {
+                Objects.requireNonNull(pickup, "pickup is required");
         Parcel parcel = pickup.getParcel();
         Client client = parcel.getClient();
 
@@ -244,12 +261,14 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
 
     @Override
     public void notifyParcelDelivered(Parcel parcel) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -273,6 +292,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -280,6 +300,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: notification lors de la création du colis
     @Override
     public void notifyParcelCreated(Parcel parcel) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -303,6 +324,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -310,6 +332,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 SPRINT 15: notification when parcel is validated/accepted by agent
     @Override
     public void notifyParcelAccepted(Parcel parcel) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -339,6 +362,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -346,6 +370,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: notification "out for delivery"
     @Override
     public void notifyParcelOutForDelivery(Parcel parcel) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -369,6 +394,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -376,6 +402,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: notification when parcel is in transit
     @Override
     public void notifyParcelInTransit(Parcel parcel) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -399,6 +426,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -406,6 +434,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: notification when parcel arrives at destination agency
     @Override
     public void notifyParcelArrivedDestination(Parcel parcel) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
         Agency destAgency = parcel.getDestinationAgency();
 
@@ -437,6 +466,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -444,6 +474,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: reminder for uncollected parcels at agency
     @Override
     public void sendReminderForUncollectedParcel(Parcel parcel, int daysSinceArrival) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
         Agency destAgency = parcel.getDestinationAgency();
 
@@ -473,6 +504,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -480,6 +512,8 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: notification when delivery is rescheduled
     @Override
     public void notifyDeliveryRescheduled(Parcel parcel, java.time.LocalDate newDate, String reason) {
+                Objects.requireNonNull(parcel, "parcel is required");
+                Objects.requireNonNull(newDate, "newDate is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -508,6 +542,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -515,6 +550,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 🔥 NEW: notification when delivery attempt fails
     @Override
     public void notifyDeliveryAttemptFailed(Parcel parcel, int attemptNumber, String failureReason) {
+                Objects.requireNonNull(parcel, "parcel is required");
         Client client = parcel.getClient();
 
         String phone = client.getPhone();
@@ -540,6 +576,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }
@@ -571,6 +608,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(0)
                 .build();
 
+        Objects.requireNonNull(notif, "notification must not be null");
         notificationRepository.save(notif);
         sendAndUpdate(notif);
     }

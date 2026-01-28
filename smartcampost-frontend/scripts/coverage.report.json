@@ -1,0 +1,1310 @@
+{
+  "base": "http://localhost:8080/api",
+  "summary": {
+    "total": 130,
+    "success": 0,
+    "failures": 130
+  },
+  "details": [
+    {
+      "id": "auth-register",
+      "method": "POST",
+      "path": "/auth/register",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-login",
+      "method": "POST",
+      "path": "/auth/login",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-login-otp-request",
+      "method": "POST",
+      "path": "/auth/login/otp/request",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-login-otp-confirm",
+      "method": "POST",
+      "path": "/auth/login/otp/confirm",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-send-otp",
+      "method": "POST",
+      "path": "/auth/send-otp",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-verify-otp",
+      "method": "POST",
+      "path": "/auth/verify-otp",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-password-reset-request",
+      "method": "POST",
+      "path": "/auth/password/reset/request",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "auth-password-reset-confirm",
+      "method": "POST",
+      "path": "/auth/password/reset/confirm",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-create",
+      "method": "POST",
+      "path": "/parcels",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-me",
+      "method": "GET",
+      "path": "/parcels/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-get",
+      "method": "GET",
+      "path": "/parcels/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-tracking",
+      "method": "GET",
+      "path": "/parcels/tracking/{trackingRef}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-list",
+      "method": "GET",
+      "path": "/parcels",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-scan-events",
+      "method": "GET",
+      "path": "/parcels/{parcelId}/scan-events",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcels-scan",
+      "method": "POST",
+      "path": "/parcels/{parcelId}/scan",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcel-qr",
+      "method": "GET",
+      "path": "/parcels/{parcelId}/qr",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "parcel-qr-print",
+      "method": "GET",
+      "path": "/parcels/{parcelId}/qr/print",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-parcel",
+      "method": "GET",
+      "path": "/qr/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-tracking",
+      "method": "GET",
+      "path": "/qr/tracking/{trackingRef}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-parcel-image",
+      "method": "GET",
+      "path": "/qr/parcel/{parcelId}/image",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-tracking-image",
+      "method": "GET",
+      "path": "/qr/tracking/{trackingRef}/image",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-pickup-temporary",
+      "method": "POST",
+      "path": "/qr/pickup/{pickupId}/temporary",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-validate-temporary",
+      "method": "GET",
+      "path": "/qr/validate/{temporaryToken}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-pickup-convert",
+      "method": "POST",
+      "path": "/qr/pickup/{pickupId}/convert",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-label-by-tracking",
+      "method": "GET",
+      "path": "/qr/label/tracking/{trackingRef}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-verify",
+      "method": "POST",
+      "path": "/qr/verify",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-verify-get",
+      "method": "GET",
+      "path": "/qr/verify/{qrContent}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-secure-parcel",
+      "method": "POST",
+      "path": "/qr/secure/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-revoke-token",
+      "method": "DELETE",
+      "path": "/qr/revoke/{token}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "qr-revoke-parcel",
+      "method": "DELETE",
+      "path": "/qr/revoke/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-create",
+      "method": "POST",
+      "path": "/pickups",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-get",
+      "method": "GET",
+      "path": "/pickups/{pickupId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-by-parcel",
+      "method": "GET",
+      "path": "/pickups/by-parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-me",
+      "method": "GET",
+      "path": "/pickups/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-courier-me",
+      "method": "GET",
+      "path": "/pickups/courier/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-list",
+      "method": "GET",
+      "path": "/pickups",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-assign-courier",
+      "method": "POST",
+      "path": "/pickups/{pickupId}/assign-courier",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-generate-qr",
+      "method": "POST",
+      "path": "/pickups/{pickupId}/qr",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-qr-view",
+      "method": "GET",
+      "path": "/pickups/qr/{temporaryQrToken}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pickup-confirm",
+      "method": "POST",
+      "path": "/pickups/confirm",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-momo-initiate",
+      "method": "POST",
+      "path": "/payments/momo/initiate",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-momo-callback",
+      "method": "POST",
+      "path": "/payments/momo/callback",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-get",
+      "method": "GET",
+      "path": "/payments/{paymentId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-init",
+      "method": "POST",
+      "path": "/payments/init",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-confirm",
+      "method": "POST",
+      "path": "/payments/confirm",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-by-parcel",
+      "method": "GET",
+      "path": "/payments/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-list",
+      "method": "GET",
+      "path": "/payments",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-registration",
+      "method": "POST",
+      "path": "/payments/registration/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-pickup",
+      "method": "POST",
+      "path": "/payments/pickup/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-delivery",
+      "method": "POST",
+      "path": "/payments/delivery/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "payments-summary",
+      "method": "GET",
+      "path": "/payments/summary/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "invoices-me",
+      "method": "GET",
+      "path": "/invoices/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "invoices-get",
+      "method": "GET",
+      "path": "/invoices/{invoiceId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "invoices-by-parcel",
+      "method": "GET",
+      "path": "/invoices/by-parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "invoices-pdf",
+      "method": "GET",
+      "path": "/invoices/{invoiceId}/pdf",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "location-update",
+      "method": "POST",
+      "path": "/location/update",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "location-me",
+      "method": "GET",
+      "path": "/location/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "map-parcel",
+      "method": "GET",
+      "path": "/map/parcels/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "map-couriers-me",
+      "method": "GET",
+      "path": "/map/couriers/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "map-admin-overview",
+      "method": "GET",
+      "path": "/map/admin/overview",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "scan-events-create",
+      "method": "POST",
+      "path": "/scan-events",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "scan-events-by-parcel",
+      "method": "GET",
+      "path": "/scan-events/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "stream-scans",
+      "method": "GET",
+      "path": "/stream/scans",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-otp-send",
+      "method": "POST",
+      "path": "/delivery/otp/send",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-otp-verify",
+      "method": "POST",
+      "path": "/delivery/otp/verify",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-finalize",
+      "method": "POST",
+      "path": "/delivery/final",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-start",
+      "method": "POST",
+      "path": "/delivery/start",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-otp-resend",
+      "method": "POST",
+      "path": "/delivery/{parcelId}/otp/resend",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-complete",
+      "method": "POST",
+      "path": "/delivery/complete",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-status",
+      "method": "GET",
+      "path": "/delivery/{parcelId}/status",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-failed",
+      "method": "POST",
+      "path": "/delivery/{parcelId}/failed",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "delivery-reschedule",
+      "method": "POST",
+      "path": "/delivery/{parcelId}/reschedule",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "receipts-by-parcel",
+      "method": "GET",
+      "path": "/receipts/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "receipt-by-number",
+      "method": "GET",
+      "path": "/receipts/number/{receiptNumber}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "notifications-trigger",
+      "method": "POST",
+      "path": "/notifications/trigger",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "notifications-get",
+      "method": "GET",
+      "path": "/notifications/{id}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "notifications-list",
+      "method": "GET",
+      "path": "/notifications",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "notifications-retry",
+      "method": "POST",
+      "path": "/notifications/{id}/retry",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "notifications-by-parcel",
+      "method": "GET",
+      "path": "/notifications/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "notifications-by-pickup",
+      "method": "GET",
+      "path": "/notifications/pickup/{pickupId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "tariffs-create",
+      "method": "POST",
+      "path": "/tariffs",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "tariffs-list",
+      "method": "GET",
+      "path": "/tariffs",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "tariffs-get",
+      "method": "GET",
+      "path": "/tariffs/{tariffId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "tariffs-update",
+      "method": "PUT",
+      "path": "/tariffs/{tariffId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "tariffs-delete",
+      "method": "DELETE",
+      "path": "/tariffs/{tariffId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "tariffs-quote",
+      "method": "POST",
+      "path": "/tariffs/quote",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "admin-users",
+      "method": "GET",
+      "path": "/admin/users",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "admin-users-by-role",
+      "method": "GET",
+      "path": "/admin/users/by-role",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "staff-create",
+      "method": "POST",
+      "path": "/staff",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "staff-get",
+      "method": "GET",
+      "path": "/staff/{staffId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "staff-list",
+      "method": "GET",
+      "path": "/staff",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agents-create",
+      "method": "POST",
+      "path": "/agents",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agents-get",
+      "method": "GET",
+      "path": "/agents/{agentId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agents-list",
+      "method": "GET",
+      "path": "/agents",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agencies-create",
+      "method": "POST",
+      "path": "/agencies",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agencies-list",
+      "method": "GET",
+      "path": "/agencies",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agencies-get",
+      "method": "GET",
+      "path": "/agencies/{agencyId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "agencies-update",
+      "method": "PUT",
+      "path": "/agencies/{agencyId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "clients-me",
+      "method": "GET",
+      "path": "/clients/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "clients-update-me",
+      "method": "PUT",
+      "path": "/clients/me",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "clients-get",
+      "method": "GET",
+      "path": "/clients/{clientId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "clients-list",
+      "method": "GET",
+      "path": "/clients",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "integrations-create",
+      "method": "POST",
+      "path": "/integrations",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "integrations-update",
+      "method": "PUT",
+      "path": "/integrations/{id}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "integrations-get",
+      "method": "GET",
+      "path": "/integrations/{id}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "integrations-list",
+      "method": "GET",
+      "path": "/integrations",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "compliance-alerts",
+      "method": "GET",
+      "path": "/compliance/alerts",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "compliance-alert-get",
+      "method": "GET",
+      "path": "/compliance/alerts/{id}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "compliance-reports",
+      "method": "GET",
+      "path": "/compliance/reports",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "compliance-freeze-account",
+      "method": "POST",
+      "path": "/compliance/accounts/{userId}/freeze",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "compliance-unfreeze-account",
+      "method": "POST",
+      "path": "/compliance/accounts/{userId}/unfreeze",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "risk-alerts",
+      "method": "GET",
+      "path": "/risk/alerts",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "analytics-eta",
+      "method": "GET",
+      "path": "/analytics/parcels/{parcelId}/eta",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "analytics-payment-anomaly",
+      "method": "GET",
+      "path": "/analytics/payments/{paymentId}/anomaly",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "dashboard-summary",
+      "method": "GET",
+      "path": "/dashboard/summary",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "ai-optimize",
+      "method": "POST",
+      "path": "/ai/optimize-route",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "ai-chat",
+      "method": "POST",
+      "path": "/ai/chat",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "ai-chat-stream",
+      "method": "POST",
+      "path": "/ai/chat/stream",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "ai-predict-delivery",
+      "method": "POST",
+      "path": "/ai/predict-delivery",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "mtn-token",
+      "method": "POST",
+      "path": "/payments/mtn/token",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "mtn-init",
+      "method": "POST",
+      "path": "/payments/mtn/init",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "ussd-handle",
+      "method": "POST",
+      "path": "/ussd/handle",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pricing-detail-parcel",
+      "method": "GET",
+      "path": "/pricing-details/parcel/{parcelId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "pricing-detail-parcel-all",
+      "method": "GET",
+      "path": "/pricing-details/parcel/{parcelId}/all",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "refund-create",
+      "method": "POST",
+      "path": "/refunds",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "refund-get",
+      "method": "GET",
+      "path": "/refunds/{refundId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "refund-by-payment",
+      "method": "GET",
+      "path": "/refunds/payment/{paymentId}",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "finance-refunds",
+      "method": "GET",
+      "path": "/finance/refunds",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "mcd-geocode",
+      "method": "POST",
+      "path": "/geo/geocode",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    },
+    {
+      "id": "map-viewer",
+      "method": "GET",
+      "path": "/maps/viewer",
+      "result": {
+        "ok": false,
+        "status": 0,
+        "error": "Error"
+      }
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +30,7 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
     @Override
     @Transactional
     public DeliveryProof captureProof(DeliveryProofRequest request) {
+        Objects.requireNonNull(request, "request is required");
         String capturedBy = request.getCourierId() != null
                 ? request.getCourierId().toString()
                 : null;
@@ -48,6 +50,8 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
                                       DeliveryProofType proofType,
                                       String details,
                                       String capturedBy) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(proofType, "proofType is required");
 
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new IllegalArgumentException("Parcel not found"));
@@ -75,6 +79,7 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
 
     @Override
     public Optional<DeliveryProof> getProofForParcel(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new IllegalArgumentException("Parcel not found"));
         return deliveryProofRepository.findByParcel(parcel);

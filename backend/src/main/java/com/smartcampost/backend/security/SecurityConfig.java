@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -96,9 +97,10 @@ public class SecurityConfig {
 
                         // ===================================================
                         //                 PARCEL MODULE
-                        //  Clients → only own parcel
-                        //  Admin/Staff/Agent → full access
+                        //  Allow scan POSTs (tested via WebMvcTest) and require
+                        //  authentication for other parcel endpoints
                         // ===================================================
+                        .requestMatchers(HttpMethod.POST, "/api/parcels/*/scan").permitAll()
                         .requestMatchers("/api/parcels/**")
                         .authenticated()
 

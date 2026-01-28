@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAIChat } from "@/hooks/ai/useAI";
 
 interface Message {
   id: string;
@@ -325,6 +326,7 @@ How can I assist you today?`,
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const aiMutation = useAIChat();
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -362,24 +364,108 @@ How can I assist you today?`,
       setInputValue("");
       setIsTyping(true);
 
-      // Simulate AI thinking delay
-      await new Promise((resolve) =>
-        setTimeout(resolve, 800 + Math.random() * 700),
-      );
-
-      // Get response
-      const { response, suggestions } = findResponse(query);
-
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: response,
-        timestamp: new Date(),
-        suggestions,
-        feedback: null,
+      // Try streaming endpoint first (progressive renderer)
+      const payload = {
+        message: query,
+        language: "en",
+        context: userPhone || undefined,
       };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsTyping(false);
+      try {
+        setIsTyping(true);
+        const res = await fetch(`/api/ai/chat/stream`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Stream failed");
+
+        const reader = res.body?.getReader();
+        if (reader) {
+          let assistantId = `assistant-${Date.now()}`;
+          // create empty assistant message and append progressively
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: assistantId,
+              role: "assistant",
+              content: "",
+              timestamp: new Date(),
+              suggestions: [],
+              feedback: null,
+            },
+          ]);
+
+          const decoder = new TextDecoder();
+          let done = false;
+          while (!done) {
+            const { value, done: rdone } = await reader.read();
+            done = rdone;
+            if (value) {
+              const chunk = decoder.decode(value);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, content: m.content + chunk }
+                    : m,
+                ),
+              );
+            }
+          }
+          setIsTyping(false);
+          return;
+        }
+      } catch (err) {
+        // Fall through to mutation-based call
+        console.warn("Streaming failed, falling back", err);
+      }
+
+      try {
+        // small delay for UX
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        // Use react-query mutation
+        let aiResp = null;
+        if (aiMutation) {
+          aiResp = await aiMutation.mutateAsync({
+            message: query,
+            language: "en",
+            context: userPhone || undefined,
+          });
+        } else {
+          // fallback to local KB
+          const fallback = findResponse(query);
+          aiResp = {
+            message: fallback.response,
+            suggestions: fallback.suggestions,
+          };
+        }
+
+        const assistantMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content:
+            aiResp.message || "Sorry, I couldn't process that right now.",
+          timestamp: new Date(),
+          suggestions: aiResp.suggestions || [],
+          feedback: null,
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+      } catch (err) {
+        const fallback = findResponse(query);
+        const assistantMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: fallback.response,
+          timestamp: new Date(),
+          suggestions: fallback.suggestions,
+          feedback: null,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } finally {
+        setIsTyping(false);
+      }
     },
     [inputValue],
   );

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -27,6 +28,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public EtaPredictionResponse predictEtaForParcel(UUID parcelId) {
 
+        Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -65,6 +67,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public AnomalyCheckResponse checkPaymentAnomaly(UUID paymentId) {
 
+        Objects.requireNonNull(paymentId, "paymentId is required");
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Payment not found",

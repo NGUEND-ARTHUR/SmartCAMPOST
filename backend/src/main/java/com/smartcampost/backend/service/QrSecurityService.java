@@ -96,12 +96,12 @@ public interface QrSecurityService {
     /**
      * Get the current valid token for a parcel.
      */
-    QrVerificationToken getValidTokenForParcel(UUID parcelId);
+    java.util.Optional<QrVerificationToken> getValidTokenForParcel(UUID parcelId);
 
     /**
      * Get the current valid token for a pickup.
      */
-    QrVerificationToken getValidTokenForPickup(UUID pickupId);
+    java.util.Optional<QrVerificationToken> getValidTokenForPickup(UUID pickupId);
 
     /**
      * Clean up expired tokens.
