@@ -28,25 +28,29 @@ public class RiskServiceImpl implements RiskService {
 
     @Override
     public Object updateRiskAlert(UUID alertId, String description, Object severity) {
-        RiskAlert alert = riskAlertRepository.findById(alertId)
-                .orElseThrow(() -> new ResourceNotFoundException("Risk alert not found", ErrorCode.RISK_ALERT_NOT_FOUND));
+        UUID id = java.util.Objects.requireNonNull(alertId, "alertId is required");
+        RiskAlert alert = riskAlertRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Risk alert not found", ErrorCode.RISK_ALERT_NOT_FOUND));
 
         alert.setDescription(description);
 
         // If your RiskAlert has setSeverity(RiskAlertSeverity) use it directly:
         // alert.setSeverity((RiskAlertSeverity) severity);
 
-        riskAlertRepository.save(alert);
-        return alert;
+        RiskAlert saved = riskAlertRepository.save(alert);
+        if (saved == null) throw new IllegalStateException("failed to save risk alert");
+        return saved;
     }
 
     @Override
     public Object freezeUser(UUID userId, boolean frozen) {
-        UserAccount account = userAccountRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
+        UUID id = java.util.Objects.requireNonNull(userId, "userId is required");
+        UserAccount account = userAccountRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
 
         account.setFrozen(frozen);
-        userAccountRepository.save(account);
-        return account;
+        UserAccount saved = userAccountRepository.save(account);
+        if (saved == null) throw new IllegalStateException("failed to save user account");
+        return saved;
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.lang.Nullable;
 
 @Service
 @RequiredArgsConstructor
@@ -82,7 +83,8 @@ public class AuthServiceImpl implements AuthService {
             .passwordHash(encodedPassword)
             .build();
 
-        clientRepository.save(client);
+        Client savedClient = clientRepository.save(client);
+        client = Objects.requireNonNull(savedClient, "failed to save client");
 
         // 5) Créer UserAccount
         UserAccount account = UserAccount.builder()
@@ -93,7 +95,8 @@ public class AuthServiceImpl implements AuthService {
             .entityId(client.getId())
             .build();
 
-        userAccountRepository.save(account);
+        UserAccount savedAccount = userAccountRepository.save(account);
+        account = Objects.requireNonNull(savedAccount, "failed to save user account");
 
         // 6) Mark OTP as used only after successful registration
         otpService.consumeOtp(request.getPhone(), request.getOtp(), OtpPurpose.REGISTER);
@@ -121,9 +124,9 @@ public class AuthServiceImpl implements AuthService {
         Objects.requireNonNull(request, "request is required");
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() ->
-                        new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials")
-                );
+            .orElseThrow(() ->
+                new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials")
+            );
 
         if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
@@ -146,27 +149,31 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Resolves the full name based on user role
      */
-    private String resolveFullName(UserAccount user) {
+    private @Nullable String resolveFullName(UserAccount user) {
         switch (user.getRole()) {
             case CLIENT:
-                return clientRepository.findById(user.getEntityId())
-                        .map(Client::getFullName)
-                        .orElse(null);
+                UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+                return clientRepository.findById(clientId)
+                    .map(Client::getFullName)
+                    .orElse(null);
             case STAFF:
             case ADMIN:
             case FINANCE:
             case RISK:
-                return staffRepository.findById(user.getEntityId())
-                        .map(Staff::getFullName)
-                        .orElse(null);
+                UUID staffId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+                return staffRepository.findById(staffId)
+                    .map(Staff::getFullName)
+                    .orElse(null);
             case AGENT:
-                return agentRepository.findById(user.getEntityId())
-                        .map(Agent::getFullName)
-                        .orElse(null);
+                UUID agentId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+                return agentRepository.findById(agentId)
+                    .map(Agent::getFullName)
+                    .orElse(null);
             case COURIER:
-                return courierRepository.findById(user.getEntityId())
-                        .map(Courier::getFullName)
-                        .orElse(null);
+                UUID courierId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+                return courierRepository.findById(courierId)
+                    .map(Courier::getFullName)
+                    .orElse(null);
             default:
                 return null;
         }
@@ -194,16 +201,18 @@ public class AuthServiceImpl implements AuthService {
 
         Objects.requireNonNull(request, "request is required");
 
-        UserAccount user = userAccountRepository.findById(request.getUserId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
+        UUID uid = Objects.requireNonNull(request.getUserId(), "userId is required");
+        UserAccount user = userAccountRepository.findById(uid)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
         if (!encoder.matches(request.getOldPassword(), user.getPasswordHash())) {
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Old password incorrect");
         }
 
         user.setPasswordHash(encoder.encode(request.getNewPassword()));
-        userAccountRepository.save(user);
+        var saved = userAccountRepository.save(user);
+        if (saved == null) throw new IllegalStateException("failed to save user account");
     }
 
     // ============================================================
@@ -236,19 +245,23 @@ public class AuthServiceImpl implements AuthService {
         }
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
+            .orElseThrow(() ->
+                new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
         String encoded = encoder.encode(request.getNewPassword());
         user.setPasswordHash(encoded);
-        userAccountRepository.save(user);
+        var savedUser = userAccountRepository.save(user);
+        if (savedUser == null) throw new IllegalStateException("failed to save user account");
 
         if (user.getRole() == UserRole.CLIENT) {
-            clientRepository.findById(user.getEntityId())
-                    .ifPresent(client -> {
-                        client.setPasswordHash(encoded);
-                        clientRepository.save(client);
-                    });
+            UUID entityId = user.getEntityId();
+            if (entityId != null) {
+                clientRepository.findById(entityId)
+                        .ifPresent(client -> {
+                            client.setPasswordHash(encoded);
+                            java.util.Objects.requireNonNull(clientRepository.save(client), "failed to save client");
+                        });
+            }
         }
     }
 

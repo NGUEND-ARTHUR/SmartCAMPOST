@@ -47,7 +47,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Only clients can open support tickets");
         }
 
-        Client client = clientRepository.findById(user.getEntityId())
+        UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Client not found",
                         ErrorCode.CLIENT_NOT_FOUND
@@ -79,9 +80,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .createdAt(Instant.now())
                 .build();
 
-        supportTicketRepository.save(ticket);
-
-        return toResponse(ticket);
+        SupportTicket saved = supportTicketRepository.save(ticket);
+        if (saved == null) throw new IllegalStateException("failed to save support ticket");
+        return toResponse(saved);
     }
 
     // ================== GET BY ID ==================
@@ -108,7 +109,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Current user is not a client");
         }
 
-        Client client = clientRepository.findById(user.getEntityId())
+        UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Client not found",
                         ErrorCode.CLIENT_NOT_FOUND
@@ -160,9 +162,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         }
 
         ticket.setUpdatedAt(Instant.now());
-        supportTicketRepository.save(ticket);
-
-        return toResponse(ticket);
+        SupportTicket saved = supportTicketRepository.save(ticket);
+        if (saved == null) throw new IllegalStateException("failed to save support ticket");
+        return toResponse(saved);
     }
 
     // ================== UPDATE STATUS ==================
@@ -201,9 +203,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         ticket.setStatus(request.getStatus());
         ticket.setUpdatedAt(Instant.now());
 
-        supportTicketRepository.save(ticket);
-
-        return toResponse(ticket);
+        SupportTicket saved = supportTicketRepository.save(ticket);
+        if (saved == null) throw new IllegalStateException("failed to save support ticket");
+        return toResponse(saved);
     }
 
     // ================== ACCESS CONTROL ==================
@@ -211,9 +213,10 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 Objects.requireNonNull(ticket, "ticket is required");
                 UserAccount user = getCurrentUserAccount();
 
+                UUID uid = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
                 if (user.getRole() == UserRole.CLIENT) {
-                        if (ticket.getClient() == null ||
-                                        !Objects.equals(ticket.getClient().getId(), user.getEntityId())) {
+                                if (ticket.getClient() == null ||
+                                                !Objects.equals(ticket.getClient().getId(), uid)) {
 
                 throw new AuthException(
                         ErrorCode.AUTH_FORBIDDEN,

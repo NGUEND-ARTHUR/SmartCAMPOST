@@ -60,7 +60,8 @@ public class ScanEventServiceImpl implements ScanEventService {
             );
         }
 
-        Parcel parcel = parcelRepository.findById(request.getParcelId())
+        UUID reqParcelId = Objects.requireNonNull(request.getParcelId(), "parcelId is required");
+        Parcel parcel = parcelRepository.findById(reqParcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -68,24 +69,26 @@ public class ScanEventServiceImpl implements ScanEventService {
 
         Agency agency = null;
         if (request.getAgencyId() != null) {
-            agency = agencyRepository.findById(request.getAgencyId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Agency not found",
-                            ErrorCode.AGENCY_NOT_FOUND
-                    ));
+            UUID agencyId = Objects.requireNonNull(request.getAgencyId(), "agencyId is required");
+            agency = agencyRepository.findById(agencyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Agency not found",
+                    ErrorCode.AGENCY_NOT_FOUND
+                ));
         }
 
         Agent agent = null;
         if (request.getAgentId() != null) {
-            agent = agentRepository.findById(request.getAgentId())
+            UUID agentId = Objects.requireNonNull(request.getAgentId(), "agentId is required");
+            agent = agentRepository.findById(agentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                     "Agent not found",
                     ErrorCode.AGENT_NOT_FOUND
                 ));
         } else if (currentUser.getRole() == UserRole.AGENT) {
             // si pas d’agentId dans le body mais user courant est un AGENT
-            Objects.requireNonNull(currentUser.getEntityId(), "current user entityId is required");
-            agent = agentRepository.findById(currentUser.getEntityId())
+            UUID currentEntityId = Objects.requireNonNull(currentUser.getEntityId(), "current user entityId is required");
+            agent = agentRepository.findById(currentEntityId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                     "Agent not found for current user",
                     ErrorCode.AGENT_NOT_FOUND
@@ -113,15 +116,18 @@ public class ScanEventServiceImpl implements ScanEventService {
                 .timestamp(Instant.now())
                 .locationNote(request.getLocationNote())
                 .build();
-
-        scanEventRepository.save(event);
+        ScanEvent toSave = java.util.Objects.requireNonNull(event, "event is required");
+        ScanEvent savedEvent = scanEventRepository.save(toSave);
+        if (savedEvent == null) throw new IllegalStateException("failed to save scan event");
+        event = savedEvent;
 
         // mettre à jour le statut du colis selon l’event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
         if (newStatus != null) {
             ParcelStatus oldStatus = parcel.getStatus();
             parcel.setStatus(newStatus);
-            parcelRepository.save(parcel);
+            Parcel savedParcel = parcelRepository.save(parcel);
+            if (savedParcel == null) throw new IllegalStateException("failed to save parcel");
 
             // 🔔 Notifications based on status changes
             String eventName = type.name();
@@ -157,12 +163,12 @@ public class ScanEventServiceImpl implements ScanEventService {
     @Override
     public List<ScanEventResponse> getHistoryForParcel(UUID parcelId) {
 
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Parcel not found",
-                        ErrorCode.PARCEL_NOT_FOUND
-                ));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found",
+                ErrorCode.PARCEL_NOT_FOUND
+            ));
 
         // contrôle d’accès lecture :
         UserAccount user = getCurrentUser();
@@ -175,11 +181,11 @@ public class ScanEventServiceImpl implements ScanEventService {
         }
 
         List<ScanEvent> events = scanEventRepository
-                .findByParcel_IdOrderByTimestampAsc(parcelId);
+            .findByParcel_IdOrderByTimestampAsc(id);
 
         return events.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+            .map(e -> toResponse(Objects.requireNonNull(e, "scan event is required")))
+            .collect(Collectors.toList());
     }
 
     // ================== STATUS AUTO-UPDATE ==================
@@ -219,7 +225,7 @@ public class ScanEventServiceImpl implements ScanEventService {
             );
         }
 
-        String subject = auth.getName(); // sub = UUID ou phone
+        String subject = Objects.requireNonNull(auth.getName(), "authentication name is required"); // sub = UUID ou phone
 
         try {
             UUID userId = UUID.fromString(subject);

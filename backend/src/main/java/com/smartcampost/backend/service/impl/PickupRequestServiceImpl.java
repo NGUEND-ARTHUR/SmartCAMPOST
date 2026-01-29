@@ -53,8 +53,8 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         }
 
         // Récupérer le Parcel
-        Objects.requireNonNull(request.getParcelId(), "parcelId is required");
-        Parcel parcel = parcelRepository.findById(request.getParcelId())
+        UUID parcelId = Objects.requireNonNull(request.getParcelId(), "parcelId is required");
+        Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
@@ -83,7 +83,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .comment(request.getComment())
                 .build();
 
-        pickupRequestRepository.save(pickup);
+        pickup = Objects.requireNonNull(pickupRequestRepository.save(pickup), "failed to save pickup request");
 
         // 🔔 Notification automatique : pickup demandé
         notificationService.notifyPickupRequested(pickup);
@@ -94,9 +94,9 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== GET BY ID ==================
     @Override
     public PickupResponse getPickupById(UUID pickupId) {
-        Objects.requireNonNull(pickupId, "pickupId is required");
+        UUID id = Objects.requireNonNull(pickupId, "pickupId is required");
 
-        PickupRequest pickup = pickupRequestRepository.findById(pickupId)
+        PickupRequest pickup = pickupRequestRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Pickup not found",
                 ErrorCode.PICKUP_NOT_FOUND
@@ -110,8 +110,8 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== GET BY PARCEL ==================
     @Override
     public PickupResponse getPickupByParcelId(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        PickupRequest pickup = pickupRequestRepository.findByParcel_Id(parcelId)
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        PickupRequest pickup = pickupRequestRepository.findByParcel_Id(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Pickup not found for parcel",
                 ErrorCode.PICKUP_NOT_FOUND
@@ -164,7 +164,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== ASSIGN COURIER (US26) ==================
     @Override
     public PickupResponse assignCourier(UUID pickupId, AssignPickupCourierRequest request) {
-        Objects.requireNonNull(pickupId, "pickupId is required");
+        UUID id = Objects.requireNonNull(pickupId, "pickupId is required");
         Objects.requireNonNull(request, "request must not be null");
 
         UserAccount user = getCurrentUserAccount();
@@ -172,14 +172,14 @@ public class PickupRequestServiceImpl implements PickupRequestService {
             throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to assign couriers");
         }
 
-        PickupRequest pickup = pickupRequestRepository.findById(pickupId)
+        PickupRequest pickup = pickupRequestRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Pickup not found",
                 ErrorCode.PICKUP_NOT_FOUND
             ));
 
-        Objects.requireNonNull(request.getCourierId(), "courierId is required");
-        Courier courier = courierRepository.findById(request.getCourierId())
+        UUID courierId = Objects.requireNonNull(request.getCourierId(), "courierId is required");
+        Courier courier = courierRepository.findById(courierId)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Courier not found",
                 ErrorCode.COURIER_NOT_FOUND
@@ -192,7 +192,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
             pickup.setState(PickupRequestState.ASSIGNED);
         }
 
-        pickupRequestRepository.save(pickup);
+        pickup = Objects.requireNonNull(pickupRequestRepository.save(pickup), "failed to save pickup request");
 
         return toResponse(pickup);
     }
@@ -200,12 +200,12 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     // ================== UPDATE STATE (US27) ==================
     @Override
     public PickupResponse updatePickupState(UUID pickupId, UpdatePickupStateRequest request) {
-        Objects.requireNonNull(pickupId, "pickupId is required");
+        UUID id = Objects.requireNonNull(pickupId, "pickupId is required");
         Objects.requireNonNull(request, "request must not be null");
 
         UserAccount user = getCurrentUserAccount();
 
-        PickupRequest pickup = pickupRequestRepository.findById(pickupId)
+        PickupRequest pickup = pickupRequestRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Pickup not found",
                 ErrorCode.PICKUP_NOT_FOUND
@@ -226,7 +226,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         validateStateTransition(current, next);
 
         pickup.setState(next);
-        pickupRequestRepository.save(pickup);
+        pickup = Objects.requireNonNull(pickupRequestRepository.save(pickup), "failed to save pickup request");
 
         // 🔔 si le pickup est COMPLETED -> notifier le client
         if (next == PickupRequestState.COMPLETED) {
@@ -333,8 +333,8 @@ public class PickupRequestServiceImpl implements PickupRequestService {
 
     @Override
     public TemporaryQrData generatePickupQrCode(UUID pickupId) {
-        Objects.requireNonNull(pickupId, "pickupId is required");
-        PickupRequest pickup = pickupRequestRepository.findById(pickupId)
+        UUID id = Objects.requireNonNull(pickupId, "pickupId is required");
+        PickupRequest pickup = pickupRequestRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
 
@@ -346,7 +346,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
             }
         }
 
-        return qrCodeService.generateTemporaryQrForPickup(pickupId);
+        return qrCodeService.generateTemporaryQrForPickup(id);
     }
 
     @Override
@@ -372,13 +372,13 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         if (request.getTemporaryQrToken() != null && !request.getTemporaryQrToken().isEmpty()) {
             // Validate temporary QR and get pickup
             tempQrData = qrCodeService.validateTemporaryQr(request.getTemporaryQrToken());
-            Objects.requireNonNull(tempQrData.getPickupId(), "pickupId from tempQr must not be null");
-            pickup = pickupRequestRepository.findById(tempQrData.getPickupId())
+            UUID tempPickupId = Objects.requireNonNull(tempQrData.getPickupId(), "pickupId from tempQr must not be null");
+            pickup = pickupRequestRepository.findById(tempPickupId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                     "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
         } else if (request.getPickupId() != null) {
-            Objects.requireNonNull(request.getPickupId(), "pickupId is required");
-            pickup = pickupRequestRepository.findById(request.getPickupId())
+            UUID reqPid = Objects.requireNonNull(request.getPickupId(), "pickupId is required");
+            pickup = pickupRequestRepository.findById(reqPid)
                 .orElseThrow(() -> new ResourceNotFoundException(
                     "Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
         } else {
@@ -421,11 +421,12 @@ public class PickupRequestServiceImpl implements PickupRequestService {
             parcel.setStatus(ParcelStatus.ACCEPTED);
         }
 
-        parcelRepository.save(parcel);
+        Parcel savedParcel = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
 
         // Update pickup state to COMPLETED
         pickup.setState(PickupRequestState.COMPLETED);
-        pickupRequestRepository.save(pickup);
+        pickup = Objects.requireNonNull(pickupRequestRepository.save(pickup), "failed to save pickup request");
 
         // Convert temporary QR to permanent
         QrCodeData permanentQr = qrCodeService.convertTemporaryToPermanent(pickup.getId());
@@ -450,7 +451,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .parcelId(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
                 .parcelStatus(parcel.getStatus().name())
-                .agentId(user.getEntityId())
+                .agentId(Objects.requireNonNull(user.getEntityId(), "agent entityId is required"))
                 .agentName(user.getPhone()) // Could get agent name if needed
                 .validatedWeight(parcel.getValidatedWeight())
                 .validatedDimensions(parcel.getValidatedDimensions())

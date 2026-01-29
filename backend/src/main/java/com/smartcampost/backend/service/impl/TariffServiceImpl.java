@@ -60,9 +60,9 @@ public class TariffServiceImpl implements TariffService {
                 .price(request.getPrice())
                 .build();
 
-        tariffRepository.save(tariff);
+        Tariff saved = Objects.requireNonNull(tariffRepository.save(tariff), "failed to save tariff");
 
-        return toResponse(tariff);
+        return toResponse(saved);
     }
 
     @Override
@@ -79,9 +79,9 @@ public class TariffServiceImpl implements TariffService {
             tariff.setPrice(request.getPrice());
         }
 
-        tariffRepository.save(tariff);
+        Tariff saved = Objects.requireNonNull(tariffRepository.save(tariff), "failed to save tariff");
 
-        return toResponse(tariff);
+        return toResponse(saved);
     }
 
     @Override
@@ -147,17 +147,17 @@ public class TariffServiceImpl implements TariffService {
         List<Tariff> all = tariffRepository.findAll();
 
         Tariff match = all.stream()
-                .filter(t -> t.getServiceType() == serviceType)
-                .filter(t -> originZone.equalsIgnoreCase(t.getOriginZone()))
-                .filter(t -> destinationZone.equalsIgnoreCase(t.getDestinationZone()))
-                .filter(t -> weightBracket.equalsIgnoreCase(t.getWeightBracket()))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Pricing tariff not found for given combination",
-                        ErrorCode.PRICING_TARIFF_NOT_FOUND
-                ));
+            .filter(t -> t.getServiceType() == serviceType)
+            .filter(t -> originZone.equalsIgnoreCase(t.getOriginZone()))
+            .filter(t -> destinationZone.equalsIgnoreCase(t.getDestinationZone()))
+            .filter(t -> weightBracket.equalsIgnoreCase(t.getWeightBracket()))
+            .findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Pricing tariff not found for given combination",
+                ErrorCode.PRICING_TARIFF_NOT_FOUND
+            ));
 
-        return toResponse(match);
+        return toResponse(Objects.requireNonNull(match));
     }
 
     // =============== HELPERS ===============

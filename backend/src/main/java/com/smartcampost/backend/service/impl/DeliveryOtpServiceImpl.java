@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
 
     @Override
     @Transactional
-    public void sendDeliveryOtp(UUID parcelId, String phoneNumber) {
+    public void sendDeliveryOtp(@NonNull UUID parcelId, @NonNull String phoneNumber) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         Objects.requireNonNull(phoneNumber, "phoneNumber is required");
         Parcel parcel = parcelRepository.findById(parcelId)
@@ -44,7 +45,7 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
                 .consumed(false)
                 .build();
 
-        deliveryOtpRepository.save(otp);
+        otp = Objects.requireNonNull(deliveryOtpRepository.save(otp), "failed to save otp");
 
         // Send SMS / notification
         notificationService.sendDeliveryOtp(phoneNumber, code, parcel.getTrackingRef());
@@ -52,7 +53,7 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
 
     @Override
     @Transactional
-    public boolean validateDeliveryOtp(UUID parcelId, String otpCode) {
+    public boolean validateDeliveryOtp(@NonNull UUID parcelId, @NonNull String otpCode) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         Objects.requireNonNull(otpCode, "otpCode is required");
         DeliveryOtp otp = deliveryOtpRepository
@@ -72,7 +73,8 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
         }
 
         otp.setConsumed(true);
-        deliveryOtpRepository.save(otp);
+        var saved = deliveryOtpRepository.save(otp);
+        if (saved == null) throw new IllegalStateException("failed to save delivery otp");
         return true;
     }
 }

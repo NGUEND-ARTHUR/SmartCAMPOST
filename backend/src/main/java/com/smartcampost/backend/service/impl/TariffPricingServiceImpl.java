@@ -80,8 +80,9 @@ public class TariffPricingServiceImpl implements TariffPricingService {
                     .appliedPrice(basePrice)
                     .appliedAt(Instant.now())
                     .build();
-
-            pricingDetailRepository.save(detail);
+            PricingDetail savedDetail = pricingDetailRepository.save(detail);
+            PricingDetail nonNullDetail = Objects.requireNonNull(savedDetail, "failed to save pricing detail");
+            detail = nonNullDetail;
             applied = true;
         }
 

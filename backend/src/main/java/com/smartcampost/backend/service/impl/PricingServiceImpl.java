@@ -41,7 +41,7 @@ public class PricingServiceImpl implements PricingService {
 
     @Override
     public PricingDetail confirmPrice(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
+                Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -66,7 +66,7 @@ public class PricingServiceImpl implements PricingService {
 
     @Override
     public PricingDetail recalculatePriceForParcel(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
+                Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",

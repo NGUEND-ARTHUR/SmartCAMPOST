@@ -2,10 +2,8 @@ package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.model.ScanEvent;
 import com.smartcampost.backend.model.ScanType;
-import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.ScanService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

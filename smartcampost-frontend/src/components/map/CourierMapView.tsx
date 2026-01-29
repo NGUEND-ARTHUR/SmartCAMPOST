@@ -34,7 +34,7 @@ export default function CourierMapView() {
       mounted = false;
       clearTimeout(timer);
     };
-  }, [fetchMy, getCurrent]);
+  }, [fetchMy]);
 
   useEffect(() => {
     // auto-post location every 10s if available
@@ -57,7 +57,7 @@ export default function CourierMapView() {
       }
     }, 10000);
     return () => clearInterval(t);
-  }, [getCurrent]);
+  }, [getCurrent, fetchMy]);
 
   const handleScan = useCallback(
     (evt: any) => {

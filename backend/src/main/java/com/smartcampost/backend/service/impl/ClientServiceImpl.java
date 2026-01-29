@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse getClientById(UUID clientId) {
+    public ClientResponse getClientById(@NonNull UUID clientId) {
         Objects.requireNonNull(clientId, "clientId is required");
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -57,16 +58,16 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse updateMyPreferredLanguage(UpdatePreferredLanguageRequest request) {
+    public ClientResponse updateMyPreferredLanguage(@NonNull UpdatePreferredLanguageRequest request) {
         Objects.requireNonNull(request, "request is required");
         Client client = getCurrentClient();
         client.setPreferredLanguage(request.getPreferredLanguage());
-        clientRepository.save(client);
-        return toResponse(client);
+        Client savedClient = Objects.requireNonNull(clientRepository.save(client), "failed to save client");
+        return toResponse(savedClient);
     }
 
     @Override
-    public ClientResponse updateMyProfile(UpdateClientProfileRequest request) {
+    public ClientResponse updateMyProfile(@NonNull UpdateClientProfileRequest request) {
         Objects.requireNonNull(request, "request is required");
 
         // Récupérer l'utilisateur et le client courant
@@ -79,7 +80,8 @@ public class ClientServiceImpl implements ClientService {
             );
         }
 
-        Client client = clientRepository.findById(user.getEntityId())
+        UUID entityId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        Client client = clientRepository.findById(entityId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Client not found",
                         ErrorCode.CLIENT_NOT_FOUND
@@ -97,7 +99,7 @@ public class ClientServiceImpl implements ClientService {
             }
             client.setPhone(request.getPhone());
             user.setPhone(request.getPhone());
-            userAccountRepository.save(user);
+            Objects.requireNonNull(userAccountRepository.save(user), "failed to save user");
         }
 
         // === EMAIL (unicité au niveau Client) ===
@@ -122,9 +124,9 @@ public class ClientServiceImpl implements ClientService {
             client.setPreferredLanguage(request.getPreferredLanguage());
         }
 
-        clientRepository.save(client);
+        Client savedClient = Objects.requireNonNull(clientRepository.save(client), "failed to save client");
 
-        return toResponse(client);
+        return toResponse(savedClient);
     }
 
     // ==================== HELPERS ====================
@@ -138,11 +140,12 @@ public class ClientServiceImpl implements ClientService {
             );
         }
 
-        return clientRepository.findById(user.getEntityId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Client not found",
-                        ErrorCode.CLIENT_NOT_FOUND
-                ));
+        UUID entityId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        return clientRepository.findById(entityId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Client not found",
+                ErrorCode.CLIENT_NOT_FOUND
+            ));
     }
 
     private UserAccount getCurrentUserAccount() {

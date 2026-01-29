@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function useGeolocation(autoWatch = false) {
   const [position, setPosition] = useState<GeolocationPosition | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const watchIdRef = React.useRef<number | null>(null);
+  const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (autoWatch && "geolocation" in navigator) {

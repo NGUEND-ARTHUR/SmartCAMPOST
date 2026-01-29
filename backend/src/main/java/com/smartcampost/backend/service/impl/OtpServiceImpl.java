@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Instant;
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class OtpServiceImpl implements OtpService {
     private final SecureRandom random = new SecureRandom();
 
     @Override
-    public String generateOtp(String phone, OtpPurpose purpose) {
+    public String generateOtp(@NonNull String phone, @NonNull OtpPurpose purpose) {
         Instant now = Instant.now();
 
         // 1) Cooldown par téléphone + purpose (REGISTER, RESET_PASSWORD, LOGIN)
@@ -58,7 +59,8 @@ public class OtpServiceImpl implements OtpService {
                 .used(false)
                 .build();
 
-        otpCodeRepository.save(otp);
+        var savedOtp = otpCodeRepository.save(otp);
+        if (savedOtp == null) throw new IllegalStateException("failed to save otp code");
         // 5) Envoyer (mock: log/console)
         log.info("📲 OTP for {} [{}] is {}", phone, purpose, code);
         System.out.println("OTP FOR " + phone + " (" + purpose + "): " + code);
@@ -66,7 +68,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public boolean validateOtp(String phone, String otp, OtpPurpose purpose) {
+    public boolean validateOtp(@NonNull String phone, @NonNull String otp, @NonNull OtpPurpose purpose) {
         Instant now = Instant.now();
         return otpCodeRepository
                 .findTopByPhoneAndPurposeAndUsedIsFalseAndExpiresAtAfterOrderByCreatedAtDesc(
@@ -77,7 +79,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public void consumeOtp(String phone, String otp, OtpPurpose purpose) {
+    public void consumeOtp(@NonNull String phone, @NonNull String otp, @NonNull OtpPurpose purpose) {
         Instant now = Instant.now();
         otpCodeRepository
                 .findTopByPhoneAndPurposeAndUsedIsFalseAndExpiresAtAfterOrderByCreatedAtDesc(
@@ -86,7 +88,8 @@ public class OtpServiceImpl implements OtpService {
                 .filter(record -> record.getCode().equals(otp))
                 .ifPresent(record -> {
                     record.setUsed(true);
-                    otpCodeRepository.save(record);
+                    var saved = otpCodeRepository.save(record);
+                    if (saved == null) throw new IllegalStateException("failed to save otp code");
                 });
     }
 

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
+import java.util.Objects;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,7 +16,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        registry.addInterceptor(tokenAccountingInterceptor)
-                .addPathPatterns("/api/ai/**");
+        registry.addInterceptor(Objects.requireNonNull(tokenAccountingInterceptor, "tokenAccountingInterceptor is required"))
+            .addPathPatterns("/api/ai/**");
     }
 }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ScanServiceImpl implements ScanService {
@@ -38,10 +39,12 @@ public class ScanServiceImpl implements ScanService {
 
     @Transactional
     public ScanEvent recordScanTransactional(ScanEvent evt) {
-        log.info("Recording scan for parcel {} by user {} role {} type {}", evt.getParcelId(), evt.getScannedBy(), evt.getRole(), evt.getScanType());
+        Objects.requireNonNull(evt, "evt is required");
+        java.util.UUID parcelId = Objects.requireNonNull(evt.getParcelId(), "parcelId is required");
+        log.info("Recording scan for parcel {} by user {} role {} type {}", parcelId, evt.getScannedBy(), evt.getRole(), evt.getScanType());
 
         // persist event
-        ScanEvent saved = scanEventRepository.save(evt);
+        ScanEvent saved = Objects.requireNonNull(scanEventRepository.save(evt), "failed to save scan event");
 
         // If scan doesn't contain coordinates, do not accept unless source=MANUAL with address
         if ((evt.getLatitude() == null || evt.getLongitude() == null) && (evt.getAddress() == null || evt.getAddress().isBlank())) {
@@ -55,7 +58,7 @@ public class ScanServiceImpl implements ScanService {
         boolean canUpdate = isAdmin || role.equals("AGENT") || role.equals("COURIER") || role.equals("STAFF");
 
         if (canUpdate) {
-                parcelRepository.findById(evt.getParcelId()).ifPresent(parcel -> {
+            parcelRepository.findById(parcelId).ifPresent(parcel -> {
                     ParcelStatus currentStatus = parcel.getStatus();
                     String current = mapParcelStatusToScanType(currentStatus).name();
                     String incoming = evt.getScanType();

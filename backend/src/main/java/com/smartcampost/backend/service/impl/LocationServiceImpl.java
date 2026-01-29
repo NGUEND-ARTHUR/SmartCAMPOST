@@ -6,6 +6,7 @@ import com.smartcampost.backend.service.LocationService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -18,7 +19,8 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public Location saveLocation(Location loc) {
-        return locationRepository.save(loc);
+        Objects.requireNonNull(loc, "loc is required");
+        return Objects.requireNonNull(locationRepository.save(loc), "failed to save location");
     }
 
     @Override

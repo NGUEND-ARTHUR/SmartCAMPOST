@@ -8,6 +8,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
@@ -25,6 +26,7 @@ public class SseEmitters {
     }
 
     public void emitScan(ScanEvent event) {
+        Objects.requireNonNull(event, "event is required");
         for (SseEmitter emitter : emitters) {
             try {
                 SseEmitter.SseEventBuilder builder = SseEmitter.event()

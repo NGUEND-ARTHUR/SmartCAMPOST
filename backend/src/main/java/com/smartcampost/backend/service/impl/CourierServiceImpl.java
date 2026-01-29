@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +33,8 @@ public class CourierServiceImpl implements CourierService {
 
     // ================= CREATE COURIER =================
     @Override
-    public CourierResponse createCourier(CreateCourierRequest request) {
+        public CourierResponse createCourier(@NonNull CreateCourierRequest request) {
+                Objects.requireNonNull(request, "request is required");
 
         // Unicité du téléphone (courier + user_account)
         if (courierRepository.existsByPhone(request.getPhone())
@@ -56,7 +58,7 @@ public class CourierServiceImpl implements CourierService {
                 .createdAt(Instant.now())
                 .build();
 
-        courierRepository.save(courier);
+        Courier savedCourier = Objects.requireNonNull(courierRepository.save(courier), "failed to save courier");
 
         // Créer UserAccount pour login Courier
         UserAccount account = UserAccount.builder()
@@ -64,18 +66,20 @@ public class CourierServiceImpl implements CourierService {
                 .phone(request.getPhone())
                 .passwordHash(encodedPassword)
                 .role(UserRole.COURIER)
-                .entityId(courier.getId())
+                .entityId(savedCourier.getId())
                 .build();
 
-        userAccountRepository.save(account);
+        UserAccount savedAccount = userAccountRepository.save(account);
+        if (savedAccount == null) throw new IllegalStateException("failed to save user account");
+        account = savedAccount;
 
-        return toResponse(courier);
+        return toResponse(savedCourier);
     }
 
     // ================= GET BY ID =================
     @Override
-    public CourierResponse getCourierById(UUID courierId) {
-        Objects.requireNonNull(courierId, "courierId is required");
+        public CourierResponse getCourierById(@NonNull UUID courierId) {
+                Objects.requireNonNull(courierId, "courierId is required");
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -94,9 +98,9 @@ public class CourierServiceImpl implements CourierService {
 
     // ================= UPDATE STATUS =================
     @Override
-    public CourierResponse updateCourierStatus(UUID courierId, UpdateCourierStatusRequest request) {
-        Objects.requireNonNull(courierId, "courierId is required");
-        Objects.requireNonNull(request, "request is required");
+        public CourierResponse updateCourierStatus(@NonNull UUID courierId, @NonNull UpdateCourierStatusRequest request) {
+                Objects.requireNonNull(courierId, "courierId is required");
+                Objects.requireNonNull(request, "request is required");
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -112,9 +116,9 @@ public class CourierServiceImpl implements CourierService {
 
     // ================= UPDATE VEHICLE =================
     @Override
-    public CourierResponse updateCourierVehicle(UUID courierId, UpdateCourierVehicleRequest request) {
-        Objects.requireNonNull(courierId, "courierId is required");
-        Objects.requireNonNull(request, "request is required");
+        public CourierResponse updateCourierVehicle(@NonNull UUID courierId, @NonNull UpdateCourierVehicleRequest request) {
+                Objects.requireNonNull(courierId, "courierId is required");
+                Objects.requireNonNull(request, "request is required");
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(

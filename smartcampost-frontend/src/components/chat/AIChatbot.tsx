@@ -467,7 +467,7 @@ How can I assist you today?`,
         setIsTyping(false);
       }
     },
-    [inputValue],
+    [inputValue, aiMutation, userPhone],
   );
 
   const handleFeedback = (
