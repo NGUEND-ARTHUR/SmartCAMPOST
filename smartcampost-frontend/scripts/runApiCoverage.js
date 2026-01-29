@@ -81,7 +81,7 @@ async function run() {
   for (const ep of endpoints) {
     process.stdout.write(`Calling ${ep.method} ${ep.path} ... `);
     // throttle a bit
-    // eslint-disable-next-line no-await-in-loop
+     
     const r = await callEndpoint(ep);
     results.push({ id: ep.id, method: ep.method, path: ep.path, result: r });
     if (r.ok) console.log(`OK ${r.status}`);

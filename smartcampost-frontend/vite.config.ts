@@ -16,6 +16,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Increase warning threshold and split large vendor chunks
+    chunkSizeWarningLimit: 1200, // in KB
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          leaflet: ["leaflet", "@react-leaflet/core"],
+          charts: ["recharts"],
+          ui: ["lucide-react", "sonner", "clsx"],
+        },
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",

@@ -52,6 +52,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Objects;
+// import org.springframework.lang.Nullable; // unused
 
 @Service
 @RequiredArgsConstructor
@@ -85,15 +87,17 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         // Get or validate courier
         Courier courier = null;
-        if (request.getCourierId() != null) {
-            courier = courierRepository.findById(request.getCourierId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Courier not found", ErrorCode.COURIER_NOT_FOUND));
+        UUID courierId = request.getCourierId();
+        if (courierId != null) {
+            courier = courierRepository.findById(courierId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Courier not found", ErrorCode.COURIER_NOT_FOUND));
         }
 
         // Update parcel status to OUT_FOR_DELIVERY
         parcel.setStatus(ParcelStatus.OUT_FOR_DELIVERY);
-        parcelRepository.save(parcel);
+        Parcel savedParcel = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
 
         // Record scan event
         recordScanEvent(parcel, ScanEventType.OUT_FOR_DELIVERY, request.getNotes());
@@ -144,9 +148,10 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     public void sendDeliveryOtp(UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Use client phone since Address doesn't have phone
         Client client = parcel.getClient();
@@ -155,7 +160,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                     "Recipient phone number not available");
         }
 
-        deliveryOtpService.sendDeliveryOtp(parcelId, client.getPhone());
+        deliveryOtpService.sendDeliveryOtp(id, client.getPhone());
     }
 
     // ==================== COMPLETE DELIVERY ====================
@@ -164,7 +169,8 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Transactional
     public CompleteDeliveryResponse completeDelivery(CompleteDeliveryRequest request) {
         // Get parcel
-        Parcel parcel = getParcel(request.getParcelId(), request.getTrackingRef());
+        UUID id = request.getParcelId();
+        Parcel parcel = getParcel(id, request.getTrackingRef());
 
         // Verify parcel is out for delivery
         if (parcel.getStatus() != ParcelStatus.OUT_FOR_DELIVERY) {
@@ -216,7 +222,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         // Update parcel status to DELIVERED
         parcel.setStatus(ParcelStatus.DELIVERED);
-        parcelRepository.save(parcel);
+        Parcel savedParcel = parcelRepository.save(parcel);
+        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
 
         // Record scan event
         recordScanEvent(parcel, ScanEventType.DELIVERED, request.getNotes());
@@ -277,9 +284,10 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     public DeliveryStatusResponse getDeliveryStatus(UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         Address recipient = parcel.getRecipientAddress();
         Agency destAgency = parcel.getDestinationAgency();
@@ -288,8 +296,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         Optional<DeliveryProof> proofOpt = deliveryProofRepository.findByParcel(parcel);
 
         // Get pricing for payment info - use correct method
-        Optional<PricingDetail> pricingOpt = pricingDetailRepository.findTopByParcel_IdOrderByAppliedAtDesc(parcelId);
-        List<Payment> payments = paymentRepository.findByParcel_IdOrderByTimestampDesc(parcelId);
+        Optional<PricingDetail> pricingOpt = pricingDetailRepository.findTopByParcel_IdOrderByAppliedAtDesc(id);
+        List<Payment> payments = paymentRepository.findByParcel_IdOrderByTimestampDesc(id);
 
         double amountDue = pricingOpt.map(PricingDetail::getAppliedPrice).orElse(0.0);
         double amountPaid = payments.stream()
@@ -304,7 +312,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         String currentStage = determineDeliveryStage(parcel);
 
         // Get delivery attempts
-        List<DeliveryAttempt> attemptEntities = deliveryAttemptRepository.findByParcel_IdOrderByAttemptNumberAsc(parcelId);
+        List<DeliveryAttempt> attemptEntities = deliveryAttemptRepository.findByParcel_IdOrderByAttemptNumberAsc(id);
         int attemptCount = attemptEntities.size();
         List<DeliveryStatusResponse.DeliveryAttempt> attempts = attemptEntities.stream()
                 .map(a -> DeliveryStatusResponse.DeliveryAttempt.builder()
@@ -342,9 +350,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public DeliveryStatusResponse markDeliveryFailed(UUID parcelId, String reason) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Record the failed delivery attempt
         int attemptNumber = recordDeliveryAttempt(parcel, null, 
@@ -357,7 +366,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         // Parcel stays at OUT_FOR_DELIVERY or goes back to ARRIVED_HUB
         if (parcel.getStatus() == ParcelStatus.OUT_FOR_DELIVERY) {
             parcel.setStatus(ParcelStatus.ARRIVED_HUB);
-            parcelRepository.save(parcel);
+            Parcel saved = parcelRepository.save(parcel);
+            parcel = Objects.requireNonNull(saved, "failed to save parcel");
         }
 
         // Notify recipient about failed delivery attempt
@@ -367,9 +377,9 @@ public class DeliveryServiceImpl implements DeliveryService {
             log.warn("Failed to send delivery failure notification: {}", e.getMessage());
         }
 
-        log.info("Delivery marked as failed for parcel {}: {}", parcelId, reason);
+        log.info("Delivery marked as failed for parcel {}: {}", id, reason);
 
-        return getDeliveryStatus(parcelId);
+        return getDeliveryStatus(id);
     }
 
     // ==================== RESCHEDULE DELIVERY ====================
@@ -377,19 +387,21 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public DeliveryStatusResponse rescheduleDelivery(UUID parcelId, RescheduleDeliveryRequest request) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Update expected delivery date
         if (request.getNewDate() != null) {
-            parcel.setExpectedDeliveryAt(
+                parcel.setExpectedDeliveryAt(
                     request.getNewDate().atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-            parcelRepository.save(parcel);
+                Parcel saved = parcelRepository.save(parcel);
+                if (saved == null) throw new IllegalStateException("failed to save parcel");
         }
 
         log.info("Delivery rescheduled for parcel {} to {}",
-                parcelId, request.getNewDate());
+            id, request.getNewDate());
 
         // Notify recipient about rescheduled delivery
         try {
@@ -398,7 +410,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             log.warn("Failed to send reschedule notification: {}", e.getMessage());
         }
 
-        return getDeliveryStatus(parcelId);
+        return getDeliveryStatus(id);
     }
 
     // ==================== PRIVATE HELPERS ====================
@@ -443,7 +455,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                     .timestamp(Instant.now())
                     .locationNote(notes)
                     .build();
-            scanEventRepository.save(event);
+            ScanEvent saved = scanEventRepository.save(event);
+            event = Objects.requireNonNull(saved, "failed to save scan event");
         } catch (Exception e) {
             log.warn("Failed to record scan event: {}", e.getMessage());
         }
@@ -520,8 +533,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .notes(notes)
                 .attemptedAt(Instant.now())
                 .build();
-
-        deliveryAttemptRepository.save(attempt);
+        DeliveryAttempt savedAttempt = deliveryAttemptRepository.save(attempt);
+        attempt = Objects.requireNonNull(savedAttempt, "failed to save delivery attempt");
         log.info("Recorded delivery attempt #{} for parcel {} - result: {}", 
                 attemptNumber, parcel.getTrackingRef(), result);
 

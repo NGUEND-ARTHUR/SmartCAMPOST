@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.Map;
@@ -23,12 +24,16 @@ public class TokenAccountingInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         try {
             String user = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anonymous";
             String body = (String) request.getAttribute("requestBodyContent");
             long tokens = estimateTokens(body);
-            tokenCounters.merge(user, tokens, Long::sum);
+            tokenCounters.merge(user, tokens, (existing, added) -> {
+                long e = existing == null ? 0L : existing.longValue();
+                long a = added == null ? 0L : added.longValue();
+                return Long.valueOf(e + a);
+            });
             long used = tokenCounters.getOrDefault(user, 0L);
             if (used > 100_000) {
                 log.warn("User {} exceeded token budget: {} tokens", user, used);

@@ -85,7 +85,9 @@ public class StaffServiceImpl implements StaffService {
                 .passwordHash(encodedPassword)
                 .build();
 
-        staffRepository.save(staff);
+        Staff savedStaff = staffRepository.save(staff);
+        if (savedStaff == null) throw new IllegalStateException("failed to save staff");
+        staff = savedStaff;
 
         // ✅ UserAccount pour login STAFF-like (role must match staff role)
         UserAccount account = UserAccount.builder()
@@ -96,7 +98,9 @@ public class StaffServiceImpl implements StaffService {
                 .entityId(staff.getId())
                 .build();
 
-        userAccountRepository.save(account);
+        UserAccount savedAccount = userAccountRepository.save(account);
+        if (savedAccount == null) throw new IllegalStateException("failed to save user account");
+        account = savedAccount;
 
         return toResponse(staff);
     }
@@ -105,12 +109,13 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public StaffResponse getStaffById(UUID staffId) {
         Objects.requireNonNull(staffId, "staffId is required");
+        @SuppressWarnings("null")
         Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Staff not found",
-                                ErrorCode.STAFF_NOT_FOUND
-                        ));
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Staff not found",
+                    ErrorCode.STAFF_NOT_FOUND
+                ));
         return toResponse(staff);
     }
 
@@ -140,8 +145,9 @@ public class StaffServiceImpl implements StaffService {
             staff.setTerminatedAt(LocalDate.now());
         }
 
-        staffRepository.save(staff);
-        return toResponse(staff);
+        Staff updatedStaff = staffRepository.save(staff);
+        if (updatedStaff == null) throw new IllegalStateException("failed to save staff");
+        return toResponse(updatedStaff);
     }
 
     // ================= UPDATE ROLE =================
@@ -157,12 +163,13 @@ public class StaffServiceImpl implements StaffService {
         // ✅ Validate staff role updates too
         validateStaffUserRole(role);
 
+        @SuppressWarnings("null")
         Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Staff not found",
-                                ErrorCode.STAFF_NOT_FOUND
-                        ));
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Staff not found",
+                    ErrorCode.STAFF_NOT_FOUND
+                ));
 
         // ✅ If role is already the same, just return (idempotent)
         if (staff.getRole() != null && staff.getRole().equalsIgnoreCase(role.name())) {
@@ -171,20 +178,23 @@ public class StaffServiceImpl implements StaffService {
 
         // ✅ Staff.role is STRING
         staff.setRole(role.name());
-        staffRepository.save(staff);
+        Staff updated = staffRepository.save(staff);
+        if (updated == null) throw new IllegalStateException("failed to save staff");
 
         // ✅ Sync UserAccount role too (critical!)
+        @SuppressWarnings("null")
         UserAccount account = userAccountRepository.findFirstByEntityId(staff.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "UserAccount not found for staff",
-                        ErrorCode.USER_NOT_FOUND
-                ));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "UserAccount not found for staff",
+                ErrorCode.USER_NOT_FOUND
+            ));
 
         // ✅ UserAccount.role is ENUM
         account.setRole(role);
-        userAccountRepository.save(account);
+        UserAccount savedAcc = userAccountRepository.save(account);
+        if (savedAcc == null) throw new IllegalStateException("failed to save user account");
 
-        return toResponse(staff);
+        return toResponse(updated);
     }
 
     // ================= ROLE VALIDATION =================

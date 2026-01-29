@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/map")
@@ -34,6 +35,7 @@ public class MapController {
     public ResponseEntity<?> parcelMap(@PathVariable String parcelId) {
         java.util.UUID pid;
         try { pid = java.util.UUID.fromString(parcelId); } catch (Exception e) { return ResponseEntity.badRequest().build(); }
+        pid = Objects.requireNonNull(pid, "parcelId is required");
         return parcelRepository.findById(pid)
                 .map(p -> {
                     Map<String, Object> out = new HashMap<>();
@@ -43,14 +45,13 @@ public class MapController {
                     // last scan as current location
                     List<ScanEvent> events = scanService.getScanEventsForParcel(p.getId());
                     out.put("timeline", events);
-                    if (!events.isEmpty()) {
-                        ScanEvent last = events.get(0);
+                    events.stream().findFirst().ifPresent(last -> {
                         Map<String,Object> loc = new HashMap<>();
                         loc.put("note", last.getLocationNote());
                         loc.put("eventId", last.getEventId());
                         loc.put("timestamp", last.getTimestamp());
                         out.put("currentLocation", loc);
-                    }
+                    });
                     return ResponseEntity.ok(out);
                 }).orElse(ResponseEntity.notFound().build());
     }

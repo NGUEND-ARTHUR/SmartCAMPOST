@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 import java.util.Objects;
+import org.springframework.lang.NonNull;
 
 @RestController
 @RequestMapping("/api/receipts")
@@ -34,7 +34,8 @@ public class DeliveryReceiptController {
 
     @GetMapping("/parcel/{parcelId}")
     public ResponseEntity<DeliveryReceiptResponse> getByParcel(@PathVariable @NonNull UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+        UUID pid = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(pid)
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         UserAccount user = getCurrentUserAccount();
@@ -49,14 +50,14 @@ public class DeliveryReceiptController {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Courier cannot access receipts");
         }
 
-        DeliveryReceiptResponse receipt = deliveryReceiptService.getReceiptByParcelId(parcelId)
+        DeliveryReceiptResponse receipt = deliveryReceiptService.getReceiptByParcelId(pid)
                 .orElseThrow(() -> new ResourceNotFoundException("Receipt not found", ErrorCode.BUSINESS_ERROR));
 
         return ResponseEntity.ok(receipt);
     }
 
     @GetMapping("/number/{receiptNumber}")
-    public ResponseEntity<DeliveryReceiptResponse> getByNumber(@PathVariable String receiptNumber) {
+    public ResponseEntity<DeliveryReceiptResponse> getByNumber(@PathVariable @NonNull String receiptNumber) {
         DeliveryReceiptResponse receipt = deliveryReceiptService.getReceiptByNumber(receiptNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Receipt not found", ErrorCode.BUSINESS_ERROR));
 

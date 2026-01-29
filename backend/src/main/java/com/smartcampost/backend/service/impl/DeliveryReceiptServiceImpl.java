@@ -46,7 +46,8 @@ public class DeliveryReceiptServiceImpl implements DeliveryReceiptService {
         // Check if receipt already exists
         if (receiptRepository.existsByParcel_Id(parcel.getId())) {
             log.info("Receipt already exists for parcel {}", parcel.getTrackingRef());
-            return getReceiptByParcelId(parcel.getId()).orElse(null);
+            return getReceiptByParcelId(parcel.getId())
+                    .orElseThrow(() -> new IllegalStateException("Receipt exists but could not be retrieved"));
         }
 
         // Generate receipt number
@@ -80,7 +81,7 @@ public class DeliveryReceiptServiceImpl implements DeliveryReceiptService {
                 .build();
 
         // Save the receipt
-        receipt = receiptRepository.save(receipt);
+        receipt = Objects.requireNonNull(receiptRepository.save(receipt), "failed to save receipt");
         log.info("Generated delivery receipt {} for parcel {}", receiptNumber, parcel.getTrackingRef());
 
         return mapToResponse(receipt, parcel, proof);

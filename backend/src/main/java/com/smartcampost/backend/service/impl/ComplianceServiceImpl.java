@@ -49,10 +49,10 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== GET ONE ALERT ==================
     @Override
     public RiskAlertResponse getRiskAlertById(UUID id) {
-                Objects.requireNonNull(id, "id is required");
+        UUID alertId = Objects.requireNonNull(id, "id is required");
         ensureBackoffice();
 
-        RiskAlert alert = riskAlertRepository.findById(id)
+        RiskAlert alert = riskAlertRepository.findById(alertId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Risk alert not found",
                         ErrorCode.RISK_ALERT_NOT_FOUND
@@ -64,20 +64,21 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== RESOLVE ALERT ==================
     @Override
     public RiskAlertResponse resolveRiskAlert(UUID id, ResolveRiskAlertRequest request) {
-                Objects.requireNonNull(id, "id is required");
-                Objects.requireNonNull(request, "request is required");
+        UUID alertId = Objects.requireNonNull(id, "id is required");
+        Objects.requireNonNull(request, "request is required");
         ensureBackoffice();
 
-        RiskAlert alert = riskAlertRepository.findById(id)
+        RiskAlert alert = riskAlertRepository.findById(alertId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Risk alert not found",
                         ErrorCode.RISK_ALERT_NOT_FOUND
                 ));
 
         alert.setResolved(request.isResolved());
-        riskAlertRepository.save(alert);
+        RiskAlert saved = riskAlertRepository.save(alert);
+        if (saved == null) throw new IllegalStateException("failed to save risk alert");
 
-        return toResponse(alert);
+        return toResponse(saved);
     }
 
     // ================== REPORT ==================
@@ -155,10 +156,10 @@ public class ComplianceServiceImpl implements ComplianceService {
     // ================== FREEZE ACCOUNT ==================
     @Override
     public void freezeAccount(UUID userId) {
-                Objects.requireNonNull(userId, "userId is required");
+        UUID uid = Objects.requireNonNull(userId, "userId is required");
         ensureBackoffice();
 
-        UserAccount account = userAccountRepository.findById(userId)
+        UserAccount account = userAccountRepository.findById(uid)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found",
                         ErrorCode.AUTH_USER_NOT_FOUND
@@ -171,17 +172,18 @@ public class ComplianceServiceImpl implements ComplianceService {
             );
         }
 
-        // account.setFrozen(true);
-        userAccountRepository.save(account);
+        account.setFrozen(true);
+        var saved = userAccountRepository.save(account);
+        if (saved == null) throw new IllegalStateException("failed to save user account");
     }
 
     // ================== UNFREEZE ACCOUNT ==================
     @Override
     public void unfreezeAccount(UUID userId) {
-                Objects.requireNonNull(userId, "userId is required");
+        UUID uid = Objects.requireNonNull(userId, "userId is required");
         ensureBackoffice();
 
-        UserAccount account = userAccountRepository.findById(userId)
+        UserAccount account = userAccountRepository.findById(uid)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found",
                         ErrorCode.AUTH_USER_NOT_FOUND
@@ -194,8 +196,9 @@ public class ComplianceServiceImpl implements ComplianceService {
             );
         }
 
-        // account.setFrozen(false);
-        userAccountRepository.save(account);
+        account.setFrozen(false);
+        var saved2 = userAccountRepository.save(account);
+        if (saved2 == null) throw new IllegalStateException("failed to save user account");
     }
 
     // ================== HELPERS ==================
@@ -224,10 +227,12 @@ public class ComplianceServiceImpl implements ComplianceService {
         }
 
         String subject = auth.getName();
+        Objects.requireNonNull(subject, "subject is required");
 
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            UUID uid = Objects.requireNonNull(userId, "userId is required");
+            return userAccountRepository.findById(uid)
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND

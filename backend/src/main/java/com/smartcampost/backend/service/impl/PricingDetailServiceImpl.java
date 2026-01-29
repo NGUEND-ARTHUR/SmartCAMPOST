@@ -28,6 +28,7 @@ public class PricingDetailServiceImpl implements PricingDetailService {
     public Page<PricingDetailResponse> listByParcel(UUID parcelId, int page, int size) {
 
         // Vérifier que le colis existe
+        java.util.Objects.requireNonNull(parcelId, "parcelId is required");
         parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",
@@ -42,6 +43,7 @@ public class PricingDetailServiceImpl implements PricingDetailService {
     @Override
     public List<PricingDetailResponse> historyForParcel(UUID parcelId) {
 
+        java.util.Objects.requireNonNull(parcelId, "parcelId is required");
         parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found",

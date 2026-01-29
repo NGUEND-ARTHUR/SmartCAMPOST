@@ -24,6 +24,7 @@ import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.ErrorCode;
 
 @Service
+@SuppressWarnings("null")
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ParcelRepository parcelRepository;
@@ -39,9 +40,9 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse initPayment(InitPaymentRequest request) {
         Objects.requireNonNull(request, "request must not be null");
         Objects.requireNonNull(request.getParcelId(), "parcelId is required");
-
-        Parcel parcel = parcelRepository.findById(request.getParcelId())
-            .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID parcelId = Objects.requireNonNull(request.getParcelId(), "parcelId is required");
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         Payment p = Payment.builder()
                 .parcel(parcel)
@@ -52,7 +53,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .externalRef(request.getPayerPhone())
                 .build();
 
-        paymentRepository.save(p);
+        Payment saved = paymentRepository.save(p);
+        if (saved == null) throw new IllegalStateException("failed to save payment");
+        p = saved;
         return toDto(p);
     }
 
@@ -60,13 +63,15 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse confirmPayment(ConfirmPaymentRequest request) {
         Objects.requireNonNull(request, "request must not be null");
         Objects.requireNonNull(request.getPaymentId(), "paymentId is required");
-
-        Payment p = paymentRepository.findById(request.getPaymentId())
+        UUID paymentId = Objects.requireNonNull(request.getPaymentId(), "paymentId is required");
+        Payment p = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException("Payment not found", ErrorCode.PAYMENT_NOT_FOUND));
 
         p.setStatus(request.getSuccess() ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         if (request.getGatewayRef() != null) p.setExternalRef(request.getGatewayRef());
-        paymentRepository.save(p);
+        Payment saved = paymentRepository.save(p);
+        if (saved == null) throw new IllegalStateException("failed to save payment");
+        p = saved;
 
         if (request.getSuccess()) {
             // Issue invoice synchronously
@@ -77,16 +82,17 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentResponse getPaymentById(UUID paymentId) {
-        Objects.requireNonNull(paymentId, "paymentId is required");
-        return paymentRepository.findById(paymentId)
-                .map(this::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found", ErrorCode.PAYMENT_NOT_FOUND));
+        UUID id = Objects.requireNonNull(paymentId, "paymentId is required");
+        PaymentResponse resp = paymentRepository.findById(id)
+            .map(this::toDto)
+            .orElseThrow(() -> new ResourceNotFoundException("Payment not found", ErrorCode.PAYMENT_NOT_FOUND));
+        return resp;
     }
 
     @Override
     public List<PaymentResponse> getPaymentsForParcel(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        return paymentRepository.findByParcel_IdOrderByTimestampDesc(parcelId).stream().map(this::toDto).collect(Collectors.toList());
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        return paymentRepository.findByParcel_IdOrderByTimestampDesc(id).stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
@@ -97,21 +103,23 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentResponse markCodAsPaid(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        var payments = paymentRepository.findByParcel_IdOrderByTimestampDesc(parcelId);
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        var payments = paymentRepository.findByParcel_IdOrderByTimestampDesc(id);
         var opt = payments.stream().filter(pp -> pp.getStatus() == PaymentStatus.PENDING).findFirst();
         if (opt.isEmpty()) throw new ResourceNotFoundException("COD payment not found", ErrorCode.PAYMENT_NOT_FOUND);
-        Payment p = Objects.requireNonNull(opt.get(), "payment must not be null");
+        Payment p = opt.orElseThrow(() -> new ResourceNotFoundException("COD payment not found", ErrorCode.PAYMENT_NOT_FOUND));
         p.setStatus(PaymentStatus.SUCCESS);
-        paymentRepository.save(p);
+        Payment saved2 = paymentRepository.save(p);
+        if (saved2 == null) throw new IllegalStateException("failed to save payment");
+        p = saved2;
         invoiceService.issueInvoiceForPayment(p.getId());
         return toDto(p);
     }
 
     @Override
     public PaymentResponse createCodPendingPayment(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        Parcel parcel = parcelRepository.findById(parcelId).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
         Payment p = Payment.builder()
                 .parcel(parcel)
                 .amount(0.0)
@@ -119,15 +127,17 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CASH)
                 .status(PaymentStatus.PENDING)
                 .build();
-        paymentRepository.save(p);
+        Payment saved3 = paymentRepository.save(p);
+        if (saved3 == null) throw new IllegalStateException("failed to save payment");
+        p = saved3;
         return toDto(p);
     }
 
     @Override
     public PaymentResponse handleAdditionalDeliveryCharge(UUID parcelId, BigDecimal additionalAmount) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Objects.requireNonNull(additionalAmount, "additionalAmount is required");
-        Parcel parcel = parcelRepository.findById(parcelId).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
         Payment p = Payment.builder()
                 .parcel(parcel)
                 .amount(additionalAmount.doubleValue())
@@ -135,14 +145,16 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
                 .build();
-        paymentRepository.save(p);
+        Payment saved4 = paymentRepository.save(p);
+        if (saved4 == null) throw new IllegalStateException("failed to save payment");
+        p = saved4;
         return toDto(p);
     }
 
     @Override
     public PaymentResponse createRegistrationPayment(UUID parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        Parcel parcel = parcelRepository.findById(parcelId).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
         Payment p = Payment.builder()
                 .parcel(parcel)
                 .amount(0.0)
@@ -150,15 +162,17 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
                 .build();
-        paymentRepository.save(p);
+        Payment saved5 = paymentRepository.save(p);
+        if (saved5 == null) throw new IllegalStateException("failed to save payment");
+        p = saved5;
         return toDto(p);
     }
 
     @Override
     public PaymentResponse processPickupPayment(UUID parcelId, String paymentMethod, Double amount) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Objects.requireNonNull(amount, "amount is required");
-        Parcel parcel = parcelRepository.findById(parcelId).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
         Payment p = Payment.builder()
                 .parcel(parcel)
                 .amount(amount)
@@ -166,7 +180,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(paymentMethod != null ? PaymentMethod.valueOf(paymentMethod) : PaymentMethod.CASH)
                 .status(PaymentStatus.SUCCESS)
                 .build();
-        paymentRepository.save(p);
+        Payment saved6 = paymentRepository.save(p);
+        if (saved6 == null) throw new IllegalStateException("failed to save payment");
+        p = saved6;
         invoiceService.issueInvoiceForPayment(p.getId());
         return toDto(p);
     }

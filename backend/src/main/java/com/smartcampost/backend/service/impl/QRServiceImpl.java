@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -34,9 +35,10 @@ public class QRServiceImpl implements QRService {
 
     @Override
     public byte[] generateQrPngForParcel(UUID parcelId) throws IOException {
-        String text = parcelRepository.findById(parcelId)
-                .map(p -> p.getTrackingRef() != null ? p.getTrackingRef() : String.valueOf(p.getId()))
-                .orElse("UNKNOWN");
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        String text = parcelRepository.findById(id)
+            .map(p -> p.getTrackingRef() != null ? p.getTrackingRef() : String.valueOf(p.getId()))
+            .orElse("UNKNOWN");
 
         int size = 300; // high-res for print
         HashMap<EncodeHintType, Object> hints = new HashMap<>();
@@ -79,6 +81,6 @@ public class QRServiceImpl implements QRService {
             }
             doc.save(out.toFile());
         }
-        return new FileSystemResource(out.toFile());
+        return new FileSystemResource(Objects.requireNonNull(out.toFile(), "output file is required"));
     }
 }

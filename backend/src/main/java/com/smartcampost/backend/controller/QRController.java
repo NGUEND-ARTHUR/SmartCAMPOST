@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/parcels")
@@ -26,11 +27,12 @@ public class QRController {
     public ResponseEntity<byte[]> getQr(@PathVariable String parcelId) throws IOException {
         java.util.UUID pid;
         try { pid = java.util.UUID.fromString(parcelId); } catch (Exception e) { return ResponseEntity.badRequest().build(); }
-        byte[] png = qrService.generateQrPngForParcel(pid);
+        pid = Objects.requireNonNull(pid, "parcelId is required");
+        byte[] png = Objects.requireNonNull(qrService.generateQrPngForParcel(pid), "generated png is null");
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=qr-" + parcelId + ".png")
-                .contentType(MediaType.IMAGE_PNG)
-                .body(png);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=qr-" + parcelId + ".png")
+            .contentType(Objects.requireNonNull(MediaType.IMAGE_PNG))
+            .body(png);
     }
 
     @GetMapping("/{parcelId}/qr/print")
@@ -38,10 +40,11 @@ public class QRController {
     public ResponseEntity<Resource> getQrPrint(@PathVariable String parcelId) throws IOException {
         java.util.UUID pid;
         try { pid = java.util.UUID.fromString(parcelId); } catch (Exception e) { return ResponseEntity.badRequest().build(); }
-        Resource pdf = qrService.generateQrPdfForParcel(pid);
+        pid = Objects.requireNonNull(pid, "parcelId is required");
+        Resource pdf = Objects.requireNonNull(qrService.generateQrPdfForParcel(pid), "generated pdf is null");
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=qr-" + parcelId + ".pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=qr-" + parcelId + ".pdf")
+            .contentType(Objects.requireNonNull(MediaType.APPLICATION_PDF))
+            .body(pdf);
     }
 }

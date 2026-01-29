@@ -6,8 +6,6 @@ import com.smartcampost.backend.dto.analytics.DeliveryPredictionRequest;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionResponse;
 import com.smartcampost.backend.dto.ai.RouteOptimizationRequest;
 import com.smartcampost.backend.dto.ai.RouteOptimizationResponse;
-import org.springframework.stereotype.Service;
-
 public interface AIOrchestrator {
     ChatResponse handleChat(ChatRequest request);
 

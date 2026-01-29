@@ -5,7 +5,6 @@ import com.smartcampost.backend.dto.ussd.UssdResponse;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.ConflictException;
-import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.UssdSession;
 import com.smartcampost.backend.model.enums.UssdSessionState;
 import com.smartcampost.backend.repository.ParcelRepository;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -63,7 +61,7 @@ public class UssdServiceImpl implements UssdService {
 
             session.setCurrentMenu("MAIN");
             session.setLastInteractionAt(Instant.now());
-            ussdSessionRepository.save(session);
+            session = Objects.requireNonNull(ussdSessionRepository.save(session), "failed to save ussd session");
 
             String msg = "Welcome to SmartCAMPOST\n"
                     + "1. Track parcel\n"
@@ -82,7 +80,7 @@ public class UssdServiceImpl implements UssdService {
 
             session.setCurrentMenu("TRACK_PROMPT");
             session.setLastInteractionAt(Instant.now());
-            ussdSessionRepository.save(session);
+            session = Objects.requireNonNull(ussdSessionRepository.save(session), "failed to save ussd session");
 
             return UssdResponse.builder()
                     .message("Enter tracking number:")
@@ -97,19 +95,13 @@ public class UssdServiceImpl implements UssdService {
 
             String trackingRef = input;
 
-            Optional<Parcel> parcelOpt = parcelRepository.findByTrackingRef(trackingRef);
-
-            String msg;
-            if (parcelOpt.isPresent()) {
-                Parcel parcel = parcelOpt.get();
-                msg = "Parcel " + trackingRef + " status: " + parcel.getStatus().name();
-            } else {
-                msg = "Tracking number not found.";
-            }
+            String msg = parcelRepository.findByTrackingRef(trackingRef)
+                    .map(parcel -> "Parcel " + trackingRef + " status: " + parcel.getStatus().name())
+                    .orElse("Tracking number not found.");
 
             session.setState(UssdSessionState.COMPLETED);
             session.setLastInteractionAt(Instant.now());
-            ussdSessionRepository.save(session);
+            session = Objects.requireNonNull(ussdSessionRepository.save(session), "failed to save ussd session");
 
             return UssdResponse.builder()
                     .message(msg)
@@ -122,7 +114,7 @@ public class UssdServiceImpl implements UssdService {
         // ============================
         session.setState(UssdSessionState.COMPLETED);
         session.setLastInteractionAt(Instant.now());
-        ussdSessionRepository.save(session);
+        session = Objects.requireNonNull(ussdSessionRepository.save(session), "failed to save ussd session");
 
         throw new ConflictException(
                 "Unknown USSD menu state: " + session.getCurrentMenu(),
@@ -133,7 +125,8 @@ public class UssdServiceImpl implements UssdService {
     // ============================================================
     // SESSION HELPER
     // ============================================================
-    private UssdSession getOrCreateSession(String sessionRef, String msisdn) {
+        @SuppressWarnings("null")
+        private UssdSession getOrCreateSession(String sessionRef, String msisdn) {
 
         try {
             return ussdSessionRepository
@@ -152,7 +145,7 @@ public class UssdServiceImpl implements UssdService {
                                 .lastInteractionAt(Instant.now())
                                 .build();
 
-                        return ussdSessionRepository.save(s);
+                        return Objects.requireNonNull(ussdSessionRepository.save(s), "failed to save ussd session");
                     });
 
         } catch (Exception ex) {

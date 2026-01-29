@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +50,8 @@ public class RefundServiceImpl implements RefundService {
 
         UserAccount user = getCurrentUserAccount();
 
-        Payment payment = paymentRepository.findById(request.getPaymentId())
+        UUID paymentId = Objects.requireNonNull(request.getPaymentId(), "paymentId is required");
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Payment not found",
                         ErrorCode.PAYMENT_NOT_FOUND
@@ -92,8 +94,11 @@ public class RefundServiceImpl implements RefundService {
                 .status(RefundStatus.REQUESTED)
                 .createdAt(Instant.now())
                 .build();
-
-        refundRepository.save(refund);
+                Refund saved = refundRepository.save(refund);
+                if (saved == null) {
+                        throw new IllegalStateException("failed to save refund");
+                }
+                refund = saved;
 
         return toResponse(refund);
     }
@@ -111,7 +116,8 @@ public class RefundServiceImpl implements RefundService {
             );
         }
 
-        Refund refund = refundRepository.findById(refundId)
+        UUID id = Objects.requireNonNull(refundId, "refundId is required");
+        Refund refund = refundRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Refund not found",
                         ErrorCode.REFUND_NOT_FOUND
@@ -131,7 +137,11 @@ public class RefundServiceImpl implements RefundService {
             refund.setProcessedAt(Instant.now());
         }
 
-        refundRepository.save(refund);
+                Refund saved2 = refundRepository.save(refund);
+                if (saved2 == null) {
+                        throw new IllegalStateException("failed to save refund");
+                }
+                refund = saved2;
 
         return toResponse(refund);
     }
@@ -139,7 +149,8 @@ public class RefundServiceImpl implements RefundService {
     // ================== GET BY ID ==================
     @Override
     public RefundResponse getRefundById(UUID refundId) {
-        Refund refund = refundRepository.findById(refundId)
+        UUID id = Objects.requireNonNull(refundId, "refundId is required");
+        Refund refund = refundRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Refund/Chargeback not found",
                         ErrorCode.CHARGEBACK_NOT_FOUND
@@ -154,7 +165,8 @@ public class RefundServiceImpl implements RefundService {
     @Override
     public List<RefundResponse> getRefundsForPayment(UUID paymentId) {
 
-        Payment payment = paymentRepository.findById(paymentId)
+        UUID pid = Objects.requireNonNull(paymentId, "paymentId is required");
+        Payment payment = paymentRepository.findById(pid)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Payment not found",
                         ErrorCode.PAYMENT_NOT_FOUND
@@ -169,7 +181,8 @@ public class RefundServiceImpl implements RefundService {
             );
         }
 
-        enforceAccess(refunds.get(0));
+        // Use payment-level access check instead of indexing into list
+        enforcePaymentAccess(payment);
 
         return refunds.stream()
                 .map(this::toResponse)

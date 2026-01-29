@@ -95,8 +95,12 @@ public class AIServiceImpl implements AIService {
         // fallback to existing algorithm already present in file
         
         // For brevity reuse previous implementation by calling existing helper methods
-        double currentLat = request.getCourierLat() != null ? request.getCourierLat() : stops.get(0).getLatitude();
-        double currentLng = request.getCourierLng() != null ? request.getCourierLng() : stops.get(0).getLongitude();
+        double currentLat = request.getCourierLat() != null ? request.getCourierLat() :
+            stops.stream().findFirst().map(s -> s.getLatitude())
+                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
+        double currentLng = request.getCourierLng() != null ? request.getCourierLng() :
+            stops.stream().findFirst().map(s -> s.getLongitude())
+                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
 
         List<RouteOptimizationResponse.OptimizedStop> optimizedRoute = new ArrayList<>();
         List<RouteOptimizationRequest.Stop> remaining = new ArrayList<>(stops);
@@ -173,12 +177,12 @@ public class AIServiceImpl implements AIService {
                 String subject = auth.getName();
                 try {
                     java.util.UUID userId = java.util.UUID.fromString(subject);
-                    var userOpt = userAccountRepository.findById(userId);
-                    if (userOpt.isPresent()) {
-                        var user = userOpt.get();
+                    java.util.UUID nonNullUserId = java.util.Objects.requireNonNull(userId, "userId is required");
+                    var userOpt = userAccountRepository.findById(nonNullUserId);
+                    userOpt.ifPresent(user -> {
                         rag.append("USER_ROLE: ").append(user.getRole()).append("\n");
                         rag.append("USER_PHONE: ").append(user.getPhone()).append("\n");
-                    }
+                    });
                 } catch (IllegalArgumentException ex) {
                     var userOpt = userAccountRepository.findByPhone(subject);
                     userOpt.ifPresent(user -> {
@@ -356,8 +360,12 @@ public class AIServiceImpl implements AIService {
         if (stops == null || stops.isEmpty()) return 0;
         
         double total = 0;
-        double currentLat = startLat != null ? startLat : stops.get(0).getLatitude();
-        double currentLng = startLng != null ? startLng : stops.get(0).getLongitude();
+        double currentLat = startLat != null ? startLat :
+            stops.stream().findFirst().map(s -> s.getLatitude())
+                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
+        double currentLng = startLng != null ? startLng :
+            stops.stream().findFirst().map(s -> s.getLongitude())
+                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
         
         for (RouteOptimizationRequest.Stop stop : stops) {
             total += calculateDistance(currentLat, currentLng, stop.getLatitude(), stop.getLongitude());

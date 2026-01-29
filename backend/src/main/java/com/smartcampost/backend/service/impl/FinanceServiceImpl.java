@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -26,12 +27,13 @@ public class FinanceServiceImpl implements FinanceService {
 
     @Override
     public Object updateRefundStatus(UUID refundId, RefundStatus status) {
-        Refund refund = refundRepository.findById(refundId)
+        UUID id = Objects.requireNonNull(refundId, "refundId is required");
+        Refund refund = refundRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Refund not found", ErrorCode.REFUND_NOT_FOUND));
 
         refund.setStatus(status);
-        refundRepository.save(refund);
+        Refund saved = Objects.requireNonNull(refundRepository.save(refund), "failed to save refund");
 
-        return refund;
+        return saved;
     }
 }
