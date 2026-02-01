@@ -4,7 +4,10 @@ import com.smartcampost.backend.service.NotificationGatewayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 @Service
+@ConditionalOnProperty(name = "notification.gateway", havingValue = "mock", matchIfMissing = true)
 @Slf4j
 public class MockNotificationGatewayServiceImpl implements NotificationGatewayService {
 
