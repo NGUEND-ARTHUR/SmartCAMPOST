@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Repository
 public interface RiskAlertRepository extends JpaRepository<RiskAlert, UUID> {
@@ -21,9 +22,14 @@ public interface RiskAlertRepository extends JpaRepository<RiskAlert, UUID> {
 
     List<RiskAlert> findByResolvedFalse();
 
-    List<RiskAlert> findByParcelId(UUID parcelId);
+    List<RiskAlert> findByParcel_Id(UUID parcelId);
 
-    List<RiskAlert> findByPaymentId(UUID paymentId);
+    List<RiskAlert> findByPayment_Id(UUID paymentId);
 
-    List<RiskAlert> findByReviewedByStaffId(UUID staffId);
+    List<RiskAlert> findByReviewedByStaff_Id(UUID staffId);
+
+    Optional<RiskAlert> findTopByParcel_IdAndAlertTypeAndResolvedFalseOrderByCreatedAtDesc(
+            UUID parcelId,
+            RiskAlertType alertType
+    );
 }

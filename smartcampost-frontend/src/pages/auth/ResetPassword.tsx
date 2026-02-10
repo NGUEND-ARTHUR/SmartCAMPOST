@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Package } from "lucide-react";
@@ -23,6 +23,32 @@ export default function ResetPassword() {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // WebOTP auto-fill (Android Chrome) when OTP is received on the same device.
+  useEffect(() => {
+    if (step !== "confirm") return;
+    const nav: any = navigator as any;
+    if (!nav?.credentials?.get) return;
+    if (!("OTPCredential" in window)) return;
+
+    const controller = new AbortController();
+    (nav.credentials
+      .get({
+        otp: { transport: ["sms"] },
+        signal: controller.signal,
+      }) as Promise<any>)
+      .then((cred) => {
+        const code = cred?.code;
+        if (typeof code === "string" && code.trim()) {
+          setOtp(code.trim());
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+
+    return () => controller.abort();
+  }, [step]);
 
   const canRequest = useMemo(() => phone.trim().length >= 6, [phone]);
   const canConfirm = useMemo(
@@ -94,6 +120,7 @@ export default function ResetPassword() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+237 6XX XXX XXX"
+              autoComplete="tel"
             />
           </div>
 
@@ -104,8 +131,13 @@ export default function ResetPassword() {
                 <Input
                   id="otp"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder={t("auth.otpPlaceholder")}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  name="otp"
+                  maxLength={6}
                 />
               </div>
               <div className="space-y-2">
@@ -116,6 +148,7 @@ export default function ResetPassword() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder={t("auth.newPasswordPlaceholder")}
+                  autoComplete="new-password"
                 />
               </div>
             </>

@@ -45,7 +45,7 @@ public class TwilioNotificationGatewayServiceImpl implements NotificationGateway
         String to = Objects.requireNonNull(phone, "phone is required");
         String body = Objects.requireNonNull(message, "message is required");
 
-        log.info("📲 [TWILIO SMS] to={} | msg={}", phone, message);
+        log.info("📲 [TWILIO SMS] to={} | chars={}", maskPhone(phone), message != null ? message.length() : 0);
 
         var response = webClient.post()
             .uri(uriBuilder -> uriBuilder.path("/Accounts/{AccountSid}/Messages.json").build(sid))
@@ -65,5 +65,12 @@ public class TwilioNotificationGatewayServiceImpl implements NotificationGateway
     @Override
     public void sendEmail(String to, String subject, String body) throws Exception {
         throw new UnsupportedOperationException("Twilio implementation does not support email");
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null) return "";
+        String trimmed = phone.trim();
+        if (trimmed.length() <= 4) return "****";
+        return "****" + trimmed.substring(trimmed.length() - 4);
     }
 }

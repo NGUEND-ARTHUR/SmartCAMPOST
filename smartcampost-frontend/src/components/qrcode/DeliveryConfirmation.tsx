@@ -440,6 +440,8 @@ export function DeliveryConfirmation({
                     onChange={(e) =>
                       setOtpCode(e.target.value.replace(/\D/g, ""))
                     }
+                    autoComplete="one-time-code"
+                    name="otp"
                     placeholder="Enter 4-6 digit code"
                     className="text-center text-2xl tracking-widest"
                   />

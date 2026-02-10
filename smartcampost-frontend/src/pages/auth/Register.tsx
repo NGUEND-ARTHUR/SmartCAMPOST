@@ -60,6 +60,33 @@ export function Register() {
   const [otpValue, setOtpValue] = useState("");
   const otpInputRef = useRef<HTMLInputElement>(null);
 
+  // WebOTP auto-fill (Android Chrome) when OTP is received on the same device.
+  useEffect(() => {
+    if (!otpSent) return;
+    const nav: any = navigator as any;
+    if (!nav?.credentials?.get) return;
+    if (!("OTPCredential" in window)) return;
+
+    const controller = new AbortController();
+    (nav.credentials
+      .get({
+        otp: { transport: ["sms"] },
+        signal: controller.signal,
+      }) as Promise<any>)
+      .then((cred) => {
+        const code = cred?.code;
+        if (typeof code === "string" && code.trim()) {
+          setOtpValue(code.trim());
+          otpInputRef.current?.focus();
+        }
+      })
+      .catch(() => {
+        // ignore (unsupported, cancelled, or timed out)
+      });
+
+    return () => controller.abort();
+  }, [otpSent]);
+
   const onSubmit = async (data: RegisterRequest) => {
     setIsLoading(true);
     try {
@@ -140,6 +167,7 @@ export function Register() {
                 <Input
                   id="phone"
                   placeholder="+237 6XX XXX XXX"
+                  autoComplete="tel"
                   {...register("phone", {
                     required: t("errors.required"),
                   })}
@@ -154,23 +182,10 @@ export function Register() {
                     }
                     setIsSendingOtp(true);
                     try {
-                      // Get OTP from backend (DEV only)
-                      const response = await apiClient.sendOtp(phoneValue);
+                      await apiClient.sendOtp(phoneValue);
                       setOtpSent(true);
-                      if (response && response.otp) {
-                        setOtpValue(response.otp);
-                        // Auto-focus and fill OTP field
-                        setTimeout(() => {
-                          if (otpInputRef.current) {
-                            otpInputRef.current.value = response.otp ?? "";
-                          }
-                        }, 100);
-                        toast.success(
-                          t("messages.success") + ` (OTP: ${response.otp})`,
-                        );
-                      } else {
-                        toast.success(t("messages.success"));
-                      }
+                      setTimeout(() => otpInputRef.current?.focus(), 50);
+                      toast.success(t("messages.success"));
                     } catch (err: unknown) {
                       const msg =
                         (err as { message?: string } | undefined)?.message ??
@@ -200,7 +215,12 @@ export function Register() {
                   placeholder="Enter OTP"
                   value={otpValue}
                   ref={otpInputRef}
-                  onChange={(e) => setOtpValue(e.target.value)}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  name="otp"
+                  maxLength={6}
+                  onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
                   required
                 />
                 {errors.otp && (
@@ -229,6 +249,7 @@ export function Register() {
                 id="password"
                 type="password"
                 placeholder={t("common.password")}
+                autoComplete="new-password"
                 {...register("password", {
                   required: t("errors.required"),
                   minLength: {

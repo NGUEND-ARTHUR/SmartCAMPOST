@@ -12,6 +12,7 @@ import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.repository.AgencyRepository;
 import com.smartcampost.backend.repository.CourierRepository;
+import com.smartcampost.backend.repository.DeliveryAttemptRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.SelfHealingService;
@@ -34,6 +35,7 @@ public class SelfHealingServiceImpl implements SelfHealingService {
     private final AgencyRepository agencyRepository;
     private final ParcelRepository parcelRepository;
     private final CourierRepository courierRepository;
+    private final DeliveryAttemptRepository deliveryAttemptRepository;
     private final NotificationService notificationService;
 
     @Value("${smartcampost.selfhealing.congestion-threshold:50}")
@@ -144,9 +146,10 @@ public class SelfHealingServiceImpl implements SelfHealingService {
                         ErrorCode.COURIER_NOT_FOUND
                 ));
 
-        // Get parcels assigned for delivery
-        List<Parcel> parcels = parcelRepository.findByStatusIn(
-                List.of(ParcelStatus.OUT_FOR_DELIVERY)
+        // Get parcels associated with this courier (based on recorded delivery attempts)
+        List<Parcel> parcels = deliveryAttemptRepository.findDistinctParcelsByCourierAndParcelStatusIn(
+            courierId,
+            List.of(ParcelStatus.OUT_FOR_DELIVERY)
         );
 
         // Simple optimization: sort by recipient location

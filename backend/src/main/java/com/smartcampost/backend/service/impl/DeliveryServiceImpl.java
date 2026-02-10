@@ -49,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -70,6 +71,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final PaymentRepository paymentRepository;
     private final UserAccountRepository userAccountRepository;
     private final DeliveryAttemptRepository deliveryAttemptRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final ScanEventService scanEventService;
 
@@ -748,6 +750,20 @@ public class DeliveryServiceImpl implements DeliveryService {
             attempt = savedAttempt;
         log.info("Recorded delivery attempt #{} for parcel {} - result: {}", 
                 attemptNumber, parcel.getTrackingRef(), result);
+
+        try {
+            eventPublisher.publishEvent(new com.smartcampost.backend.ai.events.DeliveryAttemptRecordedEvent(
+                    attempt.getId(),
+                    parcel.getId(),
+                    courier != null ? courier.getId() : null,
+                    attemptNumber,
+                    result,
+                    failureReason,
+                    attempt.getAttemptedAt()
+            ));
+        } catch (Exception ignored) {
+            // Never break delivery flow because of AI/event listeners
+        }
 
         return attemptNumber;
     }

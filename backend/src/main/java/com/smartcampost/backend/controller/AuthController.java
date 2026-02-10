@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @Value("${spring.profiles.active:dev}")
-    private String activeProfile;
+    /**
+     * Security default: NEVER expose OTP codes in API responses.
+     * Enable locally only by setting SMARTCAMPOST_OTP_EXPOSE_CODE_IN_RESPONSE=true.
+     */
+    @Value("${smartcampost.otp.expose-code-in-response:false}")
+    private boolean exposeOtpCodeInResponse;
 
     private final AuthService authService;
 
@@ -47,14 +51,13 @@ public class AuthController {
     // =================== OTP GENERIC ===================
 
     @PostMapping("/send-otp")
-    public ResponseEntity<?> sendOtp(@RequestBody SendOtpRequest request) {
+    public ResponseEntity<SendOtpResponse> sendOtp(@RequestBody SendOtpRequest request) {
         SendOtpResponse response = authService.sendOtp(request.getPhone());
-        // Only expose OTP in DEV profile
-        if (activeProfile.equalsIgnoreCase("dev") || activeProfile.equalsIgnoreCase("local")) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.ok().build();
+        if (!exposeOtpCodeInResponse) {
+            // Return a JSON body (avoids axios empty-body edge cases) but with no OTP.
+            return ResponseEntity.ok(SendOtpResponse.builder().build());
         }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify-otp")

@@ -7,5 +7,7 @@ public enum RiskAlertType {
     AML_FLAG,
     HIGH_VALUE,
     MULTIPLE_FAILED_PAYMENTS,
+    DELIVERY_DELAY,
+    REPEATED_DELIVERY_FAILURE,
     OTHER
 }
