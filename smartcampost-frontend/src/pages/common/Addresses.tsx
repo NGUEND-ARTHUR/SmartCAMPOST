@@ -105,7 +105,7 @@ export default function Addresses() {
       !formData.city ||
       !formData.region
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("addresses.toasts.requiredFields"));
       return;
     }
 
@@ -115,14 +115,14 @@ export default function Addresses() {
           addr.id === editingAddress.id ? { ...addr, ...formData } : addr,
         ),
       );
-      toast.success("Address updated successfully");
+      toast.success(t("addresses.toasts.updated"));
     } else {
       const newAddress: Address = {
         id: String(addresses.length + 1),
         ...formData,
       } as Address;
       setAddresses([...addresses, newAddress]);
-      toast.success("Address added successfully");
+      toast.success(t("addresses.toasts.added"));
     }
 
     setIsDialogOpen(false);
@@ -130,43 +130,45 @@ export default function Addresses() {
 
   const handleDelete = (id: string) => {
     setAddresses(addresses.filter((addr) => addr.id !== id));
-    toast.success("Address deleted successfully");
+    toast.success(t("addresses.toasts.deleted"));
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Saved Addresses</h1>
+          <h1 className="text-3xl font-bold">{t("addresses.page.title")}</h1>
           <p className="text-muted-foreground">
-            Manage your delivery and pickup addresses
+            {t("addresses.page.subtitle")}
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Address
+              {t("addresses.page.addAddress")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingAddress ? "Edit Address" : "Add New Address"}
+                {editingAddress
+                  ? t("addresses.dialog.editTitle")
+                  : t("addresses.dialog.addTitle")}
               </DialogTitle>
               <DialogDescription>
                 {editingAddress
-                  ? "Update the address details below"
-                  : "Enter the address details below"}
+                  ? t("addresses.dialog.editDescription")
+                  : t("addresses.dialog.addDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="label">Label *</Label>
+                <Label htmlFor="label">{t("addresses.form.label")}</Label>
                 <Input
                   id="label"
-                  placeholder="e.g., Home, Office, Warehouse"
+                  placeholder={t("addresses.form.labelPlaceholder")}
                   value={formData.label}
                   onChange={(e) =>
                     setFormData({ ...formData, label: e.target.value })
@@ -175,10 +177,10 @@ export default function Addresses() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="street">Street Address *</Label>
+                <Label htmlFor="street">{t("addresses.form.street")}</Label>
                 <Input
                   id="street"
-                  placeholder="Street address, building, apartment"
+                  placeholder={t("addresses.form.streetPlaceholder")}
                   value={formData.street}
                   onChange={(e) =>
                     setFormData({ ...formData, street: e.target.value })
@@ -188,10 +190,10 @@ export default function Addresses() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">City *</Label>
+                  <Label htmlFor="city">{t("addresses.form.city")}</Label>
                   <Input
                     id="city"
-                    placeholder="City"
+                    placeholder={t("addresses.form.cityPlaceholder")}
                     value={formData.city}
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
@@ -199,10 +201,10 @@ export default function Addresses() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="region">Region *</Label>
+                  <Label htmlFor="region">{t("addresses.form.region")}</Label>
                   <Input
                     id="region"
-                    placeholder="Region"
+                    placeholder={t("addresses.form.regionPlaceholder")}
                     value={formData.region}
                     onChange={(e) =>
                       setFormData({ ...formData, region: e.target.value })
@@ -212,7 +214,7 @@ export default function Addresses() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="country">Country *</Label>
+                <Label htmlFor="country">{t("addresses.form.country")}</Label>
                 <Input
                   id="country"
                   value={formData.country}
@@ -225,10 +227,12 @@ export default function Addresses() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleSubmit}>
-                {editingAddress ? "Update" : "Add"} Address
+                {editingAddress
+                  ? t("addresses.dialog.updateAction")
+                  : t("addresses.dialog.addAction")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -238,9 +242,9 @@ export default function Addresses() {
       {addresses.length === 0 ? (
         <EmptyState
           icon={MapPin}
-          title="No saved addresses"
-          description="Add addresses to make creating parcels faster"
-          actionLabel="Add Address"
+          title={t("addresses.empty.title")}
+          description={t("addresses.empty.description")}
+          actionLabel={t("addresses.empty.action")}
           onAction={() => handleOpenDialog()}
         />
       ) : (
@@ -252,8 +256,8 @@ export default function Addresses() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-blue-600" />
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <CardTitle className="text-lg">
@@ -261,8 +265,8 @@ export default function Addresses() {
                         </CardTitle>
                         <CardDescription className="text-xs">
                           {address.latitude && address.longitude
-                            ? "Location verified"
-                            : "Location not verified"}
+                            ? t("addresses.card.locationVerified")
+                            : t("addresses.card.locationNotVerified")}
                         </CardDescription>
                       </div>
                     </div>
@@ -293,7 +297,8 @@ export default function Addresses() {
                     <p>{address.country}</p>
                     {address.latitude && address.longitude && (
                       <p className="text-xs pt-2 border-t mt-2">
-                        Coordinates: {address.latitude.toFixed(4)},{" "}
+                        {t("addresses.card.coordinates")}:{" "}
+                        {address.latitude.toFixed(4)},{" "}
                         {address.longitude.toFixed(4)}
                       </p>
                     )}

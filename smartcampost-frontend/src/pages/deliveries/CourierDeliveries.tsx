@@ -19,7 +19,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CourierDeliveries() {
-  useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "map">("map");
@@ -56,7 +56,9 @@ export default function CourierDeliveries() {
           location: {
             lat: 4.0511 + r * 0.1,
             lng: 9.7679 + r * 0.1,
-            address: `Delivery location ${index + 1}`,
+            address: t("deliveries.courier.deliveryLocation", {
+              index: index + 1,
+            }),
           },
           parcelId: d.id,
           trackingCode: d.trackingRef || d.id.slice(0, 10),
@@ -65,11 +67,15 @@ export default function CourierDeliveries() {
           priority: 1,
         };
       }),
-    [deliveries],
+    [deliveries, t],
   );
 
   const handleStopComplete = (stopId: string) => {
-    toast.success(`Delivery ${stopId.slice(0, 8)} marked as complete`);
+    toast.success(
+      t("deliveries.courier.toasts.markedComplete", {
+        id: stopId.slice(0, 8),
+      }),
+    );
     // Would call API to update delivery status
   };
 
@@ -83,9 +89,11 @@ export default function CourierDeliveries() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">My Deliveries</h1>
+          <h1 className="text-3xl font-bold">
+            {t("deliveries.courier.title")}
+          </h1>
           <p className="text-muted-foreground">
-            {deliveries.length} delivery(ies) assigned to you
+            {t("deliveries.courier.subtitle", { count: deliveries.length })}
           </p>
         </div>
         <div className="flex gap-2">
@@ -95,7 +103,7 @@ export default function CourierDeliveries() {
             onClick={() => setViewMode("map")}
           >
             <Map className="w-4 h-4 mr-1" />
-            Map View
+            {t("deliveries.courier.mapView")}
           </Button>
           <Button
             variant={viewMode === "list" ? "default" : "outline"}
@@ -103,7 +111,7 @@ export default function CourierDeliveries() {
             onClick={() => setViewMode("list")}
           >
             <List className="w-4 h-4 mr-1" />
-            List View
+            {t("deliveries.courier.listView")}
           </Button>
         </div>
       </div>
@@ -115,9 +123,9 @@ export default function CourierDeliveries() {
       ) : error ? (
         <EmptyState
           icon={Package}
-          title="Error loading deliveries"
+          title={t("deliveries.courier.errorTitle")}
           description={
-            error instanceof Error ? error.message : "An error occurred"
+            error instanceof Error ? error.message : t("common.error")
           }
         />
       ) : deliveries.length === 0 ? (

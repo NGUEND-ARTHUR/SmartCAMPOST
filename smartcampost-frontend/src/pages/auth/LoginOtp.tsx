@@ -38,12 +38,12 @@ export default function LoginOtp() {
     setBusy(true);
     try {
       await apiClient.requestOtpLogin({ identifier: phone.trim() });
-      toast.success("OTP sent");
+      toast.success(t("auth.toasts.otpSent"));
       setStep("confirm");
     } catch (e: unknown) {
       const msg =
         (e as { message?: string } | undefined)?.message ??
-        String(e ?? "Failed to send OTP");
+        t("auth.toasts.otpSendFailed");
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -63,7 +63,7 @@ export default function LoginOtp() {
     } catch (e: unknown) {
       const msg =
         (e as { message?: string } | undefined)?.message ??
-        String(e ?? "Invalid OTP");
+        t("auth.toasts.invalidOtp");
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -71,23 +71,23 @@ export default function LoginOtp() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Package className="w-12 h-12 text-blue-600" />
+            <Package className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle>Login with OTP</CardTitle>
+          <CardTitle>{t("auth.loginWithOtpTitle")}</CardTitle>
           <CardDescription>
             {step === "request"
-              ? "Enter your phone number to receive an OTP"
-              : "Enter the OTP you received"}
+              ? t("auth.loginWithOtpSubtitleRequest")
+              : t("auth.loginWithOtpSubtitleConfirm")}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">{t("common.phone")}</Label>
             <Input
               id="phone"
               value={phone}
@@ -98,12 +98,12 @@ export default function LoginOtp() {
 
           {step === "confirm" && (
             <div className="space-y-2">
-              <Label htmlFor="otp">OTP</Label>
+              <Label htmlFor="otp">{t("auth.otp")}</Label>
               <Input
                 id="otp"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter OTP"
+                placeholder={t("auth.otpPlaceholder")}
               />
             </div>
           )}
@@ -114,7 +114,7 @@ export default function LoginOtp() {
               onClick={requestOtp}
               disabled={busy || !canRequest}
             >
-              {busy ? "Sending..." : "Send OTP"}
+              {busy ? t("auth.sending") : t("auth.sendOtp")}
             </Button>
           ) : (
             <Button
@@ -122,13 +122,13 @@ export default function LoginOtp() {
               onClick={confirmOtp}
               disabled={busy || !canConfirm}
             >
-              {busy ? "Verifying..." : "Verify & Login"}
+              {busy ? t("auth.verifying") : t("auth.verifyAndLogin")}
             </Button>
           )}
 
           <div className="text-sm text-center text-muted-foreground">
-            <Link to="/auth/login" className="text-blue-600 hover:underline">
-              Back to password login
+            <Link to="/auth/login" className="text-primary hover:underline">
+              {t("auth.backToPasswordLogin")}
             </Link>
           </div>
         </CardContent>

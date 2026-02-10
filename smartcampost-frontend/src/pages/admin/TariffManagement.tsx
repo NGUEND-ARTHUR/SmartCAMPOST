@@ -98,7 +98,7 @@ export default function TariffManagement() {
       !formData.destinationZone ||
       !formData.basePrice
     ) {
-      toast.error("Origin zone, destination zone and price are required");
+      toast.error(t("tariffs.toasts.requiredFields"));
       return;
     }
     const payload = {
@@ -110,20 +110,25 @@ export default function TariffManagement() {
     };
     createTariff.mutate(payload, {
       onSuccess: () => {
-        toast.success("Tariff created successfully");
+        toast.success(t("tariffs.toasts.created"));
         setIsCreateOpen(false);
         resetForm();
       },
       onError: (err) => {
         const errorMsg =
-          err instanceof Error ? err.message : "Failed to create tariff";
+          err instanceof Error ? err.message : t("tariffs.toasts.createFailed");
         if (
           errorMsg.includes("already exists") ||
           errorMsg.includes("CONFLICT") ||
           errorMsg.includes("409")
         ) {
-          toast.error("Tariff Already Exists", {
-            description: `A tariff for ${formData.originZone} → ${formData.destinationZone} (${formData.serviceType}, ${formData.weightBracket}) already exists. Please modify the existing tariff instead.`,
+          toast.error(t("tariffs.toasts.alreadyExistsTitle"), {
+            description: t("tariffs.toasts.alreadyExistsDescription", {
+              originZone: formData.originZone,
+              destinationZone: formData.destinationZone,
+              serviceType: formData.serviceType,
+              weightBracket: formData.weightBracket,
+            }),
           });
         } else {
           toast.error(errorMsg);
@@ -149,25 +154,27 @@ export default function TariffManagement() {
       },
       {
         onSuccess: () => {
-          toast.success("Tariff updated successfully");
+          toast.success(t("tariffs.toasts.updated"));
           setIsEditOpen(false);
           setEditingTariff(null);
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update tariff",
+            err instanceof Error
+              ? err.message
+              : t("tariffs.toasts.updateFailed"),
           ),
       },
     );
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("Are you sure you want to delete this tariff?")) return;
+    if (!confirm(t("tariffs.prompts.confirmDelete"))) return;
     deleteTariff.mutate(id, {
-      onSuccess: () => toast.success("Tariff deleted"),
+      onSuccess: () => toast.success(t("tariffs.toasts.deleted")),
       onError: (err) =>
         toast.error(
-          err instanceof Error ? err.message : "Failed to delete tariff",
+          err instanceof Error ? err.message : t("tariffs.toasts.deleteFailed"),
         ),
     });
   };

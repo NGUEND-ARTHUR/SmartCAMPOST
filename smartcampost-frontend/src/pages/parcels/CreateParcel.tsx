@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Package, MapPin, Truck, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +44,7 @@ interface ParcelFormData {
 }
 
 export function CreateParcel() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isFragile, setIsFragile] = useState(false);
@@ -69,15 +71,15 @@ export function CreateParcel() {
   } = useForm<ParcelFormData>();
 
   const steps = [
-    { title: "Addresses", icon: MapPin },
-    { title: "Parcel Details", icon: Package },
-    { title: "Service", icon: Truck },
-    { title: "Payment", icon: CreditCard },
+    { title: t("parcels.create.steps.addresses"), icon: MapPin },
+    { title: t("parcels.create.steps.parcelDetails"), icon: Package },
+    { title: t("parcels.create.steps.service"), icon: Truck },
+    { title: t("parcels.create.steps.payment"), icon: CreditCard },
   ];
 
   const onSubmit = async (data: ParcelFormData) => {
     if (!senderAddressId || !recipientAddressId) {
-      toast.error("Please select both sender and recipient addresses.");
+      toast.error(t("parcels.create.toasts.selectAddresses"));
       return;
     }
     createParcel.mutate(
@@ -93,12 +95,14 @@ export function CreateParcel() {
       },
       {
         onSuccess: () => {
-          toast.success("Parcel created successfully!");
+          toast.success(t("parcels.create.toasts.created"));
           navigate("/client/parcels");
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : "Failed to create parcel",
+            error instanceof Error
+              ? error.message
+              : t("parcels.create.toasts.createFailed"),
           );
         },
       },
@@ -113,15 +117,13 @@ export function CreateParcel() {
         className="mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
+        {t("common.back")}
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle>Create New Parcel</CardTitle>
-          <CardDescription>
-            Fill in the details to create a new shipment
-          </CardDescription>
+          <CardTitle>{t("parcels.createTitle")}</CardTitle>
+          <CardDescription>{t("parcels.create.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-8">

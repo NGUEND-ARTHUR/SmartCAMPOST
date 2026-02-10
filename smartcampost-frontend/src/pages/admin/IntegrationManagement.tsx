@@ -108,7 +108,7 @@ export default function IntegrationManagement() {
 
   const handleCreate = () => {
     if (!formData.provider) {
-      toast.error("Provider name is required");
+      toast.error(t("integrations.toasts.providerRequired"));
       return;
     }
     createIntegration.mutate(
@@ -120,13 +120,15 @@ export default function IntegrationManagement() {
       },
       {
         onSuccess: () => {
-          toast.success("Integration created successfully");
+          toast.success(t("integrations.toasts.created"));
           setIsCreateOpen(false);
           resetForm();
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to create integration",
+            err instanceof Error
+              ? err.message
+              : t("integrations.toasts.createFailed"),
           ),
       },
     );
@@ -154,13 +156,15 @@ export default function IntegrationManagement() {
       },
       {
         onSuccess: () => {
-          toast.success("Integration updated successfully");
+          toast.success(t("integrations.toasts.updated"));
           setIsEditOpen(false);
           setEditingIntegration(null);
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update integration",
+            err instanceof Error
+              ? err.message
+              : t("integrations.toasts.updateFailed"),
           ),
       },
     );

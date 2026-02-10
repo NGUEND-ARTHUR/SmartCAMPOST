@@ -17,6 +17,8 @@ import { Package, MapPin, Navigation, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@/theme/theme";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
@@ -91,9 +93,14 @@ function AnimatedView({
 function AnimatedParcelMarker({
   positions,
   isAnimating,
+  labels,
 }: {
   positions: [number, number][];
   isAnimating: boolean;
+  labels: {
+    yourParcel: string;
+    inTransit: string;
+  };
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const map = useMap();
@@ -129,9 +136,11 @@ function AnimatedParcelMarker({
     >
       <Popup>
         <div className="text-center">
-          <strong>📦 Your Parcel</strong>
+          <strong>📦 {labels.yourParcel}</strong>
           <br />
-          <span className="text-sm text-gray-600">In Transit</span>
+          <span className="text-sm text-muted-foreground">
+            {labels.inTransit}
+          </span>
         </div>
       </Popup>
     </Marker>
@@ -145,6 +154,23 @@ export default function TrackingMap({
   showAnimation = true,
 }: TrackingMapProps) {
   const [isAnimating, setIsAnimating] = useState(showAnimation);
+  const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
+
+  const tileConfig = useMemo(() => {
+    if (resolvedTheme === "dark") {
+      return {
+        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      };
+    }
+    return {
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    };
+  }, [resolvedTheme]);
 
   // Convert scan events to positions
   const eventPositions: [number, number][] = useMemo(() => {
@@ -201,7 +227,7 @@ export default function TrackingMap({
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center text-muted-foreground">
             <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No tracking data available</p>
+            <p>{t("trackingMap.noData")}</p>
           </div>
         </CardContent>
       </Card>
@@ -214,7 +240,8 @@ export default function TrackingMap({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Navigation className="w-5 h-5" />
-            Live Tracking {trackingId && `- ${trackingId}`}
+            {t("trackingMap.title")}
+            {trackingId && ` - ${trackingId}`}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -222,10 +249,10 @@ export default function TrackingMap({
               size="sm"
               onClick={() => setIsAnimating(!isAnimating)}
             >
-              {isAnimating ? "⏸ Pause" : "▶ Animate"}
+              {isAnimating ? t("trackingMap.pause") : t("trackingMap.animate")}
             </Button>
             <Badge variant="secondary">
-              {scanEvents.length} checkpoint{scanEvents.length !== 1 ? "s" : ""}
+              {t("trackingMap.checkpoints", { count: scanEvents.length })}
             </Badge>
           </div>
         </div>
@@ -239,8 +266,8 @@ export default function TrackingMap({
             scrollWheelZoom={true}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution={tileConfig.attribution}
+              url={tileConfig.url}
             />
 
             <AnimatedView center={mapCenter} zoom={mapZoom} />
@@ -275,12 +302,14 @@ export default function TrackingMap({
                     <div className="min-w-37.5">
                       <strong className="flex items-center gap-1">
                         <Package className="w-4 h-4" />
-                        Checkpoint {index + 1}
+                        {t("trackingMap.checkpointLabel", {
+                          index: index + 1,
+                        })}
                       </strong>
                       <div className="mt-1 text-sm">
                         <p>{event.eventType}</p>
                         {event.agencyName && <p>📍 {event.agencyName}</p>}
-                        <p className="flex items-center gap-1 text-gray-500">
+                        <p className="flex items-center gap-1 text-muted-foreground">
                           <Clock className="w-3 h-3" />
                           {new Date(event.timestamp).toLocaleString()}
                         </p>
@@ -295,6 +324,10 @@ export default function TrackingMap({
               <AnimatedParcelMarker
                 positions={fullRoute}
                 isAnimating={isAnimating}
+                labels={{
+                  yourParcel: t("trackingMap.yourParcel"),
+                  inTransit: t("trackingMap.inTransit"),
+                }}
               />
             )}
 
@@ -303,7 +336,7 @@ export default function TrackingMap({
               <Marker position={currentPosition} icon={parcelIcon}>
                 <Popup>
                   <div className="text-center">
-                    <strong>📦 Current Location</strong>
+                    <strong>📦 {t("trackingMap.currentLocation")}</strong>
                     <br />
                     <Badge>{currentStatus}</Badge>
                   </div>
@@ -313,20 +346,22 @@ export default function TrackingMap({
           </MapContainer>
 
           {/* Legend */}
-          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg z-1000 text-xs">
-            <div className="font-semibold mb-2">Legend</div>
+          <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-1000 text-xs border border-border">
+            <div className="font-semibold mb-2">
+              {t("trackingMap.legend.title")}
+            </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span>📍</span> Origin
+                <span>📍</span> {t("trackingMap.legend.origin")}
               </div>
               <div className="flex items-center gap-2">
-                <span>🚚</span> Checkpoint
+                <span>🚚</span> {t("trackingMap.legend.checkpoint")}
               </div>
               <div className="flex items-center gap-2">
-                <span>📦</span> Current Position
+                <span>📦</span> {t("trackingMap.legend.currentPosition")}
               </div>
               <div className="flex items-center gap-2">
-                <span>🏁</span> Destination
+                <span>🏁</span> {t("trackingMap.legend.destination")}
               </div>
             </div>
           </div>

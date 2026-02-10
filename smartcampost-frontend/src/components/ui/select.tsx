@@ -52,12 +52,12 @@ export const SelectTrigger = ({
       type="button"
       onClick={() => ctx?.setOpen?.((v: boolean) => !v)}
       className={cn(
-        "w-full rounded-md border px-3 py-2 text-left flex items-center justify-between bg-white",
+        "w-full rounded-md border border-input px-3 py-2 text-left flex items-center justify-between bg-background",
         className,
       )}
       {...props}
     >
-      <span className="text-sm text-muted-foreground">
+      <span className="text-sm text-foreground">
         {(ctx?.value as unknown as React.ReactNode) ?? placeholder ?? children}
       </span>
       <svg
@@ -101,7 +101,7 @@ export const SelectContent = ({
   return (
     <div
       className={cn(
-        "absolute left-0 right-0 z-10 mt-1 rounded-md border bg-white shadow-sm",
+        "absolute left-0 right-0 z-10 mt-1 rounded-md border border-border bg-popover text-popover-foreground shadow-sm",
         className,
       )}
     >
@@ -122,7 +122,7 @@ export const SelectItem = ({
 
   return (
     <div
-      className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+      className="px-3 py-2 cursor-pointer hover:bg-accent"
       onClick={handleClick}
     >
       {children}

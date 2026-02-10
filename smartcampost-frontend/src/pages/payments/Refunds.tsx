@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Receipt, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,6 +24,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function Refunds() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useFinanceRefunds(page, 20);
   const updateStatus = useFinanceUpdateRefundStatus();
@@ -34,9 +36,13 @@ export default function Refunds() {
     updateStatus.mutate(
       { refundId: id, status: "APPROVED" },
       {
-        onSuccess: () => toast.success("Refund approved"),
+        onSuccess: () => toast.success(t("refunds.toasts.approved")),
         onError: (err) =>
-          toast.error(err instanceof Error ? err.message : "Failed to approve"),
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : t("refunds.toasts.approveFailed"),
+          ),
       },
     );
   };
@@ -45,9 +51,13 @@ export default function Refunds() {
     updateStatus.mutate(
       { refundId: id, status: "REJECTED" },
       {
-        onSuccess: () => toast.success("Refund rejected"),
+        onSuccess: () => toast.success(t("refunds.toasts.rejected")),
         onError: (err) =>
-          toast.error(err instanceof Error ? err.message : "Failed to reject"),
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : t("refunds.toasts.rejectFailed"),
+          ),
       },
     );
   };
@@ -55,13 +65,13 @@ export default function Refunds() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Refunds</h1>
-        <p className="text-muted-foreground">Manage refund requests</p>
+        <h1 className="text-3xl font-bold">{t("refunds.title")}</h1>
+        <p className="text-muted-foreground">{t("refunds.subtitle")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Refund Requests</CardTitle>
+          <CardTitle>{t("refunds.requestsTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -71,29 +81,29 @@ export default function Refunds() {
           ) : error ? (
             <EmptyState
               icon={Receipt}
-              title="Error loading refunds"
+              title={t("refunds.states.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.error")
               }
             />
           ) : refunds.length === 0 ? (
             <EmptyState
               icon={Receipt}
-              title="No refunds"
-              description="Refund requests will appear here"
+              title={t("refunds.states.emptyTitle")}
+              description={t("refunds.states.emptyDescription")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Refund ID</TableHead>
-                    <TableHead>Payment ID</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("refunds.table.refundId")}</TableHead>
+                    <TableHead>{t("refunds.table.paymentId")}</TableHead>
+                    <TableHead>{t("common.amount")}</TableHead>
+                    <TableHead>{t("refunds.table.reason")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("refunds.table.created")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -130,7 +140,7 @@ export default function Refunds() {
                               onClick={() => handleApprove(refund.id)}
                               disabled={updateStatus.isPending}
                             >
-                              Approve
+                              {t("refunds.actions.approve")}
                             </Button>
                             <Button
                               variant="destructive"
@@ -138,7 +148,7 @@ export default function Refunds() {
                               onClick={() => handleReject(refund.id)}
                               disabled={updateStatus.isPending}
                             >
-                              Reject
+                              {t("refunds.actions.reject")}
                             </Button>
                           </div>
                         )}
@@ -155,10 +165,13 @@ export default function Refunds() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("refunds.pagination", {
+                      page: page + 1,
+                      totalPages,
+                    })}
                   </span>
                   <Button
                     variant="outline"
@@ -166,7 +179,7 @@ export default function Refunds() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

@@ -72,14 +72,22 @@ export default function UserAccountManagement() {
   });
 
   const handleFreezeToggle = (userId: string, currentlyFrozen: boolean) => {
-    const action = currentlyFrozen ? "unfreeze" : "freeze";
     freezeUser.mutate(
       { userId, frozen: !currentlyFrozen },
       {
-        onSuccess: () => toast.success(`User account ${action}d successfully`),
+        onSuccess: () =>
+          toast.success(
+            currentlyFrozen
+              ? t("userAccounts.toasts.unfrozen")
+              : t("userAccounts.toasts.frozen"),
+          ),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : `Failed to ${action} user`,
+            err instanceof Error
+              ? err.message
+              : currentlyFrozen
+                ? t("userAccounts.toasts.unfreezeFailed")
+                : t("userAccounts.toasts.freezeFailed"),
           ),
       },
     );

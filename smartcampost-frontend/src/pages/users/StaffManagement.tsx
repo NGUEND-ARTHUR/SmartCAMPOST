@@ -231,7 +231,11 @@ export default function StaffManagement() {
         { id: member.id, data: { status: newStatus } },
         {
           onSuccess: () =>
-            toast.success(`Courier status updated to ${newStatus}`),
+            toast.success(
+              t("staffManagement.toasts.courierStatusUpdated", {
+                status: newStatus,
+              }),
+            ),
           onError: (err) =>
             toast.error(
               err instanceof Error
@@ -245,7 +249,11 @@ export default function StaffManagement() {
         { id: member.id, data: { status: newStatus } },
         {
           onSuccess: () =>
-            toast.success(`Staff status updated to ${newStatus}`),
+            toast.success(
+              t("staffManagement.toasts.staffStatusUpdated", {
+                status: newStatus,
+              }),
+            ),
           onError: (err) =>
             toast.error(
               err instanceof Error
@@ -263,7 +271,9 @@ export default function StaffManagement() {
       {
         onSuccess: () =>
           toast.success(
-            `Staff role updated to ${roleLabels[newRole] || newRole}`,
+            t("staffManagement.toasts.staffRoleUpdated", {
+              role: roleLabels[newRole] || newRole,
+            }),
           ),
         onError: (err) =>
           toast.error(

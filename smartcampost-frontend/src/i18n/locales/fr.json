@@ -29,6 +29,10 @@
     "register": "S'inscrire",
     "welcome": "Bienvenue",
     "language": "Langue",
+    "theme": "Thème",
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre",
     "french": "Français",
     "english": "Anglais",
     "all": "Tout",
@@ -81,7 +85,8 @@
     "integrations": "Intégrations",
     "userAccounts": "Comptes Utilisateurs",
     "riskAlerts": "Alertes de Risque",
-    "compliance": "Conformité"
+    "compliance": "Conformité",
+    "selfHealing": "Auto-réparation"
   },
   "auth": {
     "loginTitle": "Connectez-vous à votre compte",
@@ -104,7 +109,34 @@
     "verifyOtp": "Vérifier OTP",
     "resendOtp": "Renvoyer OTP",
     "selectLanguage": "Sélectionnez votre langue préférée",
-    "preferredLanguage": "Langue Préférée"
+    "preferredLanguage": "Langue Préférée",
+    "loginWithOtpTitle": "Connexion par OTP",
+    "loginWithOtpSubtitleRequest": "Entrez votre numéro de téléphone pour recevoir un OTP",
+    "loginWithOtpSubtitleConfirm": "Entrez l'OTP reçu",
+    "otp": "OTP",
+    "otpPlaceholder": "Entrez l'OTP",
+    "sending": "Envoi...",
+    "verifying": "Vérification...",
+    "verifyAndLogin": "Vérifier & se connecter",
+    "backToPasswordLogin": "Retour à la connexion par mot de passe",
+    "resetPasswordOtpTitle": "Réinitialiser le mot de passe",
+    "resetPasswordOtpSubtitleRequest": "Demandez un OTP pour réinitialiser votre mot de passe",
+    "resetPasswordOtpSubtitleConfirm": "Confirmez l'OTP et définissez un nouveau mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Minimum 6 caractères",
+    "requesting": "Demande...",
+    "requestOtp": "Demander un OTP",
+    "saving": "Enregistrement...",
+    "confirmReset": "Confirmer la réinitialisation",
+    "backToLogin": "Retour à la connexion",
+    "toasts": {
+      "otpSent": "OTP envoyé",
+      "otpSendFailed": "Échec de l'envoi de l'OTP",
+      "invalidOtp": "OTP invalide",
+      "resetRequestFailed": "Échec de la demande de réinitialisation",
+      "passwordResetSuccess": "Mot de passe réinitialisé avec succès",
+      "passwordResetFailed": "Échec de la réinitialisation du mot de passe"
+    }
   },
   "landing": {
     "hero": {
@@ -198,7 +230,63 @@
   "parcels": {
     "title": "Colis",
     "createTitle": "Créer un Nouveau Colis",
+    "create": {
+      "subtitle": "Renseignez les informations pour créer un nouvel envoi",
+      "steps": {
+        "addresses": "Adresses",
+        "parcelDetails": "Détails du colis",
+        "service": "Service",
+        "payment": "Paiement"
+      },
+      "toasts": {
+        "selectAddresses": "Veuillez sélectionner les adresses de l’expéditeur et du destinataire.",
+        "created": "Colis créé avec succès !",
+        "createFailed": "Échec de la création du colis"
+      }
+    },
     "detailTitle": "Détails du Colis",
+    "detail": {
+      "backToParcels": "Retour aux colis",
+      "notFoundTitle": "Colis introuvable",
+      "notFoundDescription": "Le colis n'a pas pu être chargé",
+      "createdOn": "Créé le {{date}}",
+      "detailsTitle": "Détails du colis",
+      "weight": "Poids",
+      "dimensions": "Dimensions",
+      "declaredValue": "Valeur déclarée",
+      "fragile": "Fragile",
+      "serviceType": "Type de service",
+      "deliveryOption": "Option de livraison",
+      "paymentOption": "Option de paiement",
+      "quote": "Devis",
+      "description": "Description",
+      "expectedDelivery": "Livraison prévue :",
+      "na": "N/A",
+      "actions": {
+        "viewPhoto": "Voir la photo",
+        "downloadReceipt": "Télécharger le reçu",
+        "reportIssue": "Signaler un problème",
+        "accept": "Accepter",
+        "validateAccept": "Valider & accepter",
+        "validateLock": "Valider & verrouiller (QR final)",
+        "cancel": "Annuler le colis"
+      }
+    },
+    "prompts": {
+      "confirmDescription": "Confirmer que la description est exacte ? (o/n)",
+      "optionalPhotoUrl": "Optionnel : collez l'URL de la photo ou laissez vide"
+    },
+    "toasts": {
+      "accepted": "Colis accepté",
+      "acceptFailed": "Échec de l'acceptation",
+      "validatedAccepted": "Colis validé et accepté",
+      "validationFailed": "Échec de la validation",
+      "lockedFinalQr": "Colis validé et verrouillé (QR final)",
+      "validateLockFailed": "Échec de la validation & verrouillage",
+      "cancelled": "Colis annulé",
+      "cancelledDescription": "Colis {{trackingRef}}",
+      "cancelFailed": "Échec de l'annulation du colis"
+    },
     "trackingNumber": "Numéro de Suivi",
     "sender": "Expéditeur",
     "recipient": "Destinataire",
@@ -237,6 +325,48 @@
       "createParcel": "Créer le Colis"
     }
   },
+  "addresses": {
+    "page": {
+      "title": "Adresses enregistrées",
+      "subtitle": "Gérez vos adresses de livraison et de collecte",
+      "addAddress": "Ajouter une adresse"
+    },
+    "dialog": {
+      "addTitle": "Ajouter une nouvelle adresse",
+      "addDescription": "Entrez les détails de l'adresse ci-dessous",
+      "editTitle": "Modifier l'adresse",
+      "editDescription": "Mettez à jour les détails de l'adresse ci-dessous",
+      "addAction": "Ajouter l'adresse",
+      "updateAction": "Mettre à jour l'adresse"
+    },
+    "form": {
+      "label": "Libellé *",
+      "labelPlaceholder": "ex. : Maison, Bureau, Entrepôt",
+      "street": "Adresse *",
+      "streetPlaceholder": "Adresse, immeuble, appartement",
+      "city": "Ville *",
+      "cityPlaceholder": "Ville",
+      "region": "Région *",
+      "regionPlaceholder": "Région",
+      "country": "Pays *"
+    },
+    "empty": {
+      "title": "Aucune adresse enregistrée",
+      "description": "Ajoutez des adresses pour créer des colis plus rapidement",
+      "action": "Ajouter une adresse"
+    },
+    "card": {
+      "locationVerified": "Localisation vérifiée",
+      "locationNotVerified": "Localisation non vérifiée",
+      "coordinates": "Coordonnées"
+    },
+    "toasts": {
+      "requiredFields": "Veuillez remplir tous les champs obligatoires",
+      "updated": "Adresse mise à jour avec succès",
+      "added": "Adresse ajoutée avec succès",
+      "deleted": "Adresse supprimée avec succès"
+    }
+  },
   "pickups": {
     "title": "Collectes",
     "schedulePickup": "Planifier une Collecte",
@@ -244,6 +374,81 @@
     "pickupTime": "Heure de Collecte",
     "pickupAddress": "Adresse de Collecte",
     "assignCourier": "Assigner un Coursier",
+    "page": {
+      "title": "Demandes de collecte",
+      "subtitle": "Planifiez des collectes pour vos colis",
+      "requestPickup": "Demander une collecte",
+      "dialog": {
+        "description": "Planifier un coursier pour récupérer votre colis",
+        "selectParcel": "Sélectionner un colis *",
+        "chooseParcel": "Choisir un colis",
+        "pickupDate": "Date de collecte *",
+        "pickupDateTitle": "Sélectionner la date de collecte",
+        "pickupDatePlaceholder": "Sélectionner une date",
+        "timeWindow": "Créneau horaire *",
+        "chooseTimeWindow": "Choisir un créneau",
+        "timeWindows": {
+          "morning": "Matin (09:00 - 12:00)",
+          "afternoon": "Après-midi (12:00 - 15:00)",
+          "evening": "Soir (15:00 - 18:00)"
+        },
+        "instructions": "Instructions supplémentaires (optionnel)",
+        "instructionsPlaceholder": "Instructions particulières pour le coursier..."
+      },
+      "toasts": {
+        "requiredFields": "Veuillez remplir tous les champs requis",
+        "invalidLatLng": "Veuillez fournir une latitude/longitude valides",
+        "requestSubmitted": "Demande de collecte envoyée avec succès !",
+        "createFailed": "Échec de la création de la collecte"
+      }
+    },
+    "management": {
+      "title": "Gestion des collectes",
+      "subtitle": "Toutes les demandes de collecte et l’affectation des coursiers",
+      "allPickups": "Toutes les collectes",
+      "searchPlaceholder": "Rechercher des collectes...",
+      "filterByStatus": "Filtrer par statut",
+      "assign": "Assigner",
+      "pagination": "Page {{page}} sur {{totalPages}}",
+      "status": {
+        "all": "Tous les statuts",
+        "requested": "Demandée",
+        "assigned": "Assignée",
+        "completed": "Terminée",
+        "cancelled": "Annulée"
+      },
+      "state": {
+        "requested": "Demandée",
+        "assigned": "Assignée",
+        "completed": "Terminée",
+        "cancelled": "Annulée"
+      },
+      "states": {
+        "errorTitle": "Erreur lors du chargement des collectes",
+        "emptyTitle": "Aucune collecte trouvée",
+        "emptyFiltered": "Essayez d’ajuster votre recherche ou vos filtres",
+        "emptyDefault": "Les demandes de collecte apparaîtront ici"
+      },
+      "table": {
+        "pickupId": "ID de collecte",
+        "client": "Client",
+        "parcel": "Colis",
+        "state": "État",
+        "courier": "Coursier",
+        "scheduled": "Planifiée"
+      },
+      "dialog": {
+        "title": "Assigner un coursier",
+        "description": "Sélectionnez un coursier pour cette demande de collecte",
+        "courier": "Coursier",
+        "selectCourier": "Sélectionner un coursier"
+      },
+      "toasts": {
+        "selectCourier": "Veuillez sélectionner un coursier",
+        "courierAssigned": "Coursier assigné",
+        "assignFailed": "Échec de l’affectation du coursier"
+      }
+    },
     "status": {
       "requested": "Demandée",
       "assigned": "Assignée",
@@ -260,6 +465,53 @@
     "recipientSignature": "Signature du Destinataire",
     "deliveryNotes": "Notes de Livraison",
     "proofOfDelivery": "Preuve de Livraison",
+    "courier": {
+      "title": "Mes livraisons",
+      "subtitle": "{{count}} livraison assignée",
+      "subtitle_one": "{{count}} livraison assignée",
+      "subtitle_other": "{{count}} livraisons assignées",
+      "mapView": "Vue carte",
+      "listView": "Vue liste",
+      "errorTitle": "Erreur lors du chargement des livraisons",
+      "deliveryLocation": "Lieu de livraison {{index}}",
+      "toasts": {
+        "markedComplete": "Livraison {{id}} marquée comme terminée"
+      }
+    },
+    "confirm": {
+      "title": "Confirmer la livraison",
+      "subtitle": "Scannez le QR code, vérifiez l’OTP et capturez la preuve de livraison",
+      "toasts": {
+        "confirmed": "Livraison confirmée avec succès"
+      },
+      "errors": {
+        "sendOtpFailed": "Échec de l'envoi de l’OTP",
+        "invalidOtp": "Code OTP invalide",
+        "confirmFailed": "Échec de la confirmation de la livraison"
+      }
+    },
+    "workflow": {
+      "toasts": {
+        "startedOtp": "Livraison démarrée. Un OTP a été envoyé (si nécessaire).",
+        "started": "Livraison démarrée",
+        "startFailed": "Échec du démarrage de la livraison",
+        "otpVerified": "OTP vérifié",
+        "photoCaptured": "Photo capturée",
+        "selectFailureReason": "Sélectionner un motif d’échec",
+        "completeRequiredProof": "Compléter les preuves requises",
+        "selectRescheduleDate": "Sélectionner une date de replanification",
+        "rescheduled": "Livraison replanifiée",
+        "returnedToSender": "Marqué comme retourné à l’expéditeur",
+        "markedFailed": "Livraison marquée en échec",
+        "completed": "Livraison terminée",
+        "actionFailed": "Échec de l’action"
+      },
+      "errors": {
+        "otpSixDigits": "Veuillez saisir l’OTP à 6 chiffres",
+        "otpInvalid": "OTP invalide",
+        "otpVerifyFailed": "Échec de la vérification de l’OTP"
+      }
+    },
     "status": {
       "pending": "En Attente",
       "assigned": "Assignée",
@@ -289,9 +541,33 @@
   },
   "refunds": {
     "title": "Remboursements",
+    "subtitle": "Gérer les demandes de remboursement",
+    "requestsTitle": "Demandes de remboursement",
     "requestRefund": "Demander un Remboursement",
     "refundReason": "Motif du Remboursement",
     "refundAmount": "Montant du Remboursement",
+    "pagination": "Page {{page}} sur {{totalPages}}",
+    "table": {
+      "refundId": "ID de remboursement",
+      "paymentId": "ID de paiement",
+      "reason": "Motif",
+      "created": "Créé"
+    },
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter"
+    },
+    "states": {
+      "errorTitle": "Erreur lors du chargement des remboursements",
+      "emptyTitle": "Aucun remboursement",
+      "emptyDescription": "Les demandes de remboursement apparaîtront ici"
+    },
+    "toasts": {
+      "approved": "Remboursement approuvé",
+      "rejected": "Remboursement rejeté",
+      "approveFailed": "Échec de l’approbation",
+      "rejectFailed": "Échec du rejet"
+    },
     "status": {
       "requested": "Demandé",
       "approved": "Approuvé",
@@ -383,20 +659,176 @@
     "weightBracket": "Tranche de Poids",
     "price": "Prix",
     "editTariff": "Modifier le Tarif",
-    "updatePrice": "Mettre à Jour le Prix"
+    "updatePrice": "Mettre à Jour le Prix",
+    "prompts": {
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce tarif ?"
+    },
+    "toasts": {
+      "requiredFields": "La zone d'origine, la zone de destination et le prix sont obligatoires",
+      "created": "Tarif créé avec succès",
+      "createFailed": "Échec de la création du tarif",
+      "alreadyExistsTitle": "Le tarif existe déjà",
+      "alreadyExistsDescription": "Un tarif pour {{originZone}} → {{destinationZone}} ({{serviceType}}, {{weightBracket}}) existe déjà. Veuillez plutôt modifier le tarif existant.",
+      "updated": "Tarif mis à jour avec succès",
+      "updateFailed": "Échec de la mise à jour du tarif",
+      "deleted": "Tarif supprimé",
+      "deleteFailed": "Échec de la suppression du tarif"
+    }
   },
   "integrations": {
     "title": "Gestion des Intégrations",
     "subtitle": "Gérer les intégrations de services externes",
     "apiKey": "Clé API",
     "status": "Statut",
-    "lastSync": "Dernière Synchronisation"
+    "lastSync": "Dernière Synchronisation",
+    "toasts": {
+      "providerRequired": "Le nom du fournisseur est obligatoire",
+      "created": "Intégration créée avec succès",
+      "createFailed": "Échec de la création de l’intégration",
+      "updated": "Intégration mise à jour avec succès",
+      "updateFailed": "Échec de la mise à jour de l’intégration"
+    }
+  },
+  "staffManagement": {
+    "title": "Gestion du personnel",
+    "subtitle": "Gérer les comptes du personnel et des coursiers",
+    "fullName": "Nom complet",
+    "requiredFields": "Veuillez remplir tous les champs obligatoires",
+    "courierCreated": "Coursier créé avec succès",
+    "failedCreateCourier": "Échec de la création du coursier",
+    "staffCreated": "Personnel créé avec succès",
+    "failedCreateStaff": "Échec de la création du personnel",
+    "failedUpdateStatus": "Échec de la mise à jour du statut",
+    "failedUpdateRole": "Échec de la mise à jour du rôle",
+    "toasts": {
+      "courierStatusUpdated": "Statut du coursier mis à jour vers {{status}}",
+      "staffStatusUpdated": "Statut du personnel mis à jour vers {{status}}",
+      "staffRoleUpdated": "Rôle du personnel mis à jour vers {{role}}"
+    }
+  },
+  "riskAlerts": {
+    "toasts": {
+      "userFrozen": "Compte utilisateur gelé",
+      "freezeFailed": "Échec du gel de l’utilisateur"
+    }
+  },
+  "compliance": {
+    "toasts": {
+      "alertResolved": "Alerte résolue",
+      "resolveFailed": "Échec de la résolution",
+      "reportStarted": "Génération du rapport démarrée",
+      "reportFailed": "Échec de la génération du rapport"
+    }
+  },
+  "userAccounts": {
+    "toasts": {
+      "frozen": "Compte utilisateur gelé avec succès",
+      "unfrozen": "Compte utilisateur dégelé avec succès",
+      "freezeFailed": "Échec du gel de l’utilisateur",
+      "unfreezeFailed": "Échec du dégel de l’utilisateur"
+    }
   },
   "analytics": {
     "title": "Analyses",
     "subtitle": "Voir les statistiques et rapports",
     "dateRange": "Période",
-    "exportReport": "Exporter le Rapport"
+    "exportReport": "Exporter le Rapport",
+    "page": {
+      "title": "Analyses",
+      "subtitle": "Prédictions ETA et détection d’anomalies de paiement alimentées par l’IA"
+    },
+    "eta": {
+      "title": "Prédiction d’ETA",
+      "description": "Obtenir une estimation de livraison pour un colis",
+      "parcelIdLabel": "ID du colis",
+      "parcelIdPlaceholder": "Saisir l’ID du colis (ex. PKG-12345)",
+      "estimatedDelivery": "Livraison estimée",
+      "confidence": "Confiance",
+      "currentLocation": "Position actuelle :"
+    },
+    "anomaly": {
+      "title": "Détection d’anomalies",
+      "description": "Vérifier un paiement pour activité suspecte",
+      "noDetails": "Aucun détail",
+      "recommendations": {
+        "manualReview": "Revue manuelle recommandée avant traitement",
+        "proceed": "Le paiement semble normal, continuer comme d’habitude"
+      },
+      "risk": {
+        "high": "Risque élevé",
+        "medium": "Risque moyen",
+        "low": "Risque faible"
+      }
+    },
+    "toasts": {
+      "enterParcelId": "Veuillez saisir un ID de colis",
+      "etaSuccess": "ETA récupérée avec succès",
+      "etaFailed": "Échec de la récupération de l’ETA",
+      "enterPaymentId": "Veuillez saisir un ID de paiement",
+      "anomalySuccess": "Vérification d’anomalie terminée",
+      "anomalyFailed": "Échec de la vérification d’anomalie de paiement"
+    }
+  },
+  "trackingPage": {
+    "title": "Suivre un colis",
+    "tabs": {
+      "number": "Numéro de suivi",
+      "qr": "Scanner un QR"
+    },
+    "numberPlaceholder": "Saisir un numéro de suivi",
+    "toasts": {
+      "notFound": "Suivi introuvable",
+      "invalidQr": "Impossible de suivre avec ce QR"
+    }
+  },
+  "qrcode": {
+    "scanner": {
+      "title": "Scanner QR code",
+      "status": {
+        "scanning": "Scan en cours",
+        "stopped": "Arrêté"
+      },
+      "errors": {
+        "noCameraDevice": "Aucune caméra trouvée sur cet appareil"
+      },
+      "toasts": {
+        "scannedTitle": "QR code scanné",
+        "scannedDescription": "Suivi : {{trackingRef}}",
+        "invalidTitle": "QR code invalide",
+        "noCamera": "Aucune caméra détectée",
+        "cameraError": "Erreur caméra",
+        "historyCleared": "Historique de scan effacé"
+      }
+    },
+    "display": {
+      "title": "QR code du colis",
+      "toasts": {
+        "printWindowBlocked": "Impossible d’ouvrir la fenêtre d’impression. Veuillez autoriser les popups.",
+        "printDialogOpened": "Boîte d’impression ouverte - choisissez votre imprimante",
+        "downloaded": "QR code téléchargé",
+        "copied": "Référence de suivi copiée",
+        "copyFailed": "Échec de la copie"
+      }
+    },
+    "deliveryConfirmation": {
+      "toasts": {
+        "otpSentTitle": "OTP envoyé",
+        "otpSentDescription": "Code envoyé au {{phone}}",
+        "otpSendFailedTitle": "Échec de l’envoi de l’OTP",
+        "unknownError": "Erreur inconnue",
+        "invalidOtp": "Veuillez saisir un code OTP valide",
+        "otpVerified": "OTP vérifié avec succès",
+        "photoCaptured": "Photo capturée",
+        "geoNotSupported": "La géolocalisation n’est pas prise en charge",
+        "locationCapturedTitle": "Position capturée",
+        "locationCapturedDescription": "Précision : {{accuracy}} m",
+        "locationErrorTitle": "Erreur de localisation",
+        "proofRequired": "Veuillez capturer au moins une preuve de livraison",
+        "confirmedTitle": "Livraison confirmée !",
+        "confirmedDescription": "Un reçu a été envoyé au client",
+        "confirmFailedTitle": "Échec de la confirmation"
+      }
+    }
   },
   "compliance": {
     "title": "Conformité",
@@ -427,7 +859,35 @@
     "scanQR": "Scanner le Code QR",
     "manualEntry": "Entrée Manuelle",
     "scanResult": "Résultat du Scan",
-    "updateStatus": "Mettre à Jour le Statut"
+    "updateStatus": "Mettre à Jour le Statut",
+    "defaultLocation": "Guichet de l’agence",
+    "status": {
+      "created": "Créé",
+      "atOriginAgency": "À l’agence d’origine",
+      "inTransit": "En transit",
+      "arrivedHub": "Arrivé au hub",
+      "departedHub": "Parti du hub",
+      "arrivedDestination": "Arrivé à destination",
+      "outForDelivery": "En cours de livraison",
+      "delivered": "Livré",
+      "returned": "Retourné"
+    },
+    "error": {
+      "enterTrackingNumber": "Veuillez saisir un numéro de suivi",
+      "failed": "Échec du scan",
+      "unknown": "Erreur inconnue",
+      "gpsRequired": "Le GPS est requis pour enregistrer les événements de scan",
+      "qrVerificationFailed": "Échec de la vérification du QR",
+      "missingParcelId": "parcelId manquant dans le QR code"
+    },
+    "success": {
+      "scanned": "Scanné : {{barcode}}",
+      "qrScanned": "QR scanné : {{trackingRef}}",
+      "eventType": "Type d’événement : {{status}}"
+    },
+    "info": {
+      "historyCleared": "Historique des scans effacé"
+    }
   },
   "errors": {
     "required": "Ce champ est requis",
@@ -467,5 +927,51 @@
     "loginSuccess": "Connexion réussie",
     "logoutSuccess": "Déconnexion réussie",
     "operationFailed": "L'opération a échoué"
+  },
+  "trackingMap": {
+    "title": "Suivi en direct",
+    "noData": "Aucune donnée de suivi disponible",
+    "pause": "⏸ Pause",
+    "animate": "▶ Animer",
+    "checkpoints": "{{count}} point de contrôle",
+    "checkpoints_one": "{{count}} point de contrôle",
+    "checkpoints_other": "{{count}} points de contrôle",
+    "checkpointLabel": "Point de contrôle {{index}}",
+    "yourParcel": "Votre colis",
+    "inTransit": "En transit",
+    "currentLocation": "Position actuelle",
+    "legend": {
+      "title": "Légende",
+      "origin": "Origine",
+      "checkpoint": "Point de contrôle",
+      "currentPosition": "Position actuelle",
+      "destination": "Destination"
+    }
+  },
+  "courierNavMap": {
+    "title": "Carte de navigation",
+    "myLocation": "Ma position",
+    "aiOptimized": "✓ Optimisé par IA",
+    "originalOrder": "Ordre original",
+    "totalDistance": "{{distance}} km au total",
+    "youAreHere": "Vous êtes ici",
+    "navigate": "Naviguer",
+    "complete": "Terminer",
+    "optimizedRouteOrder": "Ordre de route optimisé",
+    "stopsList": "Liste des arrêts",
+    "etaMinutes": "{{count}} min",
+    "etaMinutes_one": "{{count}} min",
+    "etaMinutes_other": "{{count}} min",
+    "etaHoursMinutes": "{{hours}}h {{minutes}}min",
+    "stats": {
+      "totalStops": "Total des arrêts",
+      "pickups": "Collectes",
+      "deliveries": "Livraisons",
+      "estimatedTime": "Temps estimé"
+    },
+    "stopTypes": {
+      "pickup": "Collecte",
+      "delivery": "Livraison"
+    }
   }
 }

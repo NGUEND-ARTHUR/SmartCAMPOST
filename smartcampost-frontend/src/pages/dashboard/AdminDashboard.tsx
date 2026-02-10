@@ -154,11 +154,16 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-2">
                 {normalizedLiveScans.map((e, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-sm">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between text-sm"
+                  >
                     <div className="flex flex-col">
                       <span className="font-medium">
                         {e.eventType}{" "}
-                        {e.parcelId ? `• ${String(e.parcelId).slice(0, 8)}` : ""}
+                        {e.parcelId
+                          ? `• ${String(e.parcelId).slice(0, 8)}`
+                          : ""}
                       </span>
                       {e.locationNote ? (
                         <span className="text-muted-foreground truncate max-w-xl">
@@ -167,7 +172,9 @@ export default function AdminDashboard() {
                       ) : null}
                     </div>
                     <div className="text-muted-foreground">
-                      {e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : ""}
+                      {e.timestamp
+                        ? new Date(e.timestamp).toLocaleTimeString()
+                        : ""}
                     </div>
                   </div>
                 ))}

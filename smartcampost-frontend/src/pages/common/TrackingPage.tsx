@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ type TrackingResponse = {
 };
 
 export default function TrackingPage() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [searchParams] = useSearchParams();
   const [number, setNumber] = useState("");
@@ -65,44 +67,50 @@ export default function TrackingPage() {
     }));
   }, [result]);
 
-  const lookupByNumber = useCallback(async (tracking: string) => {
-    const trimmed = tracking.trim();
-    if (!trimmed) return;
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/track/parcel/${encodeURIComponent(trimmed)}`,
-      );
-      if (res.ok) setResult(await res.json());
-      else {
-        setResult(null);
-        toast.error("Tracking not found");
+  const lookupByNumber = useCallback(
+    async (tracking: string) => {
+      const trimmed = tracking.trim();
+      if (!trimmed) return;
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/track/parcel/${encodeURIComponent(trimmed)}`,
+        );
+        if (res.ok) setResult(await res.json());
+        else {
+          setResult(null);
+          toast.error(t("trackingPage.toasts.notFound"));
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [t],
+  );
 
-  const lookupByQrContent = useCallback(async (code: string) => {
-    const trimmed = code.trim();
-    if (!trimmed) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/track/qr`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: trimmed }),
-      });
-      if (res.ok) {
-        setResult(await res.json());
-      } else {
-        setResult(null);
-        toast.error("Unable to track with this QR");
+  const lookupByQrContent = useCallback(
+    async (code: string) => {
+      const trimmed = code.trim();
+      if (!trimmed) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/track/qr`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: trimmed }),
+        });
+        if (res.ok) {
+          setResult(await res.json());
+        } else {
+          setResult(null);
+          toast.error(t("trackingPage.toasts.invalidQr"));
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [t],
+  );
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -118,7 +126,7 @@ export default function TrackingPage() {
     <div className="max-w-3xl mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Track Parcel</CardTitle>
+          <CardTitle>{t("trackingPage.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs>
@@ -132,7 +140,7 @@ export default function TrackingPage() {
                     : undefined
                 }
               >
-                Tracking number
+                {t("trackingPage.tabs.number")}
               </TabsTrigger>
               <TabsTrigger
                 value="qr"
@@ -141,7 +149,7 @@ export default function TrackingPage() {
                   activeTab === "qr" ? "bg-blue-50 text-blue-700" : undefined
                 }
               >
-                Scan QR
+                {t("trackingPage.tabs.qr")}
               </TabsTrigger>
             </TabsList>
 
@@ -151,7 +159,7 @@ export default function TrackingPage() {
                   <Input
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
-                    placeholder="Enter tracking number"
+                    placeholder={t("trackingPage.numberPlaceholder")}
                     onKeyDown={(e) =>
                       e.key === "Enter" && lookupByNumber(number)
                     }

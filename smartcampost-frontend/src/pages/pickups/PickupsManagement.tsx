@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Truck, Loader2, Search, Filter, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,6 +42,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PickupsManagement() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -73,58 +75,80 @@ export default function PickupsManagement() {
 
   const handleAssign = () => {
     if (!selectedPickupId || !selectedCourierId) {
-      toast.error("Please select a courier");
+      toast.error(t("pickups.management.toasts.selectCourier"));
       return;
     }
     assignCourier.mutate(
       { id: selectedPickupId, courierId: selectedCourierId },
       {
         onSuccess: () => {
-          toast.success("Courier assigned");
+          toast.success(t("pickups.management.toasts.courierAssigned"));
           setAssignDialogOpen(false);
         },
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to assign courier",
+            err instanceof Error
+              ? err.message
+              : t("pickups.management.toasts.assignFailed"),
           ),
       },
     );
   };
 
+  const stateLabel = (state: string) =>
+    t(`pickups.management.state.${state.toLowerCase()}`, {
+      defaultValue: state,
+    });
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Pickups Management</h1>
+        <h1 className="text-3xl font-bold">{t("pickups.management.title")}</h1>
         <p className="text-muted-foreground">
-          All pickup requests and courier assignment
+          {t("pickups.management.subtitle")}
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>All Pickups</CardTitle>
+            <CardTitle>{t("pickups.management.allPickups")}</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search pickups..."
+                  placeholder={t("pickups.management.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-52"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-44" title="Filter by status">
+                <SelectTrigger
+                  className="w-44"
+                  title={t("pickups.management.filterByStatus")}
+                >
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue
+                    placeholder={t("pickups.management.filterByStatus")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="REQUESTED">Requested</SelectItem>
-                  <SelectItem value="ASSIGNED">Assigned</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("pickups.management.status.all")}
+                  </SelectItem>
+                  <SelectItem value="REQUESTED">
+                    {t("pickups.management.status.requested")}
+                  </SelectItem>
+                  <SelectItem value="ASSIGNED">
+                    {t("pickups.management.status.assigned")}
+                  </SelectItem>
+                  <SelectItem value="COMPLETED">
+                    {t("pickups.management.status.completed")}
+                  </SelectItem>
+                  <SelectItem value="CANCELLED">
+                    {t("pickups.management.status.cancelled")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -138,19 +162,19 @@ export default function PickupsManagement() {
           ) : error ? (
             <EmptyState
               icon={Truck}
-              title="Error loading pickups"
+              title={t("pickups.management.states.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.error")
               }
             />
           ) : filteredPickups.length === 0 ? (
             <EmptyState
               icon={Truck}
-              title="No pickups found"
+              title={t("pickups.management.states.emptyTitle")}
               description={
                 searchQuery || statusFilter !== "ALL"
-                  ? "Try adjusting your search or filters"
-                  : "Pickup requests will appear here"
+                  ? t("pickups.management.states.emptyFiltered")
+                  : t("pickups.management.states.emptyDefault")
               }
             />
           ) : (
@@ -158,13 +182,23 @@ export default function PickupsManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Pickup ID</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Parcel</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Courier</TableHead>
-                    <TableHead>Scheduled</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>
+                      {t("pickups.management.table.pickupId")}
+                    </TableHead>
+                    <TableHead>
+                      {t("pickups.management.table.client")}
+                    </TableHead>
+                    <TableHead>
+                      {t("pickups.management.table.parcel")}
+                    </TableHead>
+                    <TableHead>{t("pickups.management.table.state")}</TableHead>
+                    <TableHead>
+                      {t("pickups.management.table.courier")}
+                    </TableHead>
+                    <TableHead>
+                      {t("pickups.management.table.scheduled")}
+                    </TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -186,7 +220,7 @@ export default function PickupsManagement() {
                             "bg-gray-100 text-gray-800"
                           }
                         >
-                          {pickup.state}
+                          {stateLabel(pickup.state)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -209,7 +243,7 @@ export default function PickupsManagement() {
                             onClick={() => handleOpenAssign(pickup.id)}
                           >
                             <UserPlus className="w-4 h-4 mr-1" />
-                            Assign
+                            {t("pickups.management.assign")}
                           </Button>
                         )}
                       </TableCell>
@@ -225,10 +259,13 @@ export default function PickupsManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("pickups.management.pagination", {
+                      page: page + 1,
+                      totalPages,
+                    })}
                   </span>
                   <Button
                     variant="outline"
@@ -236,7 +273,7 @@ export default function PickupsManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}
@@ -248,19 +285,23 @@ export default function PickupsManagement() {
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign Courier</DialogTitle>
+            <DialogTitle>{t("pickups.management.dialog.title")}</DialogTitle>
             <DialogDescription>
-              Select a courier for this pickup request
+              {t("pickups.management.dialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="courier">Courier</Label>
+            <Label htmlFor="courier">
+              {t("pickups.management.dialog.courier")}
+            </Label>
             <Select
               value={selectedCourierId}
               onValueChange={setSelectedCourierId}
             >
               <SelectTrigger id="courier">
-                <SelectValue placeholder="Select a courier" />
+                <SelectValue
+                  placeholder={t("pickups.management.dialog.selectCourier")}
+                />
               </SelectTrigger>
               <SelectContent>
                 {couriers
@@ -278,10 +319,10 @@ export default function PickupsManagement() {
               variant="outline"
               onClick={() => setAssignDialogOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleAssign} disabled={assignCourier.isPending}>
-              Assign
+              {t("pickups.management.assign")}
             </Button>
           </DialogFooter>
         </DialogContent>

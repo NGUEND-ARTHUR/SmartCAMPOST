@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Package,
@@ -53,6 +54,7 @@ const eventIcons: Record<string, ComponentType<any>> = {
 };
 
 export default function ParcelDetail() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -120,15 +122,15 @@ export default function ParcelDetail() {
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => navigate(listPath)}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Parcels
+          {t("parcels.detail.backToParcels")}
         </Button>
         <EmptyState
           icon={Package}
-          title="Parcel not found"
+          title={t("parcels.detail.notFoundTitle")}
           description={
             parcelError instanceof Error
               ? parcelError.message
-              : "The parcel could not be loaded"
+              : t("parcels.detail.notFoundDescription")
           }
         />
       </div>
@@ -145,7 +147,7 @@ export default function ParcelDetail() {
     <div className="space-y-6">
       <Button variant="ghost" onClick={() => navigate(listPath)}>
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Parcels
+        {t("parcels.detail.backToParcels")}
       </Button>
 
       <div>
@@ -154,58 +156,76 @@ export default function ParcelDetail() {
           <StatusBadge status={parcel.status} />
         </div>
         <p className="text-muted-foreground">
-          Created on {new Date(parcel.createdAt).toLocaleDateString()}
+          {t("parcels.detail.createdOn", {
+            date: new Date(parcel.createdAt).toLocaleDateString(),
+          })}
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Parcel Details</CardTitle>
+            <CardTitle>{t("parcels.detail.detailsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Weight</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("parcels.detail.weight")}
+                </p>
                 <p className="font-medium">{parcel.weight} kg</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Dimensions</p>
-                <p className="font-medium">{parcel.dimensions || "N/A"} cm</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Declared Value</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("parcels.detail.dimensions")}
+                </p>
                 <p className="font-medium">
-                  {parcel.declaredValue?.toLocaleString() || "N/A"} XAF
+                  {parcel.dimensions || t("parcels.detail.na")} cm
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Fragile</p>
-                <p className="font-medium">{parcel.fragile ? "Yes" : "No"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("parcels.detail.declaredValue")}
+                </p>
+                <p className="font-medium">
+                  {parcel.declaredValue?.toLocaleString() ||
+                    t("parcels.detail.na")}{" "}
+                  XAF
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t("parcels.detail.fragile")}
+                </p>
+                <p className="font-medium">
+                  {parcel.fragile ? t("common.yes") : t("common.no")}
+                </p>
               </div>
             </div>
             <Separator />
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Service Type
+                  {t("parcels.detail.serviceType")}
                 </span>
                 <Badge variant="secondary">{parcel.serviceType}</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Delivery Option
+                  {t("parcels.detail.deliveryOption")}
                 </span>
                 <Badge variant="secondary">{parcel.deliveryOption}</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Payment Option
+                  {t("parcels.detail.paymentOption")}
                 </span>
                 <Badge variant="secondary">{parcel.paymentOption}</Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Quote</span>
+                <span className="text-sm text-muted-foreground">
+                  {t("parcels.detail.quote")}
+                </span>
                 <span className="font-medium">
                   {quote.isLoading
                     ? "—"
@@ -221,7 +241,7 @@ export default function ParcelDetail() {
                 <Separator />
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Description
+                    {t("parcels.detail.description")}
                   </p>
                   <p className="text-sm">{parcel.descriptionComment}</p>
                 </div>
@@ -235,7 +255,7 @@ export default function ParcelDetail() {
                   <Clock className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <span className="text-muted-foreground">
-                      Expected Delivery:{" "}
+                      {t("parcels.detail.expectedDelivery")}{" "}
                     </span>
                     <span className="font-medium">
                       {new Date(parcel.expectedDeliveryAt).toLocaleDateString()}
@@ -379,10 +399,14 @@ export default function ParcelDetail() {
           <div className="flex flex-wrap gap-3">
             <Button variant="outline">
               <Camera className="w-4 h-4 mr-2" />
-              View Photo
+              {t("parcels.detail.actions.viewPhoto")}
             </Button>
-            <Button variant="outline">Download Receipt</Button>
-            <Button variant="outline">Report Issue</Button>
+            <Button variant="outline">
+              {t("parcels.detail.actions.downloadReceipt")}
+            </Button>
+            <Button variant="outline">
+              {t("parcels.detail.actions.reportIssue")}
+            </Button>
 
             {canValidate && (
               <>
@@ -402,23 +426,23 @@ export default function ParcelDetail() {
                           locationNote: "Quick accept",
                         },
                       });
-                      toast.success("Parcel accepted");
+                      toast.success(t("parcels.toasts.accepted"));
                     } catch {
-                      toast.error("Accept failed");
+                      toast.error(t("parcels.toasts.acceptFailed"));
                     }
                   }}
                 >
-                  Accept
+                  {t("parcels.detail.actions.accept")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={async () => {
                     const confirm = window.prompt(
-                      "Confirm description is accurate? (y/n)",
+                      t("parcels.prompts.confirmDescription"),
                     );
                     if (!confirm || confirm.toLowerCase() !== "y") return;
                     const photo = window.prompt(
-                      "Optional: paste photo URL or leave blank",
+                      t("parcels.prompts.optionalPhotoUrl"),
                     );
                     try {
                       const gps = await getGpsOrThrow();
@@ -434,13 +458,13 @@ export default function ParcelDetail() {
                           locationNote: "Validated at counter",
                         },
                       });
-                      toast.success("Parcel validated and accepted");
+                      toast.success(t("parcels.toasts.validatedAccepted"));
                     } catch {
-                      toast.error("Validation failed");
+                      toast.error(t("parcels.toasts.validationFailed"));
                     }
                   }}
                 >
-                  Validate & Accept
+                  {t("parcels.detail.actions.validateAccept")}
                 </Button>
                 <Button
                   variant="default"
@@ -457,13 +481,13 @@ export default function ParcelDetail() {
                         latitude: gps.latitude,
                         longitude: gps.longitude,
                       });
-                      toast.success("Parcel validated and locked (FINAL QR)");
+                      toast.success(t("parcels.toasts.lockedFinalQr"));
                     } catch {
-                      toast.error("Validate & Lock failed");
+                      toast.error(t("parcels.toasts.validateLockFailed"));
                     }
                   }}
                 >
-                  Validate & Lock (Final QR)
+                  {t("parcels.detail.actions.validateLock")}
                 </Button>
               </>
             )}
@@ -490,15 +514,17 @@ export default function ParcelDetail() {
                       comment: "Cancelled by client",
                     },
                   });
-                  toast.success("Parcel cancelled", {
-                    description: `Parcel ${parcel.trackingRef}`,
+                  toast.success(t("parcels.toasts.cancelled"), {
+                    description: t("parcels.toasts.cancelledDescription", {
+                      trackingRef: parcel.trackingRef,
+                    }),
                   });
                 } catch (e) {
-                  toast.error("Failed to cancel parcel");
+                  toast.error(t("parcels.toasts.cancelFailed"));
                 }
               }}
             >
-              Cancel Parcel
+              {t("parcels.detail.actions.cancel")}
             </ActionButton>
           </div>
         </CardContent>

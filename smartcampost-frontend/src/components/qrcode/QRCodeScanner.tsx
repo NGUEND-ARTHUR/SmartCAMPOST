@@ -4,6 +4,7 @@
  * Uses html5-qrcode library for cross-platform camera access
  */
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import {
   Camera,
@@ -50,6 +51,7 @@ export function QRCodeScanner({
   scanDelay = 2000,
   showHistory = true,
 }: QRCodeScannerProps) {
+  const { t } = useTranslation();
   const [isScanning, setIsScanning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
@@ -168,11 +170,13 @@ export function QRCodeScanner({
       setScanHistory((prev) => [result, ...prev].slice(0, 10));
 
       if (result.success) {
-        toast.success("QR Code scanned", {
-          description: `Tracking: ${result.data?.trackingRef}`,
+        toast.success(t("qrcode.scanner.toasts.scannedTitle"), {
+          description: t("qrcode.scanner.toasts.scannedDescription", {
+            trackingRef: result.data?.trackingRef,
+          }),
         });
       } else {
-        toast.error("Invalid QR Code", {
+        toast.error(t("qrcode.scanner.toasts.invalidTitle"), {
           description: result.error,
         });
         onError?.(result.error || "Unknown error");
@@ -185,7 +189,7 @@ export function QRCodeScanner({
         stopScanning();
       }
     },
-    [continuous, onScan, onError, parseQRCode, scanDelay, stopScanning],
+    [continuous, onScan, onError, parseQRCode, scanDelay, stopScanning, t],
   );
 
   const startScanning = useCallback(async () => {
@@ -205,9 +209,9 @@ export function QRCodeScanner({
       const devices = await Html5Qrcode.getCameras();
       if (devices.length === 0) {
         setHasCamera(false);
-        setCameraError("No camera found on this device");
-        toast.error("No camera found");
-        onError?.("No camera found");
+        setCameraError(t("qrcode.scanner.errors.noCameraDevice"));
+        toast.error(t("qrcode.scanner.toasts.noCamera"));
+        onError?.(t("qrcode.scanner.toasts.noCamera"));
         setIsLoading(false);
         return;
       }
@@ -253,10 +257,12 @@ export function QRCodeScanner({
       const errorMessage =
         err instanceof Error ? err.message : "Camera access denied";
       setCameraError(errorMessage);
-      toast.error("Camera Error", { description: errorMessage });
+      toast.error(t("qrcode.scanner.toasts.cameraError"), {
+        description: errorMessage,
+      });
       onError?.(errorMessage);
     }
-  }, [facingMode, handleScanSuccess, onError, isMounted]);
+  }, [facingMode, handleScanSuccess, isMounted, onError, t]);
 
   const toggleCamera = useCallback(async () => {
     await stopScanning();
@@ -294,7 +300,7 @@ export function QRCodeScanner({
   const clearHistory = () => {
     setScanHistory([]);
     setLastScan(null);
-    toast.info("Scan history cleared");
+    toast.info(t("qrcode.scanner.toasts.historyCleared"));
   };
 
   return (
@@ -303,10 +309,12 @@ export function QRCodeScanner({
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            QR Code Scanner
+            {t("qrcode.scanner.title")}
           </span>
           <Badge variant={isScanning ? "default" : "secondary"}>
-            {isScanning ? "Scanning" : "Stopped"}
+            {isScanning
+              ? t("qrcode.scanner.status.scanning")
+              : t("qrcode.scanner.status.stopped")}
           </Badge>
         </CardTitle>
       </CardHeader>

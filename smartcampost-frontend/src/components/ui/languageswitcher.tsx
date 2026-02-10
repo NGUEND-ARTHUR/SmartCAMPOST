@@ -3,11 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const languages = [
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-];
+import { useAuthStore } from "@/store/authStore";
+import { useUpdatePreferredLanguage } from "@/hooks/users/useClients";
 
 interface LanguageSwitcherProps {
   variant?: "default" | "compact" | "full" | "toggle";
@@ -19,14 +16,32 @@ export function LanguageSwitcher({
   className = "",
 }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation();
+  const { isAuthenticated, user } = useAuthStore();
+  const updatePreferredLanguage = useUpdatePreferredLanguage();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const languages = [
+    { code: "fr", label: t("common.french"), flag: "🇫🇷" },
+    { code: "en", label: t("common.english"), flag: "🇬🇧" },
+  ];
+
   const currentLang =
     languages.find((l) => l.code === i18n.language) || languages[0];
 
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);
     localStorage.setItem("i18nextLng", langCode);
+    if (isAuthenticated && user?.role === "CLIENT") {
+      updatePreferredLanguage.mutate(
+        { language: langCode },
+        {
+          onError: () => {
+            // Optional profile persistence; ignore failures
+          },
+        },
+      );
+    }
     setOpen(false);
   };
 
