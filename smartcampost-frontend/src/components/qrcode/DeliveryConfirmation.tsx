@@ -7,6 +7,7 @@
  * 4. Transaction closure
  */
 import React, { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Camera,
   CheckCircle,
@@ -70,6 +71,7 @@ export function DeliveryConfirmation({
   onConfirm,
   onSendOtp,
 }: DeliveryConfirmationProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>("scan");
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [otpCode, setOtpCode] = useState("");
@@ -115,12 +117,20 @@ export function DeliveryConfirmation({
     try {
       await onSendOtp(deliveryInfo.parcelId, deliveryInfo.recipientPhone);
       setOtpSent(true);
-      toast.success("OTP sent", {
-        description: `Code sent to ${deliveryInfo.recipientPhone}`,
+      toast.success(t("qrcode.deliveryConfirmation.toasts.otpSentTitle"), {
+        description: t(
+          "qrcode.deliveryConfirmation.toasts.otpSentDescription",
+          {
+            phone: deliveryInfo.recipientPhone,
+          },
+        ),
       });
     } catch (error) {
-      toast.error("Failed to send OTP", {
-        description: error instanceof Error ? error.message : "Unknown error",
+      toast.error(t("qrcode.deliveryConfirmation.toasts.otpSendFailedTitle"), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t("qrcode.deliveryConfirmation.toasts.unknownError"),
       });
     } finally {
       setIsSendingOtp(false);
@@ -130,7 +140,7 @@ export function DeliveryConfirmation({
   // Verify OTP and proceed to proof
   const handleVerifyOtp = () => {
     if (otpCode.length < 4) {
-      toast.error("Please enter a valid OTP code");
+      toast.error(t("qrcode.deliveryConfirmation.toasts.invalidOtp"));
       return;
     }
 
@@ -139,7 +149,7 @@ export function DeliveryConfirmation({
     setTimeout(() => {
       setIsVerifying(false);
       setStep("proof");
-      toast.success("OTP verified successfully");
+      toast.success(t("qrcode.deliveryConfirmation.toasts.otpVerified"));
     }, 1000);
   };
 
@@ -153,7 +163,7 @@ export function DeliveryConfirmation({
     reader.onloadend = () => {
       setProof((prev) => ({ ...prev, photo: reader.result as string }));
       setIsCapturing(false);
-      toast.success("Photo captured");
+      toast.success(t("qrcode.deliveryConfirmation.toasts.photoCaptured"));
     };
     reader.readAsDataURL(file);
   };
@@ -161,7 +171,7 @@ export function DeliveryConfirmation({
   // Get current location
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation not supported");
+      toast.error(t("qrcode.deliveryConfirmation.toasts.geoNotSupported"));
       return;
     }
 
@@ -178,13 +188,24 @@ export function DeliveryConfirmation({
           },
         }));
         setIsLocating(false);
-        toast.success("Location captured", {
-          description: `Accuracy: ${Math.round(position.coords.accuracy)}m`,
-        });
+        toast.success(
+          t("qrcode.deliveryConfirmation.toasts.locationCapturedTitle"),
+          {
+            description: t(
+              "qrcode.deliveryConfirmation.toasts.locationCapturedDescription",
+              { accuracy: Math.round(position.coords.accuracy) },
+            ),
+          },
+        );
       },
       (error) => {
         setIsLocating(false);
-        toast.error("Location error", { description: error.message });
+        toast.error(
+          t("qrcode.deliveryConfirmation.toasts.locationErrorTitle"),
+          {
+            description: error.message,
+          },
+        );
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
@@ -263,7 +284,7 @@ export function DeliveryConfirmation({
     if (!deliveryInfo) return;
 
     if (!proof.photo && !proof.signature && !proof.location) {
-      toast.error("Please capture at least one proof of delivery");
+      toast.error(t("qrcode.deliveryConfirmation.toasts.proofRequired"));
       return;
     }
 
@@ -276,12 +297,17 @@ export function DeliveryConfirmation({
         proof,
       });
       setStep("complete");
-      toast.success("Delivery confirmed!", {
-        description: "Receipt has been sent to the client",
+      toast.success(t("qrcode.deliveryConfirmation.toasts.confirmedTitle"), {
+        description: t(
+          "qrcode.deliveryConfirmation.toasts.confirmedDescription",
+        ),
       });
     } catch (error) {
-      toast.error("Confirmation failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
+      toast.error(t("qrcode.deliveryConfirmation.toasts.confirmFailedTitle"), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t("qrcode.deliveryConfirmation.toasts.unknownError"),
       });
     } finally {
       setIsVerifying(false);

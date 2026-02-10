@@ -50,9 +50,13 @@ export default function Compliance() {
         data: { resolution: "Resolved via compliance dashboard" },
       },
       {
-        onSuccess: () => toast.success("Alert resolved"),
+        onSuccess: () => toast.success(t("compliance.toasts.alertResolved")),
         onError: (err) =>
-          toast.error(err instanceof Error ? err.message : "Failed to resolve"),
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : t("compliance.toasts.resolveFailed"),
+          ),
       },
     );
   };
@@ -66,10 +70,12 @@ export default function Compliance() {
         endDate: new Date().toISOString(),
       },
       {
-        onSuccess: () => toast.success("Report generation started"),
+        onSuccess: () => toast.success(t("compliance.toasts.reportStarted")),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to generate report",
+            err instanceof Error
+              ? err.message
+              : t("compliance.toasts.reportFailed"),
           ),
       },
     );

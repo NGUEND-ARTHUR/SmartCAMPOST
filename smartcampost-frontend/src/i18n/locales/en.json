@@ -29,6 +29,10 @@
     "register": "Register",
     "welcome": "Welcome",
     "language": "Language",
+    "theme": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
     "french": "French",
     "english": "English",
     "all": "All",
@@ -81,7 +85,8 @@
     "integrations": "Integrations",
     "userAccounts": "User Accounts",
     "riskAlerts": "Risk Alerts",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "selfHealing": "Self-healing"
   },
   "auth": {
     "loginTitle": "Login to your account",
@@ -104,7 +109,34 @@
     "verifyOtp": "Verify OTP",
     "resendOtp": "Resend OTP",
     "selectLanguage": "Select your preferred language",
-    "preferredLanguage": "Preferred Language"
+    "preferredLanguage": "Preferred Language",
+    "loginWithOtpTitle": "Login with OTP",
+    "loginWithOtpSubtitleRequest": "Enter your phone number to receive an OTP",
+    "loginWithOtpSubtitleConfirm": "Enter the OTP you received",
+    "otp": "OTP",
+    "otpPlaceholder": "Enter OTP",
+    "sending": "Sending...",
+    "verifying": "Verifying...",
+    "verifyAndLogin": "Verify & Login",
+    "backToPasswordLogin": "Back to password login",
+    "resetPasswordOtpTitle": "Reset Password",
+    "resetPasswordOtpSubtitleRequest": "Request an OTP to reset your password",
+    "resetPasswordOtpSubtitleConfirm": "Confirm OTP and set a new password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Minimum 6 characters",
+    "requesting": "Requesting...",
+    "requestOtp": "Request OTP",
+    "saving": "Saving...",
+    "confirmReset": "Confirm reset",
+    "backToLogin": "Back to login",
+    "toasts": {
+      "otpSent": "OTP sent",
+      "otpSendFailed": "Failed to send OTP",
+      "invalidOtp": "Invalid OTP",
+      "resetRequestFailed": "Failed to request reset",
+      "passwordResetSuccess": "Password reset successful",
+      "passwordResetFailed": "Failed to reset password"
+    }
   },
   "landing": {
     "hero": {
@@ -198,7 +230,63 @@
   "parcels": {
     "title": "Parcels",
     "createTitle": "Create New Parcel",
+    "create": {
+      "subtitle": "Fill in the details to create a new shipment",
+      "steps": {
+        "addresses": "Addresses",
+        "parcelDetails": "Parcel Details",
+        "service": "Service",
+        "payment": "Payment"
+      },
+      "toasts": {
+        "selectAddresses": "Please select both sender and recipient addresses.",
+        "created": "Parcel created successfully!",
+        "createFailed": "Failed to create parcel"
+      }
+    },
     "detailTitle": "Parcel Details",
+    "detail": {
+      "backToParcels": "Back to Parcels",
+      "notFoundTitle": "Parcel not found",
+      "notFoundDescription": "The parcel could not be loaded",
+      "createdOn": "Created on {{date}}",
+      "detailsTitle": "Parcel Details",
+      "weight": "Weight",
+      "dimensions": "Dimensions",
+      "declaredValue": "Declared Value",
+      "fragile": "Fragile",
+      "serviceType": "Service Type",
+      "deliveryOption": "Delivery Option",
+      "paymentOption": "Payment Option",
+      "quote": "Quote",
+      "description": "Description",
+      "expectedDelivery": "Expected Delivery:",
+      "na": "N/A",
+      "actions": {
+        "viewPhoto": "View Photo",
+        "downloadReceipt": "Download Receipt",
+        "reportIssue": "Report Issue",
+        "accept": "Accept",
+        "validateAccept": "Validate & Accept",
+        "validateLock": "Validate & Lock (Final QR)",
+        "cancel": "Cancel Parcel"
+      }
+    },
+    "prompts": {
+      "confirmDescription": "Confirm description is accurate? (y/n)",
+      "optionalPhotoUrl": "Optional: paste photo URL or leave blank"
+    },
+    "toasts": {
+      "accepted": "Parcel accepted",
+      "acceptFailed": "Accept failed",
+      "validatedAccepted": "Parcel validated and accepted",
+      "validationFailed": "Validation failed",
+      "lockedFinalQr": "Parcel validated and locked (FINAL QR)",
+      "validateLockFailed": "Validate & Lock failed",
+      "cancelled": "Parcel cancelled",
+      "cancelledDescription": "Parcel {{trackingRef}}",
+      "cancelFailed": "Failed to cancel parcel"
+    },
     "trackingNumber": "Tracking Number",
     "sender": "Sender",
     "recipient": "Recipient",
@@ -237,6 +325,48 @@
       "createParcel": "Create Parcel"
     }
   },
+  "addresses": {
+    "page": {
+      "title": "Saved Addresses",
+      "subtitle": "Manage your delivery and pickup addresses",
+      "addAddress": "Add Address"
+    },
+    "dialog": {
+      "addTitle": "Add New Address",
+      "addDescription": "Enter the address details below",
+      "editTitle": "Edit Address",
+      "editDescription": "Update the address details below",
+      "addAction": "Add Address",
+      "updateAction": "Update Address"
+    },
+    "form": {
+      "label": "Label *",
+      "labelPlaceholder": "e.g., Home, Office, Warehouse",
+      "street": "Street Address *",
+      "streetPlaceholder": "Street address, building, apartment",
+      "city": "City *",
+      "cityPlaceholder": "City",
+      "region": "Region *",
+      "regionPlaceholder": "Region",
+      "country": "Country *"
+    },
+    "empty": {
+      "title": "No saved addresses",
+      "description": "Add addresses to make creating parcels faster",
+      "action": "Add Address"
+    },
+    "card": {
+      "locationVerified": "Location verified",
+      "locationNotVerified": "Location not verified",
+      "coordinates": "Coordinates"
+    },
+    "toasts": {
+      "requiredFields": "Please fill in all required fields",
+      "updated": "Address updated successfully",
+      "added": "Address added successfully",
+      "deleted": "Address deleted successfully"
+    }
+  },
   "pickups": {
     "title": "Pickups",
     "schedulePickup": "Schedule Pickup",
@@ -244,6 +374,81 @@
     "pickupTime": "Pickup Time",
     "pickupAddress": "Pickup Address",
     "assignCourier": "Assign Courier",
+    "page": {
+      "title": "Pickup Requests",
+      "subtitle": "Schedule pickups for your parcels",
+      "requestPickup": "Request Pickup",
+      "dialog": {
+        "description": "Schedule a courier to pick up your parcel",
+        "selectParcel": "Select Parcel *",
+        "chooseParcel": "Choose a parcel",
+        "pickupDate": "Pickup Date *",
+        "pickupDateTitle": "Select pickup date",
+        "pickupDatePlaceholder": "Select date",
+        "timeWindow": "Time Window *",
+        "chooseTimeWindow": "Choose a time window",
+        "timeWindows": {
+          "morning": "Morning (09:00 - 12:00)",
+          "afternoon": "Afternoon (12:00 - 15:00)",
+          "evening": "Evening (15:00 - 18:00)"
+        },
+        "instructions": "Additional Instructions (Optional)",
+        "instructionsPlaceholder": "Any special instructions for the courier..."
+      },
+      "toasts": {
+        "requiredFields": "Please fill in all required fields",
+        "invalidLatLng": "Please provide valid latitude/longitude",
+        "requestSubmitted": "Pickup request submitted successfully!",
+        "createFailed": "Failed to create pickup"
+      }
+    },
+    "management": {
+      "title": "Pickups Management",
+      "subtitle": "All pickup requests and courier assignment",
+      "allPickups": "All Pickups",
+      "searchPlaceholder": "Search pickups...",
+      "filterByStatus": "Filter by status",
+      "assign": "Assign",
+      "pagination": "Page {{page}} of {{totalPages}}",
+      "status": {
+        "all": "All Status",
+        "requested": "Requested",
+        "assigned": "Assigned",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "state": {
+        "requested": "Requested",
+        "assigned": "Assigned",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "states": {
+        "errorTitle": "Error loading pickups",
+        "emptyTitle": "No pickups found",
+        "emptyFiltered": "Try adjusting your search or filters",
+        "emptyDefault": "Pickup requests will appear here"
+      },
+      "table": {
+        "pickupId": "Pickup ID",
+        "client": "Client",
+        "parcel": "Parcel",
+        "state": "State",
+        "courier": "Courier",
+        "scheduled": "Scheduled"
+      },
+      "dialog": {
+        "title": "Assign Courier",
+        "description": "Select a courier for this pickup request",
+        "courier": "Courier",
+        "selectCourier": "Select a courier"
+      },
+      "toasts": {
+        "selectCourier": "Please select a courier",
+        "courierAssigned": "Courier assigned",
+        "assignFailed": "Failed to assign courier"
+      }
+    },
     "status": {
       "requested": "Requested",
       "assigned": "Assigned",
@@ -260,6 +465,53 @@
     "recipientSignature": "Recipient Signature",
     "deliveryNotes": "Delivery Notes",
     "proofOfDelivery": "Proof of Delivery",
+    "courier": {
+      "title": "My Deliveries",
+      "subtitle": "{{count}} delivery assigned to you",
+      "subtitle_one": "{{count}} delivery assigned to you",
+      "subtitle_other": "{{count}} deliveries assigned to you",
+      "mapView": "Map View",
+      "listView": "List View",
+      "errorTitle": "Error loading deliveries",
+      "deliveryLocation": "Delivery location {{index}}",
+      "toasts": {
+        "markedComplete": "Delivery {{id}} marked as complete"
+      }
+    },
+    "confirm": {
+      "title": "Confirm Delivery",
+      "subtitle": "Scan QR code, verify OTP, and capture proof of delivery",
+      "toasts": {
+        "confirmed": "Delivery confirmed successfully"
+      },
+      "errors": {
+        "sendOtpFailed": "Failed to send OTP",
+        "invalidOtp": "Invalid OTP code",
+        "confirmFailed": "Failed to confirm delivery"
+      }
+    },
+    "workflow": {
+      "toasts": {
+        "startedOtp": "Delivery started. OTP has been sent (if required).",
+        "started": "Delivery started",
+        "startFailed": "Failed to start delivery",
+        "otpVerified": "OTP verified",
+        "photoCaptured": "Photo captured",
+        "selectFailureReason": "Select a failure reason",
+        "completeRequiredProof": "Complete required proof items",
+        "selectRescheduleDate": "Select a reschedule date",
+        "rescheduled": "Delivery rescheduled",
+        "returnedToSender": "Marked as returned to sender",
+        "markedFailed": "Delivery marked failed",
+        "completed": "Delivery completed",
+        "actionFailed": "Action failed"
+      },
+      "errors": {
+        "otpSixDigits": "Please enter the 6-digit OTP",
+        "otpInvalid": "Invalid OTP",
+        "otpVerifyFailed": "OTP verification failed"
+      }
+    },
     "status": {
       "pending": "Pending",
       "assigned": "Assigned",
@@ -289,9 +541,33 @@
   },
   "refunds": {
     "title": "Refunds",
+    "subtitle": "Manage refund requests",
+    "requestsTitle": "Refund Requests",
     "requestRefund": "Request Refund",
     "refundReason": "Refund Reason",
     "refundAmount": "Refund Amount",
+    "pagination": "Page {{page}} of {{totalPages}}",
+    "table": {
+      "refundId": "Refund ID",
+      "paymentId": "Payment ID",
+      "reason": "Reason",
+      "created": "Created"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "states": {
+      "errorTitle": "Error loading refunds",
+      "emptyTitle": "No refunds",
+      "emptyDescription": "Refund requests will appear here"
+    },
+    "toasts": {
+      "approved": "Refund approved",
+      "rejected": "Refund rejected",
+      "approveFailed": "Failed to approve",
+      "rejectFailed": "Failed to reject"
+    },
     "status": {
       "requested": "Requested",
       "approved": "Approved",
@@ -383,20 +659,176 @@
     "weightBracket": "Weight Bracket",
     "price": "Price",
     "editTariff": "Edit Tariff",
-    "updatePrice": "Update Price"
+    "updatePrice": "Update Price",
+    "prompts": {
+      "confirmDelete": "Are you sure you want to delete this tariff?"
+    },
+    "toasts": {
+      "requiredFields": "Origin zone, destination zone and price are required",
+      "created": "Tariff created successfully",
+      "createFailed": "Failed to create tariff",
+      "alreadyExistsTitle": "Tariff already exists",
+      "alreadyExistsDescription": "A tariff for {{originZone}} → {{destinationZone}} ({{serviceType}}, {{weightBracket}}) already exists. Please modify the existing tariff instead.",
+      "updated": "Tariff updated successfully",
+      "updateFailed": "Failed to update tariff",
+      "deleted": "Tariff deleted",
+      "deleteFailed": "Failed to delete tariff"
+    }
   },
   "integrations": {
     "title": "Integration Management",
     "subtitle": "Manage external service integrations",
     "apiKey": "API Key",
     "status": "Status",
-    "lastSync": "Last Sync"
+    "lastSync": "Last Sync",
+    "toasts": {
+      "providerRequired": "Provider name is required",
+      "created": "Integration created successfully",
+      "createFailed": "Failed to create integration",
+      "updated": "Integration updated successfully",
+      "updateFailed": "Failed to update integration"
+    }
+  },
+  "staffManagement": {
+    "title": "Staff Management",
+    "subtitle": "Manage staff and courier accounts",
+    "fullName": "Full Name",
+    "requiredFields": "Please fill in all required fields",
+    "courierCreated": "Courier created successfully",
+    "failedCreateCourier": "Failed to create courier",
+    "staffCreated": "Staff created successfully",
+    "failedCreateStaff": "Failed to create staff",
+    "failedUpdateStatus": "Failed to update status",
+    "failedUpdateRole": "Failed to update role",
+    "toasts": {
+      "courierStatusUpdated": "Courier status updated to {{status}}",
+      "staffStatusUpdated": "Staff status updated to {{status}}",
+      "staffRoleUpdated": "Staff role updated to {{role}}"
+    }
+  },
+  "riskAlerts": {
+    "toasts": {
+      "userFrozen": "User account frozen",
+      "freezeFailed": "Failed to freeze user"
+    }
+  },
+  "compliance": {
+    "toasts": {
+      "alertResolved": "Alert resolved",
+      "resolveFailed": "Failed to resolve",
+      "reportStarted": "Report generation started",
+      "reportFailed": "Failed to generate report"
+    }
+  },
+  "userAccounts": {
+    "toasts": {
+      "frozen": "User account frozen successfully",
+      "unfrozen": "User account unfrozen successfully",
+      "freezeFailed": "Failed to freeze user",
+      "unfreezeFailed": "Failed to unfreeze user"
+    }
   },
   "analytics": {
     "title": "Analytics",
     "subtitle": "View statistics and reports",
     "dateRange": "Date Range",
-    "exportReport": "Export Report"
+    "exportReport": "Export Report",
+    "page": {
+      "title": "Analytics",
+      "subtitle": "AI-powered ETA predictions and payment anomaly detection"
+    },
+    "eta": {
+      "title": "ETA Prediction",
+      "description": "Get estimated delivery time for a parcel",
+      "parcelIdLabel": "Parcel ID",
+      "parcelIdPlaceholder": "Enter Parcel ID (e.g., PKG-12345)",
+      "estimatedDelivery": "Estimated Delivery",
+      "confidence": "Confidence",
+      "currentLocation": "Current Location:"
+    },
+    "anomaly": {
+      "title": "Anomaly Detection",
+      "description": "Check payment for suspicious activity",
+      "noDetails": "No details",
+      "recommendations": {
+        "manualReview": "Manual review recommended before processing",
+        "proceed": "Payment appears normal, proceed as usual"
+      },
+      "risk": {
+        "high": "High Risk",
+        "medium": "Medium Risk",
+        "low": "Low Risk"
+      }
+    },
+    "toasts": {
+      "enterParcelId": "Please enter a parcel ID",
+      "etaSuccess": "ETA retrieved successfully",
+      "etaFailed": "Failed to retrieve ETA",
+      "enterPaymentId": "Please enter a payment ID",
+      "anomalySuccess": "Anomaly check completed",
+      "anomalyFailed": "Failed to check payment anomaly"
+    }
+  },
+  "trackingPage": {
+    "title": "Track Parcel",
+    "tabs": {
+      "number": "Tracking number",
+      "qr": "Scan QR"
+    },
+    "numberPlaceholder": "Enter tracking number",
+    "toasts": {
+      "notFound": "Tracking not found",
+      "invalidQr": "Unable to track with this QR"
+    }
+  },
+  "qrcode": {
+    "scanner": {
+      "title": "QR Code Scanner",
+      "status": {
+        "scanning": "Scanning",
+        "stopped": "Stopped"
+      },
+      "errors": {
+        "noCameraDevice": "No camera found on this device"
+      },
+      "toasts": {
+        "scannedTitle": "QR Code scanned",
+        "scannedDescription": "Tracking: {{trackingRef}}",
+        "invalidTitle": "Invalid QR Code",
+        "noCamera": "No camera found",
+        "cameraError": "Camera Error",
+        "historyCleared": "Scan history cleared"
+      }
+    },
+    "display": {
+      "title": "Parcel QR Code",
+      "toasts": {
+        "printWindowBlocked": "Could not open print window. Please allow popups.",
+        "printDialogOpened": "Print dialog opened - Select your printer",
+        "downloaded": "QR Code downloaded",
+        "copied": "Tracking reference copied",
+        "copyFailed": "Failed to copy"
+      }
+    },
+    "deliveryConfirmation": {
+      "toasts": {
+        "otpSentTitle": "OTP sent",
+        "otpSentDescription": "Code sent to {{phone}}",
+        "otpSendFailedTitle": "Failed to send OTP",
+        "unknownError": "Unknown error",
+        "invalidOtp": "Please enter a valid OTP code",
+        "otpVerified": "OTP verified successfully",
+        "photoCaptured": "Photo captured",
+        "geoNotSupported": "Geolocation not supported",
+        "locationCapturedTitle": "Location captured",
+        "locationCapturedDescription": "Accuracy: {{accuracy}}m",
+        "locationErrorTitle": "Location error",
+        "proofRequired": "Please capture at least one proof of delivery",
+        "confirmedTitle": "Delivery confirmed!",
+        "confirmedDescription": "Receipt has been sent to the client",
+        "confirmFailedTitle": "Confirmation failed"
+      }
+    }
   },
   "compliance": {
     "title": "Compliance",
@@ -427,7 +859,35 @@
     "scanQR": "Scan QR Code",
     "manualEntry": "Manual Entry",
     "scanResult": "Scan Result",
-    "updateStatus": "Update Status"
+    "updateStatus": "Update Status",
+    "defaultLocation": "Agency Counter",
+    "status": {
+      "created": "Created",
+      "atOriginAgency": "At Origin Agency",
+      "inTransit": "In Transit",
+      "arrivedHub": "Arrived at Hub",
+      "departedHub": "Departed Hub",
+      "arrivedDestination": "Arrived at Destination",
+      "outForDelivery": "Out for Delivery",
+      "delivered": "Delivered",
+      "returned": "Returned"
+    },
+    "error": {
+      "enterTrackingNumber": "Please enter a tracking number",
+      "failed": "Scan failed",
+      "unknown": "Unknown error",
+      "gpsRequired": "GPS is required to record scan events",
+      "qrVerificationFailed": "QR verification failed",
+      "missingParcelId": "Missing parcelId in QR code"
+    },
+    "success": {
+      "scanned": "Scanned: {{barcode}}",
+      "qrScanned": "QR scanned: {{trackingRef}}",
+      "eventType": "Event type: {{status}}"
+    },
+    "info": {
+      "historyCleared": "Scan history cleared"
+    }
   },
   "errors": {
     "required": "This field is required",
@@ -467,5 +927,51 @@
     "loginSuccess": "Login successful",
     "logoutSuccess": "Logout successful",
     "operationFailed": "Operation failed"
+  },
+  "trackingMap": {
+    "title": "Live Tracking",
+    "noData": "No tracking data available",
+    "pause": "⏸ Pause",
+    "animate": "▶ Animate",
+    "checkpoints": "{{count}} checkpoint",
+    "checkpoints_one": "{{count}} checkpoint",
+    "checkpoints_other": "{{count}} checkpoints",
+    "checkpointLabel": "Checkpoint {{index}}",
+    "yourParcel": "Your Parcel",
+    "inTransit": "In Transit",
+    "currentLocation": "Current Location",
+    "legend": {
+      "title": "Legend",
+      "origin": "Origin",
+      "checkpoint": "Checkpoint",
+      "currentPosition": "Current Position",
+      "destination": "Destination"
+    }
+  },
+  "courierNavMap": {
+    "title": "Navigation Map",
+    "myLocation": "My Location",
+    "aiOptimized": "✓ AI Optimized",
+    "originalOrder": "Original Order",
+    "totalDistance": "{{distance}} km total",
+    "youAreHere": "You are here",
+    "navigate": "Navigate",
+    "complete": "Complete",
+    "optimizedRouteOrder": "Optimized Route Order",
+    "stopsList": "Stops List",
+    "etaMinutes": "{{count}} min",
+    "etaMinutes_one": "{{count}} min",
+    "etaMinutes_other": "{{count}} min",
+    "etaHoursMinutes": "{{hours}}h {{minutes}}min",
+    "stats": {
+      "totalStops": "Total Stops",
+      "pickups": "Pickups",
+      "deliveries": "Deliveries",
+      "estimatedTime": "Est. Time"
+    },
+    "stopTypes": {
+      "pickup": "Pickup",
+      "delivery": "Delivery"
+    }
   }
 }

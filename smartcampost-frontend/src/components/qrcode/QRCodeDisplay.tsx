@@ -4,6 +4,7 @@
  * The QR code contains tracking reference and can be printed on adhesive labels
  */
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Printer,
@@ -52,6 +53,7 @@ export function QRCodeDisplay({
   showLabel = true,
   showActions = true,
 }: QRCodeDisplayProps) {
+  const { t } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
 
   // PARTIAL default payload: JSON with trackingRef + parcelId for scanner compatibility.
@@ -71,7 +73,7 @@ export function QRCodeDisplay({
     const printContent = printRef.current.innerHTML;
     const printWindow = window.open("", "_blank", "width=400,height=600");
     if (!printWindow) {
-      toast.error("Could not open print window. Please allow popups.");
+      toast.error(t("qrcode.display.toasts.printWindowBlocked"));
       return;
     }
 
@@ -263,7 +265,7 @@ export function QRCodeDisplay({
     `);
 
     printWindow.document.close();
-    toast.success("Print dialog opened - Select your printer");
+    toast.success(t("qrcode.display.toasts.printDialogOpened"));
   };
 
   const handleDownload = () => {
@@ -284,7 +286,7 @@ export function QRCodeDisplay({
       downloadLink.download = `SmartCAMPOST-${trackingRef}.png`;
       downloadLink.href = pngFile;
       downloadLink.click();
-      toast.success("QR Code downloaded");
+      toast.success(t("qrcode.display.toasts.downloaded"));
     };
 
     img.src =
@@ -295,9 +297,9 @@ export function QRCodeDisplay({
   const handleCopyTracking = async () => {
     try {
       await navigator.clipboard.writeText(trackingRef);
-      toast.success("Tracking reference copied");
+      toast.success(t("qrcode.display.toasts.copied"));
     } catch {
-      toast.error("Failed to copy");
+      toast.error(t("qrcode.display.toasts.copyFailed"));
     }
   };
 
@@ -315,7 +317,7 @@ export function QRCodeDisplay({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <Package className="h-4 w-4" />
-          Parcel QR Code
+          {t("qrcode.display.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

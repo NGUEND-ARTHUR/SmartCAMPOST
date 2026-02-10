@@ -42,10 +42,12 @@ export default function RiskAlerts() {
     freezeUser.mutate(
       { userId, frozen: true },
       {
-        onSuccess: () => toast.success("User account frozen"),
+        onSuccess: () => toast.success(t("riskAlerts.toasts.userFrozen")),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to freeze user",
+            err instanceof Error
+              ? err.message
+              : t("riskAlerts.toasts.freezeFailed"),
           ),
       },
     );

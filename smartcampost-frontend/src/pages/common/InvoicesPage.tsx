@@ -34,10 +34,7 @@ export default function InvoicesPage() {
             <div>Invoice: {inv.invoiceNumber}</div>
             <div>Total: {inv.totalAmount}</div>
             <div>
-              <a
-                className="text-blue-600"
-                href={invoiceService.pdfUrl(inv.id)}
-              >
+              <a className="text-blue-600" href={invoiceService.pdfUrl(inv.id)}>
                 Download PDF
               </a>
             </div>

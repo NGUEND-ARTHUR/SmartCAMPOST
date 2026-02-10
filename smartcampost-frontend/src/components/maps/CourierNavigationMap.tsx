@@ -29,6 +29,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@/theme/theme";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
@@ -165,6 +167,8 @@ export default function CourierNavigationMap({
   onStopComplete,
   onNavigate,
 }: CourierNavigationMapProps) {
+  const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
   const [currentLocation, setCurrentLocation] = useState<Location | null>(
     courierLocation || null,
   );
@@ -262,9 +266,35 @@ export default function CourierNavigationMap({
   const estimatedTime = useMemo(() => {
     const hours = totalDistance / 30;
     const minutes = Math.round(hours * 60);
-    if (minutes < 60) return `${minutes} min`;
-    return `${Math.floor(hours)}h ${minutes % 60}min`;
-  }, [totalDistance]);
+    if (minutes < 60) return t("courierNavMap.etaMinutes", { count: minutes });
+    return t("courierNavMap.etaHoursMinutes", {
+      hours: Math.floor(hours),
+      minutes: minutes % 60,
+    });
+  }, [totalDistance, t]);
+
+  const tileConfig = useMemo(() => {
+    if (resolvedTheme === "dark") {
+      return {
+        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      };
+    }
+    return {
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    };
+  }, [resolvedTheme]);
+
+  const stopTypeLabel = useCallback(
+    (type: Stop["type"]) =>
+      type === "PICKUP"
+        ? t("courierNavMap.stopTypes.pickup")
+        : t("courierNavMap.stopTypes.delivery"),
+    [t],
+  );
 
   return (
     <div className="space-y-4">
@@ -276,7 +306,9 @@ export default function CourierNavigationMap({
               <Package className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Stops</p>
+              <p className="text-sm text-muted-foreground">
+                {t("courierNavMap.stats.totalStops")}
+              </p>
               <p className="text-xl font-bold">{stops.length}</p>
             </div>
           </CardContent>
@@ -287,7 +319,9 @@ export default function CourierNavigationMap({
               <MapPin className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Pickups</p>
+              <p className="text-sm text-muted-foreground">
+                {t("courierNavMap.stats.pickups")}
+              </p>
               <p className="text-xl font-bold">
                 {stops.filter((s) => s.type === "PICKUP").length}
               </p>
@@ -300,7 +334,9 @@ export default function CourierNavigationMap({
               <Navigation className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Deliveries</p>
+              <p className="text-sm text-muted-foreground">
+                {t("courierNavMap.stats.deliveries")}
+              </p>
               <p className="text-xl font-bold">
                 {stops.filter((s) => s.type === "DELIVERY").length}
               </p>
@@ -313,7 +349,9 @@ export default function CourierNavigationMap({
               <Clock className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Est. Time</p>
+              <p className="text-sm text-muted-foreground">
+                {t("courierNavMap.stats.estimatedTime")}
+              </p>
               <p className="text-xl font-bold">{estimatedTime}</p>
             </div>
           </CardContent>
@@ -326,7 +364,7 @@ export default function CourierNavigationMap({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle className="flex items-center gap-2">
               <Route className="w-5 h-5" />
-              Navigation Map
+              {t("courierNavMap.title")}
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button
@@ -340,17 +378,21 @@ export default function CourierNavigationMap({
                 ) : (
                   <LocateFixed className="w-4 h-4 mr-1" />
                 )}
-                My Location
+                {t("courierNavMap.myLocation")}
               </Button>
               <Button
                 variant={showOptimizedRoute ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowOptimizedRoute(!showOptimizedRoute)}
               >
-                {showOptimizedRoute ? "✓ AI Optimized" : "Original Order"}
+                {showOptimizedRoute
+                  ? t("courierNavMap.aiOptimized")
+                  : t("courierNavMap.originalOrder")}
               </Button>
               <Badge variant="secondary">
-                {totalDistance.toFixed(1)} km total
+                {t("courierNavMap.totalDistance", {
+                  distance: totalDistance.toFixed(1),
+                })}
               </Badge>
             </div>
           </div>
@@ -364,8 +406,8 @@ export default function CourierNavigationMap({
               scrollWheelZoom={true}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution={tileConfig.attribution}
+                url={tileConfig.url}
               />
 
               {currentLocation && (
@@ -400,7 +442,7 @@ export default function CourierNavigationMap({
                   >
                     <Popup>
                       <div className="text-center">
-                        <strong>🚴 You are here</strong>
+                        <strong>🚴 {t("courierNavMap.youAreHere")}</strong>
                       </div>
                     </Popup>
                   </Marker>
@@ -429,7 +471,7 @@ export default function CourierNavigationMap({
                                 : "bg-red-100 text-red-800"
                             }
                           >
-                            #{index + 1} - {stop.type}
+                            #{index + 1} - {stopTypeLabel(stop.type)}
                           </Badge>
                         </div>
                         <p className="font-semibold">{stop.trackingCode}</p>
@@ -456,7 +498,7 @@ export default function CourierNavigationMap({
                             onClick={() => onNavigate?.(stop)}
                           >
                             <Navigation className="w-3 h-3 mr-1" />
-                            Navigate
+                            {t("courierNavMap.navigate")}
                           </Button>
                           <Button
                             size="sm"
@@ -464,7 +506,7 @@ export default function CourierNavigationMap({
                             className="flex-1"
                             onClick={() => onStopComplete?.(stop.id)}
                           >
-                            ✓ Complete
+                            ✓ {t("courierNavMap.complete")}
                           </Button>
                         </div>
                       </div>
@@ -481,7 +523,9 @@ export default function CourierNavigationMap({
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {showOptimizedRoute ? "Optimized Route Order" : "Stops List"}
+            {showOptimizedRoute
+              ? t("courierNavMap.optimizedRouteOrder")
+              : t("courierNavMap.stopsList")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -492,8 +536,8 @@ export default function CourierNavigationMap({
                   key={stop.id}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
                     selectedStop?.id === stop.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
+                      ? "border-primary bg-accent"
+                      : "border-border hover:bg-accent"
                   } cursor-pointer transition-colors`}
                   onClick={() => setSelectedStop(stop)}
                 >
@@ -508,7 +552,7 @@ export default function CourierNavigationMap({
                     <div>
                       <p className="font-medium">{stop.trackingCode}</p>
                       <p className="text-sm text-muted-foreground">
-                        {stop.clientName} • {stop.type}
+                        {stop.clientName} • {stopTypeLabel(stop.type)}
                       </p>
                     </div>
                   </div>

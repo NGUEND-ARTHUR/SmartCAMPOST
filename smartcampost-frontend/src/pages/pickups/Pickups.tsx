@@ -67,7 +67,7 @@ export default function Pickups() {
 
   const handleRequestPickup = () => {
     if (!selectedParcel || !selectedDate || !selectedTimeWindow) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("pickups.page.toasts.requiredFields"));
       return;
     }
 
@@ -80,7 +80,7 @@ export default function Pickups() {
           lat = Number(pickupLatitude);
           lng = Number(pickupLongitude);
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            toast.error("Please provide valid latitude/longitude");
+            toast.error(t("pickups.page.toasts.invalidLatLng"));
             return;
           }
         } else {
@@ -101,7 +101,7 @@ export default function Pickups() {
           locationMode: manualOverride ? "MANUAL_OVERRIDE" : "GPS_DEFAULT",
         });
 
-        toast.success("Pickup request submitted successfully!");
+        toast.success(t("pickups.page.toasts.requestSubmitted"));
         setIsDialogOpen(false);
         setSelectedParcel("");
         setSelectedDate("");
@@ -112,7 +112,9 @@ export default function Pickups() {
         setPickupLongitude("");
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : "Failed to create pickup",
+          err instanceof Error
+            ? err.message
+            : t("pickups.page.toasts.createFailed"),
         );
       }
     })();
@@ -122,34 +124,36 @@ export default function Pickups() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Pickup Requests</h1>
-          <p className="text-muted-foreground">
-            Schedule pickups for your parcels
-          </p>
+          <h1 className="text-3xl font-bold">{t("pickups.page.title")}</h1>
+          <p className="text-muted-foreground">{t("pickups.page.subtitle")}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Request Pickup
+              {t("pickups.page.requestPickup")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Request Pickup</DialogTitle>
+              <DialogTitle>{t("pickups.page.requestPickup")}</DialogTitle>
               <DialogDescription>
-                Schedule a courier to pick up your parcel
+                {t("pickups.page.dialog.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="parcel">Select Parcel *</Label>
+                <Label htmlFor="parcel">
+                  {t("pickups.page.dialog.selectParcel")}
+                </Label>
                 <Select
                   value={selectedParcel}
                   onValueChange={setSelectedParcel}
                 >
                   <SelectTrigger id="parcel">
-                    <SelectValue placeholder="Choose a parcel" />
+                    <SelectValue
+                      placeholder={t("pickups.page.dialog.chooseParcel")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {parcels.map((p) => (
@@ -161,7 +165,9 @@ export default function Pickups() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">Pickup Date *</Label>
+                <Label htmlFor="date">
+                  {t("pickups.page.dialog.pickupDate")}
+                </Label>
                 <input
                   id="date"
                   type="date"
@@ -169,39 +175,43 @@ export default function Pickups() {
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  title="Select pickup date"
-                  placeholder="Select date"
+                  title={t("pickups.page.dialog.pickupDateTitle")}
+                  placeholder={t("pickups.page.dialog.pickupDatePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="timeWindow">Time Window *</Label>
+                <Label htmlFor="timeWindow">
+                  {t("pickups.page.dialog.timeWindow")}
+                </Label>
                 <Select
                   value={selectedTimeWindow}
                   onValueChange={setSelectedTimeWindow}
                 >
                   <SelectTrigger id="timeWindow">
-                    <SelectValue placeholder="Choose a time window" />
+                    <SelectValue
+                      placeholder={t("pickups.page.dialog.chooseTimeWindow")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="09:00-12:00">
-                      Morning (09:00 - 12:00)
+                      {t("pickups.page.dialog.timeWindows.morning")}
                     </SelectItem>
                     <SelectItem value="12:00-15:00">
-                      Afternoon (12:00 - 15:00)
+                      {t("pickups.page.dialog.timeWindows.afternoon")}
                     </SelectItem>
                     <SelectItem value="15:00-18:00">
-                      Evening (15:00 - 18:00)
+                      {t("pickups.page.dialog.timeWindows.evening")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="comment">
-                  Additional Instructions (Optional)
+                  {t("pickups.page.dialog.instructions")}
                 </Label>
                 <Textarea
                   id="comment"
-                  placeholder="Any special instructions for the courier..."
+                  placeholder={t("pickups.page.dialog.instructionsPlaceholder")}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   rows={3}

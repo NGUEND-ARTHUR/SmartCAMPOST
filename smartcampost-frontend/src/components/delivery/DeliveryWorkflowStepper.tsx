@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -112,6 +113,7 @@ export default function DeliveryWorkflowStepper({
   onExit,
   onComplete,
 }: Props) {
+  const { t } = useTranslation();
   const req = delivery.requirements ?? {};
 
   const parcelId = delivery.id;
@@ -227,15 +229,15 @@ export default function DeliveryWorkflowStepper({
       });
 
       if (req.requiresOtp) {
-        toast.success("Delivery started. OTP has been sent (if required).");
+        toast.success(t("deliveries.workflow.toasts.startedOtp"));
         setStep("OTP");
       } else {
-        toast.success("Delivery started");
+        toast.success(t("deliveries.workflow.toasts.started"));
         setStep("PROOF");
       }
     } catch (e: unknown) {
       const msg = (e as { message?: string } | undefined)?.message;
-      toast.error(msg || "Failed to start delivery");
+      toast.error(msg || t("deliveries.workflow.toasts.startFailed"));
     }
   };
 
@@ -263,7 +265,7 @@ export default function DeliveryWorkflowStepper({
   const verifyOtp = async () => {
     const value = otp.join("");
     if (value.length !== 6) {
-      setOtpError("Please enter the 6-digit OTP");
+      setOtpError(t("deliveries.workflow.errors.otpSixDigits"));
       return;
     }
 
@@ -277,15 +279,15 @@ export default function DeliveryWorkflowStepper({
         notes: note.trim() || undefined,
       });
       if (!valid) {
-        setOtpError("Invalid OTP");
+        setOtpError(t("deliveries.workflow.errors.otpInvalid"));
         return;
       }
 
-      toast.success("OTP verified");
+      toast.success(t("deliveries.workflow.toasts.otpVerified"));
       setStep("PROOF");
     } catch (e: unknown) {
       const msg = (e as { message?: string } | undefined)?.message;
-      setOtpError(msg || "OTP verification failed");
+      setOtpError(msg || t("deliveries.workflow.errors.otpVerifyFailed"));
     }
   };
 
@@ -296,7 +298,7 @@ export default function DeliveryWorkflowStepper({
     const reader = new FileReader();
     reader.onloadend = () => {
       setPhotoProof(reader.result as string);
-      toast.success("Photo captured");
+      toast.success(t("deliveries.workflow.toasts.photoCaptured"));
     };
     reader.readAsDataURL(file);
   };
@@ -321,8 +323,8 @@ export default function DeliveryWorkflowStepper({
     if (!proofValid) {
       toast.error(
         markFailed
-          ? "Select a failure reason"
-          : "Complete required proof items",
+          ? t("deliveries.workflow.toasts.selectFailureReason")
+          : t("deliveries.workflow.toasts.completeRequiredProof"),
       );
       return;
     }
@@ -336,7 +338,7 @@ export default function DeliveryWorkflowStepper({
       if (markFailed) {
         if (failureAction === "RESCHEDULE") {
           if (!rescheduleDate) {
-            toast.error("Select a reschedule date");
+            toast.error(t("deliveries.workflow.toasts.selectRescheduleDate"));
             return;
           }
           await rescheduleMutation.mutateAsync({
@@ -349,7 +351,7 @@ export default function DeliveryWorkflowStepper({
               longitude: gps.longitude,
             },
           });
-          toast.success("Delivery rescheduled");
+          toast.success(t("deliveries.workflow.toasts.rescheduled"));
         } else if (failureAction === "RETURN_TO_SENDER") {
           await returnToSenderMutation.mutateAsync({
             parcelId,
@@ -360,7 +362,7 @@ export default function DeliveryWorkflowStepper({
               longitude: gps.longitude,
             },
           });
-          toast.success("Marked as returned to sender");
+          toast.success(t("deliveries.workflow.toasts.returnedToSender"));
         } else {
           await markFailedMutation.mutateAsync({
             parcelId,
@@ -369,7 +371,7 @@ export default function DeliveryWorkflowStepper({
             longitude: gps.longitude,
             notes: note.trim() || undefined,
           });
-          toast.success("Delivery marked failed");
+          toast.success(t("deliveries.workflow.toasts.markedFailed"));
         }
 
         onComplete?.({
@@ -397,7 +399,7 @@ export default function DeliveryWorkflowStepper({
         longitude: gps.longitude,
       });
 
-      toast.success("Delivery completed");
+      toast.success(t("deliveries.workflow.toasts.completed"));
       onComplete?.({
         status: "DELIVERED",
         otp: otpValue,
@@ -408,7 +410,7 @@ export default function DeliveryWorkflowStepper({
       setStep("DONE");
     } catch (e: unknown) {
       const msg = (e as { message?: string } | undefined)?.message;
-      toast.error(msg || "Action failed");
+      toast.error(msg || t("deliveries.workflow.toasts.actionFailed"));
     }
   };
 

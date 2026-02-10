@@ -54,7 +54,7 @@ export default function Analytics() {
 
   const handleEtaSearch = async () => {
     if (!parcelId.trim()) {
-      toast.error("Please enter a parcel ID");
+      toast.error(t("analytics.toasts.enterParcelId"));
       return;
     }
     setEtaLoading(true);
@@ -62,7 +62,8 @@ export default function Analytics() {
 
     try {
       const resp = await analyticsService.predictEta(parcelId.trim());
-      const confidence = Math.round(((resp.confidence ?? 0) * 100 + Number.EPSILON) * 100) / 100;
+      const confidence =
+        Math.round(((resp.confidence ?? 0) * 100 + Number.EPSILON) * 100) / 100;
       setEtaResult({
         parcelId: resp.trackingRef || resp.parcelId || parcelId,
         estimatedDelivery: resp.predictedDeliveryAt
@@ -72,9 +73,11 @@ export default function Analytics() {
         status: resp.lastEventType || "—",
         confidence: Math.max(0, Math.min(100, Math.round(confidence))),
       });
-      toast.success("ETA retrieved successfully");
+      toast.success(t("analytics.toasts.etaSuccess"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to retrieve ETA");
+      toast.error(
+        err instanceof Error ? err.message : t("analytics.toasts.etaFailed"),
+      );
     } finally {
       setEtaLoading(false);
     }
@@ -82,7 +85,7 @@ export default function Analytics() {
 
   const handleAnomalyCheck = async () => {
     if (!paymentId.trim()) {
-      toast.error("Please enter a payment ID");
+      toast.error(t("analytics.toasts.enterPaymentId"));
       return;
     }
     setAnomalyLoading(true);
@@ -90,21 +93,24 @@ export default function Analytics() {
 
     try {
       const resp = await analyticsService.checkPaymentAnomaly(paymentId.trim());
-      const score = Math.round(((resp.score ?? 0) * 100 + Number.EPSILON) * 100) / 100;
+      const score =
+        Math.round(((resp.score ?? 0) * 100 + Number.EPSILON) * 100) / 100;
       const riskScore = Math.max(0, Math.min(100, Math.round(score)));
       setAnomalyResult({
         paymentId: paymentId,
         riskScore,
         anomalyType: resp.anomalous ? "ANOMALOUS" : "NORMAL",
-        details: resp.reason || "No details",
+        details: resp.reason || t("analytics.anomaly.noDetails"),
         recommendation: resp.anomalous
-          ? "Manual review recommended before processing"
-          : "Payment appears normal, proceed as usual",
+          ? t("analytics.anomaly.recommendations.manualReview")
+          : t("analytics.anomaly.recommendations.proceed"),
       });
-      toast.success("Anomaly check completed");
+      toast.success(t("analytics.toasts.anomalySuccess"));
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to check payment anomaly",
+        err instanceof Error
+          ? err.message
+          : t("analytics.toasts.anomalyFailed"),
       );
     } finally {
       setAnomalyLoading(false);
@@ -113,21 +119,29 @@ export default function Analytics() {
 
   const getRiskBadge = (score: number) => {
     if (score > 70)
-      return <Badge className="bg-red-100 text-red-800">High Risk</Badge>;
+      return (
+        <Badge className="bg-red-100 text-red-800">
+          {t("analytics.anomaly.risk.high")}
+        </Badge>
+      );
     if (score > 40)
       return (
-        <Badge className="bg-yellow-100 text-yellow-800">Medium Risk</Badge>
+        <Badge className="bg-yellow-100 text-yellow-800">
+          {t("analytics.anomaly.risk.medium")}
+        </Badge>
       );
-    return <Badge className="bg-green-100 text-green-800">Low Risk</Badge>;
+    return (
+      <Badge className="bg-green-100 text-green-800">
+        {t("analytics.anomaly.risk.low")}
+      </Badge>
+    );
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Analytics</h1>
-        <p className="text-muted-foreground">
-          AI-powered ETA predictions and payment anomaly detection
-        </p>
+        <h1 className="text-3xl font-bold">{t("analytics.page.title")}</h1>
+        <p className="text-muted-foreground">{t("analytics.page.subtitle")}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -136,21 +150,19 @@ export default function Analytics() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-600" />
-              <CardTitle>ETA Prediction</CardTitle>
+              <CardTitle>{t("analytics.eta.title")}</CardTitle>
             </div>
-            <CardDescription>
-              Get estimated delivery time for a parcel
-            </CardDescription>
+            <CardDescription>{t("analytics.eta.description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <div className="flex-1">
                 <Label htmlFor="parcelId" className="sr-only">
-                  Parcel ID
+                  {t("analytics.eta.parcelIdLabel")}
                 </Label>
                 <Input
                   id="parcelId"
-                  placeholder="Enter Parcel ID (e.g., PKG-12345)"
+                  placeholder={t("analytics.eta.parcelIdPlaceholder")}
                   value={parcelId}
                   onChange={(e) => setParcelId(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleEtaSearch()}
@@ -178,13 +190,20 @@ export default function Analytics() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground">Estimated Delivery</p>
+                    <p className="text-muted-foreground">
+                      {t("analytics.eta.estimatedDelivery")}
+                    </p>
                     <p className="font-medium">{etaResult.estimatedDelivery}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Confidence</p>
+                    <p className="text-muted-foreground">
+                      {t("analytics.eta.confidence")}
+                    </p>
                     <div className="flex items-center gap-2">
-                      <Progress value={etaResult.confidence} className="flex-1" />
+                      <Progress
+                        value={etaResult.confidence}
+                        className="flex-1"
+                      />
                       <span className="font-medium">
                         {etaResult.confidence}%
                       </span>
@@ -194,7 +213,7 @@ export default function Analytics() {
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">
-                    Current Location:
+                    {t("analytics.eta.currentLocation")}
                   </span>
                   <span className="font-medium">
                     {etaResult.currentLocation}
@@ -210,10 +229,10 @@ export default function Analytics() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
-              <CardTitle>Anomaly Detection</CardTitle>
+              <CardTitle>{t("analytics.anomaly.title")}</CardTitle>
             </div>
             <CardDescription>
-              Check payment for suspicious activity
+              {t("analytics.anomaly.description")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

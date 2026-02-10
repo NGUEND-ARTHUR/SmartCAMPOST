@@ -79,7 +79,7 @@ export default function ScanConsole() {
     try {
       gps = await getGpsOrThrow();
     } catch {
-      toast.error("GPS is required to record scan events");
+      toast.error(t("scan.error.gpsRequired"));
       return;
     }
 
@@ -157,7 +157,7 @@ export default function ScanConsole() {
       try {
         gps = await getGpsOrThrow();
       } catch {
-        toast.error("GPS is required to record scan events");
+        toast.error(t("scan.error.gpsRequired"));
         return;
       }
 
@@ -169,20 +169,20 @@ export default function ScanConsole() {
         try {
           const verification = await verifyQrCodeContent(raw);
           if (!verification.valid || !verification.parcelId) {
-            toast.error("QR verification failed", {
+            toast.error(t("scan.error.qrVerificationFailed"), {
               description: verification.message,
             });
             return;
           }
           parcelIdForScan = verification.parcelId;
         } catch (e) {
-          toast.error("QR verification failed");
+          toast.error(t("scan.error.qrVerificationFailed"));
           return;
         }
       }
 
       if (!parcelIdForScan) {
-        toast.error("Missing parcelId in QR code");
+        toast.error(t("scan.error.missingParcelId"));
         return;
       }
 
@@ -235,7 +235,7 @@ export default function ScanConsole() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">

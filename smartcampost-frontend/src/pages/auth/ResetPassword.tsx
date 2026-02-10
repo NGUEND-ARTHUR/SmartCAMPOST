@@ -38,12 +38,12 @@ export default function ResetPassword() {
     setBusy(true);
     try {
       await apiClient.requestPasswordReset({ identifier: phone.trim() });
-      toast.success("OTP sent");
+      toast.success(t("auth.toasts.otpSent"));
       setStep("confirm");
     } catch (e: unknown) {
       const msg =
         (e as { message?: string } | undefined)?.message ??
-        String(e ?? "Failed to request reset");
+        t("auth.toasts.resetRequestFailed");
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -59,12 +59,12 @@ export default function ResetPassword() {
         otp: otp.trim(),
         newPassword,
       });
-      toast.success("Password reset successful");
+      toast.success(t("auth.toasts.passwordResetSuccess"));
       navigate("/auth/login", { replace: true });
     } catch (e: unknown) {
       const msg =
         (e as { message?: string } | undefined)?.message ??
-        String(e ?? "Failed to reset password");
+        t("auth.toasts.passwordResetFailed");
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -72,23 +72,23 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Package className="w-12 h-12 text-blue-600" />
+            <Package className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle>Reset Password</CardTitle>
+          <CardTitle>{t("auth.resetPasswordOtpTitle")}</CardTitle>
           <CardDescription>
             {step === "request"
-              ? "Request an OTP to reset your password"
-              : "Confirm OTP and set a new password"}
+              ? t("auth.resetPasswordOtpSubtitleRequest")
+              : t("auth.resetPasswordOtpSubtitleConfirm")}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">{t("common.phone")}</Label>
             <Input
               id="phone"
               value={phone}
@@ -100,22 +100,22 @@ export default function ResetPassword() {
           {step === "confirm" && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="otp">OTP</Label>
+                <Label htmlFor="otp">{t("auth.otp")}</Label>
                 <Input
                   id="otp"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  placeholder="Enter OTP"
+                  placeholder={t("auth.otpPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pw">New password</Label>
+                <Label htmlFor="pw">{t("auth.newPassword")}</Label>
                 <Input
                   id="pw"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimum 6 characters"
+                  placeholder={t("auth.newPasswordPlaceholder")}
                 />
               </div>
             </>
@@ -127,7 +127,7 @@ export default function ResetPassword() {
               onClick={request}
               disabled={busy || !canRequest}
             >
-              {busy ? "Requesting..." : "Request OTP"}
+              {busy ? t("auth.requesting") : t("auth.requestOtp")}
             </Button>
           ) : (
             <Button
@@ -135,13 +135,13 @@ export default function ResetPassword() {
               onClick={confirm}
               disabled={busy || !canConfirm}
             >
-              {busy ? "Saving..." : "Confirm reset"}
+              {busy ? t("auth.saving") : t("auth.confirmReset")}
             </Button>
           )}
 
           <div className="text-sm text-center text-muted-foreground">
-            <Link to="/auth/login" className="text-blue-600 hover:underline">
-              Back to login
+            <Link to="/auth/login" className="text-primary hover:underline">
+              {t("auth.backToLogin")}
             </Link>
           </div>
         </CardContent>

@@ -34,7 +34,9 @@ export default function ConfirmDelivery() {
       });
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : "Failed to send OTP",
+        error instanceof Error
+          ? error.message
+          : t("deliveries.confirm.errors.sendOtpFailed"),
       );
     }
   };
@@ -73,7 +75,7 @@ export default function ConfirmDelivery() {
       });
 
       if (!isValid) {
-        throw new Error("Invalid OTP code");
+        throw new Error(t("deliveries.confirm.errors.invalidOtp"));
       }
 
       await completeDelivery.mutateAsync({
@@ -88,26 +90,30 @@ export default function ConfirmDelivery() {
         longitude: loc.longitude,
       });
 
-      toast.success("Delivery confirmed successfully");
+      toast.success(t("deliveries.confirm.toasts.confirmed"));
     } catch (error) {
       throw new Error(
-        error instanceof Error ? error.message : "Failed to confirm delivery",
+        error instanceof Error
+          ? error.message
+          : t("deliveries.confirm.errors.confirmFailed"),
       );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-xl mx-auto p-6">
         {/* Header */}
         <div className="mb-6">
           <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            {t("common.back")}
           </Button>
-          <h1 className="text-2xl font-bold">Confirm Delivery</h1>
+          <h1 className="text-2xl font-bold">
+            {t("deliveries.confirm.title")}
+          </h1>
           <p className="text-muted-foreground">
-            Scan QR code, verify OTP, and capture proof of delivery
+            {t("deliveries.confirm.subtitle")}
           </p>
         </div>
 
