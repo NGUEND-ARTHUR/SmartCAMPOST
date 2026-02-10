@@ -1,7 +1,9 @@
 package com.smartcampost.backend.repository;
 
 import com.smartcampost.backend.model.DeliveryAttempt;
+import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.enums.DeliveryAttemptResult;
+import com.smartcampost.backend.model.enums.ParcelStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +38,10 @@ public interface DeliveryAttemptRepository extends JpaRepository<DeliveryAttempt
      */
     @Query("SELECT COUNT(da) FROM DeliveryAttempt da WHERE da.parcel.id = :parcelId AND da.result != 'SUCCESS'")
     int countFailedAttempts(@Param("parcelId") UUID parcelId);
+
+    @Query("SELECT DISTINCT da.parcel FROM DeliveryAttempt da WHERE da.courier.id = :courierId AND da.parcel.status IN :statuses")
+    List<Parcel> findDistinctParcelsByCourierAndParcelStatusIn(
+            @Param("courierId") UUID courierId,
+            @Param("statuses") List<ParcelStatus> statuses
+    );
 }

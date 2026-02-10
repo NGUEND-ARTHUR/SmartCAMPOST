@@ -13,12 +13,19 @@ public class MockNotificationGatewayServiceImpl implements NotificationGatewaySe
 
     @Override
     public void sendSms(String phone, String message) throws Exception {
-        log.info("📲 [MOCK SMS] to={} | msg={}", phone, message);
+        log.info("📲 [MOCK SMS] to={} | chars={}", maskPhone(phone), message != null ? message.length() : 0);
         // Ici tu pourrais simuler une erreur en lançant une Exception si tu veux tester le retry
     }
 
     @Override
     public void sendEmail(String to, String subject, String body) throws Exception {
         log.info("📧 [MOCK EMAIL] to={} | subject={} | body={}", to, subject, body);
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null) return "";
+        String trimmed = phone.trim();
+        if (trimmed.length() <= 4) return "****";
+        return "****" + trimmed.substring(trimmed.length() - 4);
     }
 }

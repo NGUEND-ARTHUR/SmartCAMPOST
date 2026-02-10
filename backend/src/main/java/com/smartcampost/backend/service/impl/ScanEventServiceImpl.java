@@ -23,6 +23,7 @@ import com.smartcampost.backend.sse.SseEmitters;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ScanEventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class ScanEventServiceImpl implements ScanEventService {
     private final UserAccountRepository userAccountRepository;
     private final NotificationService notificationService; // 🔔
     private final SseEmitters sseEmitters; // 📡
+    private final ApplicationEventPublisher eventPublisher;
 
     // ================== RECORD SCAN EVENT (US38 + US40) ==================
     @Override
@@ -147,6 +149,22 @@ public class ScanEventServiceImpl implements ScanEventService {
         ScanEvent savedEvent = Objects.requireNonNull(scanEventRepository.save(toSave), "failed to save scan event");
         event = savedEvent;
 
+        // 🔁 Domain event for AI agents / downstream processors
+        try {
+            eventPublisher.publishEvent(new com.smartcampost.backend.ai.events.ScanEventRecordedEvent(
+                    event.getId(),
+                    parcel.getId(),
+                    type,
+                    event.getTimestamp(),
+                    agency != null ? agency.getId() : null,
+                    agent != null ? agent.getId() : null,
+                    actorId,
+                    actorRole
+            ));
+        } catch (Exception ignored) {
+            // Never break the main business flow because of AI/event listeners
+        }
+
         // 📡 Emit SSE for live dashboards (de-duplicated inside SseEmitters)
         try {
             sseEmitters.emitScan(event);
@@ -162,6 +180,17 @@ public class ScanEventServiceImpl implements ScanEventService {
             parcel.setStatus(newStatus);
             Parcel savedParcel = parcelRepository.save(parcel);
             Objects.requireNonNull(savedParcel, "failed to save parcel");
+
+            try {
+                eventPublisher.publishEvent(new com.smartcampost.backend.ai.events.ParcelStatusChangedEvent(
+                        parcel.getId(),
+                        oldStatus,
+                        newStatus,
+                        Instant.now()
+                ));
+            } catch (Exception ignored) {
+                // Never break main flow
+            }
 
             // 🔔 Notifications based on status changes
             String eventName = type.name();

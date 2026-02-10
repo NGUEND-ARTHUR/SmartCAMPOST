@@ -132,6 +132,7 @@ public enum ErrorCode {
     // =====================================================
     // AI / ADVANCED ANALYTICS (SPRINT 13)
     // =====================================================
+    AI_RECOMMENDATION_NOT_FOUND,
     ANALYTICS_ERROR,
     ETA_CALCULATION_FAILED,
     ANOMALY_DETECTION_FAILED,
