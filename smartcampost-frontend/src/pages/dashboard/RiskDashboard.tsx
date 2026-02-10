@@ -142,7 +142,7 @@ export default function RiskDashboard() {
                     <TableRow key={a.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{a.type}</div>
+                          <div className="font-medium">{a.alertType ?? a.type ?? "ALERT"}</div>
                           <div className="text-xs text-muted-foreground">
                             {a.id.slice(0, 8)}
                           </div>

@@ -72,6 +72,33 @@ export function QRCodeScanner({
   }, []);
 
   const parseQRCode = useCallback((decodedText: string): ScanResult => {
+    // Secure payload format: V1|P|TOKEN|REF|TS|SIG
+    // We don't trust it locally; we only extract trackingRef for UX.
+    if (decodedText?.startsWith("V1|")) {
+      const parts = decodedText.split("|");
+      if (parts.length === 6) {
+        const trackingRef = parts[3];
+        if (trackingRef) {
+          return {
+            success: true,
+            data: {
+              trackingRef,
+              type: "SMARTCAMPOST_SECURE",
+              version: 1,
+            },
+            rawText: decodedText,
+            timestamp: new Date(),
+          };
+        }
+      }
+      return {
+        success: false,
+        rawText: decodedText,
+        timestamp: new Date(),
+        error: "Invalid secure QR payload",
+      };
+    }
+
     try {
       const data = JSON.parse(decodedText) as QRCodeData;
 

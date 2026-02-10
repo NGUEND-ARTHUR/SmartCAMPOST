@@ -1,5 +1,6 @@
 package com.smartcampost.backend.dto.pickup;
 
+import com.smartcampost.backend.model.enums.LocationMode;
 import com.smartcampost.backend.model.enums.PickupRequestState;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class PickupResponse {
 
     private UUID clientId;
     private String clientName;
+    private String clientPhone;
 
     private UUID courierId;
     private String courierName;
@@ -28,6 +30,11 @@ public class PickupResponse {
 
     private PickupRequestState state;
     private String comment;
+
+    // Pickup location
+    private Double pickupLatitude;
+    private Double pickupLongitude;
+    private LocationMode locationMode;
 
     private Instant createdAt;   // 🔥 nouveau champ
 }

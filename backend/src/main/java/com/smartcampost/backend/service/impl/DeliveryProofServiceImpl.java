@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -36,9 +35,12 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
                 ? request.getCourierId().toString()
                 : null;
 
+        UUID parcelId = Objects.requireNonNull(request.getParcelId(), "parcelId is required");
+        DeliveryProofType proofType = Objects.requireNonNull(request.getProofType(), "proofType is required");
+
         return captureProof(
-                request.getParcelId(),
-                request.getProofType(),
+            parcelId,
+            proofType,
                 request.getDetails(),
                 capturedBy
         );
@@ -47,8 +49,8 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
     // ========= Impl de la méthode principale de l’interface =========
     @Override
     @Transactional
-    public DeliveryProof captureProof(@NonNull UUID parcelId,
-                                      @NonNull DeliveryProofType proofType,
+    public DeliveryProof captureProof(UUID parcelId,
+                                      DeliveryProofType proofType,
                                       String details,
                                       String capturedBy) {
         Objects.requireNonNull(parcelId, "parcelId is required");
@@ -61,7 +63,7 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
         if (capturedBy != null) {
             try {
                 UUID courierId = UUID.fromString(capturedBy);
-                courier = courierRepository.findById(courierId).orElse(null);
+                courier = courierRepository.findById(Objects.requireNonNull(courierId, "courierId is required")).orElse(null);
             } catch (IllegalArgumentException ex) {
                 // capturedBy n’est pas un UUID valide → on ignore, courier reste null
             }
@@ -75,9 +77,9 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
                 .timestamp(Instant.now())
                 .build();
 
+        @SuppressWarnings("null")
         DeliveryProof saved = deliveryProofRepository.save(proof);
-        DeliveryProof nonNullSaved = Objects.requireNonNull(saved, "failed to save delivery proof");
-        return nonNullSaved;
+        return saved;
     }
 
     @Override

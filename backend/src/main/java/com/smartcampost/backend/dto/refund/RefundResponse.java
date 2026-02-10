@@ -15,6 +15,7 @@ public class RefundResponse {
     private UUID parcelId;
     private String parcelTrackingRef;
     private Double amount;
+    private String currency;
     private RefundStatus status;
     private String reason;
     private Instant createdAt;

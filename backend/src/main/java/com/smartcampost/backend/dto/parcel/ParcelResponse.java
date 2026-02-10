@@ -4,6 +4,7 @@ import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ServiceType;
 import com.smartcampost.backend.model.enums.PaymentOption;
+import com.smartcampost.backend.model.enums.QrStatus;
 import lombok.*;
 
 import java.time.Instant;
@@ -17,6 +18,7 @@ public class ParcelResponse {
 
     private UUID id;
     private String trackingRef;
+    private String trackingNumber;
     private ParcelStatus status;
     private ServiceType serviceType;
     private DeliveryOption deliveryOption;
@@ -29,6 +31,8 @@ public class ParcelResponse {
     private PaymentOption paymentOption;     // PREPAID / COD
     private String photoUrl;                 // optional photo
     private String descriptionComment;       // optional comment
+    private QrStatus qrStatus;
+    private boolean locked;
     // -----------
 
     private Instant createdAt;

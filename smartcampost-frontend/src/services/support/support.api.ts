@@ -60,7 +60,12 @@ export const supportTicketService = {
   },
 
   reply(ticketId: string, data: TicketReplyRequest): Promise<TicketResponse> {
-    return httpClient.post(`/support/tickets/${ticketId}/reply`, data);
+    const msg = data?.message ?? "";
+    // Backend expects `replyMessage`; keep `message` too for backward compatibility
+    return httpClient.post(`/support/tickets/${ticketId}/reply`, {
+      replyMessage: msg,
+      message: msg,
+    });
   },
 
   updateStatus(

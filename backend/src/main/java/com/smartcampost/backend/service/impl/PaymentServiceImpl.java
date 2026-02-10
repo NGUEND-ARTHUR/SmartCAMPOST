@@ -20,6 +20,8 @@ import com.smartcampost.backend.model.enums.PaymentMethod;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.InvoiceService;
+import com.smartcampost.backend.service.NotificationService;
+import com.smartcampost.backend.service.PricingService;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.ErrorCode;
 
@@ -29,11 +31,21 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ParcelRepository parcelRepository;
     private final InvoiceService invoiceService;
+    private final PricingService pricingService;
+    private final NotificationService notificationService;
 
-    public PaymentServiceImpl(PaymentRepository paymentRepository, ParcelRepository parcelRepository, InvoiceService invoiceService) {
+    public PaymentServiceImpl(
+            PaymentRepository paymentRepository,
+            ParcelRepository parcelRepository,
+            InvoiceService invoiceService,
+            PricingService pricingService,
+            NotificationService notificationService
+    ) {
         this.paymentRepository = paymentRepository;
         this.parcelRepository = parcelRepository;
         this.invoiceService = invoiceService;
+        this.pricingService = pricingService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -44,17 +56,26 @@ public class PaymentServiceImpl implements PaymentService {
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
+        // Server-side pricing: do not accept client-provided amounts
+        double amount = 0.0;
+        try {
+            var quote = pricingService.quotePrice(parcelId);
+            if (quote != null) amount = quote.doubleValue();
+        } catch (Exception ignored) {
+            amount = 0.0;
+        }
+
         Payment p = Payment.builder()
                 .parcel(parcel)
-                .amount(0.0)
+            .amount(amount)
                 .currency(request.getCurrency() != null ? request.getCurrency() : "XAF")
                 .method(request.getMethod())
                 .status(PaymentStatus.PENDING)
                 .externalRef(request.getPayerPhone())
                 .build();
 
+        @SuppressWarnings("null")
         Payment saved = paymentRepository.save(p);
-        if (saved == null) throw new IllegalStateException("failed to save payment");
         p = saved;
         return toDto(p);
     }
@@ -69,11 +90,16 @@ public class PaymentServiceImpl implements PaymentService {
 
         p.setStatus(request.getSuccess() ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         if (request.getGatewayRef() != null) p.setExternalRef(request.getGatewayRef());
+        @SuppressWarnings("null")
         Payment saved = paymentRepository.save(p);
-        if (saved == null) throw new IllegalStateException("failed to save payment");
         p = saved;
 
         if (request.getSuccess()) {
+            try {
+                notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
+            } catch (Exception ignored) {
+                // Notification must never break payment confirmation
+            }
             // Issue invoice synchronously
             invoiceService.issueInvoiceForPayment(p.getId());
         }
@@ -109,9 +135,14 @@ public class PaymentServiceImpl implements PaymentService {
         if (opt.isEmpty()) throw new ResourceNotFoundException("COD payment not found", ErrorCode.PAYMENT_NOT_FOUND);
         Payment p = opt.orElseThrow(() -> new ResourceNotFoundException("COD payment not found", ErrorCode.PAYMENT_NOT_FOUND));
         p.setStatus(PaymentStatus.SUCCESS);
+        @SuppressWarnings("null")
         Payment saved2 = paymentRepository.save(p);
-        if (saved2 == null) throw new IllegalStateException("failed to save payment");
         p = saved2;
+        try {
+            notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
+        } catch (Exception ignored) {
+            // Notification must never break COD settlement
+        }
         invoiceService.issueInvoiceForPayment(p.getId());
         return toDto(p);
     }
@@ -127,8 +158,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CASH)
                 .status(PaymentStatus.PENDING)
                 .build();
+        @SuppressWarnings("null")
         Payment saved3 = paymentRepository.save(p);
-        if (saved3 == null) throw new IllegalStateException("failed to save payment");
         p = saved3;
         return toDto(p);
     }
@@ -145,8 +176,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
                 .build();
+        @SuppressWarnings("null")
         Payment saved4 = paymentRepository.save(p);
-        if (saved4 == null) throw new IllegalStateException("failed to save payment");
         p = saved4;
         return toDto(p);
     }
@@ -162,8 +193,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
                 .build();
+        @SuppressWarnings("null")
         Payment saved5 = paymentRepository.save(p);
-        if (saved5 == null) throw new IllegalStateException("failed to save payment");
         p = saved5;
         return toDto(p);
     }
@@ -180,9 +211,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(paymentMethod != null ? PaymentMethod.valueOf(paymentMethod) : PaymentMethod.CASH)
                 .status(PaymentStatus.SUCCESS)
                 .build();
+        @SuppressWarnings("null")
         Payment saved6 = paymentRepository.save(p);
-        if (saved6 == null) throw new IllegalStateException("failed to save payment");
         p = saved6;
+        try {
+            notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
+        } catch (Exception ignored) {
+            // Notification must never break pickup payment
+        }
         invoiceService.issueInvoiceForPayment(p.getId());
         return toDto(p);
     }
@@ -197,7 +233,13 @@ public class PaymentServiceImpl implements PaymentService {
         Objects.requireNonNull(parcelId, "parcelId is required");
         List<PaymentResponse> payments = getPaymentsForParcel(parcelId);
         double totalPaid = payments.stream().filter(p -> p.getStatus() == PaymentStatus.SUCCESS).mapToDouble(PaymentResponse::getAmount).sum();
-        double totalDue = 0.0; // requires pricing; leave 0.0
+        double totalDue = 0.0;
+        try {
+            var quote = pricingService.quotePrice(parcelId);
+            if (quote != null) totalDue = quote.doubleValue();
+        } catch (Exception ignored) {
+            totalDue = 0.0;
+        }
         double balance = totalDue - totalPaid;
         String status = totalPaid >= totalDue ? "PAID" : (totalPaid > 0 ? "PARTIAL" : "PENDING");
         String paymentOption = "UNKNOWN";

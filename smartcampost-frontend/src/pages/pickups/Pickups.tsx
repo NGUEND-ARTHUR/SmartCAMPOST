@@ -5,6 +5,8 @@ import { Truck, Plus, Calendar, Clock, Package, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +28,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/EmptyState";
 import { PickupState } from "@/types";
 import { toast } from "sonner";
-import { useMyPickups, useCreatePickup } from "@/hooks";
+import {
+  useMyPickups,
+  useCreatePickup,
+  useMyParcels,
+  useGeolocation,
+} from "@/hooks";
 
 const stateColors: Record<PickupState, string> = {
   REQUESTED: "bg-yellow-100 text-yellow-800",
@@ -43,49 +50,72 @@ export default function Pickups() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTimeWindow, setSelectedTimeWindow] = useState("");
   const [comment, setComment] = useState("");
+  const [manualOverride, setManualOverride] = useState(false);
+  const [pickupLatitude, setPickupLatitude] = useState("");
+  const [pickupLongitude, setPickupLongitude] = useState("");
   const [page, setPage] = useState(0);
 
   const { data, isLoading, error } = useMyPickups(page, 20);
+  const { data: parcelsData } = useMyParcels(0, 100);
   const createPickup = useCreatePickup();
+  const { getCurrent } = useGeolocation(false);
 
   const pickups = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
-  // UUID v4 regex (simple, covers most cases)
-  const uuidV4Regex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const parcels = parcelsData?.content ?? [];
 
   const handleRequestPickup = () => {
     if (!selectedParcel || !selectedDate || !selectedTimeWindow) {
       toast.error("Please fill in all required fields");
       return;
     }
-    if (!uuidV4Regex.test(selectedParcel)) {
-      toast.error("Invalid parcel selection. Please choose a valid parcel.");
-      return;
-    }
-    createPickup.mutate(
-      {
-        parcelId: selectedParcel,
-        requestedDate: selectedDate,
-        timeWindow: selectedTimeWindow,
-        comment: comment,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Pickup request submitted successfully!");
-          setIsDialogOpen(false);
-          setSelectedParcel("");
-          setSelectedDate("");
-          setSelectedTimeWindow("");
-          setComment("");
-        },
-        onError: (err) =>
-          toast.error(
-            err instanceof Error ? err.message : "Failed to create pickup",
-          ),
-      },
-    );
+
+    (async () => {
+      try {
+        let lat: number;
+        let lng: number;
+
+        if (manualOverride) {
+          lat = Number(pickupLatitude);
+          lng = Number(pickupLongitude);
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            toast.error("Please provide valid latitude/longitude");
+            return;
+          }
+        } else {
+          const pos = await getCurrent();
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+          setPickupLatitude(String(lat));
+          setPickupLongitude(String(lng));
+        }
+
+        await createPickup.mutateAsync({
+          parcelId: selectedParcel,
+          requestedDate: selectedDate,
+          timeWindow: selectedTimeWindow,
+          comment,
+          pickupLatitude: lat,
+          pickupLongitude: lng,
+          locationMode: manualOverride ? "MANUAL_OVERRIDE" : "GPS_DEFAULT",
+        });
+
+        toast.success("Pickup request submitted successfully!");
+        setIsDialogOpen(false);
+        setSelectedParcel("");
+        setSelectedDate("");
+        setSelectedTimeWindow("");
+        setComment("");
+        setManualOverride(false);
+        setPickupLatitude("");
+        setPickupLongitude("");
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Failed to create pickup",
+        );
+      }
+    })();
   };
 
   return (
@@ -122,15 +152,11 @@ export default function Pickups() {
                     <SelectValue placeholder="Choose a parcel" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SCP2026006">
-                      SCP2026006 - 2.5kg
-                    </SelectItem>
-                    <SelectItem value="SCP2026007">
-                      SCP2026007 - 1.0kg
-                    </SelectItem>
-                    <SelectItem value="SCP2026008">
-                      SCP2026008 - 3.2kg
-                    </SelectItem>
+                    {parcels.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.trackingRef} - {p.weight}kg
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -180,6 +206,47 @@ export default function Pickups() {
                   onChange={(e) => setComment(e.target.value)}
                   rows={3}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="manualOverride"
+                    checked={manualOverride}
+                    onCheckedChange={setManualOverride}
+                    title="Manual location override"
+                    aria-label="Manual location override"
+                  />
+                  <Label htmlFor="manualOverride">
+                    Manual location override
+                  </Label>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="pickupLatitude">Latitude</Label>
+                    <Input
+                      id="pickupLatitude"
+                      value={pickupLatitude}
+                      onChange={(e) => setPickupLatitude(e.target.value)}
+                      placeholder="e.g. 4.0511"
+                      disabled={!manualOverride}
+                      inputMode="decimal"
+                      title="Pickup latitude"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="pickupLongitude">Longitude</Label>
+                    <Input
+                      id="pickupLongitude"
+                      value={pickupLongitude}
+                      onChange={(e) => setPickupLongitude(e.target.value)}
+                      placeholder="e.g. 9.7679"
+                      disabled={!manualOverride}
+                      inputMode="decimal"
+                      title="Pickup longitude"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <DialogFooter>

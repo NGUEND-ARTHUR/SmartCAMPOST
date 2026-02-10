@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { useCourierPickups } from "@/hooks";
+import CourierNavigationMap from "@/components/maps/CourierNavigationMap";
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
+  REQUESTED: "bg-yellow-100 text-yellow-800",
   ASSIGNED: "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-purple-100 text-purple-800",
   COMPLETED: "bg-green-100 text-green-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
@@ -23,12 +23,34 @@ export default function CourierPickups() {
   const pickups = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
+  const stops = pickups
+    .filter(
+      (p) =>
+        p.state === "ASSIGNED" &&
+        typeof p.pickupLatitude === "number" &&
+        typeof p.pickupLongitude === "number",
+    )
+    .map((p) => ({
+      id: p.id,
+      type: "PICKUP" as const,
+      location: {
+        lat: p.pickupLatitude as number,
+        lng: p.pickupLongitude as number,
+      },
+      parcelId: p.parcelId,
+      trackingCode: p.trackingRef ?? p.parcelId.slice(0, 8),
+      clientName: p.clientName ?? p.clientId.slice(0, 8),
+      clientPhone: p.clientPhone ?? "—",
+    }));
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">My Pickups</h1>
         <p className="text-muted-foreground">Assigned pickup requests</p>
       </div>
+
+      {stops.length > 0 && <CourierNavigationMap stops={stops} />}
 
       <Card>
         <CardHeader>

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -89,6 +90,7 @@ public class QrCodeController {
     @Operation(summary = "Verify QR code authenticity (anti-forgery)",
                description = "Server-side verification of scanned QR code. Validates the unique token and HMAC signature to detect forgery attempts.")
     @PostMapping("/verify")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<QrVerificationResponse> verifyQrCode(
             @RequestBody QrVerificationRequest request,
             HttpServletRequest httpRequest) {
@@ -103,6 +105,7 @@ public class QrCodeController {
     @Operation(summary = "Verify QR code from scanned content",
                description = "Parses and verifies the raw content scanned from a QR code. Returns verification status and parcel/pickup details if valid.")
     @GetMapping("/verify/{qrContent}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<QrVerificationResponse> verifyQrCodeContent(
             @PathVariable String qrContent,
             HttpServletRequest httpRequest) {
@@ -116,6 +119,7 @@ public class QrCodeController {
     @Operation(summary = "Generate secure QR code for parcel",
                description = "Generates a new secure QR code with anti-forgery token. Invalidates any previous QR codes for this parcel.")
     @PostMapping("/secure/{parcelId}")
+    @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<SecureQrPayload> generateSecureQrCode(@PathVariable UUID parcelId) {
         return ResponseEntity.ok(qrSecurityService.regenerateToken(parcelId));
     }
@@ -123,6 +127,7 @@ public class QrCodeController {
     @Operation(summary = "Revoke QR code",
                description = "Revokes a QR code, making it invalid for future scans. Use when a QR code is compromised or needs to be replaced.")
     @DeleteMapping("/revoke/{token}")
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<Void> revokeQrCode(
             @PathVariable String token,
             @RequestParam(defaultValue = "Manual revocation") String reason) {
@@ -133,6 +138,7 @@ public class QrCodeController {
     @Operation(summary = "Revoke all QR codes for a parcel",
                description = "Revokes all QR codes associated with a parcel. Use when regenerating QR codes or when parcel security is compromised.")
     @DeleteMapping("/revoke/parcel/{parcelId}")
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<Void> revokeAllQrCodesForParcel(
             @PathVariable UUID parcelId,
             @RequestParam(defaultValue = "Bulk revocation") String reason) {

@@ -19,6 +19,7 @@ import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.RefundRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.RefundService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,6 +44,7 @@ public class RefundServiceImpl implements RefundService {
     private final ParcelRepository parcelRepository;
     private final ClientRepository clientRepository;
     private final UserAccountRepository userAccountRepository;
+        private final NotificationService notificationService;
 
     // ================== CREATE REFUND ==================
     @Override
@@ -94,11 +96,15 @@ public class RefundServiceImpl implements RefundService {
                 .status(RefundStatus.REQUESTED)
                 .createdAt(Instant.now())
                 .build();
-                Refund saved = refundRepository.save(refund);
-                if (saved == null) {
-                        throw new IllegalStateException("failed to save refund");
+        @SuppressWarnings("null")
+        Refund saved = refundRepository.save(refund);
+        refund = saved;
+
+                try {
+                        notificationService.notifyRefundRequested(parcel, refund.getAmount(), payment.getCurrency() != null ? payment.getCurrency() : "XAF");
+                } catch (Exception ignored) {
+                        // Notification must never break refund request
                 }
-                refund = saved;
 
         return toResponse(refund);
     }
@@ -142,6 +148,16 @@ public class RefundServiceImpl implements RefundService {
                         throw new IllegalStateException("failed to save refund");
                 }
                 refund = saved2;
+
+                try {
+                        Parcel parcel = refund.getPayment() != null ? refund.getPayment().getParcel() : null;
+                        if (parcel != null) {
+                                String currency = refund.getPayment() != null && refund.getPayment().getCurrency() != null ? refund.getPayment().getCurrency() : "XAF";
+                                notificationService.notifyRefundStatusUpdated(parcel, refund.getStatus() != null ? refund.getStatus().name() : null, refund.getAmount(), currency);
+                        }
+                } catch (Exception ignored) {
+                        // Notification must never break refund status update
+                }
 
         return toResponse(refund);
     }
@@ -246,7 +262,7 @@ public class RefundServiceImpl implements RefundService {
 
         try {
             UUID id = UUID.fromString(subject);
-            return userAccountRepository.findById(id)
+            return userAccountRepository.findById(Objects.requireNonNull(id, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND
@@ -271,6 +287,7 @@ public class RefundServiceImpl implements RefundService {
                 .parcelId(parcel.getId())
                 .parcelTrackingRef(parcel.getTrackingRef())
                 .amount(refund.getAmount())
+                .currency(payment.getCurrency() != null ? payment.getCurrency() : "XAF")
                 .status(refund.getStatus())
                 .reason(refund.getReason())
                 .createdAt(refund.getCreatedAt())
@@ -278,3 +295,4 @@ public class RefundServiceImpl implements RefundService {
                 .build();
     }
 }
+

@@ -2,8 +2,10 @@ package com.smartcampost.backend.service;
 
 import com.smartcampost.backend.dto.notification.NotificationResponse;
 import com.smartcampost.backend.dto.notification.TriggerNotificationRequest;
+import com.smartcampost.backend.model.Client;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.PickupRequest;
+import com.smartcampost.backend.model.UserAccount;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,4 +58,28 @@ public interface NotificationService {
 
     // 🔥 NEW: utilisé par DeliveryOtpServiceImpl
     void sendDeliveryOtp(String phoneNumber, String otpCode, String trackingRef);
+
+    // ================== Operational modules ==================
+
+    // Payments / invoices
+    void notifyPaymentConfirmed(Parcel parcel, double amount, String currency);
+
+    void notifyInvoiceIssued(Parcel parcel, String invoiceNumber, double amount, String currency);
+
+    // Refunds
+    void notifyRefundRequested(Parcel parcel, double amount, String currency);
+
+    void notifyRefundStatusUpdated(Parcel parcel, String status, double amount, String currency);
+
+    // Support tickets
+    void notifySupportTicketCreated(Client client, String ticketSubject);
+
+    void notifySupportTicketReplied(Client client, String ticketSubject);
+
+    void notifySupportTicketStatusUpdated(Client client, String ticketSubject, String newStatus);
+
+    // Risk / compliance actions
+    void notifyAccountFrozen(UserAccount account);
+
+    void notifyAccountUnfrozen(UserAccount account);
 }

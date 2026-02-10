@@ -3,3 +3,4 @@
  */
 export { Landing } from "./Landing";
 export { default as Addresses } from "./Addresses";
+export { default as TrackingPage } from "./TrackingPage";

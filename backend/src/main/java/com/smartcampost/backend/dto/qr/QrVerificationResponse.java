@@ -194,6 +194,11 @@ public class QrVerificationResponse {
         PICKUP_NOT_FOUND,
 
         /**
+         * Parcel exists but is not validated/locked yet; FINAL QR is not allowed.
+         */
+        PARCEL_NOT_VALIDATED,
+
+        /**
          * Rate limit exceeded (too many verification attempts)
          */
         RATE_LIMIT_EXCEEDED,

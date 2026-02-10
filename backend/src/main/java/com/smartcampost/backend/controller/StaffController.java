@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -17,8 +18,9 @@ public class StaffController {
 
     private final StaffService staffService;
 
-    // US14: Admin crée un staff
+    // US14: Admin crée un staff (ADMIN only)
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StaffResponse> createStaff(
             @Valid @RequestBody CreateStaffRequest request
     ) {

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Package, Truck, MapPin, Shield } from "lucide-react";
 export function Landing() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [trackingRef, setTrackingRef] = useState("");
 
   return (
     <div className="min-h-screen bg-linear-to-b from-blue-50 to-white">
@@ -56,8 +58,24 @@ export function Landing() {
             <Input
               placeholder={t("parcels.trackingNumber")}
               className="flex-1"
+              value={trackingRef}
+              onChange={(e) => setTrackingRef(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                const trimmed = trackingRef.trim();
+                if (!trimmed) return;
+                navigate(`/tracking?ref=${encodeURIComponent(trimmed)}`);
+              }}
             />
-            <Button>{t("common.search")}</Button>
+            <Button
+              onClick={() => {
+                const trimmed = trackingRef.trim();
+                if (!trimmed) return;
+                navigate(`/tracking?ref=${encodeURIComponent(trimmed)}`);
+              }}
+            >
+              {t("common.search")}
+            </Button>
           </div>
         </div>
 

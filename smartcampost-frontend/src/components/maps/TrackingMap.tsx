@@ -68,15 +68,8 @@ interface ScanEvent {
 interface TrackingMapProps {
   trackingId?: string;
   scanEvents?: ScanEvent[];
-  originLat?: number;
-  originLng?: number;
-  destinationLat?: number;
-  destinationLng?: number;
   currentStatus?: string;
   showAnimation?: boolean;
-  // Optional shorthand coordinates used by some pages
-  lat?: number;
-  lng?: number;
 }
 
 // Component to animate the map view
@@ -148,12 +141,6 @@ function AnimatedParcelMarker({
 export default function TrackingMap({
   trackingId,
   scanEvents = [],
-  originLat,
-  originLng,
-  destinationLat,
-  destinationLng,
-  lat,
-  lng,
   currentStatus = "IN_TRANSIT",
   showAnimation = true,
 }: TrackingMapProps) {
@@ -166,33 +153,10 @@ export default function TrackingMap({
       .map((e) => [e.latitude!, e.longitude!] as [number, number]);
   }, [scanEvents]);
 
-  // Build full route including origin and destination
+  // Route MUST come only from ScanEvents GPS points
   const fullRoute: [number, number][] = useMemo(() => {
-    const route: [number, number][] = [];
-
-    if (originLat && originLng) {
-      route.push([originLat, originLng]);
-    } else if (lat && lng) {
-      // fallback: if shorthand lat/lng provided, treat as starting point
-      route.push([lat, lng]);
-    }
-
-    route.push(...eventPositions);
-
-    if (destinationLat && destinationLng) {
-      route.push([destinationLat, destinationLng]);
-    }
-
-    return route;
-  }, [
-    originLat,
-    originLng,
-    destinationLat,
-    destinationLng,
-    lat,
-    lng,
-    eventPositions,
-  ]);
+    return eventPositions;
+  }, [eventPositions]);
 
   // Calculate map center
   const mapCenter: [number, number] = useMemo(() => {
@@ -225,24 +189,11 @@ export default function TrackingMap({
 
   // Get last known position for current parcel location
   const currentPosition: [number, number] | null = useMemo(() => {
-    if (currentStatus === "DELIVERED" && destinationLat && destinationLng) {
-      return [destinationLat, destinationLng];
-    }
     if (eventPositions.length > 0) {
       return eventPositions[eventPositions.length - 1];
     }
-    if (originLat && originLng) {
-      return [originLat, originLng];
-    }
     return null;
-  }, [
-    currentStatus,
-    destinationLat,
-    destinationLng,
-    eventPositions,
-    originLat,
-    originLng,
-  ]);
+  }, [eventPositions]);
 
   if (!trackingId && fullRoute.length === 0) {
     return (
@@ -306,33 +257,10 @@ export default function TrackingMap({
             )}
 
             {/* Origin marker */}
-            {originLat && originLng && (
-              <Marker position={[originLat, originLng]} icon={originIcon}>
-                <Popup>
-                  <div className="text-center">
-                    <strong>📍 Origin</strong>
-                    <br />
-                    <span className="text-sm">Pickup Location</span>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
+            {null}
 
             {/* Destination marker */}
-            {destinationLat && destinationLng && (
-              <Marker
-                position={[destinationLat, destinationLng]}
-                icon={destinationIcon}
-              >
-                <Popup>
-                  <div className="text-center">
-                    <strong>🏁 Destination</strong>
-                    <br />
-                    <span className="text-sm">Delivery Location</span>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
+            {null}
 
             {/* Transit checkpoints */}
             {scanEvents

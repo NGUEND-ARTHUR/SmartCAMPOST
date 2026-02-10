@@ -28,4 +28,20 @@ public class ScanEventResponse {
 
     // statut du colis après cet event (facultatif mais utile pour la timeline)
     private ParcelStatus parcelStatusAfter;
+
+    // ================== GPS MANDATORY (SPEC SECTION 3) ==================
+    private Double latitude;
+    private Double longitude;
+    private String locationSource;  // GPS, CELL, MANUAL
+
+    // ================== ACTOR INFO (SPEC SECTION 12) ==================
+    private String actorId;
+    private String actorRole;  // AGENT, COURIER, CLIENT, etc.
+
+    // ================== PROOF (SPEC SECTION 6) ==================
+    private String proofUrl;
+    private String comment;
+
+    // ================== OFFLINE SYNC STATUS (SPEC SECTION 11) ==================
+    private boolean synced;
 }

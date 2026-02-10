@@ -4,6 +4,8 @@ import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ServiceType;
 import com.smartcampost.backend.model.enums.PaymentOption;
+import com.smartcampost.backend.model.enums.QrStatus;
+import com.smartcampost.backend.model.enums.LocationMode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +26,46 @@ public class Parcel {
 
     @Column(name = "tracking_ref", nullable = false, length = 80, unique = true)
     private String trackingRef;
+
+    // --------------------------------------------------
+    //  Compatibility alias (spec wording): trackingNumber
+    // --------------------------------------------------
+    @Column(name = "tracking_number", length = 80)
+    private String trackingNumber;
+
+    // --------------------------------------------------
+    //  🔥 QR Code Two-Step Logic (PARTIAL → FINAL)
+    // --------------------------------------------------
+    @Enumerated(EnumType.STRING)
+    @Column(name = "qr_status", nullable = false, length = 20)
+    @Builder.Default
+    private QrStatus qrStatus = QrStatus.PARTIAL;
+
+    @Column(name = "is_locked", nullable = false)
+    @Builder.Default
+    private boolean locked = false;
+
+    @Column(name = "partial_qr_code", length = 500)
+    private String partialQrCode;
+
+    @Column(name = "final_qr_code", length = 500)
+    private String finalQrCode;
+    // --------------------------------------------------
+
+    // --------------------------------------------------
+    //  🔥 GPS Location at Creation
+    // --------------------------------------------------
+    @Column(name = "creation_latitude")
+    private Double creationLatitude;
+
+    @Column(name = "creation_longitude")
+    private Double creationLongitude;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "location_mode", length = 20)
+    @Builder.Default
+    private LocationMode locationMode = LocationMode.GPS_DEFAULT;
+    // --------------------------------------------------
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -154,13 +196,28 @@ public class Parcel {
             createdAt = Instant.now();
         }
         if (status == null) {
-            status = ParcelStatus.CREATED; // match default SQL
+            status = ParcelStatus.CREATED;
+        }
+        // Keep trackingNumber in sync for clients expecting that field name
+        if (trackingNumber == null && trackingRef != null) {
+            trackingNumber = trackingRef;
         }
         if (!fragile) {
-            fragile = false; // default SQL
+            fragile = false;
         }
         if (paymentOption == null) {
-            paymentOption = PaymentOption.PREPAID; // safe default
+            paymentOption = PaymentOption.PREPAID;
+        }
+        // QR Code two-step logic: starts as PARTIAL
+        if (qrStatus == null) {
+            qrStatus = QrStatus.PARTIAL;
+        }
+        // Parcel starts unlocked, locked after validation
+        if (!locked) {
+            locked = false;
+        }
+        if (locationMode == null) {
+            locationMode = LocationMode.GPS_DEFAULT;
         }
     }
 }

@@ -7,12 +7,14 @@ import { httpClient, PaginatedResponse } from "../apiClient";
 export interface RefundResponse {
   id: string;
   paymentId: string;
+  parcelId: string;
+  parcelTrackingRef?: string;
   amount: number;
   currency: string;
   status: string;
   reason?: string;
   createdAt: string;
-  updatedAt: string;
+  processedAt?: string;
 }
 
 export interface CreateRefundRequest {

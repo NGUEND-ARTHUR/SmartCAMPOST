@@ -26,5 +26,19 @@ public enum NotificationType {
 
     // 🔥 NEW: For delivery rescheduling and failed attempts
     DELIVERY_RESCHEDULED,
-    DELIVERY_ATTEMPT_FAILED
+    DELIVERY_ATTEMPT_FAILED,
+
+    // ================== Operational modules ==================
+    INVOICE_ISSUED,
+    REFUND_REQUESTED,
+    REFUND_STATUS_UPDATED,
+
+    SUPPORT_TICKET_CREATED,
+    SUPPORT_TICKET_REPLIED,
+    SUPPORT_TICKET_STATUS_UPDATED,
+
+    RISK_ALERT_UPDATED,
+    RISK_ALERT_RESOLVED,
+    ACCOUNT_FROZEN,
+    ACCOUNT_UNFROZEN
 }

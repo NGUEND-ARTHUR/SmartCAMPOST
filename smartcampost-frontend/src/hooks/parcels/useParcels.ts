@@ -104,6 +104,25 @@ export function useValidateAndAccept() {
   });
 }
 
+export function useValidateAndLockParcel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      latitude,
+      longitude,
+    }: {
+      id: string;
+      latitude: number;
+      longitude: number;
+    }) => parcelService.validateAndLock(id, latitude, longitude),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: parcelKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: parcelKeys.lists() });
+    },
+  });
+}
+
 export function useChangeDeliveryOption() {
   const queryClient = useQueryClient();
   return useMutation({

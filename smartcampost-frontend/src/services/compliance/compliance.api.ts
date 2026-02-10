@@ -49,7 +49,13 @@ export const complianceService = {
     id: string,
     data: ResolveRiskAlertRequest,
   ): Promise<ComplianceAlertResponse> {
-    return httpClient.patch(`/compliance/alerts/${id}`, data);
+    const resolution = data?.resolution ?? "";
+    // Backend expects { resolved, resolutionNote }
+    return httpClient.patch(`/compliance/alerts/${id}`, {
+      resolved: true,
+      resolutionNote: resolution,
+      resolution,
+    });
   },
 
   generateReport(from: string, to: string): Promise<ComplianceReportResponse> {

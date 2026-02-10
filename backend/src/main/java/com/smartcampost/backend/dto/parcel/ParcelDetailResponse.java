@@ -3,6 +3,8 @@ package com.smartcampost.backend.dto.parcel;
 import com.smartcampost.backend.dto.pricing.PricingDetailResponse;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
+import com.smartcampost.backend.model.enums.PaymentOption;
+import com.smartcampost.backend.model.enums.QrStatus;
 import com.smartcampost.backend.model.enums.ServiceType;
 import lombok.*;
 
@@ -18,10 +20,17 @@ public class ParcelDetailResponse {
 
     private UUID id;
     private String trackingRef;
+    private String trackingNumber;
 
     private ParcelStatus status;
     private ServiceType serviceType;
     private DeliveryOption deliveryOption;
+    private PaymentOption paymentOption;
+    private String descriptionComment;
+    private QrStatus qrStatus;
+    private boolean locked;
+    private String partialQrCode;
+    private String finalQrCode;
 
     private double weight;
     private String dimensions;

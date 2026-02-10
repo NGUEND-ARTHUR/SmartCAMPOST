@@ -1,5 +1,6 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.LocationMode;
 import com.smartcampost.backend.model.enums.PickupRequestState;
 import jakarta.persistence.*;
 import lombok.*;
@@ -48,6 +49,17 @@ public class PickupRequest {
     @Column(name = "state", nullable = false)
     private PickupRequestState state; // REQUESTED, ASSIGNED, COMPLETED, CANCELLED
 
+    // Pickup location (GPS default, with manual override allowed)
+    @Column(name = "pickup_latitude")
+    private Double pickupLatitude;
+
+    @Column(name = "pickup_longitude")
+    private Double pickupLongitude;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "location_mode", length = 30)
+    private LocationMode locationMode;
+
     @Column(name = "comment", length = 255)
     private String comment;
 
@@ -64,6 +76,9 @@ public class PickupRequest {
         }
         if (createdAt == null) {
             createdAt = Instant.now();
+        }
+        if (locationMode == null) {
+            locationMode = LocationMode.GPS_DEFAULT;
         }
     }
 }

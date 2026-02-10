@@ -7,26 +7,26 @@ import { httpClient, PaginatedResponse } from "../apiClient";
 export interface PaymentResponse {
   id: string;
   parcelId: string;
+  parcelTrackingRef?: string;
   amount: number;
   currency: string;
   method: string;
   status: string;
-  transactionRef?: string;
-  createdAt: string;
-  updatedAt: string;
+  timestamp: string;
+  externalRef?: string;
 }
 
 export interface InitPaymentRequest {
   parcelId: string;
-  amount: number;
   method: string;
   currency?: string;
+  payerPhone?: string;
 }
 
 export interface ConfirmPaymentRequest {
   paymentId: string;
-  transactionRef: string;
-  status: string;
+  success: boolean;
+  gatewayRef?: string;
 }
 
 // ---- Service ----

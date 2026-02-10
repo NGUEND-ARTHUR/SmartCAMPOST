@@ -7,6 +7,7 @@ import {
   CreatePickupRequest,
   AssignPickupCourierRequest,
   UpdatePickupStateRequest,
+  ConfirmPickupRequest,
 } from "@/services";
 
 export const pickupKeys = {
@@ -108,7 +109,8 @@ export function useUpdatePickupState() {
 export function useConfirmPickup() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => pickupService.confirmPickup(data),
+    mutationFn: (data: ConfirmPickupRequest) =>
+      pickupService.confirmPickup(data),
     onSuccess: (_, data) => {
       if (data && data.pickupId) {
         queryClient.invalidateQueries({

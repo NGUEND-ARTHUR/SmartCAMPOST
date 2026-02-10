@@ -14,6 +14,7 @@ import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.RiskAlertRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.ComplianceService;
+import com.smartcampost.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +38,7 @@ public class ComplianceServiceImpl implements ComplianceService {
 
     private final RiskAlertRepository riskAlertRepository;
     private final UserAccountRepository userAccountRepository;
+        private final NotificationService notificationService;
 
     // ================== LIST ALERTS ==================
     @Override
@@ -75,8 +77,8 @@ public class ComplianceServiceImpl implements ComplianceService {
                 ));
 
         alert.setResolved(request.isResolved());
-        RiskAlert saved = riskAlertRepository.save(alert);
-        if (saved == null) throw new IllegalStateException("failed to save risk alert");
+                @SuppressWarnings("null")
+                RiskAlert saved = riskAlertRepository.save(alert);
 
         return toResponse(saved);
     }
@@ -173,8 +175,12 @@ public class ComplianceServiceImpl implements ComplianceService {
         }
 
         account.setFrozen(true);
-        var saved = userAccountRepository.save(account);
-        if (saved == null) throw new IllegalStateException("failed to save user account");
+                                UserAccount saved = userAccountRepository.save(account);
+                                try {
+                                        notificationService.notifyAccountFrozen(saved);
+                                } catch (Exception ignored) {
+                                        // Notification must never break compliance freeze
+                                }
     }
 
     // ================== UNFREEZE ACCOUNT ==================
@@ -197,8 +203,12 @@ public class ComplianceServiceImpl implements ComplianceService {
         }
 
         account.setFrozen(false);
-        var saved2 = userAccountRepository.save(account);
-        if (saved2 == null) throw new IllegalStateException("failed to save user account");
+                                UserAccount saved = userAccountRepository.save(account);
+                                try {
+                                        notificationService.notifyAccountUnfrozen(saved);
+                                } catch (Exception ignored) {
+                                        // Notification must never break compliance unfreeze
+                                }
     }
 
     // ================== HELPERS ==================
@@ -247,13 +257,19 @@ public class ComplianceServiceImpl implements ComplianceService {
     }
 
     private RiskAlertResponse toResponse(RiskAlert alert) {
+        UUID parcelId = alert.getParcel() != null ? alert.getParcel().getId() : null;
+        UUID paymentId = alert.getPayment() != null ? alert.getPayment().getId() : null;
+        String entityType = parcelId != null ? "PARCEL" : (paymentId != null ? "PAYMENT" : null);
+        UUID entityId = parcelId != null ? parcelId : paymentId;
         return RiskAlertResponse.builder()
                 .id(alert.getId())
                 .alertType(alert.getAlertType())
                 .severity(alert.getSeverity())
                 .status(alert.getStatus())
-                .parcelId(alert.getParcel() != null ? alert.getParcel().getId() : null)
-                .paymentId(alert.getPayment() != null ? alert.getPayment().getId() : null)
+                .parcelId(parcelId)
+                .paymentId(paymentId)
+                .entityType(entityType)
+                .entityId(entityId)
                 .description(alert.getDescription())
                 .resolved(alert.isResolved())
                 .createdAt(alert.getCreatedAt())

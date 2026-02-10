@@ -10,6 +10,7 @@ import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.Agency;
 import com.smartcampost.backend.model.Agent;
 import com.smartcampost.backend.model.UserAccount;
+import com.smartcampost.backend.model.enums.LocationSource;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ScanEventType;
 import com.smartcampost.backend.model.enums.UserRole;
@@ -18,6 +19,7 @@ import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.AgencyRepository;
 import com.smartcampost.backend.repository.AgentRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.sse.SseEmitters;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ScanEventService;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class ScanEventServiceImpl implements ScanEventService {
     private final AgentRepository agentRepository;
     private final UserAccountRepository userAccountRepository;
     private final NotificationService notificationService; // 🔔
+    private final SseEmitters sseEmitters; // 📡
 
     // ================== RECORD SCAN EVENT (US38 + US40) ==================
     @Override
@@ -52,11 +55,26 @@ public class ScanEventServiceImpl implements ScanEventService {
 
         UserAccount currentUser = getCurrentUser();
 
-        // seuls AGENT / STAFF / ADMIN peuvent scanner
-        if (currentUser.getRole() == UserRole.CLIENT || currentUser.getRole() == UserRole.COURIER) {
+        // Actor must be authoritative from authenticated context
+        final String actorId = currentUser.getEntityId() != null ? currentUser.getEntityId().toString() : null;
+        final String actorRole = currentUser.getRole() != null ? currentUser.getRole().name() : null;
+
+        // String -> Enum (ScanEventType)
+        ScanEventType type;
+        try {
+            type = ScanEventType.valueOf(request.getEventType().toUpperCase());
+        } catch (IllegalArgumentException ex) {
             throw new AuthException(
                     ErrorCode.BUSINESS_ERROR,
-                    "Not allowed to record scan events"
+                    "Unknown scan event type: " + request.getEventType()
+            );
+        }
+
+        // Client scan events are only allowed for CANCELLED (own parcel)
+        if (currentUser.getRole() == UserRole.CLIENT && type != ScanEventType.CANCELLED) {
+            throw new AuthException(
+                    ErrorCode.BUSINESS_ERROR,
+                    "Clients are only allowed to record CANCELLED scan events"
             );
         }
 
@@ -66,6 +84,15 @@ public class ScanEventServiceImpl implements ScanEventService {
                         "Parcel not found",
                         ErrorCode.PARCEL_NOT_FOUND
                 ));
+
+        if (currentUser.getRole() == UserRole.CLIENT) {
+            if (!Objects.equals(parcel.getClient().getId(), currentUser.getEntityId())) {
+            throw new AuthException(
+                ErrorCode.BUSINESS_ERROR,
+                "You cannot cancel a parcel you do not own"
+            );
+            }
+        }
 
         Agency agency = null;
         if (request.getAgencyId() != null) {
@@ -95,16 +122,8 @@ public class ScanEventServiceImpl implements ScanEventService {
                 ));
         }
 
-        // String -> Enum (ScanEventType)
-        ScanEventType type;
-        try {
-            type = ScanEventType.valueOf(request.getEventType().toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            throw new AuthException(
-                    ErrorCode.BUSINESS_ERROR,
-                    "Unknown scan event type: " + request.getEventType()
-            );
-        }
+        Objects.requireNonNull(request.getLatitude(), "latitude is required");
+        Objects.requireNonNull(request.getLongitude(), "longitude is required");
 
         // créer l’event
         ScanEvent event = ScanEvent.builder()
@@ -115,19 +134,34 @@ public class ScanEventServiceImpl implements ScanEventService {
                 .eventType(type)
                 .timestamp(Instant.now())
                 .locationNote(request.getLocationNote())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .locationSource(resolveLocationSource(request.getLocationSource()))
+            .deviceTimestamp(request.getDeviceTimestamp())
+            .actorId(actorId)
+            .actorRole(actorRole)
+            .proofUrl(request.getProofUrl())
+            .comment(request.getComment())
                 .build();
         ScanEvent toSave = java.util.Objects.requireNonNull(event, "event is required");
-        ScanEvent savedEvent = scanEventRepository.save(toSave);
-        if (savedEvent == null) throw new IllegalStateException("failed to save scan event");
+        ScanEvent savedEvent = Objects.requireNonNull(scanEventRepository.save(toSave), "failed to save scan event");
         event = savedEvent;
+
+        // 📡 Emit SSE for live dashboards (de-duplicated inside SseEmitters)
+        try {
+            sseEmitters.emitScan(event);
+        } catch (Exception ignored) {
+            // Do not fail business flow on SSE errors
+        }
 
         // mettre à jour le statut du colis selon l’event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
         if (newStatus != null) {
             ParcelStatus oldStatus = parcel.getStatus();
+            validateStatusTransition(oldStatus, newStatus);
             parcel.setStatus(newStatus);
             Parcel savedParcel = parcelRepository.save(parcel);
-            if (savedParcel == null) throw new IllegalStateException("failed to save parcel");
+            Objects.requireNonNull(savedParcel, "failed to save parcel");
 
             // 🔔 Notifications based on status changes
             String eventName = type.name();
@@ -148,9 +182,9 @@ public class ScanEventServiceImpl implements ScanEventService {
                 notificationService.notifyParcelInTransit(parcel);
             }
 
-            // 🔔 si le colis arrive à l'agence de destination
-            if (eventName.equals("ARRIVED_DESTINATION") || eventName.equals("ARRIVED_HUB")) {
-                if (newStatus == ParcelStatus.ARRIVED_HUB || oldStatus != ParcelStatus.ARRIVED_HUB) {
+            // 🔔 if the parcel arrives at destination agency/hub
+            if (eventName.equals("ARRIVED_DESTINATION") || eventName.equals("ARRIVED_DEST_AGENCY") || eventName.equals("ARRIVED_HUB")) {
+                if (newStatus == ParcelStatus.ARRIVED_DEST_AGENCY || newStatus == ParcelStatus.ARRIVED_HUB) {
                     notificationService.notifyParcelArrivedDestination(parcel);
                 }
             }
@@ -190,29 +224,58 @@ public class ScanEventServiceImpl implements ScanEventService {
 
     // ================== STATUS AUTO-UPDATE ==================
     private ParcelStatus applyParcelStatusFromEvent(Parcel parcel, ScanEventType type) {
-        String name = type.name(); // ex: "ARRIVAL", "DEPARTURE", "DELIVERED_AT_DESTINATION"
+        if (type == null) return null;
 
-        // DELIVERED → colis livré
-        if (name.startsWith("DELIVERED") || name.equals("DELIVERED")) {
-            return ParcelStatus.DELIVERED;
+        return switch (type) {
+            case CREATED -> ParcelStatus.CREATED;
+            case ACCEPTED -> ParcelStatus.ACCEPTED;
+            case AT_ORIGIN_AGENCY -> ParcelStatus.ACCEPTED;
+            case TAKEN_IN_CHARGE -> ParcelStatus.TAKEN_IN_CHARGE;
+            case IN_TRANSIT -> ParcelStatus.IN_TRANSIT;
+            case ARRIVED_HUB -> ParcelStatus.ARRIVED_HUB;
+            case DEPARTED_HUB -> ParcelStatus.IN_TRANSIT;
+            case ARRIVED_DESTINATION, ARRIVED_DEST_AGENCY -> ParcelStatus.ARRIVED_DEST_AGENCY;
+            case OUT_FOR_DELIVERY -> ParcelStatus.OUT_FOR_DELIVERY;
+            case DELIVERED -> ParcelStatus.DELIVERED;
+            case PICKED_UP_AT_AGENCY -> ParcelStatus.PICKED_UP_AT_AGENCY;
+            case RETURNED_TO_SENDER -> ParcelStatus.RETURNED_TO_SENDER;
+            case RETURNED -> ParcelStatus.RETURNED;
+            case CANCELLED -> ParcelStatus.CANCELLED;
+
+            // Operational / audit events do not auto-change parcel status
+            case DELIVERY_FAILED, RESCHEDULED, OTP_SENT, OTP_VERIFIED, PROOF_CAPTURED -> null;
+        };
+    }
+
+    // Keep status progression consistent (same semantics as parcel module)
+    private void validateStatusTransition(ParcelStatus current, ParcelStatus next) {
+        if (current == next) return;
+
+        // final states: no transitions out
+        if (current == ParcelStatus.DELIVERED
+                || current == ParcelStatus.PICKED_UP_AT_AGENCY
+                || current == ParcelStatus.RETURNED_TO_SENDER
+                || current == ParcelStatus.RETURNED
+                || current == ParcelStatus.CANCELLED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Cannot change status from a final state: " + current
+            );
         }
 
-        // tout ce qui ressemble à ARRIVAL / DEPARTURE / OUT_FOR_DELIVERY => IN_TRANSIT
-        if (name.contains("ARRIVAL")
-                || name.contains("DEPARTURE")
-                || name.contains("TRANSIT")
-                || name.contains("OUT_FOR_DELIVERY")) {
-            if (parcel.getStatus().ordinal() < ParcelStatus.IN_TRANSIT.ordinal()) {
-                return ParcelStatus.IN_TRANSIT;
-            }
-            return parcel.getStatus();
+        // Cancel/Return always possible before final
+        if (next == ParcelStatus.CANCELLED
+                || next == ParcelStatus.RETURNED
+                || next == ParcelStatus.RETURNED_TO_SENDER) {
+            return;
         }
 
-        if (name.contains("RETURN")) {
-            return ParcelStatus.RETURNED;
+        if (next.ordinal() < current.ordinal()) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Invalid status transition: " + current + " -> " + next
+            );
         }
-
-        return null;
     }
 
     // ================== CURRENT USER ==================
@@ -229,7 +292,7 @@ public class ScanEventServiceImpl implements ScanEventService {
 
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            return userAccountRepository.findById(Objects.requireNonNull(userId, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND
@@ -262,6 +325,269 @@ public class ScanEventServiceImpl implements ScanEventService {
                 .timestamp(event.getTimestamp())
                 .locationNote(event.getLocationNote())
                 .parcelStatusAfter(parcel.getStatus())
+                // GPS fields
+                .latitude(event.getLatitude())
+                .longitude(event.getLongitude())
+                .locationSource(event.getLocationSource() != null ? event.getLocationSource().name() : null)
+                // Actor info
+                .actorId(event.getActorId())
+                .actorRole(event.getActorRole())
+                // Proof
+                .proofUrl(event.getProofUrl())
+                .comment(event.getComment())
+                // Sync status
+                .synced(event.isSynced())
                 .build();
+    }
+
+    // ================== OFFLINE SYNC (SPEC SECTION 11) ==================
+
+    /**
+     * Sync offline events - processes events that were recorded offline
+     * and syncs them to the server with proper ordering by deviceTimestamp.
+     */
+    @Override
+    public com.smartcampost.backend.dto.scan.OfflineSyncResponse syncOfflineEvents(
+            com.smartcampost.backend.dto.scan.OfflineSyncRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
+        Objects.requireNonNull(request.getEvents(), "events list is required");
+
+        UserAccount currentUser = getCurrentUser();
+        
+        // Clients are not allowed to sync operational scan events
+        if (currentUser.getRole() == UserRole.CLIENT) {
+            throw new AuthException(
+                    ErrorCode.BUSINESS_ERROR,
+                    "Not allowed to sync scan events"
+            );
+        }
+
+        final int totalEvents = request.getEvents().size();
+        final String batchId = (request.getBatchId() != null && !request.getBatchId().isBlank())
+                ? request.getBatchId()
+                : java.util.UUID.randomUUID().toString();
+
+        List<com.smartcampost.backend.dto.scan.OfflineSyncResponse.SyncedEvent> syncedEvents = 
+            new java.util.ArrayList<>();
+        List<com.smartcampost.backend.dto.scan.OfflineSyncResponse.FailedEvent> failedEvents = 
+            new java.util.ArrayList<>();
+
+        // Legacy failure format (kept for backward compatibility with existing frontend)
+        List<com.smartcampost.backend.dto.scan.OfflineSyncResponse.SyncFailure> failures =
+            new java.util.ArrayList<>();
+
+        // Sort events by deviceTimestamp to maintain correct order
+        List<ScanEventCreateRequest> sortedEvents = request.getEvents().stream()
+                .sorted((a, b) -> {
+                    Instant timeA = a.getDeviceTimestamp() != null ? a.getDeviceTimestamp() : Instant.now();
+                    Instant timeB = b.getDeviceTimestamp() != null ? b.getDeviceTimestamp() : Instant.now();
+                    return timeA.compareTo(timeB);
+                })
+                .collect(Collectors.toList());
+
+        for (int idx = 0; idx < sortedEvents.size(); idx++) {
+            ScanEventCreateRequest eventRequest = sortedEvents.get(idx);
+            try {
+                // Create the scan event with offline metadata
+                ScanEventResponse response = recordOfflineScanEvent(eventRequest, request.getDeviceId());
+                
+                syncedEvents.add(com.smartcampost.backend.dto.scan.OfflineSyncResponse.SyncedEvent.builder()
+                        .localId(eventRequest.getLocalId())
+                        .serverId(response.getId())
+                        .serverTimestamp(response.getTimestamp())
+                        .build());
+                        
+            } catch (Exception e) {
+                failedEvents.add(com.smartcampost.backend.dto.scan.OfflineSyncResponse.FailedEvent.builder()
+                        .localId(eventRequest.getLocalId())
+                        .error(e.getMessage())
+                        .retryable(isRetryableError(e))
+                        .build());
+
+                failures.add(com.smartcampost.backend.dto.scan.OfflineSyncResponse.SyncFailure.builder()
+                    .eventIndex(idx)
+                    .parcelId(eventRequest.getParcelId() != null ? eventRequest.getParcelId().toString() : null)
+                    .eventType(eventRequest.getEventType())
+                    .errorMessage(e.getMessage())
+                    .build());
+            }
+        }
+
+        return com.smartcampost.backend.dto.scan.OfflineSyncResponse.builder()
+                .batchId(batchId)
+                .totalEvents(totalEvents)
+                .successCount(syncedEvents.size())
+                .failureCount(failedEvents.size())
+                .failures(failures)
+                .syncedAt(Instant.now())
+                .syncedCount(syncedEvents.size())
+                .failedCount(failedEvents.size())
+                .syncedEvents(syncedEvents)
+                .failedEvents(failedEvents)
+                .serverTimestamp(Instant.now())
+                .build();
+    }
+
+    /**
+     * Record a scan event that was created offline.
+     */
+    private ScanEventResponse recordOfflineScanEvent(ScanEventCreateRequest request, String deviceId) {
+            UserAccount currentUser = getCurrentUser();
+
+            // Actor must be authoritative from authenticated context
+            final String actorId = currentUser.getEntityId() != null ? currentUser.getEntityId().toString() : null;
+            final String actorRole = currentUser.getRole() != null ? currentUser.getRole().name() : null;
+        Objects.requireNonNull(request.getParcelId(), "parcelId is required");
+        Objects.requireNonNull(request.getEventType(), "eventType is required");
+        Objects.requireNonNull(request.getLatitude(), "GPS latitude is mandatory");
+        Objects.requireNonNull(request.getLongitude(), "GPS longitude is mandatory");
+
+        UUID reqParcelId = request.getParcelId();
+        Parcel parcel = parcelRepository.findById(Objects.requireNonNull(reqParcelId, "parcelId is required"))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        Agency agency = null;
+        if (request.getAgencyId() != null) {
+            agency = agencyRepository.findById(Objects.requireNonNull(request.getAgencyId(), "agencyId is required"))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Agency not found",
+                    ErrorCode.AGENCY_NOT_FOUND
+                ));
+        }
+
+        Agent agent = null;
+        if (request.getAgentId() != null) {
+            agent = agentRepository.findById(Objects.requireNonNull(request.getAgentId(), "agentId is required"))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Agent not found",
+                    ErrorCode.AGENT_NOT_FOUND
+                ));
+        } else if (currentUser.getRole() == UserRole.AGENT) {
+            UUID currentEntityId = Objects.requireNonNull(currentUser.getEntityId(), "current user entityId is required");
+            agent = agentRepository.findById(currentEntityId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Agent not found for current user",
+                    ErrorCode.AGENT_NOT_FOUND
+                ));
+        }
+
+        ScanEventType type;
+        try {
+            type = ScanEventType.valueOf(request.getEventType().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new AuthException(
+                    ErrorCode.BUSINESS_ERROR,
+                    "Unknown scan event type: " + request.getEventType()
+            );
+        }
+
+        // Create event with offline metadata
+        ScanEvent event = ScanEvent.builder()
+                .id(UUID.randomUUID())
+                .parcel(parcel)
+                .agency(agency)
+                .agent(agent)
+                .eventType(type)
+                .timestamp(Instant.now())
+                .locationNote(request.getLocationNote())
+                // GPS data (mandatory)
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .locationSource(resolveLocationSource(request.getLocationSource()))
+                // Device timestamp for offline sync ordering
+                .deviceTimestamp(request.getDeviceTimestamp())
+                // Actor info
+                .actorId(actorId)
+                .actorRole(actorRole)
+                // Proof
+                .proofUrl(request.getProofUrl())
+                .comment(request.getComment())
+                // Offline sync metadata
+                .synced(true)
+                .offlineCreatedAt(request.getDeviceTimestamp())
+                .syncedAt(Instant.now())
+                .build();
+
+        @SuppressWarnings("null")
+        ScanEvent savedEvent = scanEventRepository.save(event);
+
+        // Update parcel status based on event
+        ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
+        if (newStatus != null) {
+            ParcelStatus oldStatus = parcel.getStatus();
+            validateStatusTransition(oldStatus, newStatus);
+            parcel.setStatus(newStatus);
+            parcelRepository.save(parcel);
+        }
+
+        return toResponse(savedEvent);
+    }
+
+    private LocationSource resolveLocationSource(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return LocationSource.DEVICE_GPS;
+        }
+
+        String normalized = raw.trim().toUpperCase();
+        if ("GPS".equals(normalized)) {
+            normalized = "DEVICE_GPS";
+        }
+        if ("MANUAL".equals(normalized)) {
+            normalized = "MANUAL_ENTRY";
+        }
+
+        try {
+            return LocationSource.valueOf(normalized);
+        } catch (IllegalArgumentException ex) {
+            return LocationSource.UNKNOWN;
+        }
+    }
+
+    /**
+     * Get the last scan event for a parcel.
+     */
+    @Override
+    public ScanEventResponse getLastScanEvent(UUID parcelId) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        
+        Parcel parcel = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found",
+                ErrorCode.PARCEL_NOT_FOUND
+            ));
+
+        // Access control
+        UserAccount user = getCurrentUser();
+        if (user.getRole() == UserRole.CLIENT
+            && !Objects.equals(parcel.getClient().getId(), user.getEntityId())) {
+            throw new AuthException(
+                    ErrorCode.BUSINESS_ERROR,
+                    "You cannot access this parcel's tracking"
+            );
+        }
+
+        return scanEventRepository.findTopByParcel_IdOrderByTimestampDesc(id)
+                .map(this::toResponse)
+                .orElse(null);
+    }
+
+    /**
+     * Determine if an error is retryable for offline sync.
+     */
+    private boolean isRetryableError(Exception e) {
+        // Network errors, timeouts are retryable
+        // Validation errors, not found errors are not retryable
+        if (e instanceof ResourceNotFoundException) {
+            return false;
+        }
+        if (e instanceof AuthException) {
+            return false;
+        }
+        // Database connectivity issues, etc. are retryable
+        return true;
     }
 }

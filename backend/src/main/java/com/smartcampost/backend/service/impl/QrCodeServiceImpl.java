@@ -25,6 +25,8 @@ import com.smartcampost.backend.model.DeliveryProof;
 import com.smartcampost.backend.model.Courier;
 import com.smartcampost.backend.model.Refund;
 import com.smartcampost.backend.model.enums.PaymentStatus;
+import com.smartcampost.backend.model.enums.QrStatus;
+import com.smartcampost.backend.model.QrVerificationToken;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PickupRequestRepository;
 import com.smartcampost.backend.repository.ScanEventRepository;
@@ -69,6 +71,39 @@ public class QrCodeServiceImpl implements QrCodeService {
     private static final int QR_HEIGHT = 300;
     private static final int TEMPORARY_QR_VALIDITY_HOURS = 48;
 
+        private static final int QR_PAYLOAD_VERSION = 1;
+
+        private String buildPartialQrJson(Parcel parcel) {
+                // Keep this in sync with frontend QRCodeScanner expectations.
+                // JSON is used for PARTIAL so scanners can extract both trackingRef and parcelId.
+                return String.format(
+                                "{\"trackingRef\":\"%s\",\"parcelId\":\"%s\",\"type\":\"SMARTCAMPOST_PARCEL\",\"version\":%d}",
+                                parcel.getTrackingRef(),
+                                parcel.getId(),
+                                QR_PAYLOAD_VERSION
+                );
+        }
+
+        private SecureQrPayload getOrCreateFinalPayload(Parcel parcel) {
+                // FINAL QR should be stable; reuse current token when available.
+                java.util.Optional<QrVerificationToken> existing = qrSecurityService.getValidTokenForParcel(parcel.getId());
+                if (existing.isPresent()) {
+                        QrVerificationToken token = existing.get();
+                        long ts = token.getCreatedAt() != null ? token.getCreatedAt().getEpochSecond() : Instant.now().getEpochSecond();
+                        String fullSig = token.getSignature();
+                        String truncatedSig = (fullSig != null && fullSig.length() > 16) ? fullSig.substring(0, 16) : fullSig;
+                        return SecureQrPayload.builder()
+                                        .version(QR_PAYLOAD_VERSION)
+                                        .type("P")
+                                        .token(token.getToken())
+                                        .ref(parcel.getTrackingRef())
+                                        .ts(ts)
+                                        .sig(truncatedSig)
+                                        .build();
+                }
+                return qrSecurityService.generatePermanentToken(parcel);
+        }
+
     // ==================== PERMANENT QR (PARCEL) ====================
 
     @Override
@@ -96,10 +131,14 @@ public class QrCodeServiceImpl implements QrCodeService {
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
-        
-        // Generate secure QR code with anti-forgery token
-        SecureQrPayload securePayload = qrSecurityService.generatePermanentToken(parcel);
-        return generateQrImage(securePayload.toCompactString());
+
+                // Two-step lifecycle: PARTIAL QR before validation, secure FINAL QR after lock.
+                if (parcel.isLocked() && parcel.getQrStatus() == QrStatus.FINAL) {
+                        SecureQrPayload securePayload = getOrCreateFinalPayload(parcel);
+                        return generateQrImage(securePayload.toCompactString());
+                }
+
+                return generateQrImage(buildPartialQrJson(parcel));
     }
 
     @Override
@@ -109,9 +148,13 @@ public class QrCodeServiceImpl implements QrCodeService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
-        // Generate secure QR code with anti-forgery token
-        SecureQrPayload securePayload = qrSecurityService.generatePermanentToken(parcel);
-        return generateQrImage(securePayload.toCompactString());
+                // Two-step lifecycle: PARTIAL QR before validation, secure FINAL QR after lock.
+                if (parcel.isLocked() && parcel.getQrStatus() == QrStatus.FINAL) {
+                        SecureQrPayload securePayload = getOrCreateFinalPayload(parcel);
+                        return generateQrImage(securePayload.toCompactString());
+                }
+
+                return generateQrImage(buildPartialQrJson(parcel));
     }
 
     // ==================== TEMPORARY QR (PICKUP) ====================
@@ -360,9 +403,15 @@ public class QrCodeServiceImpl implements QrCodeService {
                     .build();
         }).orElse(null);
 
-        // Generate secure QR code with anti-forgery token
-        SecureQrPayload securePayload = qrSecurityService.generatePermanentToken(parcel);
-        String qrImage = generateQrImage(securePayload.toCompactString());
+                // Two-step lifecycle: PARTIAL QR before validation, secure FINAL QR after lock.
+                final String qrContent;
+                if (parcel.isLocked() && parcel.getQrStatus() == QrStatus.FINAL) {
+                        SecureQrPayload securePayload = getOrCreateFinalPayload(parcel);
+                        qrContent = securePayload.toCompactString();
+                } else {
+                        qrContent = buildPartialQrJson(parcel);
+                }
+                String qrImage = generateQrImage(qrContent);
 
         return QrCodeData.builder()
                 .parcelId(parcel.getId())
@@ -443,9 +492,15 @@ public class QrCodeServiceImpl implements QrCodeService {
                 .sum();
         String paymentStatusLabel = totalPaid >= totalAmount ? "PAID" : "COD";
 
-        // Generate QR content (tracking URL)
-        String qrContent = "https://track.campost.cm/" + parcel.getTrackingRef();
-        String qrImage = generateQrImage(qrContent);
+                // Two-step lifecycle: PARTIAL QR before validation, secure FINAL QR after lock.
+                final String qrContent;
+                if (parcel.isLocked() && parcel.getQrStatus() == QrStatus.FINAL) {
+                        SecureQrPayload securePayload = getOrCreateFinalPayload(parcel);
+                        qrContent = securePayload.toCompactString();
+                } else {
+                        qrContent = buildPartialQrJson(parcel);
+                }
+                String qrImage = generateQrImage(qrContent);
 
         // Generate barcode (simplified - just tracking ref)
         String barcode = parcel.getTrackingRef().replace("-", "");

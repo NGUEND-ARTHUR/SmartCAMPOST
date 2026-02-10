@@ -13,4 +13,9 @@ public class EtaPredictionResponse {
     private String trackingRef;
     private Instant predictedDeliveryAt;
     private Double confidence; // 0-1
+
+    // Optional context derived from ScanEvents
+    private String lastEventType;
+    private Instant lastEventAt;
+    private String lastLocationNote;
 }

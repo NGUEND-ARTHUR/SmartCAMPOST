@@ -1,10 +1,14 @@
 export type ParcelStatus =
   | "CREATED"
   | "ACCEPTED"
+  | "TAKEN_IN_CHARGE"
   | "IN_TRANSIT"
   | "ARRIVED_HUB"
+  | "ARRIVED_DEST_AGENCY"
   | "OUT_FOR_DELIVERY"
   | "DELIVERED"
+  | "PICKED_UP_AT_AGENCY"
+  | "RETURNED_TO_SENDER"
   | "RETURNED"
   | "CANCELLED";
 
@@ -32,10 +36,14 @@ export type TransitionDecision =
 const parcelOrder: ParcelStatus[] = [
   "CREATED",
   "ACCEPTED",
+  "TAKEN_IN_CHARGE",
   "IN_TRANSIT",
   "ARRIVED_HUB",
+  "ARRIVED_DEST_AGENCY",
   "OUT_FOR_DELIVERY",
   "DELIVERED",
+  "PICKED_UP_AT_AGENCY",
+  "RETURNED_TO_SENDER",
   "RETURNED",
   "CANCELLED",
 ];
@@ -49,6 +57,8 @@ function parcelDecision(
   // final states: DELIVERED, RETURNED, CANCELLED
   if (
     current === "DELIVERED" ||
+    current === "PICKED_UP_AT_AGENCY" ||
+    current === "RETURNED_TO_SENDER" ||
     current === "RETURNED" ||
     current === "CANCELLED"
   ) {
@@ -59,7 +69,11 @@ function parcelDecision(
   }
 
   // Cancel/Return always possible before final
-  if (next === "CANCELLED" || next === "RETURNED") {
+  if (
+    next === "CANCELLED" ||
+    next === "RETURNED" ||
+    next === "RETURNED_TO_SENDER"
+  ) {
     return { allowed: true };
   }
 

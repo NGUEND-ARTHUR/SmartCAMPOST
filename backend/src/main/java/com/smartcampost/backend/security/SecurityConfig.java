@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -41,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers(
                             "/actuator/**",
                             "/api/payments/mtn/**",
+                            "/api/track/**",
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/send-otp",
@@ -97,10 +97,8 @@ public class SecurityConfig {
 
                         // ===================================================
                         //                 PARCEL MODULE
-                        //  Allow scan POSTs (tested via WebMvcTest) and require
-                        //  authentication for other parcel endpoints
+                        //  Require authentication for all parcel endpoints
                         // ===================================================
-                        .requestMatchers(HttpMethod.POST, "/api/parcels/*/scan").permitAll()
                         .requestMatchers("/api/parcels/**")
                         .authenticated()
 
@@ -136,10 +134,10 @@ public class SecurityConfig {
 
                         // ===================================================
                         //                 SCAN EVENTS (Tracking)
-                        //   Only AGENT / STAFF / ADMIN can scan
+                        //   AGENT / COURIER / STAFF / ADMIN can scan
                         // ===================================================
                         .requestMatchers("/api/scan-events/**")
-                        .hasAnyRole("ADMIN", "STAFF", "AGENT")
+                        .hasAnyRole("ADMIN", "STAFF", "AGENT", "COURIER")
 
                         // ===================================================
                         //                 NOTIFICATION MODULE

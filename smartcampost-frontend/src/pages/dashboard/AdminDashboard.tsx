@@ -1,13 +1,33 @@
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Package, Users, Truck, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardSummary } from "@/hooks";
 import { getErrorMessage } from "@/lib/errorHandler";
+import useScanSSE from "@/hooks/useScanSSE";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const { data, isLoading, error } = useDashboardSummary();
   const metrics = data?.metrics ?? {};
+
+  const [liveScans, setLiveScans] = useState<any[]>([]);
+
+  const onScanEvent = useCallback((evt: any) => {
+    setLiveScans((prev) => [evt, ...prev].slice(0, 10));
+  }, []);
+
+  useScanSSE(onScanEvent);
+
+  const normalizedLiveScans = useMemo(() => {
+    return liveScans.map((e) => {
+      const parcelId = e?.parcelId ?? e?.parcel?.id ?? e?.parcel?.parcelId;
+      const eventType = e?.eventType ?? e?.scanType ?? "SCAN";
+      const timestamp = e?.timestamp ?? e?.deviceTimestamp ?? e?.syncedAt;
+      const locationNote = e?.locationNote ?? e?.address ?? "";
+      return { parcelId, eventType, timestamp, locationNote };
+    });
+  }, [liveScans]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -121,6 +141,40 @@ export default function AdminDashboard() {
             </Card>
           </div>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Scans</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {normalizedLiveScans.length === 0 ? (
+              <div className="text-sm text-muted-foreground">
+                Waiting for scan events…
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {normalizedLiveScans.map((e, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-sm">
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {e.eventType}{" "}
+                        {e.parcelId ? `• ${String(e.parcelId).slice(0, 8)}` : ""}
+                      </span>
+                      {e.locationNote ? (
+                        <span className="text-muted-foreground truncate max-w-xl">
+                          {e.locationNote}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="text-muted-foreground">
+                      {e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : ""}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +39,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse getClientById(@NonNull UUID clientId) {
+        public ClientResponse getClientById(UUID clientId) {
         Objects.requireNonNull(clientId, "clientId is required");
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -58,16 +57,17 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponse updateMyPreferredLanguage(@NonNull UpdatePreferredLanguageRequest request) {
+    public ClientResponse updateMyPreferredLanguage(UpdatePreferredLanguageRequest request) {
         Objects.requireNonNull(request, "request is required");
         Client client = getCurrentClient();
         client.setPreferredLanguage(request.getPreferredLanguage());
-        Client savedClient = Objects.requireNonNull(clientRepository.save(client), "failed to save client");
+        @SuppressWarnings("null")
+        Client savedClient = clientRepository.save(client);
         return toResponse(savedClient);
     }
 
     @Override
-    public ClientResponse updateMyProfile(@NonNull UpdateClientProfileRequest request) {
+    public ClientResponse updateMyProfile(UpdateClientProfileRequest request) {
         Objects.requireNonNull(request, "request is required");
 
         // Récupérer l'utilisateur et le client courant
@@ -124,7 +124,8 @@ public class ClientServiceImpl implements ClientService {
             client.setPreferredLanguage(request.getPreferredLanguage());
         }
 
-        Client savedClient = Objects.requireNonNull(clientRepository.save(client), "failed to save client");
+        @SuppressWarnings("null")
+        Client savedClient = clientRepository.save(client);
 
         return toResponse(savedClient);
     }
@@ -162,7 +163,7 @@ public class ClientServiceImpl implements ClientService {
         // On essaie d'abord comme UUID (userId), sinon comme phone
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            return userAccountRepository.findById(Objects.requireNonNull(userId, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND

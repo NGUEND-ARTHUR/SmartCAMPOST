@@ -8,4 +8,9 @@ import java.util.UUID;
 public class DeliveryOtpVerificationRequest {
     private UUID parcelId;
     private String otpCode;
+
+    // GPS is mandatory for audit ScanEvents
+    private Double latitude;
+    private Double longitude;
+    private String notes;
 }

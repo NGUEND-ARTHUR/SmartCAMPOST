@@ -17,6 +17,8 @@ export interface ParcelResponse {
   paymentOption?: string;
   photoUrl?: string;
   descriptionComment?: string;
+  qrStatus?: "PARTIAL" | "FINAL";
+  locked?: boolean;
   createdAt: string;
   expectedDeliveryAt?: string;
 }
@@ -29,6 +31,10 @@ export interface ParcelDetailResponse {
   deliveryOption: string;
   paymentOption?: string;
   descriptionComment?: string;
+  qrStatus?: "PARTIAL" | "FINAL";
+  locked?: boolean;
+  partialQrCode?: string;
+  finalQrCode?: string;
   weight: number;
   dimensions?: string;
   declaredValue?: number;
@@ -101,6 +107,13 @@ export interface CreateParcelRequest {
 
 export interface UpdateParcelStatusRequest {
   status: string;
+  latitude: number;
+  longitude: number;
+  locationSource?: string;
+  deviceTimestamp?: string;
+  locationNote?: string;
+  comment?: string;
+  proofUrl?: string;
 }
 
 export interface ChangeDeliveryOptionRequest {
@@ -129,6 +142,29 @@ export interface AcceptParcelRequest {
   descriptionConfirmed: boolean;
   /** If true and weight differs, recalculate price */
   recalculatePriceOnWeightChange?: boolean;
+
+  // Mandatory GPS fields
+  latitude: number;
+  longitude: number;
+  locationSource?: string;
+  deviceTimestamp?: string;
+  locationNote?: string;
+}
+
+/**
+ * Request for correcting parcel data before validation.
+ * Only allowed when parcel is not yet locked (qrStatus = PARTIAL).
+ */
+export interface ParcelCorrectionRequest {
+  description?: string;
+  weight?: number;
+  dimensions?: string;
+  declaredValue?: number;
+  deliveryOption?: string;
+  serviceType?: string;
+  fragile?: boolean;
+  descriptionComment?: string;
+  correctionReason?: string;
 }
 
 // ---- Service ----
@@ -181,6 +217,40 @@ export const parcelService = {
     data: AcceptParcelRequest,
   ): Promise<ParcelResponse> {
     return httpClient.patch(`/parcels/${id}/validate`, data);
+  },
+
+  /**
+   * Validate parcel and generate final QR code.
+   * Locks the parcel after validation.
+   * GPS coordinates are MANDATORY.
+   */
+  validateAndLock(
+    id: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<ParcelResponse> {
+    return httpClient.post(
+      `/parcels/${id}/validate-and-lock?latitude=${latitude}&longitude=${longitude}`,
+      {},
+    );
+  },
+
+  /**
+   * Correct parcel data before validation.
+   * Only allowed when parcel is not yet locked.
+   */
+  correctBeforeValidation(
+    id: string,
+    data: ParcelCorrectionRequest,
+  ): Promise<ParcelResponse> {
+    return httpClient.patch(`/parcels/${id}/correct`, data);
+  },
+
+  /**
+   * Check if parcel can be corrected (not yet locked).
+   */
+  canCorrect(id: string): Promise<{ canCorrect: boolean }> {
+    return httpClient.get(`/parcels/${id}/can-correct`);
   },
 
   changeDeliveryOption(

@@ -7,34 +7,45 @@ import java.util.UUID;
 
 public interface ParcelService {
 
-    // US20: client crée un colis
+    // US20: client creates a parcel (generates partial QR)
     ParcelResponse createParcel(CreateParcelRequest request);
 
-    // Détail par ID (admin/staff ou client propriétaire)
+    // Detail by ID (admin/staff or owner client)
     ParcelDetailResponse getParcelById(UUID parcelId);
 
-    // Détail par tracking (client ou admin)
+    // Detail by tracking (client or admin)
     ParcelDetailResponse getParcelByTracking(String trackingRef);
 
-    // Liste des colis du client connecté
+    // List parcels for connected client
     Page<ParcelResponse> listMyParcels(int page, int size);
 
-    // Liste globale (admin/staff)
+    // Global list (admin/staff)
     Page<ParcelResponse> listParcels(int page, int size);
 
-    // US21: mise à jour du statut
+    // US21: update status (requires ScanEvent)
     ParcelResponse updateParcelStatus(UUID parcelId, UpdateParcelStatusRequest request);
 
-    // 🔥 SPRINT 14: accepter un colis (CREATED -> ACCEPTED) - simple version
+    // Accept parcel (CREATED -> ACCEPTED) - simple version
     ParcelResponse acceptParcel(UUID parcelId);
 
-    // 🔥 SPRINT 15: accepter un colis avec validation complète
-    // Agent/Courier validates description, weight, adds photo and comments
+    // Accept parcel with full validation
     ParcelResponse acceptParcelWithValidation(UUID parcelId, AcceptParcelRequest request);
 
-    // 🔥 SPRINT 14: changer l’option de livraison (AGENCY ↔ HOME)
+    // Change delivery option (AGENCY <-> HOME)
     ParcelResponse changeDeliveryOption(UUID parcelId, ChangeDeliveryOptionRequest request);
 
-    // 🔥 SPRINT 14: mettre à jour les métadonnées (photo + commentaire)
+    // Update metadata (photo + comment)
     ParcelResponse updateParcelMetadata(UUID parcelId, UpdateParcelMetadataRequest request);
+
+    // Pre-validation corrections (only when not locked)
+    ParcelResponse correctParcelBeforeValidation(UUID parcelId, ParcelCorrectionRequest request);
+
+    // Validate parcel and generate final QR code (GPS required)
+    ParcelResponse validateAndLockParcel(UUID parcelId, Double latitude, Double longitude);
+
+    // Admin-only exceptional override after lock (audited)
+    ParcelResponse adminOverrideLockedParcel(UUID parcelId, AdminParcelOverrideRequest request);
+
+    // Check if parcel can be corrected
+    boolean canCorrectParcel(UUID parcelId);
 }

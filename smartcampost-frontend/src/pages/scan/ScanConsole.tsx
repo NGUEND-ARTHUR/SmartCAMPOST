@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
+import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
 
 interface ScanEvent {
   id: string;
@@ -49,6 +50,20 @@ export default function ScanConsole() {
 
   const recordScan = useRecordScanEvent();
 
+  const getGpsOrThrow = async () => {
+    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      });
+    });
+    return {
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+    };
+  };
+
   useEffect(() => {
     // Auto-focus the barcode input
     inputRef.current?.focus();
@@ -60,11 +75,23 @@ export default function ScanConsole() {
       return;
     }
 
+    let gps: { latitude: number; longitude: number };
+    try {
+      gps = await getGpsOrThrow();
+    } catch {
+      toast.error("GPS is required to record scan events");
+      return;
+    }
+
     recordScan.mutate(
       {
         parcelId: barcode,
         eventType: selectedStatus,
         locationNote: location,
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        locationSource: "DEVICE_GPS",
+        deviceTimestamp: new Date().toISOString(),
       },
       {
         onSuccess: () => {
@@ -117,52 +144,94 @@ export default function ScanConsole() {
   const handleQRScan = (result: {
     success: boolean;
     data?: { trackingRef: string; parcelId?: string };
+    rawText?: string;
   }) => {
     if (!result.success || !result.data) return;
 
     const trackingRef = result.data.trackingRef;
     setBarcode(trackingRef);
 
-    // Auto-submit the scan
-    recordScan.mutate(
-      {
-        parcelId: result.data.parcelId || trackingRef,
-        eventType: selectedStatus,
-        locationNote: location,
-      },
-      {
-        onSuccess: () => {
-          const newScan: ScanEvent = {
-            id: Date.now().toString(),
-            trackingNumber: trackingRef,
-            timestamp: new Date().toISOString(),
-            status: selectedStatus,
-            success: true,
-          };
-          setScanHistory([newScan, ...scanHistory]);
-          toast.success(t("scan.success.qrScanned", { trackingRef }), {
-            description: t("scan.success.eventType", {
+    // Auto-submit the scan (GPS required)
+    void (async () => {
+      let gps: { latitude: number; longitude: number };
+      try {
+        gps = await getGpsOrThrow();
+      } catch {
+        toast.error("GPS is required to record scan events");
+        return;
+      }
+
+      // If this is a secure FINAL QR payload, verify with backend first.
+      // We must obtain parcelId (UUID) from the verification response.
+      let parcelIdForScan = result.data?.parcelId;
+      const raw = result.rawText || "";
+      if (raw.startsWith("V1|")) {
+        try {
+          const verification = await verifyQrCodeContent(raw);
+          if (!verification.valid || !verification.parcelId) {
+            toast.error("QR verification failed", {
+              description: verification.message,
+            });
+            return;
+          }
+          parcelIdForScan = verification.parcelId;
+        } catch (e) {
+          toast.error("QR verification failed");
+          return;
+        }
+      }
+
+      if (!parcelIdForScan) {
+        toast.error("Missing parcelId in QR code");
+        return;
+      }
+
+      recordScan.mutate(
+        {
+          parcelId: parcelIdForScan,
+          eventType: selectedStatus,
+          locationNote: location,
+          latitude: gps.latitude,
+          longitude: gps.longitude,
+          locationSource: "DEVICE_GPS",
+          deviceTimestamp: new Date().toISOString(),
+        },
+        {
+          onSuccess: () => {
+            const newScan: ScanEvent = {
+              id: Date.now().toString(),
+              trackingNumber: trackingRef,
+              timestamp: new Date().toISOString(),
               status: selectedStatus,
-            }),
-          });
-          setBarcode("");
+              success: true,
+            };
+            setScanHistory([newScan, ...scanHistory]);
+            toast.success(t("scan.success.qrScanned", { trackingRef }), {
+              description: t("scan.success.eventType", {
+                status: selectedStatus,
+              }),
+            });
+            setBarcode("");
+          },
+          onError: (error) => {
+            const newScan: ScanEvent = {
+              id: Date.now().toString(),
+              trackingNumber: trackingRef,
+              timestamp: new Date().toISOString(),
+              status: selectedStatus,
+              success: false,
+            };
+            setScanHistory([newScan, ...scanHistory]);
+            toast.error(t("scan.error.failed"), {
+              description:
+                error instanceof Error
+                  ? error.message
+                  : t("scan.error.unknown"),
+            });
+          },
         },
-        onError: (error) => {
-          const newScan: ScanEvent = {
-            id: Date.now().toString(),
-            trackingNumber: trackingRef,
-            timestamp: new Date().toISOString(),
-            status: selectedStatus,
-            success: false,
-          };
-          setScanHistory([newScan, ...scanHistory]);
-          toast.error(t("scan.error.failed"), {
-            description:
-              error instanceof Error ? error.message : t("scan.error.unknown"),
-          });
-        },
-      },
-    );
+      );
+    })();
   };
 
   return (

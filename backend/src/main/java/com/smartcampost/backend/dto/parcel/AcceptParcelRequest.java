@@ -1,6 +1,9 @@
 package com.smartcampost.backend.dto.parcel;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.time.Instant;
 
 /**
  * Request DTO for accepting/validating a parcel.
@@ -53,4 +56,17 @@ public class AcceptParcelRequest {
      * Default: false (no automatic price recalculation).
      */
     private boolean recalculatePriceOnWeightChange;
+
+    // -------------------
+    // GPS is mandatory (ScanEvent is required for ACCEPTED transition)
+    // -------------------
+    @NotNull(message = "latitude is required - GPS must be enabled")
+    private Double latitude;
+
+    @NotNull(message = "longitude is required - GPS must be enabled")
+    private Double longitude;
+
+    private String locationSource;
+    private Instant deviceTimestamp;
+    private String locationNote;
 }

@@ -81,7 +81,9 @@ public class DeliveryReceiptServiceImpl implements DeliveryReceiptService {
                 .build();
 
         // Save the receipt
-        receipt = Objects.requireNonNull(receiptRepository.save(receipt), "failed to save receipt");
+        @SuppressWarnings("null")
+        DeliveryReceipt savedReceipt = receiptRepository.save(receipt);
+        receipt = savedReceipt;
         log.info("Generated delivery receipt {} for parcel {}", receiptNumber, parcel.getTrackingRef());
 
         return mapToResponse(receipt, parcel, proof);

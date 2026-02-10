@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { invoiceService, type InvoiceResponse } from "@/services";
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceResponse[]>([]);
 
   const fetchInvoices = React.useCallback(async () => {
     try {
-      const res = await fetch("/api/invoices/me");
-      if (res.ok) setInvoices(await res.json());
+      const data = await invoiceService.listMine();
+      setInvoices(Array.isArray(data) ? data : []);
     } catch (e) {
       console.warn(e);
     }
@@ -29,13 +30,13 @@ export default function InvoicesPage() {
       <h2 className="text-xl font-semibold">My Invoices</h2>
       <ul className="mt-4">
         {invoices.map((inv) => (
-          <li key={inv.invoiceId} className="border p-3 mb-2">
+          <li key={inv.id} className="border p-3 mb-2">
             <div>Invoice: {inv.invoiceNumber}</div>
             <div>Total: {inv.totalAmount}</div>
             <div>
               <a
                 className="text-blue-600"
-                href={`/api/invoices/${inv.invoiceId}/pdf`}
+                href={invoiceService.pdfUrl(inv.id)}
               >
                 Download PDF
               </a>

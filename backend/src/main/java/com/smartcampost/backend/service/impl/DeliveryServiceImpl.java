@@ -5,7 +5,10 @@ import com.smartcampost.backend.dto.delivery.StartDeliveryResponse;
 import com.smartcampost.backend.dto.delivery.CompleteDeliveryRequest;
 import com.smartcampost.backend.dto.delivery.CompleteDeliveryResponse;
 import com.smartcampost.backend.dto.delivery.DeliveryStatusResponse;
+import com.smartcampost.backend.dto.delivery.PickupAtAgencyRequest;
+import com.smartcampost.backend.dto.delivery.PickupAtAgencyResponse;
 import com.smartcampost.backend.dto.delivery.RescheduleDeliveryRequest;
+import com.smartcampost.backend.dto.delivery.ReturnToSenderRequest;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
@@ -19,7 +22,6 @@ import com.smartcampost.backend.model.PricingDetail;
 import com.smartcampost.backend.model.Payment;
 import com.smartcampost.backend.model.DeliveryAttempt;
 import com.smartcampost.backend.model.Agency;
-import com.smartcampost.backend.model.ScanEvent;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.PaymentMethod;
@@ -34,13 +36,14 @@ import com.smartcampost.backend.repository.DeliveryProofRepository;
 import com.smartcampost.backend.repository.PricingDetailRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
-import com.smartcampost.backend.repository.ScanEventRepository;
 import com.smartcampost.backend.repository.DeliveryAttemptRepository;
 import com.smartcampost.backend.service.DeliveryOtpService;
 import com.smartcampost.backend.service.DeliveryService;
 import com.smartcampost.backend.service.DeliveryProofService;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.DeliveryReceiptService;
+import com.smartcampost.backend.service.ScanEventService;
+import com.smartcampost.backend.dto.scan.ScanEventCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -66,8 +69,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final PricingDetailRepository pricingDetailRepository;
     private final PaymentRepository paymentRepository;
     private final UserAccountRepository userAccountRepository;
-    private final ScanEventRepository scanEventRepository;
     private final DeliveryAttemptRepository deliveryAttemptRepository;
+
+    private final ScanEventService scanEventService;
 
     private final DeliveryOtpService deliveryOtpService;
     private final DeliveryProofService deliveryProofService;
@@ -94,13 +98,26 @@ public class DeliveryServiceImpl implements DeliveryService {
                     "Courier not found", ErrorCode.COURIER_NOT_FOUND));
         }
 
-        // Update parcel status to OUT_FOR_DELIVERY
-        parcel.setStatus(ParcelStatus.OUT_FOR_DELIVERY);
-        Parcel savedParcel = parcelRepository.save(parcel);
-        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
+        // Enforce: status transition must be backed by a ScanEvent (GPS required)
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to start delivery");
+        }
 
-        // Record scan event
-        recordScanEvent(parcel, ScanEventType.OUT_FOR_DELIVERY, request.getNotes());
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcel.getId());
+        evt.setEventType(ScanEventType.OUT_FOR_DELIVERY.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationNote(request.getNotes());
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        scanEventService.recordScanEvent(evt);
+
+        // Reload parcel (status is updated by ScanEventService)
+        UUID pid = Objects.requireNonNull(parcel.getId(), "parcel.id is required");
+        parcel = parcelRepository.findById(pid)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Send OTP to recipient for home delivery
         // Use the client's phone since Address doesn't have phone
@@ -115,6 +132,16 @@ public class DeliveryServiceImpl implements DeliveryService {
                 deliveryOtpService.sendDeliveryOtp(parcel.getId(), clientPhone);
                 otpSent = true;
                 otpSentTo = maskPhoneNumber(clientPhone);
+
+                recordOperationalEvent(
+                        parcel.getId(),
+                        ScanEventType.OTP_SENT,
+                        request.getLatitude(),
+                        request.getLongitude(),
+                        request.getNotes(),
+                        "OTP_SENT",
+                        null
+                );
             } catch (Exception e) {
                 log.warn("Failed to send delivery OTP: {}", e.getMessage());
             }
@@ -163,6 +190,36 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryOtpService.sendDeliveryOtp(id, client.getPhone());
     }
 
+    @Override
+    public void sendDeliveryOtp(UUID parcelId, Double latitude, Double longitude, String notes) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        if (latitude == null || longitude == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to send OTP");
+        }
+
+        Parcel parcel = parcelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        Client client = parcel.getClient();
+        if (client == null || client.getPhone() == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR,
+                    "Recipient phone number not available");
+        }
+
+        deliveryOtpService.sendDeliveryOtp(id, client.getPhone());
+
+        recordOperationalEvent(
+                parcel.getId(),
+                ScanEventType.OTP_SENT,
+                latitude,
+                longitude,
+                notes,
+                "OTP_SENT",
+                null
+        );
+    }
+
     // ==================== COMPLETE DELIVERY ====================
 
     @Override
@@ -180,6 +237,11 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         Instant now = Instant.now();
         UserAccount currentUser = getCurrentUser();
+
+        // Enforce: status transition and operational events must be backed by GPS
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to complete delivery");
+        }
 
         // Verify OTP for home delivery
         if (parcel.getDeliveryOption() == DeliveryOption.HOME) {
@@ -206,6 +268,16 @@ public class DeliveryServiceImpl implements DeliveryService {
         DeliveryProof proof = deliveryProofService.captureProof(
                 parcel.getId(), proofType, proofDetails, capturedBy);
 
+        recordOperationalEvent(
+            parcel.getId(),
+            ScanEventType.PROOF_CAPTURED,
+            request.getLatitude(),
+            request.getLongitude(),
+            request.getNotes(),
+            "PROOF_CAPTURED",
+            request.getPhotoUrl()
+        );
+
         // Handle COD payment if needed
         UUID paymentId = null;
         if (request.isPaymentCollected() && request.getAmountCollected() != null) {
@@ -220,13 +292,22 @@ public class DeliveryServiceImpl implements DeliveryService {
             }
         }
 
-        // Update parcel status to DELIVERED
-        parcel.setStatus(ParcelStatus.DELIVERED);
-        Parcel savedParcel = parcelRepository.save(parcel);
-        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcel.getId());
+        evt.setEventType(ScanEventType.DELIVERED.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationNote(request.getNotes());
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        evt.setProofUrl(request.getPhotoUrl());
+        evt.setComment("DELIVERY_COMPLETED");
+        scanEventService.recordScanEvent(evt);
 
-        // Record scan event
-        recordScanEvent(parcel, ScanEventType.DELIVERED, request.getNotes());
+        UUID refreshedParcelId = Objects.requireNonNull(parcel.getId(), "parcel.id is required");
+        parcel = parcelRepository.findById(refreshedParcelId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Notify client
         notificationService.notifyParcelDelivered(parcel);
@@ -349,26 +430,31 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional
-    public DeliveryStatusResponse markDeliveryFailed(UUID parcelId, String reason) {
+    public DeliveryStatusResponse markDeliveryFailed(UUID parcelId, String reason, Double latitude, Double longitude, String notes) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        if (latitude == null || longitude == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to mark delivery failed");
+        }
+
         Parcel parcel = parcelRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Record the failed delivery attempt
-        int attemptNumber = recordDeliveryAttempt(parcel, null, 
-                DeliveryAttemptResult.FAILED_OTHER, reason, null, null, null);
+        int attemptNumber = recordDeliveryAttempt(parcel, null,
+                DeliveryAttemptResult.FAILED_OTHER, reason, latitude, longitude, notes);
 
-        // Record scan event
-        recordScanEvent(parcel, ScanEventType.ARRIVED_DESTINATION,
-                "Delivery attempt #" + attemptNumber + " failed: " + reason);
-
-        // Parcel stays at OUT_FOR_DELIVERY or goes back to ARRIVED_HUB
-        if (parcel.getStatus() == ParcelStatus.OUT_FOR_DELIVERY) {
-            parcel.setStatus(ParcelStatus.ARRIVED_HUB);
-            Parcel saved = parcelRepository.save(parcel);
-            parcel = Objects.requireNonNull(saved, "failed to save parcel");
-        }
+        // Record operational scan event (does not change status)
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcel.getId());
+        evt.setEventType(ScanEventType.DELIVERY_FAILED.name());
+        evt.setLatitude(latitude);
+        evt.setLongitude(longitude);
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        evt.setLocationNote(notes);
+        evt.setComment(reason);
+        scanEventService.recordScanEvent(evt);
 
         // Notify recipient about failed delivery attempt
         try {
@@ -392,13 +478,28 @@ public class DeliveryServiceImpl implements DeliveryService {
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to reschedule delivery");
+        }
+
         // Update expected delivery date
         if (request.getNewDate() != null) {
                 parcel.setExpectedDeliveryAt(
                     request.getNewDate().atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-                Parcel saved = parcelRepository.save(parcel);
-                if (saved == null) throw new IllegalStateException("failed to save parcel");
+            parcelRepository.save(parcel);
         }
+
+        // Record operational scan event (does not change status)
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcel.getId());
+        evt.setEventType(ScanEventType.RESCHEDULED.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        evt.setLocationNote(request.getDeliveryNotes());
+        evt.setComment(request.getReason());
+        scanEventService.recordScanEvent(evt);
 
         log.info("Delivery rescheduled for parcel {} to {}",
             id, request.getNewDate());
@@ -411,6 +512,126 @@ public class DeliveryServiceImpl implements DeliveryService {
         }
 
         return getDeliveryStatus(id);
+    }
+
+    // ==================== PICKUP AT AGENCY ====================
+
+    @Override
+    @Transactional
+    public PickupAtAgencyResponse pickupAtAgency(PickupAtAgencyRequest request) {
+        Objects.requireNonNull(request, "request is required");
+        Parcel parcel = getParcel(request.getParcelId(), request.getTrackingRef());
+
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to pickup at agency");
+        }
+        if (request.getOtpCode() == null || request.getOtpCode().isBlank()) {
+            throw new AuthException(ErrorCode.OTP_INVALID, "OTP code is required");
+        }
+
+        if (parcel.getDeliveryOption() != DeliveryOption.AGENCY) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "Parcel is not configured for agency pickup");
+        }
+        if (parcel.getStatus() != ParcelStatus.ARRIVED_DEST_AGENCY) {
+            throw new AuthException(ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel must be ARRIVED_DEST_AGENCY to pickup. Current: " + parcel.getStatus());
+        }
+
+        boolean otpValid = deliveryOtpService.validateDeliveryOtp(parcel.getId(), request.getOtpCode());
+        if (!otpValid) {
+            throw new AuthException(ErrorCode.OTP_INVALID, "Invalid OTP code");
+        }
+
+        recordOperationalEvent(
+                parcel.getId(),
+                ScanEventType.OTP_VERIFIED,
+                request.getLatitude(),
+                request.getLongitude(),
+                request.getNotes(),
+                "OTP_VERIFIED",
+                null
+        );
+
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcel.getId());
+        evt.setEventType(ScanEventType.PICKED_UP_AT_AGENCY.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        evt.setLocationNote(request.getNotes());
+        evt.setComment("PICKUP_AT_AGENCY");
+        scanEventService.recordScanEvent(evt);
+
+        UUID refreshedParcelId = Objects.requireNonNull(parcel.getId(), "parcel.id is required");
+        Parcel updated = parcelRepository.findById(refreshedParcelId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        return PickupAtAgencyResponse.builder()
+                .parcelId(updated.getId())
+                .trackingRef(updated.getTrackingRef())
+                .status(updated.getStatus().name())
+                .otpVerified(true)
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .pickedUpAt(Instant.now())
+                .build();
+    }
+
+    // ==================== RETURN TO SENDER ====================
+
+    @Override
+    @Transactional
+    public DeliveryStatusResponse returnToSender(UUID parcelId, ReturnToSenderRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(request, "request is required");
+
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to return to sender");
+        }
+
+        Parcel parcel = parcelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcel.getId());
+        evt.setEventType(ScanEventType.RETURNED_TO_SENDER.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        evt.setLocationNote(request.getNotes());
+        evt.setComment(request.getReason());
+        scanEventService.recordScanEvent(evt);
+
+        return getDeliveryStatus(id);
+    }
+
+    private void recordOperationalEvent(
+            UUID parcelId,
+            ScanEventType type,
+            Double latitude,
+            Double longitude,
+            String notes,
+            String comment,
+            String proofUrl
+    ) {
+        if (latitude == null || longitude == null) {
+            throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required");
+        }
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(parcelId);
+        evt.setEventType(type.name());
+        evt.setLatitude(latitude);
+        evt.setLongitude(longitude);
+        evt.setLocationSource("DEVICE_GPS");
+        evt.setDeviceTimestamp(Instant.now());
+        evt.setLocationNote(notes);
+        evt.setComment(comment);
+        evt.setProofUrl(proofUrl);
+        scanEventService.recordScanEvent(evt);
     }
 
     // ==================== PRIVATE HELPERS ====================
@@ -446,22 +667,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         }
     }
 
-    private void recordScanEvent(Parcel parcel, ScanEventType eventType, String notes) {
-        try {
-            ScanEvent event = ScanEvent.builder()
-                    .id(UUID.randomUUID())
-                    .parcel(parcel)
-                    .eventType(eventType)
-                    .timestamp(Instant.now())
-                    .locationNote(notes)
-                    .build();
-            ScanEvent saved = scanEventRepository.save(event);
-            event = Objects.requireNonNull(saved, "failed to save scan event");
-        } catch (Exception e) {
-            log.warn("Failed to record scan event: {}", e.getMessage());
-        }
-    }
-
     private String buildProofDetails(CompleteDeliveryRequest request) {
         StringBuilder details = new StringBuilder();
         if (request.getReceiverName() != null) {
@@ -484,10 +689,14 @@ public class DeliveryServiceImpl implements DeliveryService {
         return switch (parcel.getStatus()) {
             case CREATED -> "Pending acceptance";
             case ACCEPTED -> "At origin agency";
+            case TAKEN_IN_CHARGE -> "Taken in charge";
             case IN_TRANSIT -> "In transit";
             case ARRIVED_HUB -> "At destination agency";
+            case ARRIVED_DEST_AGENCY -> "At destination agency";
             case OUT_FOR_DELIVERY -> "Out for delivery";
             case DELIVERED -> "Delivered";
+            case PICKED_UP_AT_AGENCY -> "Picked up at agency";
+            case RETURNED_TO_SENDER -> "Returned to sender";
             case RETURNED -> "Returned to sender";
             case CANCELLED -> "Cancelled";
         };
@@ -520,7 +729,8 @@ public class DeliveryServiceImpl implements DeliveryService {
      */
     private int recordDeliveryAttempt(Parcel parcel, Courier courier, DeliveryAttemptResult result,
                                        String failureReason, Double latitude, Double longitude, String notes) {
-        int attemptNumber = deliveryAttemptRepository.countByParcel_Id(parcel.getId()) + 1;
+        UUID parcelId = Objects.requireNonNull(parcel.getId(), "parcel.id is required");
+        int attemptNumber = deliveryAttemptRepository.countByParcel_Id(parcelId) + 1;
 
         DeliveryAttempt attempt = DeliveryAttempt.builder()
                 .parcel(parcel)
@@ -533,8 +743,9 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .notes(notes)
                 .attemptedAt(Instant.now())
                 .build();
-        DeliveryAttempt savedAttempt = deliveryAttemptRepository.save(attempt);
-        attempt = Objects.requireNonNull(savedAttempt, "failed to save delivery attempt");
+            @SuppressWarnings("null")
+            DeliveryAttempt savedAttempt = deliveryAttemptRepository.save(attempt);
+            attempt = savedAttempt;
         log.info("Recorded delivery attempt #{} for parcel {} - result: {}", 
                 attemptNumber, parcel.getTrackingRef(), result);
 
@@ -550,7 +761,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         String subject = auth.getName();
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            return userAccountRepository.findById(Objects.requireNonNull(userId, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found", ErrorCode.AUTH_USER_NOT_FOUND));
         } catch (IllegalArgumentException ex) {

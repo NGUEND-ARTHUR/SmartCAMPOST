@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useConfirmPickup } from "@/hooks";
+import { useConfirmPickup, usePickup, useGeolocation } from "@/hooks";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -22,18 +22,13 @@ export default function PickupDetail() {
   const [signature, setSignature] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const pickup = {
-    pickupNumber: "PU123456",
-    requester: "ACME Corp",
-    contact: "+33 6 12 34 56 78",
-    location: "789 Market St",
-    scheduled: "2026-01-15 10:30",
-    items: [
-      { name: "Box A", qty: 2 },
-      { name: "Envelope B", qty: 5 },
-    ],
-    instructions: "Call upon arrival",
-  };
+  const pickupId = id ?? "";
+  const { data: pickup, isLoading, error } = usePickup(pickupId);
+  const { getCurrent } = useGeolocation(false);
+
+  const scheduledText = pickup?.requestedDate
+    ? `${new Date(pickup.requestedDate).toLocaleDateString()}${pickup.timeWindow ? ` (${pickup.timeWindow})` : ""}`
+    : "—";
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,16 +42,24 @@ export default function PickupDetail() {
     // Confirm pickup via API if possible
     (async () => {
       try {
+        const pos = await getCurrent();
+        const latitude = pos.coords.latitude;
+        const longitude = pos.coords.longitude;
+
         if (photoProof) {
           await useConfirm.mutateAsync({
             pickupId: id,
             photoUrl: photoProof,
             descriptionConfirmed: true,
+            latitude,
+            longitude,
           });
         } else {
           await useConfirm.mutateAsync({
             pickupId: id,
             descriptionConfirmed: true,
+            latitude,
+            longitude,
           });
         }
       } catch (e) {
@@ -81,8 +84,22 @@ export default function PickupDetail() {
             Back to Pickups
           </button>
           <h1 className="mb-2">Pickup Details</h1>
-          <p className="text-gray-600">{pickup.pickupNumber}</p>
+          <p className="text-gray-600">
+            {pickup ? `Pickup #${pickup.id.slice(0, 8)}` : ""}
+          </p>
         </div>
+
+        {isLoading ? (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <p className="text-gray-600">Loading pickup…</p>
+          </div>
+        ) : error ? (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <p className="text-gray-600">
+              {error instanceof Error ? error.message : "Failed to load pickup"}
+            </p>
+          </div>
+        ) : null}
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="mb-4">Pickup Information</h2>
@@ -91,29 +108,39 @@ export default function PickupDetail() {
               <User className="w-5 h-5 text-gray-400 mr-3" />
               <div>
                 <p className="text-sm text-gray-500">Requester</p>
-                <p className="font-medium">{pickup.requester}</p>
+                <p className="font-medium">
+                  {pickup?.clientName ?? pickup?.clientId?.slice(0, 8) ?? "—"}
+                </p>
+                {pickup?.clientPhone && (
+                  <p className="text-sm text-gray-500">{pickup.clientPhone}</p>
+                )}
               </div>
             </div>
             <div className="flex items-center">
               <Calendar className="w-5 h-5 text-gray-400 mr-3" />
               <div>
                 <p className="text-sm text-gray-500">Scheduled</p>
-                <p className="font-medium">{pickup.scheduled}</p>
+                <p className="font-medium">{scheduledText}</p>
               </div>
             </div>
             <div className="flex items-start">
               <MapPin className="w-5 h-5 text-gray-400 mr-3 mt-1" />
               <div>
                 <p className="text-sm text-gray-500">Location</p>
-                <p className="font-medium">{pickup.location}</p>
+                <p className="font-medium">
+                  {typeof pickup?.pickupLatitude === "number" &&
+                  typeof pickup?.pickupLongitude === "number"
+                    ? `${pickup.pickupLatitude.toFixed(5)}, ${pickup.pickupLongitude.toFixed(5)}`
+                    : "—"}
+                </p>
               </div>
             </div>
-            {pickup.instructions && (
+            {pickup?.comment && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm font-medium text-yellow-900 mb-1">
                   Instructions
                 </p>
-                <p className="text-sm text-yellow-700">{pickup.instructions}</p>
+                <p className="text-sm text-yellow-700">{pickup.comment}</p>
               </div>
             )}
           </div>
@@ -123,15 +150,12 @@ export default function PickupDetail() {
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="mb-3">Items to Pickup</h3>
             <ul className="space-y-2">
-              {pickup.items.map((it, idx) => (
-                <li
-                  key={idx}
-                  className="flex justify-between border rounded p-3"
-                >
-                  <span>{it.name}</span>
-                  <span className="font-medium">Qty: {it.qty}</span>
-                </li>
-              ))}
+              <li className="flex justify-between border rounded p-3">
+                <span>Parcel</span>
+                <span className="font-medium">
+                  {pickup?.trackingRef ?? pickup?.parcelId?.slice(0, 8) ?? "—"}
+                </span>
+              </li>
             </ul>
           </div>
         )}

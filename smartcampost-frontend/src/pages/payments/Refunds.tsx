@@ -12,11 +12,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
-import { useRefunds, useUpdateRefundStatus } from "@/hooks";
+import { useFinanceRefunds, useFinanceUpdateRefundStatus } from "@/hooks";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
+  REQUESTED: "bg-yellow-100 text-yellow-800",
   APPROVED: "bg-blue-100 text-blue-800",
   PROCESSED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
@@ -24,15 +24,15 @@ const statusColors: Record<string, string> = {
 
 export default function Refunds() {
   const [page, setPage] = useState(0);
-  const { data, isLoading, error } = useRefunds(page, 20);
-  const updateStatus = useUpdateRefundStatus();
+  const { data, isLoading, error } = useFinanceRefunds(page, 20);
+  const updateStatus = useFinanceUpdateRefundStatus();
 
   const refunds = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
   const handleApprove = (id: string) => {
     updateStatus.mutate(
-      { id, data: { status: "APPROVED" } },
+      { refundId: id, status: "APPROVED" },
       {
         onSuccess: () => toast.success("Refund approved"),
         onError: (err) =>
@@ -43,7 +43,7 @@ export default function Refunds() {
 
   const handleReject = (id: string) => {
     updateStatus.mutate(
-      { id, data: { status: "REJECTED" } },
+      { refundId: id, status: "REJECTED" },
       {
         onSuccess: () => toast.success("Refund rejected"),
         onError: (err) =>
@@ -123,7 +123,7 @@ export default function Refunds() {
                         {new Date(refund.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        {refund.status === "PENDING" && (
+                        {refund.status === "REQUESTED" && (
                           <div className="flex gap-2">
                             <Button
                               size="sm"

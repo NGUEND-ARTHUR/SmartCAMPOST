@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -17,8 +18,9 @@ public class CourierController {
 
     private final CourierService courierService;
 
-    // US17: Admin registers couriers
+    // US17: Admin registers couriers (ADMIN only)
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CourierResponse> createCourier(
             @Valid @RequestBody CreateCourierRequest request
     ) {

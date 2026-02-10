@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import jakarta.annotation.PostConstruct;
+import java.util.Objects;
 
 @Service
 @ConditionalOnProperty(name = "notification.gateway", havingValue = "twilio")
@@ -38,14 +39,20 @@ public class TwilioNotificationGatewayServiceImpl implements NotificationGateway
             throw new IllegalStateException("Twilio not configured");
         }
 
+        String sid = Objects.requireNonNull(accountSid, "TWILIO_ACCOUNT_SID is required");
+        String token = Objects.requireNonNull(authToken, "TWILIO_AUTH_TOKEN is required");
+        String from = Objects.requireNonNull(fromNumber, "TWILIO_FROM_NUMBER is required");
+        String to = Objects.requireNonNull(phone, "phone is required");
+        String body = Objects.requireNonNull(message, "message is required");
+
         log.info("📲 [TWILIO SMS] to={} | msg={}", phone, message);
 
         var response = webClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/Accounts/{AccountSid}/Messages.json").build(accountSid))
-                .headers(h -> h.setBasicAuth(accountSid, authToken))
-                .body(BodyInserters.fromFormData("To", phone)
-                        .with("From", fromNumber)
-                        .with("Body", message))
+            .uri(uriBuilder -> uriBuilder.path("/Accounts/{AccountSid}/Messages.json").build(sid))
+            .headers(h -> h.setBasicAuth(sid, token))
+            .body(BodyInserters.fromFormData("To", to)
+                .with("From", from)
+                .with("Body", body))
                 .retrieve()
                 .toBodilessEntity()
                 .block();
