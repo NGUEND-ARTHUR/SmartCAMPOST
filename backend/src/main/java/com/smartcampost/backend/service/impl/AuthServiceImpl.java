@@ -83,8 +83,9 @@ public class AuthServiceImpl implements AuthService {
             .passwordHash(encodedPassword)
             .build();
 
+        @SuppressWarnings("null")
         Client savedClient = clientRepository.save(client);
-        client = Objects.requireNonNull(savedClient, "failed to save client");
+        client = savedClient;
 
         // 5) Créer UserAccount
         UserAccount account = UserAccount.builder()
@@ -95,8 +96,9 @@ public class AuthServiceImpl implements AuthService {
             .entityId(client.getId())
             .build();
 
+        @SuppressWarnings("null")
         UserAccount savedAccount = userAccountRepository.save(account);
-        account = Objects.requireNonNull(savedAccount, "failed to save user account");
+        account = savedAccount;
 
         // 6) Mark OTP as used only after successful registration
         otpService.consumeOtp(request.getPhone(), request.getOtp(), OtpPurpose.REGISTER);
@@ -211,8 +213,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         user.setPasswordHash(encoder.encode(request.getNewPassword()));
-        var saved = userAccountRepository.save(user);
-        if (saved == null) throw new IllegalStateException("failed to save user account");
+        userAccountRepository.save(user);
     }
 
     // ============================================================
@@ -250,8 +251,7 @@ public class AuthServiceImpl implements AuthService {
 
         String encoded = encoder.encode(request.getNewPassword());
         user.setPasswordHash(encoded);
-        var savedUser = userAccountRepository.save(user);
-        if (savedUser == null) throw new IllegalStateException("failed to save user account");
+        userAccountRepository.save(user);
 
         if (user.getRole() == UserRole.CLIENT) {
             UUID entityId = user.getEntityId();
@@ -259,7 +259,7 @@ public class AuthServiceImpl implements AuthService {
                 clientRepository.findById(entityId)
                         .ifPresent(client -> {
                             client.setPasswordHash(encoded);
-                            java.util.Objects.requireNonNull(clientRepository.save(client), "failed to save client");
+                            clientRepository.save(client);
                         });
             }
         }

@@ -34,9 +34,8 @@ import { usePickups, useAssignCourier, useCouriers } from "@/hooks";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
+  REQUESTED: "bg-yellow-100 text-yellow-800",
   ASSIGNED: "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-purple-100 text-purple-800",
   COMPLETED: "bg-green-100 text-green-800",
   CANCELLED: "bg-red-100 text-red-800",
 };
@@ -122,9 +121,8 @@ export default function PickupsManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="REQUESTED">Requested</SelectItem>
                   <SelectItem value="ASSIGNED">Assigned</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                   <SelectItem value="COMPLETED">Completed</SelectItem>
                   <SelectItem value="CANCELLED">Cancelled</SelectItem>
                 </SelectContent>
@@ -204,7 +202,7 @@ export default function PickupsManagement() {
                         {pickup.timeWindow ? ` (${pickup.timeWindow})` : ""}
                       </TableCell>
                       <TableCell>
-                        {pickup.state === "PENDING" && (
+                        {pickup.state === "REQUESTED" && (
                           <Button
                             size="sm"
                             variant="outline"

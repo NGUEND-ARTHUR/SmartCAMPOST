@@ -6,11 +6,13 @@ import com.smartcampost.backend.dto.qr.QrVerificationResponse.VerificationStatus
 import com.smartcampost.backend.dto.qr.SecureQrPayload;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.PickupRequest;
 import com.smartcampost.backend.model.QrVerificationToken;
 import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.QrTokenType;
+import com.smartcampost.backend.model.enums.QrStatus;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.QrVerificationTokenRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
@@ -33,7 +35,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -73,6 +75,14 @@ public class QrSecurityServiceImpl implements QrSecurityService {
     public SecureQrPayload generatePermanentToken(Parcel parcel) {
         log.info("Generating permanent QR token for parcel: {}", parcel.getTrackingRef());
 
+        // Enforce two-step workflow: FINAL (secure) QR tokens only after validation/lock.
+        if (parcel.getQrStatus() != QrStatus.FINAL || !parcel.isLocked()) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel is not validated/locked; FINAL QR cannot be generated"
+            );
+        }
+
         // Invalidate any existing valid tokens for this parcel
         tokenRepository.invalidateAllTokensForParcel(parcel.getId(), "New token generated");
 
@@ -107,8 +117,9 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 .verificationCount(0)
                 .build();
 
-        QrVerificationToken savedTokenEntity1 = tokenRepository.save(tokenEntity);
-        if (savedTokenEntity1 == null) throw new IllegalStateException("failed to save token entity");
+        @SuppressWarnings("null")
+        QrVerificationToken savedToken = tokenRepository.save(tokenEntity);
+        tokenEntity = savedToken;
 
         log.info("Created permanent QR token for parcel {} with token ID {}", 
                 parcel.getTrackingRef(), tokenEntity.getId());
@@ -159,8 +170,9 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 .verificationCount(0)
                 .build();
 
-        QrVerificationToken savedTokenEntity2 = tokenRepository.save(tokenEntity);
-        if (savedTokenEntity2 == null) throw new IllegalStateException("failed to save token entity");
+        @SuppressWarnings("null")
+        QrVerificationToken savedTempToken = tokenRepository.save(tokenEntity);
+        tokenEntity = savedTempToken;
 
         log.info("Created temporary QR token for pickup {} with token ID {}, expires at {}", 
                 pickup.getId(), tokenEntity.getId(), expiresAt);
@@ -171,7 +183,7 @@ public class QrSecurityServiceImpl implements QrSecurityService {
     @Override
     @Transactional
     public SecureQrPayload regenerateToken(UUID parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
+        Parcel parcel = parcelRepository.findById(Objects.requireNonNull(parcelId, "parcelId is required"))
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
@@ -218,6 +230,26 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 );
             }
 
+            // Enforce: permanent (FINAL) QR is only valid if parcel is validated/locked.
+            if (tokenEntity.getTokenType() == QrTokenType.PERMANENT) {
+                Parcel parcel = tokenEntity.getParcel();
+                if (parcel == null) {
+                    return QrVerificationResponse.failure(
+                            VerificationStatus.PARCEL_NOT_FOUND,
+                            "Colis non trouvé.",
+                            "PARCEL_NOT_FOUND"
+                    );
+                }
+                if (!parcel.isLocked() || parcel.getQrStatus() != QrStatus.FINAL) {
+                    log.warn("Permanent QR used for non-validated parcel {}", parcel.getTrackingRef());
+                    return QrVerificationResponse.failure(
+                            VerificationStatus.PARCEL_NOT_VALIDATED,
+                            "Colis non validé. Le QR FINAL est invalide avant validation.",
+                            "PARCEL_NOT_VALIDATED"
+                    );
+                }
+            }
+
             // Verify signature if provided
             if (request.getSignature() != null) {
                 String expectedData = buildSignableData(tokenEntity);
@@ -234,8 +266,7 @@ public class QrSecurityServiceImpl implements QrSecurityService {
             // Record verification attempt
             UserAccount verifier = getCurrentUserAccount();
             tokenEntity.recordVerification(verifier, request.getClientIp(), request.getUserAgent());
-            QrVerificationToken savedTokenEntity3 = tokenRepository.save(tokenEntity);
-            if (savedTokenEntity3 == null) throw new IllegalStateException("failed to save token entity");
+            tokenEntity = Objects.requireNonNull(tokenRepository.save(tokenEntity), "failed to save token entity");
 
             // Build success response with parcel/pickup details
             return buildSuccessResponse(tokenEntity);
@@ -334,8 +365,7 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                         "Token not found", ErrorCode.QR_CODE_INVALID));
 
         tokenEntity.revoke(reason);
-        QrVerificationToken saved = tokenRepository.save(tokenEntity);
-        if (saved == null) throw new IllegalStateException("failed to save token entity");
+        QrVerificationToken saved = Objects.requireNonNull(tokenRepository.save(tokenEntity), "failed to save token entity");
 
         log.info("Revoked token {} for reason: {}", saved.getId(), reason);
     }
@@ -343,6 +373,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
     @Override
     @Transactional
     public void revokeAllTokensForParcel(UUID parcelId, String reason) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(reason, "reason is required");
         int count = tokenRepository.invalidateAllTokensForParcel(parcelId, reason);
         log.info("Revoked {} tokens for parcel {} with reason: {}", count, parcelId, reason);
     }
@@ -350,6 +382,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
     @Override
     @Transactional
     public void revokeAllTokensForPickup(UUID pickupId, String reason) {
+        Objects.requireNonNull(pickupId, "pickupId is required");
+        Objects.requireNonNull(reason, "reason is required");
         int count = tokenRepository.invalidateAllTokensForPickup(pickupId, reason);
         log.info("Revoked {} tokens for pickup {} with reason: {}", count, pickupId, reason);
     }

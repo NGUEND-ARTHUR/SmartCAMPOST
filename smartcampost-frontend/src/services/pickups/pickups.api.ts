@@ -10,21 +10,27 @@ export interface PickupResponse {
   trackingRef?: string;
   clientId: string;
   clientName?: string;
+  clientPhone?: string;
   courierId?: string;
   courierName?: string;
   requestedDate?: string;
   timeWindow?: string;
   state: string;
   comment?: string;
+  pickupLatitude?: number;
+  pickupLongitude?: number;
+  locationMode?: "GPS_DEFAULT" | "MANUAL_OVERRIDE";
   createdAt: string;
 }
 
 export interface CreatePickupRequest {
   parcelId: string;
-  pickupAddressId?: string;
   requestedDate?: string;
   timeWindow?: string;
   comment?: string;
+  pickupLatitude: number;
+  pickupLongitude: number;
+  locationMode?: "GPS_DEFAULT" | "MANUAL_OVERRIDE";
 }
 
 export interface AssignPickupCourierRequest {
@@ -33,6 +39,23 @@ export interface AssignPickupCourierRequest {
 
 export interface UpdatePickupStateRequest {
   state: string;
+}
+
+export interface ConfirmPickupRequest {
+  temporaryQrToken?: string;
+  pickupId?: string;
+
+  actualWeight?: number;
+  actualDimensions?: string;
+  validationComment?: string;
+  descriptionConfirmed: boolean;
+  photoUrl?: string;
+
+  printLabel?: boolean;
+  labelCopies?: number;
+
+  latitude: number;
+  longitude: number;
 }
 
 // ---- Service ----
@@ -89,7 +112,7 @@ export const pickupService = {
     return httpClient.get(`/pickups/qr/${token}`);
   },
 
-  confirmPickup(data: any) {
+  confirmPickup(data: ConfirmPickupRequest) {
     return httpClient.post(`/pickups/confirm`, data);
   },
 };

@@ -16,6 +16,7 @@ import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.ClientRepository;
 import com.smartcampost.backend.repository.SupportTicketRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.SupportTicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     private final SupportTicketRepository supportTicketRepository;
     private final ClientRepository clientRepository;
     private final UserAccountRepository userAccountRepository;
+        private final NotificationService notificationService;
 
     // ================== CREATE ==================
     @Override
@@ -80,8 +82,13 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .createdAt(Instant.now())
                 .build();
 
-        SupportTicket saved = supportTicketRepository.save(ticket);
-        if (saved == null) throw new IllegalStateException("failed to save support ticket");
+                @SuppressWarnings("null")
+                SupportTicket saved = supportTicketRepository.save(ticket);
+                try {
+                        notificationService.notifySupportTicketCreated(client, saved.getSubject());
+                } catch (Exception ignored) {
+                        // Notification must never break ticket creation
+                }
         return toResponse(saved);
     }
 
@@ -162,8 +169,15 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         }
 
         ticket.setUpdatedAt(Instant.now());
-        SupportTicket saved = supportTicketRepository.save(ticket);
-        if (saved == null) throw new IllegalStateException("failed to save support ticket");
+                @SuppressWarnings("null")
+                SupportTicket saved = supportTicketRepository.save(ticket);
+                try {
+                        if (saved.getClient() != null) {
+                                notificationService.notifySupportTicketReplied(saved.getClient(), saved.getSubject());
+                        }
+                } catch (Exception ignored) {
+                        // Notification must never break ticket reply
+                }
         return toResponse(saved);
     }
 
@@ -203,8 +217,15 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         ticket.setStatus(request.getStatus());
         ticket.setUpdatedAt(Instant.now());
 
-        SupportTicket saved = supportTicketRepository.save(ticket);
-        if (saved == null) throw new IllegalStateException("failed to save support ticket");
+                @SuppressWarnings("null")
+                SupportTicket saved = supportTicketRepository.save(ticket);
+                try {
+                        if (saved.getClient() != null) {
+                                notificationService.notifySupportTicketStatusUpdated(saved.getClient(), saved.getSubject(), saved.getStatus() != null ? saved.getStatus().name() : null);
+                        }
+                } catch (Exception ignored) {
+                        // Notification must never break ticket status update
+                }
         return toResponse(saved);
     }
 
@@ -237,7 +258,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            return userAccountRepository.findById(Objects.requireNonNull(userId, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND

@@ -52,6 +52,7 @@ export type VerificationStatus =
   | "TOKEN_EXPIRED"
   | "SIGNATURE_INVALID"
   | "PARCEL_NOT_FOUND"
+  | "PARCEL_NOT_VALIDATED"
   | "PICKUP_NOT_FOUND"
   | "RATE_LIMIT_EXCEEDED"
   | "VERIFICATION_ERROR";
@@ -180,6 +181,7 @@ export function getVerificationStatusMessage(
     TOKEN_REVOKED: "Ce QR code a été révoqué",
     TOKEN_EXPIRED: "Ce QR code temporaire a expiré",
     SIGNATURE_INVALID: "Signature invalide - QR code falsifié",
+    PARCEL_NOT_VALIDATED: "Colis non validé",
     PARCEL_NOT_FOUND: "Colis non trouvé",
     PICKUP_NOT_FOUND: "Demande de collecte non trouvée",
     RATE_LIMIT_EXCEEDED: "Trop de tentatives de vérification",

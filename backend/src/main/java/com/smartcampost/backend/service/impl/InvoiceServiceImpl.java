@@ -5,6 +5,7 @@ import com.smartcampost.backend.model.Payment;
 import com.smartcampost.backend.repository.InvoiceRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.service.InvoiceService;
+import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.ErrorCode;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -29,11 +30,13 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
+    private final NotificationService notificationService;
     private final Path storage;
     
-    public InvoiceServiceImpl(InvoiceRepository invoiceRepository, PaymentRepository paymentRepository) {
+    public InvoiceServiceImpl(InvoiceRepository invoiceRepository, PaymentRepository paymentRepository, NotificationService notificationService) {
         this.invoiceRepository = invoiceRepository;
         this.paymentRepository = paymentRepository;
+        this.notificationService = notificationService;
         try {
             this.storage = Files.createDirectories(Path.of("storage", "invoices"));
         } catch (IOException e) {
@@ -81,7 +84,18 @@ public class InvoiceServiceImpl implements InvoiceService {
 
                 invoice.setPdfLink(out.toString());
                 Invoice saved = invoiceRepository.save(invoice);
-                return Objects.requireNonNull(saved, "failed to save invoice");
+                Invoice persisted = Objects.requireNonNull(saved, "failed to save invoice");
+                try {
+                    notificationService.notifyInvoiceIssued(
+                            payment.getParcel(),
+                            persisted.getInvoiceNumber(),
+                            persisted.getTotalAmount(),
+                            payment.getCurrency() != null ? payment.getCurrency() : "XAF"
+                    );
+                } catch (Exception ignored) {
+                    // Notification must never break invoice issuance
+                }
+                return persisted;
             } catch (IOException e) {
                 throw new RuntimeException("Failed to generate invoice PDF", e);
             }

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,7 +20,7 @@ public class AgencyServiceImpl implements AgencyService {
     private final AgencyRepository agencyRepository;
 
     @Override
-    public AgencyResponse createAgency(@NonNull AgencyRequest request) {
+    public AgencyResponse createAgency(AgencyRequest request) {
         Objects.requireNonNull(request, "request is required");
         // Auto-generate agencyCode if not provided
         String agencyCode = request.getAgencyCode();
@@ -37,9 +36,9 @@ public class AgencyServiceImpl implements AgencyService {
                 .region(request.getRegion())
                 .build();
 
+        @SuppressWarnings("null")
         Agency saved = agencyRepository.save(agency);
-        Agency nonNullSaved = Objects.requireNonNull(saved, "failed to save agency");
-        return toResponse(nonNullSaved);
+        return toResponse(saved);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class AgencyServiceImpl implements AgencyService {
     }
 
     @Override
-    public AgencyResponse getAgency(@NonNull UUID id) {
+    public AgencyResponse getAgency(UUID id) {
         Objects.requireNonNull(id, "id is required");
         Agency agency = agencyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Agency not found: " + id));
@@ -59,7 +58,7 @@ public class AgencyServiceImpl implements AgencyService {
     }
 
     @Override
-    public AgencyResponse updateAgency(@NonNull UUID id, @NonNull AgencyRequest request) {
+    public AgencyResponse updateAgency(UUID id, AgencyRequest request) {
         Objects.requireNonNull(id, "id is required");
         Objects.requireNonNull(request, "request is required");
         Agency agency = agencyRepository.findById(id)
@@ -70,9 +69,9 @@ public class AgencyServiceImpl implements AgencyService {
         agency.setCity(request.getCity());
         agency.setRegion(request.getRegion());
 
+        @SuppressWarnings("null")
         Agency saved = agencyRepository.save(agency);
-        Agency nonNullSaved = Objects.requireNonNull(saved, "failed to save agency");
-        return toResponse(nonNullSaved);
+        return toResponse(saved);
     }
 
     private AgencyResponse toResponse(Agency agency) {

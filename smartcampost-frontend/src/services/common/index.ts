@@ -3,3 +3,4 @@
  */
 export * from "./geolocation.api";
 export * from "./integrations.api";
+export * from "./audit.api";

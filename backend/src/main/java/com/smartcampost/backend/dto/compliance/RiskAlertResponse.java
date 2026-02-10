@@ -19,6 +19,9 @@ public class RiskAlertResponse {
     private RiskAlertStatus status;
     private UUID parcelId;
     private UUID paymentId;
+    // Derived fields to simplify UI rendering
+    private String entityType;
+    private UUID entityId;
     private String description;
     private boolean resolved;
     private Instant createdAt;

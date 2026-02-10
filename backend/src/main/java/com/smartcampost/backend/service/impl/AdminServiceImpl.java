@@ -27,8 +27,7 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
 
         account.setFrozen(frozen);
-        var saved = userAccountRepository.save(account);
-        if (saved == null) throw new IllegalStateException("failed to save user account");
+        UserAccount saved = Objects.requireNonNull(userAccountRepository.save(account), "failed to save user account");
 
         return toResponse(saved);
     }

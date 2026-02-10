@@ -15,4 +15,8 @@ public class RescheduleDeliveryRequest {
     private String reason;           // Reason for rescheduling
     private String contactPhone;     // Contact phone for delivery
     private String deliveryNotes;    // Special instructions
+
+    // GPS is mandatory for audit ScanEvents
+    private Double latitude;
+    private Double longitude;
 }

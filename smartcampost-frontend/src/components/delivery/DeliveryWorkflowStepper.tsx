@@ -22,6 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  useCompleteDelivery,
+  useMarkDeliveryFailed,
+  useRescheduleDelivery,
+  useReturnToSender,
+  useStartDelivery,
+  useVerifyDeliveryOtp,
+} from "@/hooks";
+
 export type DeliveryRequirement = {
   requiresOtp?: boolean;
   requiresSignature?: boolean;
@@ -31,6 +40,8 @@ export type DeliveryRequirement = {
 export type DeliveryWorkflowData = {
   id: string;
   trackingNumber: string;
+  status?: string;
+  deliveryOption?: string;
   customerName: string;
   customerPhone: string;
   address: string;
@@ -44,6 +55,8 @@ export type DeliveryWorkflowData = {
 };
 
 type StepKey = "DETAILS" | "OTP" | "PROOF" | "CONFIRM" | "DONE";
+
+type FailureAction = "FAILED" | "RESCHEDULE" | "RETURN_TO_SENDER";
 
 type DeliveryResult =
   | {
@@ -101,6 +114,15 @@ export default function DeliveryWorkflowStepper({
 }: Props) {
   const req = delivery.requirements ?? {};
 
+  const parcelId = delivery.id;
+
+  const startDelivery = useStartDelivery();
+  const verifyOtpMutation = useVerifyDeliveryOtp();
+  const completeDelivery = useCompleteDelivery();
+  const markFailedMutation = useMarkDeliveryFailed();
+  const rescheduleMutation = useRescheduleDelivery();
+  const returnToSenderMutation = useReturnToSender();
+
   const initialStep: StepKey = "DETAILS";
   const [step, setStep] = useState<StepKey>(initialStep);
 
@@ -114,6 +136,9 @@ export default function DeliveryWorkflowStepper({
   const [note, setNote] = useState("");
   const [failureReason, setFailureReason] = useState<string>("");
   const [markFailed, setMarkFailed] = useState(false);
+
+  const [failureAction, setFailureAction] = useState<FailureAction>("FAILED");
+  const [rescheduleDate, setRescheduleDate] = useState<string>("");
 
   const timeline = useMemo(() => {
     const items: { label: string; ok?: boolean }[] = [];
@@ -174,13 +199,43 @@ export default function DeliveryWorkflowStepper({
 
   const stepIndex = visibleSteps.findIndex((s) => s.key === step);
 
-  const goNextFromDetails = () => {
-    if (req.requiresOtp) {
-      toast.message("Proceeding to OTP verification");
-      setStep("OTP");
-    } else {
-      toast.message("Proceeding to proof capture");
-      setStep("PROOF");
+  const getGpsOrThrow = async (): Promise<{
+    latitude: number;
+    longitude: number;
+  }> => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      throw new Error("GPS is not available in this environment");
+    }
+    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      });
+    });
+    return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+  };
+
+  const goNextFromDetails = async () => {
+    try {
+      const gps = await getGpsOrThrow();
+      await startDelivery.mutateAsync({
+        parcelId,
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        notes: note.trim() || undefined,
+      });
+
+      if (req.requiresOtp) {
+        toast.success("Delivery started. OTP has been sent (if required).");
+        setStep("OTP");
+      } else {
+        toast.success("Delivery started");
+        setStep("PROOF");
+      }
+    } catch (e: unknown) {
+      const msg = (e as { message?: string } | undefined)?.message;
+      toast.error(msg || "Failed to start delivery");
     }
   };
 
@@ -205,21 +260,33 @@ export default function DeliveryWorkflowStepper({
     }
   };
 
-  const verifyOtp = () => {
+  const verifyOtp = async () => {
     const value = otp.join("");
     if (value.length !== 6) {
       setOtpError("Please enter the 6-digit OTP");
       return;
     }
 
-    // UI-only validation for now (backend wiring in later modules)
-    if (value !== "123456") {
-      setOtpError("Invalid OTP. Try 123456 for demo.");
-      return;
-    }
+    try {
+      const gps = await getGpsOrThrow();
+      const valid = await verifyOtpMutation.mutateAsync({
+        parcelId,
+        otpCode: value,
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        notes: note.trim() || undefined,
+      });
+      if (!valid) {
+        setOtpError("Invalid OTP");
+        return;
+      }
 
-    toast.success("OTP verified");
-    setStep("PROOF");
+      toast.success("OTP verified");
+      setStep("PROOF");
+    } catch (e: unknown) {
+      const msg = (e as { message?: string } | undefined)?.message;
+      setOtpError(msg || "OTP verification failed");
+    }
   };
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,28 +329,87 @@ export default function DeliveryWorkflowStepper({
     setStep("CONFIRM");
   };
 
-  const complete = () => {
-    if (markFailed) {
-      toast.success("Delivery marked failed");
+  const complete = async () => {
+    try {
+      const gps = await getGpsOrThrow();
+
+      if (markFailed) {
+        if (failureAction === "RESCHEDULE") {
+          if (!rescheduleDate) {
+            toast.error("Select a reschedule date");
+            return;
+          }
+          await rescheduleMutation.mutateAsync({
+            parcelId,
+            data: {
+              newDate: rescheduleDate,
+              reason: failureReason,
+              deliveryNotes: note.trim() || undefined,
+              latitude: gps.latitude,
+              longitude: gps.longitude,
+            },
+          });
+          toast.success("Delivery rescheduled");
+        } else if (failureAction === "RETURN_TO_SENDER") {
+          await returnToSenderMutation.mutateAsync({
+            parcelId,
+            data: {
+              reason: failureReason,
+              notes: note.trim() || undefined,
+              latitude: gps.latitude,
+              longitude: gps.longitude,
+            },
+          });
+          toast.success("Marked as returned to sender");
+        } else {
+          await markFailedMutation.mutateAsync({
+            parcelId,
+            reason: failureReason,
+            latitude: gps.latitude,
+            longitude: gps.longitude,
+            notes: note.trim() || undefined,
+          });
+          toast.success("Delivery marked failed");
+        }
+
+        onComplete?.({
+          status: "FAILED",
+          reason: failureReason,
+          note: note.trim() || undefined,
+        });
+        setStep("DONE");
+        return;
+      }
+
+      const otpValue = req.requiresOtp ? otp.join("") : undefined;
+      await completeDelivery.mutateAsync({
+        parcelId,
+        otpCode: otpValue,
+        receiverName: signature.trim() || undefined,
+        photoUrl: photoProof || undefined,
+        notes: note.trim() || undefined,
+        proofType: photoProof
+          ? "PHOTO"
+          : signature.trim()
+            ? "SIGNATURE"
+            : "OTP",
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+      });
+
+      toast.success("Delivery completed");
       onComplete?.({
-        status: "FAILED",
-        reason: failureReason,
+        status: "DELIVERED",
+        otp: otpValue,
+        signature: signature.trim() || undefined,
+        photoDataUrl: photoProof || undefined,
         note: note.trim() || undefined,
       });
       setStep("DONE");
-      return;
+    } catch (e: unknown) {
+      const msg = (e as { message?: string } | undefined)?.message;
+      toast.error(msg || "Action failed");
     }
-
-    toast.success("Delivery completed");
-    const otpValue = req.requiresOtp ? otp.join("") : undefined;
-    onComplete?.({
-      status: "DELIVERED",
-      otp: otpValue,
-      signature: signature.trim() || undefined,
-      photoDataUrl: photoProof || undefined,
-      note: note.trim() || undefined,
-    });
-    setStep("DONE");
   };
 
   return (
@@ -419,8 +545,7 @@ export default function DeliveryWorkflowStepper({
                 {step === "OTP" && (
                   <div className="space-y-4">
                     <div className="rounded border bg-muted/30 p-3 text-sm">
-                      Ask the customer for the 6-digit OTP. Demo OTP:{" "}
-                      <span className="font-mono">123456</span>
+                      Ask the customer for the 6-digit OTP.
                     </div>
 
                     <div className="flex flex-wrap items-center justify-center gap-2">
@@ -454,7 +579,12 @@ export default function DeliveryWorkflowStepper({
                       >
                         Back
                       </Button>
-                      <Button onClick={verifyOtp}>Verify OTP</Button>
+                      <Button
+                        onClick={verifyOtp}
+                        disabled={verifyOtpMutation.isPending}
+                      >
+                        Verify OTP
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -478,6 +608,44 @@ export default function DeliveryWorkflowStepper({
 
                     {markFailed ? (
                       <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label>Next action</Label>
+                          <Select
+                            value={failureAction}
+                            onValueChange={(v) =>
+                              setFailureAction(v as FailureAction)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="FAILED">
+                                Mark failed
+                              </SelectItem>
+                              <SelectItem value="RESCHEDULE">
+                                Reschedule
+                              </SelectItem>
+                              <SelectItem value="RETURN_TO_SENDER">
+                                Return to sender
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {failureAction === "RESCHEDULE" ? (
+                          <div className="space-y-2">
+                            <Label>New delivery date</Label>
+                            <Input
+                              type="date"
+                              value={rescheduleDate}
+                              onChange={(e) =>
+                                setRescheduleDate(e.target.value)
+                              }
+                            />
+                          </div>
+                        ) : null}
+
                         <div className="space-y-2">
                           <Label>Failure reason</Label>
                           <Select
@@ -656,6 +824,13 @@ export default function DeliveryWorkflowStepper({
                       <Button
                         onClick={complete}
                         variant={markFailed ? "destructive" : "default"}
+                        disabled={
+                          startDelivery.isPending ||
+                          completeDelivery.isPending ||
+                          markFailedMutation.isPending ||
+                          rescheduleMutation.isPending ||
+                          returnToSenderMutation.isPending
+                        }
                       >
                         {markFailed ? "Confirm failure" : "Confirm delivery"}
                       </Button>

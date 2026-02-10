@@ -1,5 +1,6 @@
 package com.smartcampost.backend.dto.parcel;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ServiceType;
 import com.smartcampost.backend.model.enums.PaymentOption;
@@ -32,6 +33,7 @@ public class CreateParcelRequest {
 
     private Double declaredValue;
 
+    @JsonAlias("isFragile")
     private boolean fragile;
 
     @NotNull
@@ -45,6 +47,7 @@ public class CreateParcelRequest {
     private PaymentOption paymentOption;   // PREPAID / COD
 
     private String photoUrl;               // optional
+    @JsonAlias("description")
     private String descriptionComment;     // optional
     // ------------------
 }

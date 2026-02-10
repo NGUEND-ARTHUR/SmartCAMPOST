@@ -23,6 +23,11 @@ public interface DeliveryService {
     void sendDeliveryOtp(UUID parcelId);
 
     /**
+     * Send/re-send OTP to recipient and record an OTP_SENT ScanEvent (GPS required).
+     */
+    void sendDeliveryOtp(UUID parcelId, Double latitude, Double longitude, String notes);
+
+    /**
      * Complete delivery with full verification.
      * Verifies OTP, captures proof, and marks parcel as DELIVERED.
      */
@@ -36,10 +41,20 @@ public interface DeliveryService {
     /**
      * Mark delivery as failed (recipient not available, refused, etc.)
      */
-    DeliveryStatusResponse markDeliveryFailed(UUID parcelId, String reason);
+    DeliveryStatusResponse markDeliveryFailed(UUID parcelId, String reason, Double latitude, Double longitude, String notes);
 
     /**
      * Reschedule delivery for a later date.
      */
     DeliveryStatusResponse rescheduleDelivery(UUID parcelId, RescheduleDeliveryRequest request);
+
+    /**
+     * Agency pickup flow: QR + OTP verification then mark as PICKED_UP_AT_AGENCY.
+     */
+    PickupAtAgencyResponse pickupAtAgency(PickupAtAgencyRequest request);
+
+    /**
+     * Return to sender workflow.
+     */
+    DeliveryStatusResponse returnToSender(UUID parcelId, ReturnToSenderRequest request);
 }

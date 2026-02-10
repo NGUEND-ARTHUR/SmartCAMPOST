@@ -221,7 +221,7 @@ export default function Payments() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {new Date(payment.createdAt).toLocaleDateString()}
+                        {new Date(payment.timestamp).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
                   ))}

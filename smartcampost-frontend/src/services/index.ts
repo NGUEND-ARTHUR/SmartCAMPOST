@@ -13,5 +13,6 @@ export * from "./payments";
 export * from "./support";
 export * from "./notifications";
 export * from "./compliance";
+export * from "./analytics";
 export * from "./common";
 export * from "./ai";

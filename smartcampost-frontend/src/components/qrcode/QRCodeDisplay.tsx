@@ -20,6 +20,7 @@ import { toast } from "sonner";
 interface QRCodeDisplayProps {
   trackingRef: string;
   parcelId?: string;
+  qrContent?: string;
   senderName?: string;
   senderCity?: string;
   recipientName?: string;
@@ -40,6 +41,7 @@ const sizeMap = {
 export function QRCodeDisplay({
   trackingRef,
   parcelId,
+  qrContent,
   senderName,
   senderCity,
   recipientName,
@@ -52,13 +54,16 @@ export function QRCodeDisplay({
 }: QRCodeDisplayProps) {
   const printRef = useRef<HTMLDivElement>(null);
 
-  // QR code data contains tracking reference and parcel ID for scanning
-  const qrData = JSON.stringify({
-    trackingRef,
-    parcelId,
-    type: "SMARTCAMPOST_PARCEL",
-    version: 1,
-  });
+  // PARTIAL default payload: JSON with trackingRef + parcelId for scanner compatibility.
+  // FINAL payload: pass `qrContent` (secure V1|...) from the parent.
+  const qrData =
+    qrContent ||
+    JSON.stringify({
+      trackingRef,
+      parcelId,
+      type: "SMARTCAMPOST_PARCEL",
+      version: 1,
+    });
 
   const handlePrint = () => {
     if (!printRef.current) return;

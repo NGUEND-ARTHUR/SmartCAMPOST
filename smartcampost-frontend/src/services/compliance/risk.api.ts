@@ -7,13 +7,20 @@ import { UserAccountResponse } from "../users/admin.api";
 // ---- Types ----
 export interface RiskAlertResponse {
   id: string;
-  type: string;
+  // Backend sends `alertType`; some older UI used `type`
+  alertType?: string;
+  type?: string;
   severity: string;
+  status?: string;
   entityType?: string;
   entityId?: string;
+  parcelId?: string;
+  paymentId?: string;
   description: string;
   resolved: boolean;
   createdAt: string;
+  updatedAt?: string;
+  reviewedByStaffId?: string;
 }
 
 export interface RiskAlertUpdateRequest {

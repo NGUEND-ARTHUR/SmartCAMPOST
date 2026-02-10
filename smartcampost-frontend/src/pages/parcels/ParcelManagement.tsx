@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
 import { useParcels } from "@/hooks";
+import { useAuthStore } from "@/store/authStore";
 
 type AdminParcelStatus =
   | "CREATED"
@@ -45,6 +46,14 @@ const statusBadge: Record<AdminParcelStatus, string> = {
 export default function ParcelManagement() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const role = useAuthStore((s) => (s.user?.role ? String(s.user.role) : ""));
+  const normalizedRole = (() => {
+    const upper = role.toUpperCase();
+    if (!upper) return "STAFF";
+    if (upper === "USER") return "CLIENT";
+    if (upper === "ADMIN") return "ADMIN";
+    return upper;
+  })();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | AdminParcelStatus>(
@@ -89,7 +98,13 @@ export default function ParcelManagement() {
   }, [parcels]);
 
   const handleView = (parcelId: string) => {
-    navigate(`/client/parcels/${parcelId}`);
+    const base =
+      normalizedRole === "ADMIN"
+        ? "/admin"
+        : normalizedRole === "STAFF"
+          ? "/staff"
+          : "/client";
+    navigate(`${base}/parcels/${parcelId}`);
   };
 
   const handleFlag = (trackingRef: string) => {

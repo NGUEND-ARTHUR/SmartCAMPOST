@@ -170,9 +170,7 @@ export default function FinanceDashboard() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {p.createdAt
-                          ? new Date(p.createdAt).toLocaleString()
-                          : "—"}
+                        {p.timestamp ? new Date(p.timestamp).toLocaleString() : "—"}
                       </TableCell>
                     </TableRow>
                   ))}

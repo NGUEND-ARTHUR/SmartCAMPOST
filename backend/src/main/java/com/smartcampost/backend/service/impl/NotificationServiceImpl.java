@@ -125,7 +125,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
 
         sendAndUpdate(savedNotif);
 
@@ -176,7 +175,6 @@ public class NotificationServiceImpl implements NotificationService {
         notif.setErrorMessage(null);
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
 
         sendAndUpdate(savedNotif);
 
@@ -233,7 +231,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -266,7 +263,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -298,7 +294,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -331,7 +326,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -370,7 +364,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -403,7 +396,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -436,7 +428,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -477,7 +468,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         Objects.requireNonNull(notif, "notification must not be null");
         Notification savedNotif = notificationRepository.save(notif);
-        if (savedNotif == null) throw new IllegalStateException("failed to save notification");
         sendAndUpdate(savedNotif);
     }
 
@@ -516,7 +506,6 @@ public class NotificationServiceImpl implements NotificationService {
 
                 Objects.requireNonNull(notif, "notification must not be null");
                 Notification savedNotif = notificationRepository.save(notif);
-                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
                 sendAndUpdate(savedNotif);
     }
 
@@ -555,7 +544,6 @@ public class NotificationServiceImpl implements NotificationService {
 
                 Objects.requireNonNull(notif, "notification must not be null");
                 Notification savedNotif = notificationRepository.save(notif);
-                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
                 sendAndUpdate(savedNotif);
     }
 
@@ -590,7 +578,6 @@ public class NotificationServiceImpl implements NotificationService {
 
                 Objects.requireNonNull(notif, "notification must not be null");
                 Notification savedNotif = notificationRepository.save(notif);
-                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
                 sendAndUpdate(savedNotif);
     }
 
@@ -623,11 +610,228 @@ public class NotificationServiceImpl implements NotificationService {
 
                 Objects.requireNonNull(notif, "notification must not be null");
                 Notification savedNotif = notificationRepository.save(notif);
-                if (savedNotif == null) throw new IllegalStateException("failed to save notification");
                 sendAndUpdate(savedNotif);
     }
 
+    // ======================== OPERATIONAL MODULES ========================
+
+    @Override
+    public void notifyPaymentConfirmed(Parcel parcel, double amount, String currency) {
+        Objects.requireNonNull(parcel, "parcel is required");
+        Client client = parcel.getClient();
+        Objects.requireNonNull(client, "parcel.client is required");
+
+        String subject = "Payment confirmed";
+        String message = "Dear " + client.getFullName()
+                + ", we have received your payment for parcel " + parcel.getTrackingRef()
+                + ". Amount: " + String.format("%.2f %s", amount, currency != null ? currency : "XAF") + ".";
+
+        createAndSend(
+                NotificationType.PAYMENT_CONFIRMED,
+                parcel,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifyInvoiceIssued(Parcel parcel, String invoiceNumber, double amount, String currency) {
+        Objects.requireNonNull(parcel, "parcel is required");
+        Client client = parcel.getClient();
+        Objects.requireNonNull(client, "parcel.client is required");
+
+        String subject = "Invoice issued";
+        String message = "Dear " + client.getFullName()
+                + ", your invoice " + (invoiceNumber != null ? invoiceNumber : "")
+                + " has been issued for parcel " + parcel.getTrackingRef()
+                + ". Amount: " + String.format("%.2f %s", amount, currency != null ? currency : "XAF") + ".";
+
+        createAndSend(
+                NotificationType.INVOICE_ISSUED,
+                parcel,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifyRefundRequested(Parcel parcel, double amount, String currency) {
+        Objects.requireNonNull(parcel, "parcel is required");
+        Client client = parcel.getClient();
+        Objects.requireNonNull(client, "parcel.client is required");
+
+        String subject = "Refund requested";
+        String message = "Dear " + client.getFullName()
+                + ", your refund request has been received for parcel " + parcel.getTrackingRef()
+                + ". Amount: " + String.format("%.2f %s", amount, currency != null ? currency : "XAF") + ".";
+
+        createAndSend(
+                NotificationType.REFUND_REQUESTED,
+                parcel,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifyRefundStatusUpdated(Parcel parcel, String status, double amount, String currency) {
+        Objects.requireNonNull(parcel, "parcel is required");
+        Client client = parcel.getClient();
+        Objects.requireNonNull(client, "parcel.client is required");
+
+        String subject = "Refund status updated";
+        String message = "Dear " + client.getFullName()
+                + ", the status of your refund for parcel " + parcel.getTrackingRef()
+                + " is now " + (status != null ? status : "UPDATED")
+                + ". Amount: " + String.format("%.2f %s", amount, currency != null ? currency : "XAF") + ".";
+
+        createAndSend(
+                NotificationType.REFUND_STATUS_UPDATED,
+                parcel,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifySupportTicketCreated(Client client, String ticketSubject) {
+        Objects.requireNonNull(client, "client is required");
+
+        String subject = "Support ticket opened";
+        String message = "Dear " + client.getFullName()
+                + ", your support ticket has been opened"
+                + (ticketSubject != null && !ticketSubject.isBlank() ? (": " + ticketSubject) : ".")
+                + " Our team will get back to you shortly.";
+
+        createAndSend(
+                NotificationType.SUPPORT_TICKET_CREATED,
+                null,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifySupportTicketReplied(Client client, String ticketSubject) {
+        Objects.requireNonNull(client, "client is required");
+
+        String subject = "Support ticket reply";
+        String message = "Dear " + client.getFullName()
+                + ", you have received a reply on your support ticket"
+                + (ticketSubject != null && !ticketSubject.isBlank() ? (": " + ticketSubject) : ".")
+                + " Please check the ticket details in the app.";
+
+        createAndSend(
+                NotificationType.SUPPORT_TICKET_REPLIED,
+                null,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifySupportTicketStatusUpdated(Client client, String ticketSubject, String newStatus) {
+        Objects.requireNonNull(client, "client is required");
+
+        String subject = "Support ticket status updated";
+        String message = "Dear " + client.getFullName()
+                + ", the status of your support ticket"
+                + (ticketSubject != null && !ticketSubject.isBlank() ? (" (" + ticketSubject + ")") : "")
+                + " is now " + (newStatus != null ? newStatus : "UPDATED") + ".";
+
+        createAndSend(
+                NotificationType.SUPPORT_TICKET_STATUS_UPDATED,
+                null,
+                null,
+                client.getPhone(),
+                client.getEmail(),
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifyAccountFrozen(UserAccount account) {
+        Objects.requireNonNull(account, "account is required");
+
+        String subject = "Account frozen";
+        String message = "Your SmartCAMPOST account has been temporarily frozen for compliance review. Please contact support if you believe this is an error.";
+
+        createAndSend(
+                NotificationType.ACCOUNT_FROZEN,
+                null,
+                null,
+                account.getPhone(),
+                null,
+                subject,
+                message
+        );
+    }
+
+    @Override
+    public void notifyAccountUnfrozen(UserAccount account) {
+        Objects.requireNonNull(account, "account is required");
+
+        String subject = "Account restored";
+        String message = "Your SmartCAMPOST account has been restored. Thank you for your patience.";
+
+        createAndSend(
+                NotificationType.ACCOUNT_UNFROZEN,
+                null,
+                null,
+                account.getPhone(),
+                null,
+                subject,
+                message
+        );
+    }
+
     // ======================== PRIVATE HELPERS ========================
+
+    private void createAndSend(
+            NotificationType type,
+            Parcel parcel,
+            PickupRequest pickup,
+            String phone,
+            String email,
+            String subject,
+            String message
+    ) {
+        NotificationChannel channel = (phone != null && !phone.isBlank()) ? NotificationChannel.SMS : NotificationChannel.EMAIL;
+        Notification notif = Notification.builder()
+                .parcel(parcel)
+                .pickupRequest(pickup)
+                .recipientPhone(phone)
+                .recipientEmail(email)
+                .channel(channel)
+                .type(type)
+                .status(NotificationStatus.PENDING)
+                .subject(subject)
+                .message(Objects.requireNonNull(message, "message is required"))
+                .retryCount(0)
+                .build();
+
+        Notification savedNotif = notificationRepository.save(Objects.requireNonNull(notif, "notification must not be null"));
+        sendAndUpdate(savedNotif);
+    }
 
     private void sendAndUpdate(Notification notif) {
         try {
@@ -656,8 +860,7 @@ public class NotificationServiceImpl implements NotificationService {
             notif.setErrorMessage(ex.getMessage());
         }
 
-        Notification saved = notificationRepository.save(notif);
-        if (saved == null) throw new IllegalStateException("failed to save notification");
+                notificationRepository.save(notif);
     }
 
     private String buildDefaultSubject(NotificationType type) {
@@ -668,6 +871,15 @@ public class NotificationServiceImpl implements NotificationService {
             case PARCEL_CREATED -> "Parcel created";
             case PARCEL_OUT_FOR_DELIVERY -> "Parcel out for delivery";
             case DELIVERY_OTP -> "Delivery OTP";
+                        case PAYMENT_CONFIRMED -> "Payment confirmed";
+                        case INVOICE_ISSUED -> "Invoice issued";
+                        case REFUND_REQUESTED -> "Refund requested";
+                        case REFUND_STATUS_UPDATED -> "Refund status updated";
+                        case SUPPORT_TICKET_CREATED -> "Support ticket opened";
+                        case SUPPORT_TICKET_REPLIED -> "Support ticket reply";
+                        case SUPPORT_TICKET_STATUS_UPDATED -> "Support ticket status updated";
+                        case ACCOUNT_FROZEN -> "Account frozen";
+                        case ACCOUNT_UNFROZEN -> "Account restored";
             default -> "Notification";
         };
     }
@@ -681,6 +893,10 @@ public class NotificationServiceImpl implements NotificationService {
             case PARCEL_CREATED -> tracking + " has been created in our system.";
             case PARCEL_OUT_FOR_DELIVERY -> tracking + " is out for delivery.";
             case DELIVERY_OTP -> "Your OTP for " + tracking + " was sent to your phone.";
+                        case PAYMENT_CONFIRMED -> "Payment confirmed for " + tracking + ".";
+                        case INVOICE_ISSUED -> "Invoice issued for " + tracking + ".";
+                        case REFUND_REQUESTED -> "Refund requested for " + tracking + ".";
+                        case REFUND_STATUS_UPDATED -> "Refund status updated for " + tracking + ".";
             default -> "Notification regarding " + tracking;
         };
     }
@@ -698,7 +914,9 @@ public class NotificationServiceImpl implements NotificationService {
 
                 try {
                         UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+                        @SuppressWarnings("null")
+                        UUID uid = userId;
+            return userAccountRepository.findById(Objects.requireNonNull(uid, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND

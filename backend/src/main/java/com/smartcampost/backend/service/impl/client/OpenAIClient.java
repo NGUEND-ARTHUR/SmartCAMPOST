@@ -29,8 +29,9 @@ public class OpenAIClient {
         ) {
         String effectiveKey = Objects.requireNonNullElse(apiKey, "");
         String effectiveUrl = Objects.requireNonNullElse(apiUrl, "https://api.openai.com");
+        String baseUrl = Objects.requireNonNull(effectiveUrl, "OPENAI_API_URL is required");
         this.webClient = WebClient.builder()
-            .baseUrl(effectiveUrl)
+            .baseUrl(baseUrl)
             .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + effectiveKey)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Clock,
   AlertTriangle,
@@ -22,6 +23,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
+import { analyticsService } from "@/services";
 
 interface ETAResult {
   parcelId: string;
@@ -58,20 +60,24 @@ export default function Analytics() {
     setEtaLoading(true);
     setEtaResult(null);
 
-    // Simulate API call - replace with actual API when available
-    setTimeout(() => {
+    try {
+      const resp = await analyticsService.predictEta(parcelId.trim());
+      const confidence = Math.round(((resp.confidence ?? 0) * 100 + Number.EPSILON) * 100) / 100;
       setEtaResult({
-        parcelId: parcelId,
-        estimatedDelivery: new Date(
-          Date.now() + 2 * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString(),
-        currentLocation: "Douala Hub",
-        status: "IN_TRANSIT",
-        confidence: 85,
+        parcelId: resp.trackingRef || resp.parcelId || parcelId,
+        estimatedDelivery: resp.predictedDeliveryAt
+          ? new Date(resp.predictedDeliveryAt).toLocaleString()
+          : "—",
+        currentLocation: resp.lastLocationNote || "—",
+        status: resp.lastEventType || "—",
+        confidence: Math.max(0, Math.min(100, Math.round(confidence))),
       });
-      setEtaLoading(false);
       toast.success("ETA retrieved successfully");
-    }, 1000);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to retrieve ETA");
+    } finally {
+      setEtaLoading(false);
+    }
   };
 
   const handleAnomalyCheck = async () => {
@@ -82,34 +88,27 @@ export default function Analytics() {
     setAnomalyLoading(true);
     setAnomalyResult(null);
 
-    // Simulate API call - replace with actual API when available
-    setTimeout(() => {
-      const riskScore = Math.random() * 100;
+    try {
+      const resp = await analyticsService.checkPaymentAnomaly(paymentId.trim());
+      const score = Math.round(((resp.score ?? 0) * 100 + Number.EPSILON) * 100) / 100;
+      const riskScore = Math.max(0, Math.min(100, Math.round(score)));
       setAnomalyResult({
         paymentId: paymentId,
-        riskScore: Math.round(riskScore),
-        anomalyType:
-          riskScore > 70
-            ? "HIGH_VALUE"
-            : riskScore > 40
-              ? "UNUSUAL_PATTERN"
-              : "NORMAL",
-        details:
-          riskScore > 70
-            ? "This payment exceeds typical transaction amounts for this user"
-            : riskScore > 40
-              ? "Minor deviation from normal payment patterns detected"
-              : "No anomalies detected in this payment",
-        recommendation:
-          riskScore > 70
-            ? "Manual review recommended before processing"
-            : riskScore > 40
-              ? "Continue with standard verification"
-              : "Payment appears normal, proceed as usual",
+        riskScore,
+        anomalyType: resp.anomalous ? "ANOMALOUS" : "NORMAL",
+        details: resp.reason || "No details",
+        recommendation: resp.anomalous
+          ? "Manual review recommended before processing"
+          : "Payment appears normal, proceed as usual",
       });
-      setAnomalyLoading(false);
       toast.success("Anomaly check completed");
-    }, 1000);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to check payment anomaly",
+      );
+    } finally {
+      setAnomalyLoading(false);
+    }
   };
 
   const getRiskBadge = (score: number) => {
@@ -185,11 +184,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-muted-foreground">Confidence</p>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-2 bg-blue-600 rounded-full w-[${etaResult.confidence}%]`}
-                        />
-                      </div>
+                      <Progress value={etaResult.confidence} className="flex-1" />
                       <span className="font-medium">
                         {etaResult.confidence}%
                       </span>

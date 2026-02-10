@@ -60,7 +60,8 @@ public class TariffServiceImpl implements TariffService {
                 .price(request.getPrice())
                 .build();
 
-        Tariff saved = Objects.requireNonNull(tariffRepository.save(tariff), "failed to save tariff");
+        @SuppressWarnings("null")
+        Tariff saved = tariffRepository.save(tariff);
 
         return toResponse(saved);
     }
@@ -79,7 +80,8 @@ public class TariffServiceImpl implements TariffService {
             tariff.setPrice(request.getPrice());
         }
 
-        Tariff saved = Objects.requireNonNull(tariffRepository.save(tariff), "failed to save tariff");
+        @SuppressWarnings("null")
+        Tariff saved = tariffRepository.save(tariff);
 
         return toResponse(saved);
     }
@@ -119,7 +121,7 @@ public class TariffServiceImpl implements TariffService {
                         ErrorCode.TARIFF_NOT_FOUND
                 ));
 
-        tariffRepository.delete(tariff);
+        tariffRepository.delete(Objects.requireNonNull(tariff, "tariff is required"));
     }
 
     // =====================================================

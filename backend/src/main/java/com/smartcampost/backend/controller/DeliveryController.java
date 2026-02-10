@@ -31,7 +31,22 @@ public class DeliveryController {
 
     @PostMapping("/otp/send")
     public ResponseEntity<Void> sendDeliveryOtp(@RequestBody DeliveryOtpSendRequest request) {
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         deliveryOtpService.sendDeliveryOtp(request.getParcelId(), request.getPhoneNumber());
+
+        // Record OTP_SENT as an operational ScanEvent (GPS mandatory)
+        ScanEventCreateRequest otpEvt = new ScanEventCreateRequest();
+        otpEvt.setParcelId(request.getParcelId());
+        otpEvt.setEventType(ScanEventType.OTP_SENT.name());
+        otpEvt.setLatitude(request.getLatitude());
+        otpEvt.setLongitude(request.getLongitude());
+        otpEvt.setLocationSource("DEVICE_GPS");
+        otpEvt.setDeviceTimestamp(java.time.Instant.now());
+        otpEvt.setLocationNote(request.getNotes());
+        otpEvt.setComment("OTP_SENT");
+        scanEventService.recordScanEvent(otpEvt);
         return ResponseEntity.ok().build();
     }
 
@@ -39,6 +54,23 @@ public class DeliveryController {
     @PostMapping("/otp/verify")
     public ResponseEntity<Boolean> verifyDeliveryOtp(@RequestBody DeliveryOtpVerificationRequest request) {
         boolean valid = deliveryOtpService.validateDeliveryOtp(request.getParcelId(), request.getOtpCode());
+
+        // Record OTP_VERIFIED only when valid (GPS mandatory)
+        if (valid) {
+            if (request.getLatitude() == null || request.getLongitude() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            ScanEventCreateRequest otpEvt = new ScanEventCreateRequest();
+            otpEvt.setParcelId(request.getParcelId());
+            otpEvt.setEventType(ScanEventType.OTP_VERIFIED.name());
+            otpEvt.setLatitude(request.getLatitude());
+            otpEvt.setLongitude(request.getLongitude());
+            otpEvt.setLocationSource("DEVICE_GPS");
+            otpEvt.setDeviceTimestamp(java.time.Instant.now());
+            otpEvt.setLocationNote(request.getNotes());
+            otpEvt.setComment("OTP_VERIFIED");
+            scanEventService.recordScanEvent(otpEvt);
+        }
         return ResponseEntity.ok(valid);
     }
 
@@ -61,23 +93,27 @@ public class DeliveryController {
             return ResponseEntity.badRequest().build();
         }
 
-        // 2) Créer un scan "DELIVERED" (US38)
-        ScanEventCreateRequest scanReq = new ScanEventCreateRequest();
-        scanReq.setParcelId(parcelId);
-        scanReq.setEventType(ScanEventType.DELIVERED.name());
-        // agencyId, agentId, locationNote peuvent être null ici ou ajoutés plus tard
-        scanEventService.recordScanEvent(scanReq);
-
-        // 3) Enregistrer la preuve de livraison
+        // 2) Enregistrer la preuve de livraison
         deliveryProofService.captureProof(proofRequest);
 
-        // 4) Gérer le paiement COD éventuel (SPRINT 14)
+        // 3) Gérer le paiement COD éventuel (SPRINT 14)
         //    -> PaymentService décidera s’il s’agit d’un colis COD ou non.
         paymentService.markCodAsPaid(parcelId);
 
-        // 5) S’assurer que le statut du colis est bien DELIVERED
+        // 4) S’assurer que le statut du colis est bien DELIVERED (GPS mandatory)
+        if (request.getLatitude() == null || request.getLongitude() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         UpdateParcelStatusRequest statusRequest = new UpdateParcelStatusRequest();
         statusRequest.setStatus(ParcelStatus.DELIVERED);
+        statusRequest.setLatitude(request.getLatitude());
+        statusRequest.setLongitude(request.getLongitude());
+        statusRequest.setLocationSource("DEVICE_GPS");
+        statusRequest.setDeviceTimestamp(java.time.Instant.now());
+        statusRequest.setLocationNote(request.getNotes());
+        statusRequest.setProofUrl(proofRequest.getDetails());
+        statusRequest.setComment("DELIVERY_FINAL_CONFIRM");
         ParcelResponse response = parcelService.updateParcelStatus(parcelId, statusRequest);
 
         return ResponseEntity.ok(response);
@@ -96,8 +132,13 @@ public class DeliveryController {
     @Operation(summary = "Re-send delivery OTP",
                description = "Re-send OTP to recipient phone number")
     @PostMapping("/{parcelId}/otp/resend")
-    public ResponseEntity<Void> resendOtp(@PathVariable UUID parcelId) {
-        deliveryService.sendDeliveryOtp(parcelId);
+    public ResponseEntity<Void> resendOtp(
+            @PathVariable UUID parcelId,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(required = false) String notes
+    ) {
+        deliveryService.sendDeliveryOtp(parcelId, latitude, longitude, notes);
         return ResponseEntity.ok().build();
     }
 
@@ -122,9 +163,12 @@ public class DeliveryController {
     @PostMapping("/{parcelId}/failed")
     public ResponseEntity<DeliveryStatusResponse> markDeliveryFailed(
             @PathVariable UUID parcelId,
-            @RequestParam String reason
+            @RequestParam String reason,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(required = false) String notes
     ) {
-        return ResponseEntity.ok(deliveryService.markDeliveryFailed(parcelId, reason));
+        return ResponseEntity.ok(deliveryService.markDeliveryFailed(parcelId, reason, latitude, longitude, notes));
     }
 
     @Operation(summary = "Reschedule delivery",
@@ -135,4 +179,25 @@ public class DeliveryController {
             @Valid @RequestBody RescheduleDeliveryRequest request
     ) {
         return ResponseEntity.ok(deliveryService.rescheduleDelivery(parcelId, request));
-    }}
+    }
+
+    @Operation(summary = "Pickup at agency",
+               description = "Verify OTP and mark parcel as PICKED_UP_AT_AGENCY (GPS required)")
+    @PostMapping("/pickup/agency")
+    public ResponseEntity<PickupAtAgencyResponse> pickupAtAgency(
+            @Valid @RequestBody PickupAtAgencyRequest request
+    ) {
+        return ResponseEntity.ok(deliveryService.pickupAtAgency(request));
+    }
+
+    @Operation(summary = "Return to sender",
+               description = "Record RETURNED_TO_SENDER (GPS required)")
+    @PostMapping("/{parcelId}/return-to-sender")
+    public ResponseEntity<DeliveryStatusResponse> returnToSender(
+            @PathVariable UUID parcelId,
+            @Valid @RequestBody ReturnToSenderRequest request
+    ) {
+        return ResponseEntity.ok(deliveryService.returnToSender(parcelId, request));
+    }
+
+}

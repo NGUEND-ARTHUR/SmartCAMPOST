@@ -85,8 +85,8 @@ public class StaffServiceImpl implements StaffService {
                 .passwordHash(encodedPassword)
                 .build();
 
+        @SuppressWarnings("null")
         Staff savedStaff = staffRepository.save(staff);
-        if (savedStaff == null) throw new IllegalStateException("failed to save staff");
         staff = savedStaff;
 
         // ✅ UserAccount pour login STAFF-like (role must match staff role)
@@ -98,8 +98,8 @@ public class StaffServiceImpl implements StaffService {
                 .entityId(staff.getId())
                 .build();
 
+        @SuppressWarnings("null")
         UserAccount savedAccount = userAccountRepository.save(account);
-        if (savedAccount == null) throw new IllegalStateException("failed to save user account");
         account = savedAccount;
 
         return toResponse(staff);
@@ -145,8 +145,8 @@ public class StaffServiceImpl implements StaffService {
             staff.setTerminatedAt(LocalDate.now());
         }
 
+        @SuppressWarnings("null")
         Staff updatedStaff = staffRepository.save(staff);
-        if (updatedStaff == null) throw new IllegalStateException("failed to save staff");
         return toResponse(updatedStaff);
     }
 
@@ -178,8 +178,8 @@ public class StaffServiceImpl implements StaffService {
 
         // ✅ Staff.role is STRING
         staff.setRole(role.name());
+        @SuppressWarnings("null")
         Staff updated = staffRepository.save(staff);
-        if (updated == null) throw new IllegalStateException("failed to save staff");
 
         // ✅ Sync UserAccount role too (critical!)
         @SuppressWarnings("null")
@@ -191,8 +191,7 @@ public class StaffServiceImpl implements StaffService {
 
         // ✅ UserAccount.role is ENUM
         account.setRole(role);
-        UserAccount savedAcc = userAccountRepository.save(account);
-        if (savedAcc == null) throw new IllegalStateException("failed to save user account");
+        userAccountRepository.save(account);
 
         return toResponse(updated);
     }

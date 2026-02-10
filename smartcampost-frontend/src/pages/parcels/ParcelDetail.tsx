@@ -32,11 +32,13 @@ import { EmptyState } from "@/components/EmptyState";
 import {
   useParcel,
   useScanEventsForParcel,
+  usePricingQuote,
   useUpdateParcelStatus,
-  useAcceptParcel,
   useValidateAndAccept,
+  useValidateAndLockParcel,
 } from "@/hooks";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/authStore";
 
 const eventIcons: Record<string, ComponentType<any>> = {
   CREATED: Package,
@@ -54,10 +56,44 @@ export default function ParcelDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const authUser = useAuthStore((s) => s.user);
+  const normalizedRole = (() => {
+    const raw = String(authUser?.role || "CLIENT");
+    const upper = raw.toUpperCase();
+    if (upper === "USER") return "CLIENT";
+    if (upper === "ADMIN") return "ADMIN";
+    return upper;
+  })();
+
+  const listPath =
+    normalizedRole === "ADMIN"
+      ? "/admin/parcels"
+      : normalizedRole === "STAFF"
+        ? "/staff/parcels"
+        : "/client/parcels";
+
+  const canValidate = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(
+    normalizedRole,
+  );
+
   // mutation hooks must be declared at top-level to respect rules of hooks
   const updateStatus = useUpdateParcelStatus();
-  const useAccept = useAcceptParcel();
   const useValidate = useValidateAndAccept();
+  const useValidateAndLock = useValidateAndLockParcel();
+
+  const getGpsOrThrow = async () => {
+    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      });
+    });
+    return {
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+    };
+  };
 
   const {
     data: parcel,
@@ -66,6 +102,7 @@ export default function ParcelDetail() {
   } = useParcel(id || "");
   const { data: scanEvents = [], isLoading: eventsLoading } =
     useScanEventsForParcel(id || "");
+  const quote = usePricingQuote(id || "");
   // mutation hooks must be called unconditionally
 
   const isLoading = parcelLoading || eventsLoading;
@@ -81,7 +118,7 @@ export default function ParcelDetail() {
   if (parcelError || !parcel) {
     return (
       <div className="space-y-6">
-        <Button variant="ghost" onClick={() => navigate("/client/parcels")}>
+        <Button variant="ghost" onClick={() => navigate(listPath)}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Parcels
         </Button>
@@ -106,7 +143,7 @@ export default function ParcelDetail() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" onClick={() => navigate("/client/parcels")}>
+      <Button variant="ghost" onClick={() => navigate(listPath)}>
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Parcels
       </Button>
@@ -166,6 +203,16 @@ export default function ParcelDetail() {
                   Payment Option
                 </span>
                 <Badge variant="secondary">{parcel.paymentOption}</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Quote</span>
+                <span className="font-medium">
+                  {quote.isLoading
+                    ? "—"
+                    : quote.data
+                      ? `${quote.data.amount.toLocaleString()} ${quote.data.currency || "XAF"}`
+                      : "—"}
+                </span>
               </div>
             </div>
 
@@ -241,6 +288,11 @@ export default function ParcelDetail() {
         <QRCodeDisplay
           trackingRef={parcel.trackingRef}
           parcelId={parcel.id}
+          qrContent={
+            (parcel as any).locked && (parcel as any).qrStatus === "FINAL"
+              ? ((parcel as any).finalQrCode as string | undefined)
+              : undefined
+          }
           senderCity={parcel.senderCity}
           recipientCity={parcel.recipientCity}
           serviceType={parcel.serviceType}
@@ -312,6 +364,9 @@ export default function ParcelDetail() {
               eventType: e.eventType,
               timestamp: e.timestamp,
               agencyName: e.agencyName,
+              latitude: e.latitude,
+              longitude: e.longitude,
+              location: e.locationNote,
             }))}
             currentStatus={parcel.status}
             showAnimation={true}
@@ -328,46 +383,90 @@ export default function ParcelDetail() {
             </Button>
             <Button variant="outline">Download Receipt</Button>
             <Button variant="outline">Report Issue</Button>
-            <Button
-              variant="secondary"
-              onClick={async () => {
-                try {
-                  await useAccept.mutateAsync(parcel.id);
-                  toast.success("Parcel accepted");
-                } catch (e) {
-                  toast.error("Accept failed");
-                }
-              }}
-            >
-              Accept
-            </Button>
-            <Button
-              variant="outline"
-              onClick={async () => {
-                // simple prompt-based validate flow
-                const confirm = window.prompt(
-                  "Confirm description is accurate? (y/n)",
-                );
-                if (!confirm || confirm.toLowerCase() !== "y") return;
-                const photo = window.prompt(
-                  "Optional: paste photo URL or leave blank",
-                );
-                try {
-                  await useValidate.mutateAsync({
-                    id: parcel.id,
-                    data: {
-                      descriptionConfirmed: true,
-                      photoUrl: photo || undefined,
-                    },
-                  });
-                  toast.success("Parcel validated and accepted");
-                } catch (e) {
-                  toast.error("Validation failed");
-                }
-              }}
-            >
-              Validate & Accept
-            </Button>
+
+            {canValidate && (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    try {
+                      const gps = await getGpsOrThrow();
+                      await useValidate.mutateAsync({
+                        id: parcel.id,
+                        data: {
+                          descriptionConfirmed: true,
+                          latitude: gps.latitude,
+                          longitude: gps.longitude,
+                          locationSource: "DEVICE_GPS",
+                          deviceTimestamp: new Date().toISOString(),
+                          locationNote: "Quick accept",
+                        },
+                      });
+                      toast.success("Parcel accepted");
+                    } catch {
+                      toast.error("Accept failed");
+                    }
+                  }}
+                >
+                  Accept
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    const confirm = window.prompt(
+                      "Confirm description is accurate? (y/n)",
+                    );
+                    if (!confirm || confirm.toLowerCase() !== "y") return;
+                    const photo = window.prompt(
+                      "Optional: paste photo URL or leave blank",
+                    );
+                    try {
+                      const gps = await getGpsOrThrow();
+                      await useValidate.mutateAsync({
+                        id: parcel.id,
+                        data: {
+                          descriptionConfirmed: true,
+                          photoUrl: photo || undefined,
+                          latitude: gps.latitude,
+                          longitude: gps.longitude,
+                          locationSource: "DEVICE_GPS",
+                          deviceTimestamp: new Date().toISOString(),
+                          locationNote: "Validated at counter",
+                        },
+                      });
+                      toast.success("Parcel validated and accepted");
+                    } catch {
+                      toast.error("Validation failed");
+                    }
+                  }}
+                >
+                  Validate & Accept
+                </Button>
+                <Button
+                  variant="default"
+                  disabled={
+                    (parcel as any).locked ||
+                    parcel.status !== "ACCEPTED" ||
+                    (useValidateAndLock as any).isLoading
+                  }
+                  onClick={async () => {
+                    try {
+                      const gps = await getGpsOrThrow();
+                      await useValidateAndLock.mutateAsync({
+                        id: parcel.id,
+                        latitude: gps.latitude,
+                        longitude: gps.longitude,
+                      });
+                      toast.success("Parcel validated and locked (FINAL QR)");
+                    } catch {
+                      toast.error("Validate & Lock failed");
+                    }
+                  }}
+                >
+                  Validate & Lock (Final QR)
+                </Button>
+              </>
+            )}
             <ActionButton
               variant="destructive"
               disabled={!canCancel || (updateStatus as any).isLoading}
@@ -379,9 +478,17 @@ export default function ParcelDetail() {
               onClick={async () => {
                 if (!canCancel) return;
                 try {
+                  const gps = await getGpsOrThrow();
                   await updateStatus.mutateAsync({
                     id: parcel.id,
-                    data: { status: "CANCELLED" },
+                    data: {
+                      status: "CANCELLED",
+                      latitude: gps.latitude,
+                      longitude: gps.longitude,
+                      locationSource: "DEVICE_GPS",
+                      deviceTimestamp: new Date().toISOString(),
+                      comment: "Cancelled by client",
+                    },
                   });
                   toast.success("Parcel cancelled", {
                     description: `Parcel ${parcel.trackingRef}`,

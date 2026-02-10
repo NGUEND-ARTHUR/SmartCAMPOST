@@ -1,5 +1,6 @@
 package com.smartcampost.backend.dto.pickup;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.UUID;
@@ -33,6 +34,9 @@ public class ConfirmPickupRequest {
 
     // ==================== LOCATION ====================
 
+    @NotNull(message = "latitude is required - GPS must be enabled")
     private Double latitude;                  // GPS location of pickup
+
+    @NotNull(message = "longitude is required - GPS must be enabled")
     private Double longitude;
 }

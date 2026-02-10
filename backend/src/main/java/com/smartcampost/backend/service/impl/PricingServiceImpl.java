@@ -61,7 +61,9 @@ public class PricingServiceImpl implements PricingService {
                 .appliedAt(Instant.now())
                 .build();
 
-        return pricingDetailRepository.save(pricingDetail);
+        @SuppressWarnings("null")
+        PricingDetail saved = pricingDetailRepository.save(pricingDetail);
+        return saved;
     }
 
     @Override
@@ -92,7 +94,9 @@ public class PricingServiceImpl implements PricingService {
                 .appliedAt(Instant.now())
                 .build();
 
-        return pricingDetailRepository.save(pricingDetail);
+        @SuppressWarnings("null")
+        PricingDetail saved = pricingDetailRepository.save(pricingDetail);
+        return saved;
     }
 
     // ================== PRIVATE HELPERS ==================

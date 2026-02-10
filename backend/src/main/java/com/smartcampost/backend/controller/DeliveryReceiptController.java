@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 import java.util.Objects;
-import org.springframework.lang.NonNull;
 
 @RestController
 @RequestMapping("/api/receipts")
@@ -33,7 +32,7 @@ public class DeliveryReceiptController {
     private final UserAccountRepository userAccountRepository;
 
     @GetMapping("/parcel/{parcelId}")
-    public ResponseEntity<DeliveryReceiptResponse> getByParcel(@PathVariable @NonNull UUID parcelId) {
+    public ResponseEntity<DeliveryReceiptResponse> getByParcel(@PathVariable UUID parcelId) {
         UUID pid = Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(pid)
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
@@ -57,7 +56,7 @@ public class DeliveryReceiptController {
     }
 
     @GetMapping("/number/{receiptNumber}")
-    public ResponseEntity<DeliveryReceiptResponse> getByNumber(@PathVariable @NonNull String receiptNumber) {
+    public ResponseEntity<DeliveryReceiptResponse> getByNumber(@PathVariable String receiptNumber) {
         DeliveryReceiptResponse receipt = deliveryReceiptService.getReceiptByNumber(receiptNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Receipt not found", ErrorCode.BUSINESS_ERROR));
 
@@ -89,8 +88,10 @@ public class DeliveryReceiptController {
 
         try {
             UUID id = UUID.fromString(subject);
-            return userAccountRepository.findById(id)
+            @SuppressWarnings("null")
+            UserAccount account = userAccountRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
+            return account;
         } catch (IllegalArgumentException ex) {
             return userAccountRepository.findByPhone(subject)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));

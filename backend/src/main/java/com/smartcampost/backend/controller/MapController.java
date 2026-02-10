@@ -1,10 +1,10 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.model.Location;
-import com.smartcampost.backend.model.ScanEvent;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.LocationService;
-import com.smartcampost.backend.service.ScanService;
+import com.smartcampost.backend.dto.scan.ScanEventResponse;
+import com.smartcampost.backend.service.ScanEventService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +22,12 @@ import java.util.Objects;
 public class MapController {
 
     private final ParcelRepository parcelRepository;
-    private final ScanService scanService;
+    private final ScanEventService scanEventService;
     private final LocationService locationService;
 
-    public MapController(ParcelRepository parcelRepository, ScanService scanService, LocationService locationService) {
+    public MapController(ParcelRepository parcelRepository, ScanEventService scanEventService, LocationService locationService) {
         this.parcelRepository = parcelRepository;
-        this.scanService = scanService;
+        this.scanEventService = scanEventService;
         this.locationService = locationService;
     }
 
@@ -42,16 +42,20 @@ public class MapController {
                     out.put("parcelId", p.getId());
                     out.put("trackingNumber", p.getTrackingRef());
                     out.put("status", p.getStatus() != null ? p.getStatus().name() : null);
-                    // last scan as current location
-                    List<ScanEvent> events = scanService.getScanEventsForParcel(p.getId());
+                    // ScanEvent is the single source of truth for parcel movement.
+                    List<ScanEventResponse> events = scanEventService.getHistoryForParcel(p.getId());
                     out.put("timeline", events);
-                    events.stream().findFirst().ifPresent(last -> {
+
+                    ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
+                    if (last != null) {
                         Map<String,Object> loc = new HashMap<>();
                         loc.put("note", last.getLocationNote());
-                        loc.put("eventId", last.getEventId());
+                        loc.put("eventId", last.getId());
                         loc.put("timestamp", last.getTimestamp());
+                        loc.put("latitude", last.getLatitude());
+                        loc.put("longitude", last.getLongitude());
                         out.put("currentLocation", loc);
-                    });
+                    }
                     return ResponseEntity.ok(out);
                 }).orElse(ResponseEntity.notFound().build());
     }

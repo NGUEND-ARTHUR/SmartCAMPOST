@@ -13,3 +13,10 @@ export * from "./support";
 export * from "./notifications";
 export * from "./compliance";
 export * from "./ai";
+
+// Utility hooks
+export { default as useGeolocation } from "./useGeolocation";
+export { default as useGpsLocation } from "./useGpsLocation";
+export { default as useOfflineSync } from "./useOfflineSync";
+export { default as useQrVerification } from "./useQrVerification";
+export { default as useScanSSE } from "./useScanSSE";

@@ -1,24 +1,37 @@
 import React, { useState } from "react";
+import { paymentService } from "@/services";
 
 export default function MoMoPaymentPage() {
   const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("0");
   const [parcelId, setParcelId] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   async function initiate() {
     setMessage(null);
+
+    if (!phone.trim()) {
+      setMessage("Phone is required");
+      return;
+    }
+
+    if (!parcelId.trim()) {
+      setMessage("Parcel ID is required");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch("/api/payments/momo/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, amount, parcelId }),
+      // Uses unified payment flow: backend quotes amount server-side.
+      const payment = await paymentService.init({
+        parcelId: parcelId.trim(),
+        method: "MOBILE_MONEY",
+        payerPhone: phone.trim(),
       });
-      const json = await res.json();
-      if (res.ok) setMessage("Payment initiated. ID: " + json.paymentId);
-      else setMessage("Failed: " + (json.error || res.statusText));
+
+      setMessage(
+        `Payment initiated. ID: ${payment.id} | Amount: ${payment.amount} ${payment.currency}`,
+      );
     } catch (e: any) {
       setMessage("Error: " + e.message);
     } finally {
@@ -39,15 +52,7 @@ export default function MoMoPaymentPage() {
       </div>
       <div className="mt-3">
         <input
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="border p-2 w-full"
-        />
-      </div>
-      <div className="mt-3">
-        <input
-          placeholder="Parcel ID (optional)"
+          placeholder="Parcel ID"
           value={parcelId}
           onChange={(e) => setParcelId(e.target.value)}
           className="border p-2 w-full"

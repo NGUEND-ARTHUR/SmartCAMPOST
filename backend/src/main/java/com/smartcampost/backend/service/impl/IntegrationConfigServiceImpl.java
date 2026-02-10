@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +23,7 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
     private final IntegrationConfigRepository integrationConfigRepository;
 
     @Override
-        public IntegrationConfigResponse createConfig(@NonNull IntegrationConfigRequest request) {
+                public IntegrationConfigResponse createConfig(IntegrationConfigRequest request) {
                 Objects.requireNonNull(request, "request is required");
 
         IntegrationConfig config = IntegrationConfig.builder()
@@ -38,14 +37,14 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
                 .createdAt(Instant.now())
                 .build();
 
-        IntegrationConfig saved = integrationConfigRepository.save(config);
-        IntegrationConfig nonNullSaved = Objects.requireNonNull(saved, "failed to save integration config");
+                @SuppressWarnings("null")
+                IntegrationConfig saved = integrationConfigRepository.save(config);
 
-        return toResponse(nonNullSaved);
+                return toResponse(saved);
     }
 
     @Override
-        public IntegrationConfigResponse updateConfig(@NonNull UUID id, @NonNull IntegrationConfigRequest request) {
+                public IntegrationConfigResponse updateConfig(UUID id, IntegrationConfigRequest request) {
                 Objects.requireNonNull(id, "id is required");
                 Objects.requireNonNull(request, "request is required");
 
@@ -63,14 +62,14 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
         config.setEnabled(request.isEnabled());
         config.setUpdatedAt(Instant.now());
 
-        IntegrationConfig saved = integrationConfigRepository.save(config);
-        IntegrationConfig nonNullSaved = Objects.requireNonNull(saved, "failed to save integration config");
+                @SuppressWarnings("null")
+                IntegrationConfig saved = integrationConfigRepository.save(config);
 
-        return toResponse(nonNullSaved);
+                return toResponse(saved);
     }
 
     @Override
-        public IntegrationConfigResponse getConfig(@NonNull UUID id) {
+                public IntegrationConfigResponse getConfig(UUID id) {
                 Objects.requireNonNull(id, "id is required");
 
         IntegrationConfig config = integrationConfigRepository.findById(id)
@@ -79,7 +78,7 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
                         ErrorCode.INTEGRATION_CONFIG_NOT_FOUND
                 ));
 
-        return toResponse(Objects.requireNonNull(config));
+                return toResponse(config);
     }
 
     @Override

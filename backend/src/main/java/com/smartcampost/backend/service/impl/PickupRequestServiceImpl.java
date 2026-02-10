@@ -4,11 +4,13 @@ import com.smartcampost.backend.dto.pickup.*;
 import com.smartcampost.backend.dto.qr.QrCodeData;
 import com.smartcampost.backend.dto.qr.QrLabelData;
 import com.smartcampost.backend.dto.qr.TemporaryQrData;
+import com.smartcampost.backend.dto.scan.ScanEventCreateRequest;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.*;
+import com.smartcampost.backend.model.enums.LocationMode;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.PickupRequestState;
 import com.smartcampost.backend.model.enums.UserRole;
@@ -19,6 +21,7 @@ import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.PickupRequestService;
 import com.smartcampost.backend.service.QrCodeService;
+import com.smartcampost.backend.service.ScanEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +44,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
     private final UserAccountRepository userAccountRepository;
     private final NotificationService notificationService;
     private final QrCodeService qrCodeService;
+    private final ScanEventService scanEventService;
 
     // ================== CREATE (US25) ==================
     @Override
@@ -81,9 +85,14 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .timeWindow(request.getTimeWindow())
                 .state(PickupRequestState.REQUESTED)
                 .comment(request.getComment())
+            .pickupLatitude(request.getPickupLatitude())
+            .pickupLongitude(request.getPickupLongitude())
+            .locationMode(request.getLocationMode() != null ? request.getLocationMode() : LocationMode.GPS_DEFAULT)
                 .build();
 
-        pickup = Objects.requireNonNull(pickupRequestRepository.save(pickup), "failed to save pickup request");
+        @SuppressWarnings("null")
+        PickupRequest savedPickup = pickupRequestRepository.save(pickup);
+        pickup = savedPickup;
 
         // 🔔 Notification automatique : pickup demandé
         notificationService.notifyPickupRequested(pickup);
@@ -292,7 +301,7 @@ public class PickupRequestServiceImpl implements PickupRequestService {
 
         try {
             UUID userId = UUID.fromString(subject);
-            return userAccountRepository.findById(userId)
+            return userAccountRepository.findById(Objects.requireNonNull(userId, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "User not found",
                             ErrorCode.AUTH_USER_NOT_FOUND
@@ -319,12 +328,16 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 .trackingRef(parcel.getTrackingRef())
                 .clientId(client.getId())
                 .clientName(client.getFullName())
+            .clientPhone(client.getPhone())
                 .courierId(courier != null ? courier.getId() : null)
                 .courierName(courier != null ? courier.getFullName() : null)
                 .requestedDate(pickup.getRequestedDate())
                 .timeWindow(pickup.getTimeWindow())
                 .state(pickup.getState())
                 .comment(pickup.getComment())
+            .pickupLatitude(pickup.getPickupLatitude())
+            .pickupLongitude(pickup.getPickupLongitude())
+            .locationMode(pickup.getLocationMode())
                 .createdAt(pickup.getCreatedAt())
                 .build();
     }
@@ -416,9 +429,65 @@ public class PickupRequestServiceImpl implements PickupRequestService {
         // Note: validatedBy should be Staff, but we only have UserAccount here
         // For now, we leave it null unless Staff can be retrieved
 
-        // Transition parcel to ACCEPTED
+        // Pickup confirmation must create a ScanEvent with device GPS
+        final Double latitude = Objects.requireNonNull(request.getLatitude(), "latitude is required");
+        final Double longitude = Objects.requireNonNull(request.getLongitude(), "longitude is required");
+
+        // If parcel is still CREATED, record ACCEPTED first
         if (parcel.getStatus() == ParcelStatus.CREATED) {
-            parcel.setStatus(ParcelStatus.ACCEPTED);
+            ScanEventCreateRequest acceptEvent = new ScanEventCreateRequest();
+            acceptEvent.setParcelId(parcel.getId());
+            acceptEvent.setEventType("ACCEPTED");
+            acceptEvent.setLatitude(latitude);
+            acceptEvent.setLongitude(longitude);
+            acceptEvent.setLocationSource("GPS");
+            acceptEvent.setDeviceTimestamp(now);
+            if (request.getPhotoUrl() != null && !request.getPhotoUrl().isEmpty()) {
+                acceptEvent.setProofUrl(request.getPhotoUrl());
+            }
+            acceptEvent.setComment("PICKUP_CONFIRMED");
+            acceptEvent.setActorRole(user.getRole().name());
+            if (user.getEntityId() != null) {
+                acceptEvent.setActorId(user.getEntityId());
+            }
+            scanEventService.recordScanEvent(acceptEvent);
+        }
+
+        // Ensure parcel progresses to TAKEN_IN_CHARGE (or at least records an audit event)
+        if (parcel.getStatus().ordinal() < ParcelStatus.TAKEN_IN_CHARGE.ordinal()) {
+            ScanEventCreateRequest takenInChargeEvent = new ScanEventCreateRequest();
+            takenInChargeEvent.setParcelId(parcel.getId());
+            takenInChargeEvent.setEventType("TAKEN_IN_CHARGE");
+            takenInChargeEvent.setLatitude(latitude);
+            takenInChargeEvent.setLongitude(longitude);
+            takenInChargeEvent.setLocationSource("GPS");
+            takenInChargeEvent.setDeviceTimestamp(now);
+            if (request.getPhotoUrl() != null && !request.getPhotoUrl().isEmpty()) {
+                takenInChargeEvent.setProofUrl(request.getPhotoUrl());
+            }
+            takenInChargeEvent.setComment("PICKUP_CONFIRMED");
+            takenInChargeEvent.setActorRole(user.getRole().name());
+            if (user.getEntityId() != null) {
+                takenInChargeEvent.setActorId(user.getEntityId());
+            }
+            scanEventService.recordScanEvent(takenInChargeEvent);
+        } else {
+            ScanEventCreateRequest auditEvent = new ScanEventCreateRequest();
+            auditEvent.setParcelId(parcel.getId());
+            auditEvent.setEventType("PROOF_CAPTURED");
+            auditEvent.setLatitude(latitude);
+            auditEvent.setLongitude(longitude);
+            auditEvent.setLocationSource("GPS");
+            auditEvent.setDeviceTimestamp(now);
+            if (request.getPhotoUrl() != null && !request.getPhotoUrl().isEmpty()) {
+                auditEvent.setProofUrl(request.getPhotoUrl());
+            }
+            auditEvent.setComment("PICKUP_CONFIRMED");
+            auditEvent.setActorRole(user.getRole().name());
+            if (user.getEntityId() != null) {
+                auditEvent.setActorId(user.getEntityId());
+            }
+            scanEventService.recordScanEvent(auditEvent);
         }
 
         Parcel savedParcel = parcelRepository.save(parcel);

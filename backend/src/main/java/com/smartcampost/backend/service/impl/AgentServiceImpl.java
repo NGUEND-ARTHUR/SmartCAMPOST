@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +43,7 @@ public class AgentServiceImpl implements AgentService {
     // CREATE AGENT
     // ============================================================
     @Override
-        public AgentResponse createAgent(@NonNull CreateAgentRequest request) {
+                public AgentResponse createAgent(CreateAgentRequest request) {
                 Objects.requireNonNull(request, "request is required");
 
         // Générer staffNumber si non fourni
@@ -113,8 +112,8 @@ public class AgentServiceImpl implements AgentService {
                                         .status(StaffStatus.ACTIVE)
                                         .hiredAt(java.time.LocalDate.now())
                                         .build();
+                        @SuppressWarnings("null")
                         Staff savedStaff = staffRepository.save(newStaff);
-                        if (savedStaff == null) throw new IllegalStateException("failed to save staff");
                         staff = savedStaff;
                 }
 
@@ -131,7 +130,8 @@ public class AgentServiceImpl implements AgentService {
                 .createdAt(Instant.now())
                 .build();
 
-        Agent savedAgent = Objects.requireNonNull(agentRepository.save(agent), "failed to save agent");
+        @SuppressWarnings("null")
+        Agent savedAgent = agentRepository.save(agent);
 
         // créer UserAccount pour login Agent
         UserAccount account = UserAccount.builder()
@@ -141,7 +141,9 @@ public class AgentServiceImpl implements AgentService {
                 .role(UserRole.AGENT)
                 .entityId(savedAgent.getId())
                 .build();
-        account = Objects.requireNonNull(userAccountRepository.save(account), "failed to save account");
+                @SuppressWarnings("null")
+                UserAccount savedAccount = userAccountRepository.save(account);
+                account = savedAccount;
 
         return toResponse(savedAgent);
     }

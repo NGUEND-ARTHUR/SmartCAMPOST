@@ -14,6 +14,7 @@ import {
 
 // Common pages
 import { Landing } from "./pages/common";
+import TrackingPage from "./pages/common/TrackingPage";
 
 // Auth pages
 import { Login, LoginOtp, ResetPassword, Register } from "./pages/auth";
@@ -62,6 +63,7 @@ import {
   TariffManagement,
   IntegrationManagement,
   UserAccountManagement,
+  SelfHealingDashboard,
 } from "./pages/admin";
 import { AIChatbot } from "./components/chat";
 import MtnTest from "./pages/payments/MtnTest";
@@ -109,6 +111,7 @@ function App() {
           <Route path="deliveries" element={<CourierDeliveries />} />
           <Route path="deliveries/:id" element={<DeliveryDetail />} />
           <Route path="deliveries/confirm" element={<ConfirmDelivery />} />
+          <Route path="scan" element={<ScanConsole />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
 
@@ -136,6 +139,8 @@ function App() {
           <Route index element={<StaffDashboard />} />
           <Route path="pickups" element={<PickupsManagement />} />
           <Route path="parcels" element={<ParcelManagement />} />
+          <Route path="parcels/:id" element={<ParcelDetail />} />
+          <Route path="tracking" element={<TrackingPage />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="analytics" element={<Analytics />} />
@@ -152,6 +157,8 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="api-coverage" element={<ApiCoverage />} />
           <Route path="parcels" element={<ParcelManagement />} />
+          <Route path="parcels/:id" element={<ParcelDetail />} />
+          <Route path="tracking" element={<TrackingPage />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="staff" element={<StaffDashboard />} />
           <Route path="notifications" element={<Notifications />} />
@@ -172,6 +179,8 @@ function App() {
           {/* Risk Management */}
           <Route path="risk" element={<RiskDashboard />} />
           <Route path="risk/create" element={<CreateRiskPage />} />
+          {/* Self-Healing System (SPEC SECTION 15) */}
+          <Route path="self-healing" element={<SelfHealingDashboard />} />
         </Route>
 
         <Route
@@ -216,6 +225,9 @@ function App() {
           element={<Navigate to="/finance" replace />}
         />
         <Route path="/admin/risk" element={<Navigate to="/risk" replace />} />
+
+        {/* Public tracking (number + QR) */}
+        <Route path="/tracking" element={<TrackingPage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/maps/viewer" element={<MapViewer />} />

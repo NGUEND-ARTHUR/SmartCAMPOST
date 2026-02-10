@@ -2,18 +2,24 @@ package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.dto.parcel.*;
 import com.smartcampost.backend.dto.pricing.PricingDetailResponse;
+import com.smartcampost.backend.dto.scan.ScanEventCreateRequest;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.*;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
+import com.smartcampost.backend.model.enums.ScanEventType;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.*;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ParcelService;
 import com.smartcampost.backend.service.PaymentService;
 import com.smartcampost.backend.service.PricingService;
+import com.smartcampost.backend.service.ScanEventService;
+import com.smartcampost.backend.service.QrSecurityService;
+import com.smartcampost.backend.dto.qr.SecureQrPayload;
+import com.smartcampost.backend.model.QrVerificationToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,6 +52,10 @@ public class ParcelServiceImpl implements ParcelService {
 
     // 🔥 SPRINT 15: pricing service for weight-based recalculation
     private final PricingService pricingService;
+
+    private final ScanEventService scanEventService;
+
+    private final QrSecurityService qrSecurityService;
 
     private final SecureRandom random = new SecureRandom();
 
@@ -110,26 +120,41 @@ public class ParcelServiceImpl implements ParcelService {
         // 4) Tracking number
         String trackingRef = generateTrackingRef();
 
+        // Generate PARTIAL QR payload (two-step workflow)
+        String partialQrPayload = trackingRef + "|PARTIAL|" + Instant.now().toEpochMilli();
+
         // 5) créer Parcel
         Parcel parcel = Parcel.builder()
                 .id(UUID.randomUUID())
                 .trackingRef(trackingRef)
+            .trackingNumber(trackingRef)
                 .client(client)
                 .senderAddress(sender)
                 .recipientAddress(recipient)
                 .originAgency(originAgency)
                 .destinationAgency(destinationAgency)
+            .weight(request.getWeight())
+            .dimensions(request.getDimensions())
+            .declaredValue(request.getDeclaredValue())
+            .fragile(request.isFragile())
+            .serviceType(request.getServiceType())
+            .deliveryOption(request.getDeliveryOption())
+            .paymentOption(request.getPaymentOption())
+            .photoUrl(request.getPhotoUrl())
+            .descriptionComment(request.getDescriptionComment())
+            .partialQrCode(partialQrPayload)
                 .build();
 
+        @SuppressWarnings("null")
         Parcel savedParcel = parcelRepository.save(parcel);
-        parcel = Objects.requireNonNull(savedParcel, "failed to save parcel");
+        parcel = savedParcel;
 
         return toResponse(parcel);
     }
 
     // ================== GET BY ID ==================
     @Override
-    public ParcelDetailResponse getParcelById(@org.springframework.lang.NonNull UUID parcelId) {
+        public ParcelDetailResponse getParcelById(UUID parcelId) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -189,7 +214,7 @@ public class ParcelServiceImpl implements ParcelService {
 
     // ================== UPDATE STATUS ==================
     @Override
-    public ParcelResponse updateParcelStatus(@org.springframework.lang.NonNull UUID parcelId, UpdateParcelStatusRequest request) {
+        public ParcelResponse updateParcelStatus(UUID parcelId, UpdateParcelStatusRequest request) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -202,35 +227,36 @@ public class ParcelServiceImpl implements ParcelService {
 
         validateStatusTransition(current, next);
 
-        parcel.setStatus(next);
-        Parcel saved = parcelRepository.save(parcel);
-        parcel = Objects.requireNonNull(saved, "failed to save parcel");
+        // Enforce: every status change must have a ScanEvent (GPS required)
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(id);
+        evt.setEventType(next.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationSource(request.getLocationSource());
+        evt.setDeviceTimestamp(request.getDeviceTimestamp());
+        evt.setLocationNote(request.getLocationNote());
+        evt.setComment(request.getComment());
+        evt.setProofUrl(request.getProofUrl());
 
-        return toResponse(parcel);
+        scanEventService.recordScanEvent(evt);
+
+        Parcel refreshed = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found",
+                ErrorCode.PARCEL_NOT_FOUND
+            ));
+        return toResponse(refreshed);
     }
 
     // ================== ACCEPT PARCEL (CREATED -> ACCEPTED) ==================
     @Override
-    public ParcelResponse acceptParcel(@org.springframework.lang.NonNull UUID parcelId) {
-        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
-        Parcel parcel = parcelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Parcel not found",
-                        ErrorCode.PARCEL_NOT_FOUND
-                ));
-
-        if (parcel.getStatus() != ParcelStatus.CREATED) {
-            throw new AuthException(
-                    ErrorCode.PARCEL_STATUS_INVALID,
-                    "Parcel must be in CREATED state to be accepted"
-            );
-        }
-
-        parcel.setStatus(ParcelStatus.ACCEPTED);
-        Parcel saved = parcelRepository.save(parcel);
-        parcel = Objects.requireNonNull(saved, "failed to save parcel");
-
-        return toResponse(parcel);
+    public ParcelResponse acceptParcel(UUID parcelId) {
+        // Compatibility endpoint: acceptance requires GPS-backed ScanEvent.
+        throw new AuthException(
+            ErrorCode.VALIDATION_FAILED,
+            "Acceptance requires GPS. Use PATCH /api/parcels/{parcelId}/validate with latitude/longitude."
+        );
     }
 
     // ================== ACCEPT PARCEL WITH VALIDATION (CREATED -> ACCEPTED) ==================
@@ -311,11 +337,22 @@ public class ParcelServiceImpl implements ParcelService {
         parcel.setValidatedAt(Instant.now());
         parcel.setValidatedBy(validatingStaff);
 
-        // 10) Update status to ACCEPTED
-        parcel.setStatus(ParcelStatus.ACCEPTED);
-
         Parcel saved = parcelRepository.save(parcel);
         parcel = Objects.requireNonNull(saved, "failed to save parcel");
+
+        // 10) Enforce: status transition CREATED -> ACCEPTED must be backed by a ScanEvent
+        ScanEventCreateRequest evt = new ScanEventCreateRequest();
+        evt.setParcelId(id);
+        evt.setEventType(ScanEventType.ACCEPTED.name());
+        evt.setLatitude(request.getLatitude());
+        evt.setLongitude(request.getLongitude());
+        evt.setLocationSource(request.getLocationSource());
+        evt.setDeviceTimestamp(request.getDeviceTimestamp());
+        evt.setLocationNote(request.getLocationNote());
+        evt.setComment(request.getValidationComment());
+        evt.setProofUrl(request.getPhotoUrl());
+
+        scanEventService.recordScanEvent(evt);
 
         // 11) If weight changed and recalculation requested, trigger price recalculation
         if (weightChanged && request.isRecalculatePriceOnWeightChange()) {
@@ -330,7 +367,12 @@ public class ParcelServiceImpl implements ParcelService {
         // 12) Notify client that parcel has been validated/accepted
         notificationService.notifyParcelAccepted(parcel);
 
-        return toResponse(parcel);
+        Parcel refreshed = parcelRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Parcel not found",
+                ErrorCode.PARCEL_NOT_FOUND
+            ));
+        return toResponse(refreshed);
     }
 
     // ================== CHANGE DELIVERY OPTION (AGENCY ↔ HOME) ==================
@@ -385,8 +427,9 @@ public class ParcelServiceImpl implements ParcelService {
             parcel.setDescriptionComment(request.getDescriptionComment());
         }
 
+        @SuppressWarnings("null")
         Parcel saved = parcelRepository.save(parcel);
-        parcel = Objects.requireNonNull(saved, "failed to save parcel");
+        parcel = saved;
         return toResponse(parcel);
     }
 
@@ -463,6 +506,7 @@ public class ParcelServiceImpl implements ParcelService {
         return ParcelResponse.builder()
                 .id(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
+                .trackingNumber(parcel.getTrackingNumber() != null ? parcel.getTrackingNumber() : parcel.getTrackingRef())
                 .status(parcel.getStatus())
                 .serviceType(parcel.getServiceType())
                 .deliveryOption(parcel.getDeliveryOption())
@@ -475,6 +519,8 @@ public class ParcelServiceImpl implements ParcelService {
                 .paymentOption(parcel.getPaymentOption())
                 .photoUrl(parcel.getPhotoUrl())
                 .descriptionComment(parcel.getDescriptionComment())
+                .qrStatus(parcel.getQrStatus())
+                .locked(parcel.isLocked())
                 // -----------------------------
 
                 .createdAt(parcel.getCreatedAt())
@@ -520,9 +566,16 @@ public class ParcelServiceImpl implements ParcelService {
         return ParcelDetailResponse.builder()
                 .id(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
+            .trackingNumber(parcel.getTrackingNumber() != null ? parcel.getTrackingNumber() : parcel.getTrackingRef())
                 .status(parcel.getStatus())
                 .serviceType(parcel.getServiceType())
                 .deliveryOption(parcel.getDeliveryOption())
+            .paymentOption(parcel.getPaymentOption())
+            .descriptionComment(parcel.getDescriptionComment())
+            .qrStatus(parcel.getQrStatus())
+            .locked(parcel.isLocked())
+            .partialQrCode(parcel.getPartialQrCode())
+            .finalQrCode(parcel.getFinalQrCode())
                 .weight(parcel.getWeight())
                 .dimensions(parcel.getDimensions())
                 .declaredValue(parcel.getDeclaredValue())
@@ -554,5 +607,235 @@ public class ParcelServiceImpl implements ParcelService {
                 .lastAppliedPrice(lastPrice)
                 .pricingHistory(pricingHistory)
                 .build();
+    }
+
+    // ================== QR TWO-STEP WORKFLOW (SPEC SECTION 3) ==================
+
+    /**
+     * Correct parcel metadata before final validation.
+     * Only allowed while QR status is PARTIAL (not yet validated/locked).
+     */
+    @Override
+    public ParcelResponse correctParcelBeforeValidation(UUID parcelId, 
+                                                         ParcelCorrectionRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        // Only allow corrections when parcel is not locked (QR status = PARTIAL)
+        if (parcel.isLocked()) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Cannot correct parcel after validation. Parcel is locked."
+            );
+        }
+
+        // Corrections only allowed in early statuses
+        if (parcel.getStatus() != ParcelStatus.CREATED && 
+            parcel.getStatus() != ParcelStatus.ACCEPTED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Corrections only allowed in CREATED or ACCEPTED status. Current: " + parcel.getStatus()
+            );
+        }
+
+        // Apply corrections
+        if (request.getWeight() != null) {
+            parcel.setWeight(request.getWeight());
+        }
+        if (request.getDimensions() != null && !request.getDimensions().isBlank()) {
+            parcel.setDimensions(request.getDimensions());
+        }
+        if (request.getDescriptionComment() != null && !request.getDescriptionComment().isBlank()) {
+            parcel.setDescriptionComment(request.getDescriptionComment());
+        } else if (request.getDescription() != null && !request.getDescription().isBlank()) {
+            // Backward/alias support: request.description maps to the persisted descriptionComment field.
+            parcel.setDescriptionComment(request.getDescription());
+        }
+        if (request.getDeclaredValue() != null) {
+            parcel.setDeclaredValue(request.getDeclaredValue());
+        }
+        if (request.getFragile() != null) {
+            parcel.setFragile(request.getFragile());
+        }
+        if (request.getCorrectionReason() != null && !request.getCorrectionReason().isBlank()) {
+            parcel.setValidationComment(request.getCorrectionReason());
+        }
+
+        Parcel saved = Objects.requireNonNull(parcelRepository.save(parcel), "failed to save parcel");
+        return toResponse(saved);
+    }
+
+    /**
+     * Validate and lock parcel - generates final QR code.
+     * After this, no more corrections are allowed.
+     * GPS coordinates are mandatory for validation.
+     */
+    @Override
+    public ParcelResponse validateAndLockParcel(UUID parcelId,
+                                                 Double latitude,
+                                                 Double longitude) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(latitude, "GPS latitude is mandatory for validation");
+        Objects.requireNonNull(longitude, "GPS longitude is mandatory for validation");
+
+        Parcel parcel = parcelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        if (parcel.isLocked()) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel is already validated and locked"
+            );
+        }
+
+        // Must be in ACCEPTED status to validate
+        if (parcel.getStatus() != ParcelStatus.ACCEPTED) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel must be ACCEPTED before validation. Current: " + parcel.getStatus()
+            );
+        }
+
+        // Lock the parcel
+        parcel.setLocked(true);
+        parcel.setQrStatus(com.smartcampost.backend.model.enums.QrStatus.FINAL);
+        parcel.setValidatedAt(Instant.now());
+
+        // Store validation GPS coordinates
+        parcel.setCreationLatitude(latitude);
+        parcel.setCreationLongitude(longitude);
+
+        // Generate FINAL secure QR content (anti-forgery payload).
+        // Prefer existing token if already generated to avoid invalidating printed labels.
+        SecureQrPayload finalPayload;
+        java.util.Optional<QrVerificationToken> existing = qrSecurityService.getValidTokenForParcel(parcel.getId());
+        if (existing.isPresent()) {
+            QrVerificationToken token = existing.get();
+            long ts = token.getCreatedAt() != null ? token.getCreatedAt().getEpochSecond() : Instant.now().getEpochSecond();
+            String fullSig = token.getSignature();
+            String truncatedSig = (fullSig != null && fullSig.length() > 16) ? fullSig.substring(0, 16) : fullSig;
+            finalPayload = SecureQrPayload.builder()
+                    .version(1)
+                    .type("P")
+                    .token(token.getToken())
+                    .ref(parcel.getTrackingRef())
+                    .ts(ts)
+                    .sig(truncatedSig)
+                    .build();
+        } else {
+            finalPayload = qrSecurityService.generatePermanentToken(parcel);
+        }
+        parcel.setFinalQrCode(finalPayload.toCompactString());
+
+        // Get validating staff
+        UserAccount currentUser = getCurrentUserAccount();
+        if (currentUser.getRole() == UserRole.AGENT || currentUser.getRole() == UserRole.COURIER) {
+            UUID staffId = currentUser.getEntityId();
+            if (staffId != null) {
+                Staff validatingStaff = staffRepository.findById(staffId).orElse(null);
+                parcel.setValidatedBy(validatingStaff);
+            }
+        }
+
+        Parcel saved = Objects.requireNonNull(parcelRepository.save(parcel), "failed to save parcel");
+
+        // Audited scan event (neutral - does not change status)
+        try {
+            ScanEventCreateRequest auditEvt = new ScanEventCreateRequest();
+            auditEvt.setParcelId(id);
+            auditEvt.setEventType(ScanEventType.PROOF_CAPTURED.name());
+            auditEvt.setLatitude(latitude);
+            auditEvt.setLongitude(longitude);
+            auditEvt.setLocationSource("DEVICE_GPS");
+            auditEvt.setDeviceTimestamp(Instant.now());
+            auditEvt.setComment("FINAL_QR_VALIDATED_AND_LOCKED");
+            scanEventService.recordScanEvent(auditEvt);
+        } catch (Exception ignored) {
+            // audit best-effort; lock must still succeed
+        }
+
+        // Notify client of successful validation
+        notificationService.notifyParcelAccepted(saved);
+
+        return toResponse(saved);
+    }
+
+    @Override
+    public ParcelResponse adminOverrideLockedParcel(UUID parcelId,
+                                                    AdminParcelOverrideRequest request) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(request, "request is required");
+
+        UserAccount current = getCurrentUserAccount();
+        if (current.getRole() != UserRole.ADMIN) {
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Admin role required");
+        }
+
+        Parcel parcel = parcelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        if (!parcel.isLocked()) {
+            throw new AuthException(
+                    ErrorCode.PARCEL_STATUS_INVALID,
+                    "Parcel is not locked; use normal correction flow"
+            );
+        }
+
+        if (request.getDescriptionComment() != null && !request.getDescriptionComment().isBlank()) {
+            parcel.setDescriptionComment(request.getDescriptionComment());
+        }
+        if (request.getDeclaredValue() != null) {
+            parcel.setDeclaredValue(request.getDeclaredValue());
+        }
+        if (request.getFragile() != null) {
+            parcel.setFragile(request.getFragile());
+        }
+
+        Parcel saved = Objects.requireNonNull(parcelRepository.save(parcel), "failed to save parcel");
+
+        // Mandatory audited scan event (neutral)
+        ScanEventCreateRequest auditEvt = new ScanEventCreateRequest();
+        auditEvt.setParcelId(id);
+        auditEvt.setEventType(ScanEventType.PROOF_CAPTURED.name());
+        auditEvt.setLatitude(request.getLatitude());
+        auditEvt.setLongitude(request.getLongitude());
+        auditEvt.setLocationSource(request.getLocationSource());
+        auditEvt.setDeviceTimestamp(request.getDeviceTimestamp());
+        auditEvt.setLocationNote(request.getLocationNote());
+        auditEvt.setProofUrl(request.getProofUrl());
+        String reason = request.getReason();
+        auditEvt.setComment("ADMIN_OVERRIDE_LOCKED_PARCEL: " + reason + (request.getComment() != null ? (" | " + request.getComment()) : ""));
+
+        scanEventService.recordScanEvent(auditEvt);
+
+        return toResponse(saved);
+    }
+
+    /**
+     * Check if parcel can still be corrected (not yet locked).
+     */
+    @Override
+        public boolean canCorrectParcel(UUID parcelId) {
+        UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Parcel not found",
+                        ErrorCode.PARCEL_NOT_FOUND
+                ));
+
+        // Can correct if not locked and in early status
+        return !parcel.isLocked() && 
+               (parcel.getStatus() == ParcelStatus.CREATED || 
+                parcel.getStatus() == ParcelStatus.ACCEPTED);
     }
 }

@@ -9,13 +9,34 @@ import apiClient from "@/lib/api";
 import QRCodeDisplay from "@/components/qrcode/QRCodeDisplay";
 import TrackingMap from "@/components/maps/TrackingMap";
 
+type ScanEventResponse = {
+  id: string;
+  eventType: string;
+  timestamp: string;
+  locationNote?: string;
+  agencyName?: string;
+  agentName?: string;
+  latitude?: number;
+  longitude?: number;
+  locationSource?: string;
+  parcelStatusAfter?: string;
+};
+
 interface ParcelTrackingData {
+  parcelId?: string;
   trackingRef: string;
+  trackingNumber?: string;
   status: string;
-  timeline: Array<{ status: string; date: string }>;
-  senderCity?: string;
-  recipientCity?: string;
-  lastLocation?: { lat: number; lng: number };
+  lastLocationNote?: string;
+  updatedAt?: string;
+  timeline: ScanEventResponse[];
+  currentLocation?: {
+    latitude?: number;
+    longitude?: number;
+    locationSource?: string;
+    eventType?: string;
+    updatedAt?: string;
+  };
 }
 
 export default function ParcelTrackingPage() {
@@ -31,7 +52,9 @@ export default function ParcelTrackingPage() {
     }
     setLoading(true);
     apiClient
-      .get<ParcelTrackingData>(`/api/qr/tracking/${trackingRef}`)
+      .get<ParcelTrackingData>(
+        `/api/track/parcel/${encodeURIComponent(trackingRef.trim())}`,
+      )
       .then((res) => setData(res))
       .catch(() => toast.error(t("tracking.notFound")))
       .finally(() => setLoading(false));
@@ -63,8 +86,6 @@ export default function ParcelTrackingPage() {
             <>
               <QRCodeDisplay
                 trackingRef={data.trackingRef}
-                senderCity={data.senderCity}
-                recipientCity={data.recipientCity}
                 showLabel={true}
                 showActions={true}
               />
@@ -75,22 +96,31 @@ export default function ParcelTrackingPage() {
                 <ul className="text-xs space-y-1">
                   {data.timeline.map((item, idx) => (
                     <li key={idx}>
-                      <span className="font-medium">
-                        {t(`tracking.status.${item.status}`)}
-                      </span>{" "}
-                      - {new Date(item.date).toLocaleString()}
+                      <span className="font-medium">{item.eventType}</span> -{" "}
+                      {new Date(item.timestamp).toLocaleString()}
+                      {item.locationNote ? ` — ${item.locationNote}` : ""}
                     </li>
                   ))}
                 </ul>
               </div>
-              {data.lastLocation && (
+              {data.timeline?.length > 0 && (
                 <div className="mt-6">
                   <div className="font-semibold mb-2">
                     {t("tracking.mapTitle")}
                   </div>
                   <TrackingMap
-                    lat={data.lastLocation.lat}
-                    lng={data.lastLocation.lng}
+                    trackingId={data.trackingRef}
+                    currentStatus={data.status}
+                    scanEvents={data.timeline.map((e) => ({
+                      id: e.id,
+                      eventType: e.eventType,
+                      timestamp: e.timestamp,
+                      agencyName: e.agencyName,
+                      latitude: e.latitude,
+                      longitude: e.longitude,
+                      location: e.locationNote,
+                    }))}
+                    showAnimation={false}
                   />
                 </div>
               )}

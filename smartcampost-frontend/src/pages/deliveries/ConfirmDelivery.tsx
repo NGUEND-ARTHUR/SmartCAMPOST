@@ -7,7 +7,12 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeliveryConfirmation } from "@/components/qrcode";
-import { useSendDeliveryOtp, useVerifyDeliveryOtp } from "@/hooks";
+import {
+  useCompleteDelivery,
+  useGpsLocation,
+  useSendDeliveryOtp,
+  useVerifyDeliveryOtp,
+} from "@/hooks";
 import { toast } from "sonner";
 
 export default function ConfirmDelivery() {
@@ -15,10 +20,18 @@ export default function ConfirmDelivery() {
   const navigate = useNavigate();
   const sendOtp = useSendDeliveryOtp();
   const verifyOtp = useVerifyDeliveryOtp();
+  const completeDelivery = useCompleteDelivery();
+  const gps = useGpsLocation();
 
   const handleSendOtp = async (parcelId: string, phone: string) => {
     try {
-      await sendOtp.mutateAsync({ parcelId, phoneNumber: phone });
+      const loc = await gps.getCurrentPosition();
+      await sendOtp.mutateAsync({
+        parcelId,
+        phoneNumber: phone,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      });
     } catch (error) {
       throw new Error(
         error instanceof Error ? error.message : "Failed to send OTP",
@@ -44,21 +57,36 @@ export default function ConfirmDelivery() {
     };
   }) => {
     try {
+      const loc = data.proof.location
+        ? {
+            latitude: data.proof.location.latitude,
+            longitude: data.proof.location.longitude,
+          }
+        : await gps.getCurrentPosition();
+
       // Verify OTP first
       const isValid = await verifyOtp.mutateAsync({
         parcelId: data.parcelId,
         otpCode: data.otpCode,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
       });
 
       if (!isValid) {
         throw new Error("Invalid OTP code");
       }
 
-      // In real implementation, would call backend to:
-      // 1. Mark parcel as delivered
-      // 2. Store proof of delivery (photo, signature, location)
-      // 3. Generate digital receipt
-      // 4. Send notification to client
+      await completeDelivery.mutateAsync({
+        parcelId: data.parcelId,
+        otpCode: data.otpCode,
+        receiverName:
+          data.proof.receiverName || data.proof.signature || undefined,
+        photoUrl: undefined,
+        notes: data.proof.notes,
+        proofType: data.proof.signature ? "SIGNATURE" : "OTP",
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      });
 
       toast.success("Delivery confirmed successfully");
     } catch (error) {

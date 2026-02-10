@@ -10,6 +10,9 @@ node_modules/
 dist/
 build/
 
+# TypeScript incremental build artifacts
+*.tsbuildinfo
+
 # Java / Spring Boot
 target/
 *.log
@@ -23,3 +26,4 @@ build/
 *.pem
 .vercel
 .env*.local
+
