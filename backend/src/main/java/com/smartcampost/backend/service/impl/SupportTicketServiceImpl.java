@@ -11,6 +11,7 @@ import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Client;
 import com.smartcampost.backend.model.SupportTicket;
 import com.smartcampost.backend.model.UserAccount;
+import com.smartcampost.backend.model.enums.SupportTicketCategory;
 import com.smartcampost.backend.model.enums.TicketStatus;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.ClientRepository;
@@ -77,7 +78,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .client(client)
                 .subject(request.getSubject())
                 .message(request.getMessage())
-                .category(request.getCategory())
+                .category(parseCategory(request.getCategory()))
                 .status(TicketStatus.OPEN)
                 .createdAt(Instant.now())
                 .build();
@@ -282,10 +283,25 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .clientName(client != null ? client.getFullName() : null)
                 .subject(ticket.getSubject())
                 .message(ticket.getMessage())
-                .category(ticket.getCategory())
+                                .category(ticket.getCategory() != null ? ticket.getCategory().name() : null)
                 .status(ticket.getStatus())
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
                 .build();
     }
+
+        private SupportTicketCategory parseCategory(String rawCategory) {
+                if (rawCategory == null || rawCategory.isBlank()) {
+                        return SupportTicketCategory.OTHER;
+                }
+
+                try {
+                        return SupportTicketCategory.valueOf(rawCategory.trim().toUpperCase());
+                } catch (IllegalArgumentException ex) {
+                        throw new ConflictException(
+                                        "Invalid ticket category. Allowed values: COMPLAINT, CLAIM, TECHNICAL, PAYMENT, OTHER",
+                                        ErrorCode.TICKET_CONFLICT
+                        );
+                }
+        }
 }
