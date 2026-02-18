@@ -2,6 +2,7 @@
  * Finance API Service
  */
 import { httpClient } from "./apiClient";
+import type { PaginatedResponse } from "./apiClient";
 
 export interface FinanceRecord {
   id?: string;
@@ -18,6 +19,16 @@ export interface FinanceStats {
   completedPayments: number;
   refundsPending: number;
   revenueGrowth: number;
+}
+
+export interface RefundRecord {
+  id?: string;
+  status?: string;
+  amount?: number;
+  reason?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
 }
 
 export const financeService = {
@@ -38,8 +49,10 @@ export const financeService = {
   /**
    * Get refunds list
    */
-  async getRefunds(page = 0, size = 20): Promise<any[]> {
-    const response = await httpClient.get(`/finance/refunds?page=${page}&size=${size}`);
+  async getRefunds(page = 0, size = 20): Promise<RefundRecord[]> {
+    const response = await httpClient.get<PaginatedResponse<RefundRecord>>(
+      `/finance/refunds?page=${page}&size=${size}`,
+    );
     return response?.content || [];
   },
 

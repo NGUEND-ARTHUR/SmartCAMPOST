@@ -2,12 +2,14 @@ package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.service.PaymentGatewayService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
 @Slf4j
+@ConditionalOnProperty(name = "payment.gateway", havingValue = "mock")
 public class MockPaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override

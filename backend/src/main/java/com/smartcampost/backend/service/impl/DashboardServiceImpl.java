@@ -11,6 +11,8 @@ import com.smartcampost.backend.repository.RiskAlertRepository;
 import com.smartcampost.backend.repository.SupportTicketRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.repository.ClientRepository;
+import com.smartcampost.backend.repository.IntegrationConfigRepository;
+import com.smartcampost.backend.model.enums.IntegrationType;
 import com.smartcampost.backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final RiskAlertRepository riskAlertRepository;
     private final UserAccountRepository userAccountRepository;
     private final ClientRepository clientRepository;
+    private final IntegrationConfigRepository integrationConfigRepository;
 
     @Override
     public DashboardSummaryResponse getSummary() {
@@ -95,13 +98,17 @@ public class DashboardServiceImpl implements DashboardService {
             }
 
             // ===============================
-            // Mock external integration metric
-            // (uses INTEGRATION_GATEWAY_ERROR to avoid "never used")
+            // External integration metrics (real repository state)
             // ===============================
             try {
-                // In the future this will fetch external KPIs from CAMPOST API
-                // For now, return a mock number safely
-                metrics.put("externalIntegrationStatus", "OK");
+                long enabledIntegrations = integrationConfigRepository.findByEnabledTrue().size();
+                boolean paymentGatewayEnabled = integrationConfigRepository
+                        .findByTypeAndEnabledTrue(IntegrationType.PAYMENT_GATEWAY)
+                        .isPresent();
+
+                metrics.put("enabledIntegrations", enabledIntegrations);
+                metrics.put("paymentGatewayConfigured", paymentGatewayEnabled);
+                metrics.put("externalIntegrationStatus", paymentGatewayEnabled ? "CONFIGURED" : "NOT_CONFIGURED");
 
             } catch (Exception ex) {
                 throw new ConflictException(

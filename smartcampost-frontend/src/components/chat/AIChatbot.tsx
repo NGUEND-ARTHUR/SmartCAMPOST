@@ -334,10 +334,10 @@ How can I assist you today?`,
     }
 
     const role = user.role?.toUpperCase() || "CLIENT";
-    
+
     if (role === "CLIENT") {
       return {
-        message: `Hello ${user.fullName || "there"}! 👋 Welcome to SmartCAMPOST.
+        message: `Hello ${user.name || "there"}! 👋 Welcome to SmartCAMPOST.
 
 I can help you with:
 - 📦 Track your parcels in real-time
@@ -354,7 +354,7 @@ What do you need help with today?`,
       };
     } else if (role === "COURIER") {
       return {
-        message: `Welcome back, ${user.fullName || "Courier"}! 🚚
+        message: `Welcome back, ${user.name || "Courier"}! 🚚
 
 I'm here to help you with:
 - 📍 Optimize your delivery route
@@ -397,11 +397,7 @@ I can help you with:
 - 📋 Compliance reports
 
 What do you need?`,
-        suggestions: [
-          "System analytics",
-          "Manage users",
-          "View all agencies",
-        ],
+        suggestions: ["System analytics", "Manage users", "View all agencies"],
       };
     }
 
@@ -443,14 +439,6 @@ What can I help you with?`,
     }
   }, [isOpen, isMinimized]);
 
-  // Initialize user context
-  useEffect(() => {
-    if (user?.phone) {
-      // User context is available for AI
-      void user.phone;
-    }
-  }, [user]);
-
   const handleSend = useCallback(
     async (text?: string) => {
       const query = text || inputValue.trim();
@@ -471,7 +459,7 @@ What can I help you with?`,
       const payload = {
         message: query,
         language: "en",
-        context: userPhone || user?.phone || undefined,
+        context: userPhone || user?.email || undefined,
         // Pass user role for AI context awareness
         userRole: user?.role,
       };
@@ -529,22 +517,16 @@ What can I help you with?`,
         // small delay for UX
         await new Promise((resolve) => setTimeout(resolve, 250));
 
-        // Use react-query mutation with user context
-        let aiResp = null;
-        if (aiMutation) {
-          aiResp = await aiMutation.mutateAsync({
-            message: query,
-            language: "en",
-            context: userPhone || user?.phone || undefined,
-          });
-        } else {
-          // fallback to local KB
-          const fallback = findResponse(query);
-          aiResp = {
-            message: fallback.response,
-            suggestions: fallback.suggestions,
-          };
+        // Use backend AI mutation with user context
+        if (!aiMutation) {
+          throw new Error("AI service unavailable");
         }
+
+        const aiResp = await aiMutation.mutateAsync({
+          message: query,
+          language: "en",
+          context: userPhone || user?.email || undefined,
+        });
 
         const assistantMessage: Message = {
           id: `assistant-${Date.now()}`,
@@ -558,13 +540,13 @@ What can I help you with?`,
 
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (err) {
-        const fallback = findResponse(query);
         const assistantMessage: Message = {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-          content: fallback.response,
+          content:
+            "I can't reach the AI service right now. Please try again in a moment.",
           timestamp: new Date(),
-          suggestions: fallback.suggestions,
+          suggestions: ["Retry", "Contact support"],
           feedback: null,
         };
         setMessages((prev) => [...prev, assistantMessage]);
@@ -572,7 +554,7 @@ What can I help you with?`,
         setIsTyping(false);
       }
     },
-    [inputValue, aiMutation, userPhone, user?.phone, user?.role],
+    [inputValue, aiMutation, userPhone, user?.email, user?.role],
   );
 
   const handleFeedback = (

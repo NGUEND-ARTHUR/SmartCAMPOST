@@ -4,7 +4,6 @@ import com.smartcampost.backend.dto.ai.*;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionRequest;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionResponse;
 import com.smartcampost.backend.model.enums.UserRole;
-import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.service.AIService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +22,6 @@ public class AIServiceImpl implements AIService {
     private final com.smartcampost.backend.service.impl.client.OpenAIClient openAIClient;
     private final com.smartcampost.backend.repository.UserAccountRepository userAccountRepository;
     private final com.smartcampost.backend.repository.ParcelRepository parcelRepository;
-    private final com.smartcampost.backend.repository.CourierRepository courierRepository;
-    private final com.smartcampost.backend.repository.AgencyRepository agencyRepository;
     private final com.smartcampost.backend.repository.AiAgentRecommendationRepository aiAgentRecommendationRepository;
 
     // Knowledge base fallback for local responses when AI key not configured
@@ -531,38 +528,72 @@ public class AIServiceImpl implements AIService {
             var user = userOpt.get();
             UserRole userRole = user.getRole();
             List<AgentStatusResponse.RecommendationItem> recommendations = new ArrayList<>();
+                Optional<com.smartcampost.backend.model.AiAgentRecommendation> recommendationOpt = Optional.empty();
 
-            // Generate role-specific recommendations
-            if (userRole == UserRole.CLIENT) {
-                recommendations.add(AgentStatusResponse.RecommendationItem.builder()
-                        .title("Client Features Ready")
-                        .description("Track parcels, create shipments, and manage your addresses")
+                UUID entityId = user.getEntityId();
+                if (userRole == UserRole.COURIER && entityId != null) {
+                recommendationOpt = aiAgentRecommendationRepository
+                    .findTopByModuleTypeAndSubjectTypeAndSubjectIdOrderByCreatedAtDesc(
+                        com.smartcampost.backend.model.enums.AiModuleType.COURIER,
+                        com.smartcampost.backend.model.enums.AiSubjectType.COURIER,
+                        entityId
+                    );
+                } else if (userRole == UserRole.CLIENT && entityId != null) {
+                recommendationOpt = aiAgentRecommendationRepository
+                    .findTopBySubjectTypeAndSubjectIdOrderByCreatedAtDesc(
+                        com.smartcampost.backend.model.enums.AiSubjectType.CLIENT,
+                        entityId
+                    );
+                } else if ((userRole == UserRole.AGENT || userRole == UserRole.STAFF || userRole == UserRole.ADMIN)
+                    && entityId != null) {
+                recommendationOpt = aiAgentRecommendationRepository
+                    .findTopBySubjectTypeAndSubjectIdOrderByCreatedAtDesc(
+                        com.smartcampost.backend.model.enums.AiSubjectType.AGENCY,
+                        entityId
+                    );
+                if (recommendationOpt.isEmpty()) {
+                    recommendationOpt = aiAgentRecommendationRepository
+                        .findTopByModuleTypeOrderByCreatedAtDesc(
+                            com.smartcampost.backend.model.enums.AiModuleType.AGENCY
+                        );
+                }
+                } else if (userRole == UserRole.RISK) {
+                recommendationOpt = aiAgentRecommendationRepository
+                    .findTopByModuleTypeOrderByCreatedAtDesc(
+                        com.smartcampost.backend.model.enums.AiModuleType.RISK
+                    );
+                } else if (userRole == UserRole.FINANCE) {
+                recommendationOpt = aiAgentRecommendationRepository
+                    .findTopByModuleTypeOrderByCreatedAtDesc(
+                        com.smartcampost.backend.model.enums.AiModuleType.PREDICTIVE
+                    );
+                }
+
+                recommendationOpt.ifPresent(rec -> recommendations.add(
+                    AgentStatusResponse.RecommendationItem.builder()
+                        .title(rec.getModuleType() + " Recommendation")
+                        .description(rec.getSummary() != null ? rec.getSummary() : "Autonomous agent recommendation available")
                         .priority("MEDIUM")
-                        .actionType("INFO")
-                        .createdAt(System.currentTimeMillis())
-                        .build());
-            } else if (userRole == UserRole.COURIER) {
+                        .actionType(rec.getModuleType() != null ? rec.getModuleType().name() : "INFO")
+                        .payload(rec.getPayloadJson())
+                        .createdAt(rec.getCreatedAt() != null ? rec.getCreatedAt().toEpochMilli() : System.currentTimeMillis())
+                        .build()
+                ));
+
+                if (recommendations.isEmpty()) {
                 recommendations.add(AgentStatusResponse.RecommendationItem.builder()
-                        .title("Courier Dashboard Ready")
-                        .description("View assignments and optimize your delivery routes")
-                        .priority("MEDIUM")
-                        .actionType("INFO")
-                        .createdAt(System.currentTimeMillis())
-                        .build());
-            } else if (userRole == UserRole.AGENT || userRole == UserRole.ADMIN || userRole == UserRole.STAFF) {
-                recommendations.add(AgentStatusResponse.RecommendationItem.builder()
-                        .title("Admin Tools Available")
-                        .description("Manage operations, view analytics, and generate reports")
-                        .priority("MEDIUM")
-                        .actionType("INFO")
-                        .createdAt(System.currentTimeMillis())
-                        .build());
-            }
+                    .title("AI Agents Active")
+                    .description("Autonomous agents are running. New recommendations will appear as events are recorded.")
+                    .priority("LOW")
+                    .actionType("INFO")
+                    .createdAt(System.currentTimeMillis())
+                    .build());
+                }
 
             return AgentStatusResponse.builder()
                     .role(userRole.toString())
                     .agentHealth("HEALTHY")
-                    .summary("AI Agents are operational and " + (recommendations.isEmpty() ? "no active recommendations" : "have " + recommendations.size() + " recommendation(s)"))
+                    .summary("AI agents are operational with " + recommendations.size() + " recommendation(s)")
                     .recommendations(recommendations)
                     .lastActivityAt(System.currentTimeMillis())
                     .build();

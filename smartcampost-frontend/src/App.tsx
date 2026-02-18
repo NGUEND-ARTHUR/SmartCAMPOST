@@ -5,6 +5,7 @@ import ApiCoverage from "./pages/debug/ApiCoverage";
 import MapViewer from "./pages/maps/MapViewer";
 import PickupMap from "./pages/maps/PickupMap";
 import TrackingMap from "./pages/maps/TrackingMap";
+import RoleMapDashboard from "./pages/maps/RoleMapDashboard";
 import {
   BrowserRouter as Router,
   Routes,
@@ -93,6 +94,7 @@ function App() {
           <Route path="parcels/:id" element={<ParcelDetail />} />
           <Route path="pickups" element={<Pickups />} />
           <Route path="payments" element={<ClientPayments />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="support" element={<Support />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
@@ -111,6 +113,7 @@ function App() {
           <Route path="deliveries" element={<CourierDeliveries />} />
           <Route path="deliveries/:id" element={<DeliveryDetail />} />
           <Route path="deliveries/confirm" element={<ConfirmDelivery />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
@@ -124,6 +127,7 @@ function App() {
           }
         >
           <Route index element={<AgentDashboard />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
@@ -141,6 +145,7 @@ function App() {
           <Route path="parcels" element={<ParcelManagement />} />
           <Route path="parcels/:id" element={<ParcelDetail />} />
           <Route path="tracking" element={<TrackingPage />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="analytics" element={<Analytics />} />
@@ -159,6 +164,7 @@ function App() {
           <Route path="parcels" element={<ParcelManagement />} />
           <Route path="parcels/:id" element={<ParcelDetail />} />
           <Route path="tracking" element={<TrackingPage />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="scan" element={<ScanConsole />} />
           <Route path="staff" element={<StaffDashboard />} />
           <Route path="notifications" element={<Notifications />} />
@@ -194,6 +200,7 @@ function App() {
           <Route index element={<FinanceDashboard />} />
           <Route path="payments" element={<Payments />} />
           <Route path="refunds" element={<Refunds />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
@@ -208,6 +215,7 @@ function App() {
         >
           <Route index element={<RiskDashboard />} />
           <Route path="alerts" element={<RiskAlerts />} />
+          <Route path="map" element={<RoleMapDashboard />} />
           <Route path="compliance" element={<Compliance />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="notifications" element={<Notifications />} />

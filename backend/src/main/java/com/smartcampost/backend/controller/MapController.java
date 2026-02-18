@@ -1,6 +1,7 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.model.Location;
+import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.LocationService;
 import com.smartcampost.backend.dto.scan.ScanEventResponse;
@@ -32,6 +33,7 @@ public class MapController {
     }
 
     @GetMapping("/parcels/{parcelId}")
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN','RISK')")
     public ResponseEntity<?> parcelMap(@PathVariable String parcelId) {
         java.util.UUID pid;
         try { pid = java.util.UUID.fromString(parcelId); } catch (Exception e) { return ResponseEntity.badRequest().build(); }
@@ -67,10 +69,34 @@ public class MapController {
         try { uid = Long.parseLong(principal.getName()); } catch (Exception ignored) {}
         if (uid == null) return ResponseEntity.badRequest().build();
         List<Location> locs = locationService.getRecentForUser(uid);
+        String actorId = String.valueOf(uid);
+
+        List<Map<String, Object>> activeParcels = parcelRepository.findAll().stream()
+                .filter(p -> p.getStatus() != ParcelStatus.DELIVERED && p.getStatus() != ParcelStatus.CANCELLED)
+                .map(p -> {
+                    ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
+                    if (last == null || last.getActorId() == null || !actorId.equals(last.getActorId())) {
+                        return null;
+                    }
+
+                    Map<String, Object> parcel = new HashMap<>();
+                    parcel.put("id", p.getId());
+                    parcel.put("trackingRef", p.getTrackingRef());
+                    parcel.put("status", p.getStatus() != null ? p.getStatus().name() : null);
+                    parcel.put("currentLatitude", last.getLatitude());
+                    parcel.put("currentLongitude", last.getLongitude());
+                    parcel.put("currentTimestamp", last.getTimestamp());
+                    parcel.put("currentEventType", last.getEventType());
+                    parcel.put("locationNote", last.getLocationNote());
+                    return parcel;
+                })
+                .filter(Objects::nonNull)
+                .limit(150)
+                .toList();
+
         Map<String, Object> out = new HashMap<>();
         out.put("locations", locs);
-        // assigned parcels - best-effort: find parcels assigned to this courier if such field exists
-        // For now return only locations
+        out.put("activeParcels", activeParcels);
         return ResponseEntity.ok(out);
     }
 
@@ -79,8 +105,30 @@ public class MapController {
     public ResponseEntity<?> adminOverview() {
         Map<String, Object> out = new HashMap<>();
         out.put("recentLocations", locationService.getRecentAll());
-        // active parcels: minimal list
-        out.put("activeParcels", parcelRepository.findAll());
+
+        List<Map<String, Object>> activeParcels = parcelRepository.findAll().stream()
+                .filter(p -> p.getStatus() != ParcelStatus.DELIVERED && p.getStatus() != ParcelStatus.CANCELLED)
+                .limit(300)
+                .map(p -> {
+                    Map<String, Object> parcel = new HashMap<>();
+                    parcel.put("id", p.getId());
+                    parcel.put("trackingRef", p.getTrackingRef());
+                    parcel.put("status", p.getStatus() != null ? p.getStatus().name() : null);
+                    parcel.put("creationLatitude", p.getCreationLatitude());
+                    parcel.put("creationLongitude", p.getCreationLongitude());
+
+                    ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
+                    if (last != null) {
+                        parcel.put("currentLatitude", last.getLatitude());
+                        parcel.put("currentLongitude", last.getLongitude());
+                        parcel.put("currentTimestamp", last.getTimestamp());
+                        parcel.put("currentEventType", last.getEventType());
+                    }
+                    return parcel;
+                })
+                .toList();
+
+        out.put("activeParcels", activeParcels);
         return ResponseEntity.ok(out);
     }
 }

@@ -22,7 +22,11 @@ export default function CreateRiskPage() {
     e.preventDefault();
     setError(null);
 
-    if (!form.type.trim() || !form.severity.trim() || !form.description.trim()) {
+    if (
+      !form.type.trim() ||
+      !form.severity.trim() ||
+      !form.description.trim()
+    ) {
       setError("All fields are required");
       return;
     }
@@ -38,7 +42,9 @@ export default function CreateRiskPage() {
       setForm({ type: "", severity: "", description: "" });
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create risk alert");
+      setError(
+        err instanceof Error ? err.message : "Failed to create risk alert",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -53,9 +59,7 @@ export default function CreateRiskPage() {
         </div>
       )}
       {error && (
-        <div className="mb-4 p-2 bg-red-100 text-red-800 rounded">
-          {error}
-        </div>
+        <div className="mb-4 p-2 bg-red-100 text-red-800 rounded">{error}</div>
       )}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

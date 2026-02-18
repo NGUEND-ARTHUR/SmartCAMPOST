@@ -3,11 +3,17 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/theme/theme";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -106,7 +112,7 @@ export default function LocationPicker({
           setIsLocating(false);
           // Continue with map - user can click
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        { enableHighAccuracy: true, timeout: 10000 },
       );
     } else {
       setIsLocating(false);
@@ -120,7 +126,7 @@ export default function LocationPicker({
       setManualLat(lat.toString());
       setManualLng(lng.toString());
     },
-    [onLocationChange]
+    [onLocationChange],
   );
 
   // Handle manual coordinate input
@@ -211,7 +217,8 @@ export default function LocationPicker({
               )}
             </Button>
             <p className="text-xs text-muted-foreground">
-              💡 Tip: Click anywhere on the map to select a location, or use the button above to get your current position.
+              💡 Tip: Click anywhere on the map to select a location, or use the
+              button above to get your current position.
             </p>
           </div>
 
@@ -220,14 +227,17 @@ export default function LocationPicker({
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm font-medium">Current Coordinates:</p>
               <p className="text-sm text-muted-foreground">
-                Latitude: {latitude.toFixed(6)} | Longitude: {longitude.toFixed(6)}
+                Latitude: {latitude.toFixed(6)} | Longitude:{" "}
+                {longitude.toFixed(6)}
               </p>
             </div>
           )}
 
           {/* Manual Coordinate Input */}
           <div className="space-y-3 pt-4 border-t">
-            <p className="text-sm font-medium">Or enter coordinates manually:</p>
+            <p className="text-sm font-medium">
+              Or enter coordinates manually:
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="manual-lat">Latitude</Label>
@@ -266,7 +276,12 @@ export default function LocationPicker({
 
       {/* Close Button */}
       {onClose && (
-        <Button type="button" variant="outline" onClick={onClose} className="w-full">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          className="w-full"
+        >
           Done
         </Button>
       )}

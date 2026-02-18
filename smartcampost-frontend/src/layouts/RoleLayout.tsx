@@ -12,22 +12,26 @@ const navByRole: Record<AppRole, NavItem[]> = {
   CLIENT: [
     { to: "/client", labelKey: "nav.dashboard" },
     { to: "/client/parcels", labelKey: "nav.myParcels" },
+    { to: "/client/map", labelKey: "nav.map" },
     { to: "/client/pickups", labelKey: "nav.pickups" },
     { to: "/client/payments", labelKey: "nav.payments" },
     { to: "/client/support", labelKey: "nav.support" },
   ],
   AGENT: [
     { to: "/agent", labelKey: "nav.dashboard" },
+    { to: "/agent/map", labelKey: "nav.map" },
     { to: "/agent/scan", labelKey: "nav.scanConsole" },
   ],
   COURIER: [
     { to: "/courier", labelKey: "nav.dashboard" },
+    { to: "/courier/map", labelKey: "nav.map" },
     { to: "/courier/pickups", labelKey: "nav.myPickups" },
     { to: "/courier/deliveries", labelKey: "nav.myDeliveries" },
     { to: "/courier/scan", labelKey: "nav.scanConsole" },
   ],
   STAFF: [
     { to: "/staff", labelKey: "nav.dashboard" },
+    { to: "/staff/map", labelKey: "nav.map" },
     { to: "/staff/parcels", labelKey: "nav.parcels" },
     { to: "/staff/tracking", labelKey: "nav.tracking" },
     { to: "/staff/pickups", labelKey: "nav.pickups" },
@@ -37,6 +41,7 @@ const navByRole: Record<AppRole, NavItem[]> = {
   ],
   ADMIN: [
     { to: "/admin", labelKey: "nav.dashboard" },
+    { to: "/admin/map", labelKey: "nav.map" },
     { to: "/admin/parcels", labelKey: "nav.parcels" },
     { to: "/admin/tracking", labelKey: "nav.tracking" },
     { to: "/admin/scan", labelKey: "nav.scanConsole" },
@@ -55,11 +60,13 @@ const navByRole: Record<AppRole, NavItem[]> = {
   ],
   FINANCE: [
     { to: "/finance", labelKey: "nav.dashboard" },
+    { to: "/finance/map", labelKey: "nav.map" },
     { to: "/finance/payments", labelKey: "nav.payments" },
     { to: "/finance/refunds", labelKey: "nav.refunds" },
   ],
   RISK: [
     { to: "/risk", labelKey: "nav.dashboard" },
+    { to: "/risk/map", labelKey: "nav.map" },
     { to: "/risk/alerts", labelKey: "nav.riskAlerts" },
     { to: "/risk/compliance", labelKey: "nav.compliance" },
   ],
