@@ -24,7 +24,7 @@ public class UssdSession {
     @Column(name = "session_ref", nullable = false, length = 100)
     private String sessionRef; // ID from USSD switch
 
-    @Column(name = "current_menu", length = 100)
+    @Column(name = "current_menu", length = 50)
     private String currentMenu;
 
     @Enumerated(EnumType.STRING)

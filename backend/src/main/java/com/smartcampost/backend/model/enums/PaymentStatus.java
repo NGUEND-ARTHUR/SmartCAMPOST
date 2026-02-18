@@ -1,6 +1,7 @@
 package com.smartcampost.backend.model.enums;
 
 public enum PaymentStatus {
+    INIT,      // initial state (SQL default)
     PENDING,   // paiement initié, en attente de confirmation
     SUCCESS,   // paiement confirmé / réussi
     FAILED,    // échec

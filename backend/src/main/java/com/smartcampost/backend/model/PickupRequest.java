@@ -50,10 +50,10 @@ public class PickupRequest {
     private PickupRequestState state; // REQUESTED, ASSIGNED, COMPLETED, CANCELLED
 
     // Pickup location (GPS default, with manual override allowed)
-    @Column(name = "pickup_latitude")
+    @Column(name = "pickup_latitude", columnDefinition = "DECIMAL(10,8)")
     private Double pickupLatitude;
 
-    @Column(name = "pickup_longitude")
+    @Column(name = "pickup_longitude", columnDefinition = "DECIMAL(11,8)")
     private Double pickupLongitude;
 
     @Enumerated(EnumType.STRING)

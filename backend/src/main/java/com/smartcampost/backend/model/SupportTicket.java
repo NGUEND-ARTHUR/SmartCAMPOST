@@ -26,10 +26,10 @@ public class SupportTicket {
     )
     private Client client;
 
-    @Column(name = "subject", nullable = false, length = 150)
+    @Column(name = "subject", nullable = false, length = 200)
     private String subject;
 
-    @Column(name = "description", nullable = false, length = 2000)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String message;
 
     @Enumerated(EnumType.STRING)

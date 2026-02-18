@@ -195,7 +195,7 @@ CREATE TABLE courier (
   phone         VARCHAR(30)   NOT NULL,
   vehicle_id    VARCHAR(50)   NULL,
   password_hash VARCHAR(255)  NOT NULL,
-  status        ENUM('AVAILABLE','BUSY','OFFLINE') NOT NULL,
+  status        ENUM('AVAILABLE','BUSY','OFFLINE','ON_ROUTE','INACTIVE') NOT NULL,
   created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   -- AI/Analytics fields
   current_latitude   DECIMAL(10,8) NULL COMMENT 'Last known GPS latitude',
@@ -294,6 +294,9 @@ CREATE TABLE pickup_request (
   requested_date DATE         NOT NULL,
   time_window    VARCHAR(30)  NOT NULL,
   state          ENUM('REQUESTED','ASSIGNED','COMPLETED','CANCELLED') NOT NULL,
+  pickup_latitude  DECIMAL(10,8) NULL,
+  pickup_longitude DECIMAL(11,8) NULL,
+  location_mode    VARCHAR(30) NULL,
   comment        VARCHAR(255) NULL,
   created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_pickup PRIMARY KEY (pickup_id),
@@ -346,6 +349,10 @@ CREATE TABLE scan_event (
   scanned_by      VARCHAR(64)  NULL,
   role            VARCHAR(40)  NULL,
   address         VARCHAR(500) NULL,
+  -- Offline sync support
+  is_synced       BOOLEAN      NOT NULL DEFAULT TRUE,
+  offline_created_at TIMESTAMP  NULL,
+  synced_at       TIMESTAMP    NULL,
   CONSTRAINT pk_scan PRIMARY KEY (scan_id),
   CONSTRAINT fk_scan_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)

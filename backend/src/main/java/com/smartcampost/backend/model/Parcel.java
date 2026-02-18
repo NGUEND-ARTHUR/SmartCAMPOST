@@ -55,10 +55,10 @@ public class Parcel {
     // --------------------------------------------------
     //  🔥 GPS Location at Creation
     // --------------------------------------------------
-    @Column(name = "creation_latitude")
+    @Column(name = "creation_latitude", columnDefinition = "DECIMAL(10,8)")
     private Double creationLatitude;
 
-    @Column(name = "creation_longitude")
+    @Column(name = "creation_longitude", columnDefinition = "DECIMAL(11,8)")
     private Double creationLongitude;
 
     @Enumerated(EnumType.STRING)

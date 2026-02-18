@@ -38,7 +38,7 @@ public class QrVerificationToken {
     /**
      * HMAC signature of the token + parcel data for integrity verification
      */
-    @Column(name = "signature", nullable = false, length = 128)
+    @Column(name = "signature", nullable = false, length = 255)
     private String signature;
 
     /**
@@ -128,7 +128,7 @@ public class QrVerificationToken {
     /**
      * User agent from which the token was last verified
      */
-    @Column(name = "last_user_agent", length = 512)
+    @Column(name = "last_user_agent", length = 255)
     private String lastVerificationUserAgent;
 
     @PrePersist
