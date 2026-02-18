@@ -15,7 +15,7 @@ import java.util.UUID;
 public class DeliveryOtp {
 
     @Id
-    @Column(name = "otp_id", nullable = false, columnDefinition = "BINARY(16)")
+    @Column(name = "delivery_otp_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     // We keep this as simple foreign key by ID (not relation), like you wrote
