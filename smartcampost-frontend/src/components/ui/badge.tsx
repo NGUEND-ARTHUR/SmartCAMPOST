@@ -15,12 +15,12 @@ export function Badge({
     "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium";
   const vclass =
     variant === "outline"
-      ? "border border-gray-200 bg-white text-gray-800"
+      ? "border border-border bg-background text-foreground"
       : variant === "ghost"
-        ? "bg-transparent text-gray-700"
+        ? "bg-transparent text-muted-foreground"
         : variant === "secondary"
           ? "bg-secondary text-white"
-          : "bg-gray-100 text-gray-800";
+          : "bg-muted text-muted-foreground";
   return <span className={`${base} ${vclass} ${className}`}>{children}</span>;
 }
 

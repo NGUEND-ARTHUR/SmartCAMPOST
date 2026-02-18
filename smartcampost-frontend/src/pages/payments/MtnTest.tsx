@@ -42,7 +42,7 @@ export default function MtnTest() {
           <Button onClick={doInit}>Init Payment</Button>
         </div>
         <div className="mt-4">
-          <pre className="bg-gray-100 p-2 rounded text-xs">
+          <pre className="bg-muted p-2 rounded text-xs">
             {res ? JSON.stringify(res, null, 2) : "(no response)"}
           </pre>
         </div>

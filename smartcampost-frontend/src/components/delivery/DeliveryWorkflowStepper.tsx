@@ -90,12 +90,12 @@ function StepIndicator({
     ? "bg-blue-600 text-white"
     : active
       ? "bg-blue-600 text-white"
-      : "bg-gray-200 text-gray-700";
+      : "bg-muted text-muted-foreground";
   const text = active
     ? "text-blue-600"
     : done
-      ? "text-gray-800"
-      : "text-gray-400";
+      ? "text-foreground"
+      : "text-muted-foreground";
   return (
     <div className={`flex items-center ${text}`}>
       <div
@@ -514,19 +514,19 @@ export default function DeliveryWorkflowStepper({
                       <ul className="space-y-1 text-sm">
                         <li className="flex items-center gap-2">
                           <CheckCircle2
-                            className={`h-4 w-4 ${req.requiresOtp ? "text-green-600" : "text-gray-300"}`}
+                            className={`h-4 w-4 ${req.requiresOtp ? "text-green-600" : "text-muted-foreground"}`}
                           />
                           OTP required
                         </li>
                         <li className="flex items-center gap-2">
                           <CheckCircle2
-                            className={`h-4 w-4 ${req.requiresSignature ? "text-green-600" : "text-gray-300"}`}
+                            className={`h-4 w-4 ${req.requiresSignature ? "text-green-600" : "text-muted-foreground"}`}
                           />
                           Signature required
                         </li>
                         <li className="flex items-center gap-2">
                           <CheckCircle2
-                            className={`h-4 w-4 ${req.requiresPhoto ? "text-green-600" : "text-gray-300"}`}
+                            className={`h-4 w-4 ${req.requiresPhoto ? "text-green-600" : "text-muted-foreground"}`}
                           />
                           Photo proof required
                         </li>
@@ -873,7 +873,7 @@ export default function DeliveryWorkflowStepper({
                 {timeline.map((t, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-sm">
                     <CheckCircle2
-                      className={`h-4 w-4 mt-0.5 ${t.ok ? "text-green-600" : "text-gray-300"}`}
+                      className={`h-4 w-4 mt-0.5 ${t.ok ? "text-green-600" : "text-muted-foreground"}`}
                     />
                     <div>{t.label}</div>
                   </div>

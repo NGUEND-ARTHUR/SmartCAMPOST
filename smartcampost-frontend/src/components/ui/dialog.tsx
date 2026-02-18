@@ -42,7 +42,7 @@ export const DialogDescription: React.FC<AnyProps> = ({
 }) => (
   <p
     {...rest}
-    className={`text-sm text-gray-600 ${(rest as { className?: string }).className || ""}`}
+    className={`text-sm text-muted-foreground ${(rest as { className?: string }).className || ""}`}
   >
     {children}
   </p>

@@ -217,7 +217,7 @@ export default function PickupsManagement() {
                         <Badge
                           className={
                             statusColors[pickup.state] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           {stateLabel(pickup.state)}

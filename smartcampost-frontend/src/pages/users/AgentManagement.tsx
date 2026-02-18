@@ -49,7 +49,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  ACTIVE:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   INACTIVE: "bg-muted text-muted-foreground",
   SUSPENDED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
@@ -392,7 +393,7 @@ export default function AgentManagement() {
                         <Badge
                           className={
                             statusColors[agent.status] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           {agent.status}

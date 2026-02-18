@@ -557,7 +557,7 @@ How can I assist you today?`,
                 className={`max-w-[85%] ${
                   message.role === "user"
                     ? "bg-blue-600 text-white rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl"
-                    : "bg-gray-100 text-gray-900 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl"
+                    : "bg-muted text-foreground rounded-tl-2xl rounded-tr-2xl rounded-br-2xl"
                 } p-3`}
               >
                 <div className="flex items-start gap-2">
@@ -592,7 +592,7 @@ How can I assist you today?`,
                             className={`p-1 rounded ${
                               message.feedback === "positive"
                                 ? "bg-green-100 text-green-600"
-                                : "text-gray-400 hover:text-green-600"
+                                : "text-muted-foreground hover:text-green-600"
                             }`}
                             onClick={() =>
                               handleFeedback(message.id, "positive")
@@ -606,7 +606,7 @@ How can I assist you today?`,
                             className={`p-1 rounded ${
                               message.feedback === "negative"
                                 ? "bg-red-100 text-red-600"
-                                : "text-gray-400 hover:text-red-600"
+                                : "text-muted-foreground hover:text-red-600"
                             }`}
                             onClick={() =>
                               handleFeedback(message.id, "negative")
@@ -636,12 +636,12 @@ How can I assist you today?`,
           {/* Typing indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-2xl p-3 flex items-center gap-2">
+              <div className="bg-muted rounded-2xl p-3 flex items-center gap-2">
                 <Bot className="w-4 h-4 text-blue-600" />
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-150" />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-300" />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-150" />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-300" />
                 </div>
               </div>
             </div>

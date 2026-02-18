@@ -340,7 +340,7 @@ export default function IntegrationManagement() {
                             Active
                           </Badge>
                         ) : (
-                          <Badge className="bg-gray-100 text-gray-800">
+                          <Badge className="bg-muted text-muted-foreground">
                             <XCircle className="w-3 h-3 mr-1" />
                             Inactive
                           </Badge>

@@ -338,11 +338,11 @@ export default function ParcelDetail() {
               return (
                 <div key={event.id} className="relative pb-8">
                   {!isLast && (
-                    <div className="absolute left-4 top-10 bottom-0 w-0.5 bg-gray-200" />
+                    <div className="absolute left-4 top-10 bottom-0 w-0.5 bg-muted" />
                   )}
                   <div className="flex gap-4">
                     <div
-                      className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
+                      className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? "bg-blue-600 text-white" : "bg-muted text-muted-foreground"}`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>

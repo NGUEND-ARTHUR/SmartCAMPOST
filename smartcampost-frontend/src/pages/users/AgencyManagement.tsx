@@ -399,8 +399,8 @@ export default function AgencyManagement() {
                         <Badge
                           className={
                             agency.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-muted text-muted-foreground"
                           }
                         >
                           {agency.isActive

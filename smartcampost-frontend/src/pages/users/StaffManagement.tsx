@@ -52,17 +52,21 @@ import {
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  ACTIVE:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   INACTIVE: "bg-muted text-muted-foreground",
   SUSPENDED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
 const roleColors: Record<string, string> = {
   STAFF: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  ADMIN: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  FINANCE: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  ADMIN:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  FINANCE:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   RISK: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  COURIER: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  COURIER:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
 };
 
 function getRoleLabels(t: (key: string) => string): Record<string, string> {
@@ -566,7 +570,7 @@ export default function StaffManagement() {
                         <Badge
                           className={
                             statusColors[member.status] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           {member.status}

@@ -144,7 +144,7 @@ export function CreateParcel() {
                           ? "bg-blue-600 text-white"
                           : isCompleted
                             ? "bg-green-600 text-white"
-                            : "bg-gray-200 text-gray-600"
+                            : "bg-muted text-muted-foreground"
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -159,7 +159,7 @@ export function CreateParcel() {
               })}
             </div>
             <div className="relative mt-4">
-              <div className="absolute top-0 left-0 h-1 bg-gray-200 w-full" />
+              <div className="absolute top-0 left-0 h-1 bg-muted w-full" />
               <div
                 className={`absolute top-0 left-0 h-1 bg-blue-600 transition-all duration-300 ${
                   currentStep === 0

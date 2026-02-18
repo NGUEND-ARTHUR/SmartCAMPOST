@@ -78,24 +78,24 @@ export default function PickupDetail() {
         <div className="mb-6">
           <button
             onClick={() => navigate("/courier/pickups")}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-muted-foreground hover:text-foreground mb-4"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Pickups
           </button>
           <h1 className="mb-2">Pickup Details</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {pickup ? `Pickup #${pickup.id.slice(0, 8)}` : ""}
           </p>
         </div>
 
         {isLoading ? (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <p className="text-gray-600">Loading pickup…</p>
+            <p className="text-muted-foreground">Loading pickup…</p>
           </div>
         ) : error ? (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {error instanceof Error ? error.message : "Failed to load pickup"}
             </p>
           </div>
@@ -105,28 +105,30 @@ export default function PickupDetail() {
           <h2 className="mb-4">Pickup Information</h2>
           <div className="space-y-4">
             <div className="flex items-center">
-              <User className="w-5 h-5 text-gray-400 mr-3" />
+              <User className="w-5 h-5 text-muted-foreground mr-3" />
               <div>
-                <p className="text-sm text-gray-500">Requester</p>
+                <p className="text-sm text-muted-foreground">Requester</p>
                 <p className="font-medium">
                   {pickup?.clientName ?? pickup?.clientId?.slice(0, 8) ?? "—"}
                 </p>
                 {pickup?.clientPhone && (
-                  <p className="text-sm text-gray-500">{pickup.clientPhone}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {pickup.clientPhone}
+                  </p>
                 )}
               </div>
             </div>
             <div className="flex items-center">
-              <Calendar className="w-5 h-5 text-gray-400 mr-3" />
+              <Calendar className="w-5 h-5 text-muted-foreground mr-3" />
               <div>
-                <p className="text-sm text-gray-500">Scheduled</p>
+                <p className="text-sm text-muted-foreground">Scheduled</p>
                 <p className="font-medium">{scheduledText}</p>
               </div>
             </div>
             <div className="flex items-start">
-              <MapPin className="w-5 h-5 text-gray-400 mr-3 mt-1" />
+              <MapPin className="w-5 h-5 text-muted-foreground mr-3 mt-1" />
               <div>
-                <p className="text-sm text-gray-500">Location</p>
+                <p className="text-sm text-muted-foreground">Location</p>
                 <p className="font-medium">
                   {typeof pickup?.pickupLatitude === "number" &&
                   typeof pickup?.pickupLongitude === "number"
@@ -170,7 +172,7 @@ export default function PickupDetail() {
             </button>
             <button
               onClick={() => setStep("signature")}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg"
+              className="flex-1 border border-border text-foreground py-3 rounded-lg"
             >
               Add Signature
             </button>
@@ -180,7 +182,7 @@ export default function PickupDetail() {
         {step === "photo" && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="mb-3">Photo Proof</h3>
-            <div className="border-2 border-dashed border-gray-300 p-6 text-center">
+            <div className="border-2 border-dashed border-border p-6 text-center">
               {photoProof ? (
                 <div>
                   <img
@@ -197,7 +199,7 @@ export default function PickupDetail() {
                 </div>
               ) : (
                 <div>
-                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Camera className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg"
@@ -219,7 +221,7 @@ export default function PickupDetail() {
             <div className="flex space-x-4 mt-6">
               <button
                 onClick={() => setStep("details")}
-                className="flex-1 border border-gray-300 py-3 rounded-lg"
+                className="flex-1 border border-border py-3 rounded-lg"
               >
                 Back
               </button>
@@ -241,23 +243,23 @@ export default function PickupDetail() {
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 placeholder="Customer name"
-                className="w-full border border-gray-300 rounded px-4 py-2"
+                className="w-full border border-border rounded px-4 py-2"
               />
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Ask customer to type their name
               </p>
             </div>
             <div className="flex space-x-4 mt-6">
               <button
                 onClick={() => setStep("photo")}
-                className="flex-1 border border-gray-300 py-3 rounded-lg"
+                className="flex-1 border border-border py-3 rounded-lg"
               >
                 Back
               </button>
               <button
                 onClick={completePickup}
                 disabled={!signature}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg disabled:bg-gray-300"
+                className="flex-1 bg-blue-600 text-white py-3 rounded-lg disabled:bg-muted"
               >
                 Complete Pickup
               </button>
@@ -272,10 +274,10 @@ export default function PickupDetail() {
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
               <h2 className="mb-2 text-green-600">Pickup Confirmed</h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 The pickup has been recorded successfully.
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Returning to pickups list...
               </p>
             </div>

@@ -26,11 +26,13 @@ type StaffRole = "AGENT" | "SUPPORT" | "FINANCE" | "RISK" | "ADMIN";
 type StaffStatus = "ACTIVE" | "OFF_DUTY" | "SUSPENDED";
 
 const roleBadge: Record<StaffRole, string> = {
-  AGENT: "bg-blue-100 text-blue-800",
-  SUPPORT: "bg-purple-100 text-purple-800",
-  FINANCE: "bg-emerald-100 text-emerald-800",
-  RISK: "bg-orange-100 text-orange-800",
-  ADMIN: "bg-gray-100 text-gray-800",
+  AGENT: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  SUPPORT:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  FINANCE:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  RISK: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  ADMIN: "bg-muted text-muted-foreground",
 };
 
 const statusBadge: Record<StaffStatus, string> = {
@@ -193,7 +195,7 @@ export default function StaffDashboard() {
                         <Badge
                           className={
                             roleBadge[s.role as StaffRole] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           {s.role}
@@ -203,7 +205,7 @@ export default function StaffDashboard() {
                         <Badge
                           className={
                             statusBadge[s.status as StaffStatus] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           {(s.status || "").toString().replace(/_/g, " ")}
