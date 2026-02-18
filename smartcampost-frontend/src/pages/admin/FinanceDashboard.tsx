@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DollarSign,
   TrendingUp,
@@ -19,6 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { financeService } from "@/services/financeService";
 
 interface FinanceStats {
   totalRevenue: number;
@@ -28,73 +29,78 @@ interface FinanceStats {
   revenueGrowth: number;
 }
 
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  customer: string;
+  date: string;
+}
+
 export default function FinanceDashboard() {
-  const [stats] = useState<FinanceStats>({
-    totalRevenue: 245680,
-    pendingPayments: 15420,
-    completedPayments: 230260,
-    refundsPending: 4850,
-    revenueGrowth: 12.5,
+  const [stats, setStats] = useState<FinanceStats>({
+    totalRevenue: 0,
+    pendingPayments: 0,
+    completedPayments: 0,
+    refundsPending: 0,
+    revenueGrowth: 0,
   });
 
-  const revenueData = [
-    { date: "Jan", revenue: 18500 },
-    { date: "Feb", revenue: 21200 },
-    { date: "Mar", revenue: 19800 },
-    { date: "Apr", revenue: 24300 },
-    { date: "May", revenue: 28900 },
-    { date: "Jun", revenue: 32100 },
-  ];
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [paymentData, setPaymentData] = useState<any[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const paymentData = [
-    { method: "Credit Card", amount: 125000 },
-    { method: "Debit Card", amount: 78000 },
-    { method: "PayPal", amount: 32000 },
-    { method: "Bank Transfer", amount: 10680 },
-  ];
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
-  const recentTransactions = [
-    {
-      id: "1",
-      type: "Payment",
-      amount: 150.0,
-      status: "Completed",
-      customer: "John Doe",
-      date: "2026-01-10",
-    },
-    {
-      id: "2",
-      type: "Refund",
-      amount: -45.0,
-      status: "Processing",
-      customer: "Jane Smith",
-      date: "2026-01-10",
-    },
-    {
-      id: "3",
-      type: "Payment",
-      amount: 230.0,
-      status: "Completed",
-      customer: "Mike Johnson",
-      date: "2026-01-09",
-    },
-    {
-      id: "4",
-      type: "Payment",
-      amount: 89.5,
-      status: "Completed",
-      customer: "Sarah Davis",
-      date: "2026-01-09",
-    },
-    {
-      id: "5",
-      type: "Refund",
-      amount: -120.0,
-      status: "Completed",
-      customer: "Bob Wilson",
-      date: "2026-01-08",
-    },
-  ];
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const [statsData, refunds] = await Promise.all([
+        financeService.getStats(),
+        financeService.getRefunds(),
+      ]);
+      
+      if (statsData) {
+        setStats(statsData);
+      }
+      
+      if (refunds) {
+        setRecentTransactions(refunds.slice(0, 5));
+      }
+      
+      // Set default revenue data - could be fetched from backend if endpoint exists
+      setRevenueData([
+        { date: "Jan", revenue: 18500 },
+        { date: "Feb", revenue: 21200 },
+        { date: "Mar", revenue: 19800 },
+        { date: "Apr", revenue: 24300 },
+        { date: "May", revenue: 28900 },
+        { date: "Jun", revenue: 32100 },
+      ]);
+      
+      // Set default payment data - could be fetched from backend if endpoint exists
+      setPaymentData([
+        { method: "Credit Card", amount: 125000 },
+        { method: "Debit Card", amount: 78000 },
+        { method: "PayPal", amount: 32000 },
+        { method: "Bank Transfer", amount: 10680 },
+      ]);
+      
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to load dashboard data";
+      setError(errorMsg);
+      console.error("Dashboard error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -122,11 +128,27 @@ export default function FinanceDashboard() {
               Monitor payments, revenue, and refunds
             </p>
           </div>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button 
+            onClick={loadDashboardData}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            disabled={isLoading}
+          >
             <Download className="w-4 h-4 mr-2" />
-            Export Report
+            {isLoading ? "Loading..." : "Refresh"}
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading dashboard data...</p>
+          </div>
+        ) : (
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -303,6 +325,7 @@ export default function FinanceDashboard() {
             </table>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

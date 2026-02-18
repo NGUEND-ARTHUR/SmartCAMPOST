@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { financeService } from "@/services/financeService";
+
 interface FinanceForm {
   name: string;
   description: string;
@@ -12,6 +14,7 @@ export default function CreateFinancePage() {
   });
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -23,7 +26,7 @@ export default function CreateFinancePage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     if (
@@ -35,8 +38,22 @@ export default function CreateFinancePage() {
       setError("All fields are required and initial balance must be a number.");
       return;
     }
-    setSuccess(true);
-    setForm({ name: "", description: "", initialBalance: "" });
+    
+    try {
+      setIsLoading(true);
+      await financeService.createFinance({
+        name: form.name,
+        description: form.description,
+        initialBalance: Number(form.initialBalance),
+      });
+      setSuccess(true);
+      setForm({ name: "", description: "", initialBalance: "" });
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create finance record");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -120,9 +137,10 @@ export default function CreateFinancePage() {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Create Finance
+          {isLoading ? "Creating..." : "Create Finance"}
         </button>
       </form>
     </div>
