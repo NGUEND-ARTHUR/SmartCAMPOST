@@ -565,14 +565,11 @@ public class ScanEventServiceImpl implements ScanEventService {
         if ("GPS".equals(normalized)) {
             normalized = "DEVICE_GPS";
         }
-        if ("MANUAL".equals(normalized)) {
-            normalized = "MANUAL_ENTRY";
-        }
 
         try {
             return LocationSource.valueOf(normalized);
         } catch (IllegalArgumentException ex) {
-            return LocationSource.UNKNOWN;
+            return LocationSource.CACHED;
         }
     }
 
