@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import type { Payment } from "@/types";
 import { receiptService } from "@/services/payments/receipts.api";
+import { paymentService } from "@/services/paymentService";
 
 const statusColors: Record<string, string> = {
   INIT: "bg-muted text-muted-foreground",
@@ -26,39 +27,41 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-muted text-muted-foreground",
 };
 
-const mock: Payment[] = [
-  {
-    id: "PAY001",
-    parcelId: "SCP2026001",
-    amount: 4000,
-    currency: "XAF",
-    method: "MOBILE_MONEY",
-    status: "SUCCESS",
-    createdAt: "2026-01-08T10:05:00Z",
-  },
-  {
-    id: "PAY003",
-    parcelId: "SCP2026005",
-    amount: 2500,
-    currency: "XAF",
-    method: "CASH",
-    status: "PENDING",
-    createdAt: "2026-01-09T16:50:00Z",
-  },
-];
-
 export default function ClientPayments() {
   const [q, setQ] = useState("");
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadPayments();
+  }, []);
+
+  const loadPayments = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await paymentService.getPayments();
+      setPayments(data || []);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to load payments";
+      setError(errorMsg);
+      console.error("Payment error:", err);
+      setPayments([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return mock;
-    return mock.filter(
+    if (!s) return payments;
+    return payments.filter(
       (p) =>
         (p.id || "").toLowerCase().includes(s) ||
         (p.parcelId || "").toLowerCase().includes(s),
     );
-  }, [q]);
+  }, [q, payments]);
 
   return (
     <div className="space-y-6">
@@ -72,19 +75,31 @@ export default function ClientPayments() {
           <CardTitle>History</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="pl-9"
-              placeholder="Search by payment or parcel ID..."
-            />
-          </div>
+          {error && (
+            <div className="p-4 bg-red-100 text-red-800 rounded-lg mb-4">
+              {error}
+            </div>
+          )}
 
-          {filtered.length === 0 ? (
-            <EmptyState
-              icon={Receipt}
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Loading payments...</p>
+            </div>
+          ) : (
+            <>
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="pl-9"
+                  placeholder="Search by payment or parcel ID..."
+                />
+              </div>
+
+              {filtered.length === 0 ? (
+                <EmptyState
+                  icon={Receipt}
               title="No payments found"
               description="Try adjusting your search"
             />
@@ -181,6 +196,7 @@ export default function ClientPayments() {
                 ))}
               </TableBody>
             </Table>
+            </>
           )}
         </CardContent>
       </Card>

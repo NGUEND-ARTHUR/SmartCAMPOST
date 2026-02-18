@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { MapPin, Plus, Edit, Trash2, Home, Briefcase } from "lucide-react";
 import type { ComponentType } from "react";
@@ -24,37 +24,7 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/EmptyState";
 import { Address } from "@/types";
 import { toast } from "sonner";
-
-const mockAddresses: Address[] = [
-  {
-    id: "1",
-    label: "Home",
-    street: "123 Main Street, Akwa",
-    city: "Douala",
-    region: "Littoral",
-    country: "Cameroon",
-    latitude: 4.0511,
-    longitude: 9.7679,
-  },
-  {
-    id: "2",
-    label: "Office",
-    street: "456 Avenue de l'Indépendance, Bastos",
-    city: "Yaoundé",
-    region: "Centre",
-    country: "Cameroon",
-    latitude: 3.8667,
-    longitude: 11.5167,
-  },
-  {
-    id: "3",
-    label: "Warehouse",
-    street: "789 Industrial Zone, Bonaberi",
-    city: "Douala",
-    region: "Littoral",
-    country: "Cameroon",
-  },
-];
+import { addressService } from "@/services/addressService";
 
 const labelIcons: Record<string, ComponentType<any>> = {
   Home: Home,
@@ -64,9 +34,12 @@ const labelIcons: Record<string, ComponentType<any>> = {
 
 export default function Addresses() {
   const { t } = useTranslation();
-  const [addresses, setAddresses] = useState<Address[]>(mockAddresses);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     label: "",
     street: "",
@@ -74,6 +47,26 @@ export default function Addresses() {
     region: "",
     country: "Cameroon",
   });
+
+  useEffect(() => {
+    loadAddresses();
+  }, []);
+
+  const loadAddresses = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await addressService.getMyAddresses();
+      setAddresses(data || []);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to load addresses";
+      setError(errorMsg);
+      console.error("Address error:", err);
+      setAddresses([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOpenDialog = (address?: Address) => {
     if (address) {
@@ -109,28 +102,51 @@ export default function Addresses() {
       return;
     }
 
-    if (editingAddress) {
-      setAddresses(
-        addresses.map((addr) =>
-          addr.id === editingAddress.id ? { ...addr, ...formData } : addr,
-        ),
-      );
-      toast.success(t("addresses.toasts.updated"));
-    } else {
-      const newAddress: Address = {
-        id: String(addresses.length + 1),
-        ...formData,
-      } as Address;
-      setAddresses([...addresses, newAddress]);
-      toast.success(t("addresses.toasts.added"));
+    try {
+      setIsSaving(true);
+      if (editingAddress) {
+        const updated = await addressService.updateAddress(editingAddress.id, {
+          label: formData.label,
+          street: formData.street,
+          city: formData.city,
+          region: formData.region,
+          country: formData.country,
+        });
+        setAddresses(
+          addresses.map((addr) =>
+            addr.id === editingAddress.id ? updated : addr,
+          ),
+        );
+        toast.success(t("addresses.toasts.updated"));
+      } else {
+        const created = await addressService.createAddress({
+          label: formData.label,
+          street: formData.street,
+          city: formData.city,
+          region: formData.region,
+          country: formData.country,
+        });
+        setAddresses([...addresses, created]);
+        toast.success(t("addresses.toasts.added"));
+      }
+      setIsDialogOpen(false);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to save address";
+      toast.error(errorMsg);
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setAddresses(addresses.filter((addr) => addr.id !== id));
-    toast.success(t("addresses.toasts.deleted"));
+  const handleDelete = async (id: string) => {
+    try {
+      await addressService.deleteAddress(id);
+      setAddresses(addresses.filter((addr) => addr.id !== id));
+      toast.success(t("addresses.toasts.deleted"));
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to delete address";
+      toast.error(errorMsg);
+    }
   };
 
   return (
@@ -142,9 +158,12 @@ export default function Addresses() {
             {t("addresses.page.subtitle")}
           </p>
         </div>
+        {error && (
+          <div className="text-sm text-red-600">{error}</div>
+        )}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()}>
+            <Button onClick={() => handleOpenDialog()} disabled={isLoading}>
               <Plus className="w-4 h-4 mr-2" />
               {t("addresses.page.addAddress")}
             </Button>
@@ -226,20 +245,32 @@ export default function Addresses() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>
                 {t("common.cancel")}
               </Button>
-              <Button onClick={handleSubmit}>
-                {editingAddress
-                  ? t("addresses.dialog.updateAction")
-                  : t("addresses.dialog.addAction")}
+              <Button onClick={handleSubmit} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    {editingAddress ? "Updating..." : "Adding..."}
+                  </>
+                ) : (
+                  <>
+                    {editingAddress
+                      ? t("addresses.dialog.updateAction")
+                      : t("addresses.dialog.addAction")}
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {addresses.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading addresses...</p>
+        </div>
+      ) : addresses.length === 0 ? (
         <EmptyState
           icon={MapPin}
           title={t("addresses.empty.title")}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BadgeCheck, MapPin, Package, Scan, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { agentService } from "@/services/agentService";
 
 type TaskType = "PICKUP" | "DELIVERY" | "SCAN";
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "DONE" | "BLOCKED";
@@ -32,44 +33,40 @@ const statusStyles: Record<TaskStatus, string> = {
   BLOCKED: "bg-red-100 text-red-800",
 };
 
-const mockTasks: AgentTask[] = [
-  {
-    id: "AT-1001",
-    type: "PICKUP",
-    parcelId: "SCP2026009",
-    location: "Bonamoussadi, Douala",
-    scheduledAt: "2026-01-12T09:30:00Z",
-    status: "PENDING",
-  },
-  {
-    id: "AT-1002",
-    type: "DELIVERY",
-    parcelId: "SCP2026003",
-    location: "Bastos, Yaoundé",
-    scheduledAt: "2026-01-12T11:00:00Z",
-    status: "IN_PROGRESS",
-  },
-  {
-    id: "AT-1003",
-    type: "SCAN",
-    parcelId: "SCP2026011",
-    location: "Yaoundé Hub",
-    scheduledAt: "2026-01-12T13:15:00Z",
-    status: "DONE",
-  },
-];
-
 export default function AgentDashboard() {
   const navigate = useNavigate();
+  const [tasks, setTasks] = useState<AgentTask[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await agentService.getAgentTasks();
+      setTasks(data || []);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to load tasks";
+      setError(errorMsg);
+      console.error("Agent tasks error:", err);
+      setTasks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const metrics = useMemo(() => {
-    const pending = mockTasks.filter((t) => t.status === "PENDING").length;
-    const inProgress = mockTasks.filter(
+    const pending = tasks.filter((t) => t.status === "PENDING").length;
+    const inProgress = tasks.filter(
       (t) => t.status === "IN_PROGRESS",
     ).length;
-    const done = mockTasks.filter((t) => t.status === "DONE").length;
+    const done = tasks.filter((t) => t.status === "DONE").length;
     return { pending, inProgress, done };
-  }, []);
+  }, [tasks]);
 
   return (
     <div className="space-y-6">
@@ -88,12 +85,24 @@ export default function AgentDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
+      {error && (
+        <div className="p-4 bg-red-100 text-red-800 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading your tasks...</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.pending}</div>
             <p className="text-xs text-muted-foreground">
@@ -142,7 +151,7 @@ export default function AgentDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockTasks.map((t) => (
+              {tasks.map((t) => (
                 <TableRow key={t.id}>
                   <TableCell className="font-medium">{t.type}</TableCell>
                   <TableCell>{t.parcelId}</TableCell>
@@ -174,7 +183,9 @@ export default function AgentDashboard() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

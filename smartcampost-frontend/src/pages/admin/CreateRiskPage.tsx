@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
+import { riskService } from "@/services/riskService";
 
 export default function CreateRiskPage() {
   const [form, setForm] = useState({
@@ -7,6 +8,8 @@ export default function CreateRiskPage() {
     description: "",
   });
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -15,11 +18,30 @@ export default function CreateRiskPage() {
     setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // TODO: Integrate with backend API to create risk alert
-    setSuccess(true);
-    setForm({ type: "", severity: "", description: "" });
+    setError(null);
+
+    if (!form.type.trim() || !form.severity.trim() || !form.description.trim()) {
+      setError("All fields are required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await riskService.createRisk({
+        type: form.type,
+        severity: form.severity,
+        description: form.description,
+      });
+      setSuccess(true);
+      setForm({ type: "", severity: "", description: "" });
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create risk alert");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -28,6 +50,11 @@ export default function CreateRiskPage() {
       {success && (
         <div className="mb-4 p-2 bg-green-100 text-green-800 rounded">
           Risk alert created successfully!
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-2 bg-red-100 text-red-800 rounded">
+          {error}
         </div>
       )}
       <form onSubmit={handleSubmit}>
@@ -80,9 +107,10 @@ export default function CreateRiskPage() {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Create Risk Alert
+          {isLoading ? "Creating..." : "Create Risk Alert"}
         </button>
       </form>
     </div>
