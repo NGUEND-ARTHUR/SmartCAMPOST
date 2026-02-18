@@ -40,5 +40,10 @@ public enum NotificationType {
     RISK_ALERT_UPDATED,
     RISK_ALERT_RESOLVED,
     ACCOUNT_FROZEN,
-    ACCOUNT_UNFROZEN
+    ACCOUNT_UNFROZEN,
+
+    // ================== AI / autonomous modules ==================
+    DELAY_WARNING,
+    CONGESTION_ALERT,
+    AI_RECOMMENDATION
 }

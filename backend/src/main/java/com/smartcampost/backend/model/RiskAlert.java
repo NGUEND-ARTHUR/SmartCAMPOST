@@ -44,7 +44,7 @@ public class RiskAlert {
     @Column(name = "resolved", nullable = false)
     private boolean resolved;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = 500)
     private String description;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -40,7 +40,7 @@ public class Notification {
     @Column(name = "recipient_phone", length = 30)
     private String recipientPhone;
 
-    @Column(name = "recipient_email", length = 150)
+    @Column(name = "recipient_email", length = 100)
     private String recipientEmail;
 
     @Enumerated(EnumType.STRING)
@@ -55,10 +55,10 @@ public class Notification {
     @Column(name = "status", nullable = false, length = 20)
     private NotificationStatus status;
 
-    @Column(name = "subject", length = 150)
+    @Column(name = "subject", length = 255)
     private String subject;
 
-    @Column(name = "message", nullable = false, length = 500)
+    @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
 
     @Column(name = "error_message", length = 255)

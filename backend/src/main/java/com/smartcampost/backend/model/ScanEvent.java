@@ -68,10 +68,10 @@ public class ScanEvent {
     // --------------------------------------------------
     //  🔥 MANDATORY GPS FIELDS (Device GPS is the source)
     // --------------------------------------------------
-    @Column(name = "latitude", nullable = false)
+    @Column(name = "latitude", nullable = false, columnDefinition = "DECIMAL(10,8)")
     private Double latitude;
 
-    @Column(name = "longitude", nullable = false)
+    @Column(name = "longitude", nullable = false, columnDefinition = "DECIMAL(11,8)")
     private Double longitude;
 
     @Enumerated(EnumType.STRING)

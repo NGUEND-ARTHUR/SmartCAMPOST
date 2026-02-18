@@ -33,7 +33,7 @@ public class Refund {
     @Column(name = "status", nullable = false, length = 30)
     private RefundStatus status;
 
-    @Column(name = "reason", length = 500)
+    @Column(name = "reason", length = 255)
     private String reason;
 
     @Column(name = "created_at", nullable = false, updatable = false)
