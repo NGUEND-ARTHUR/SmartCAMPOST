@@ -51,6 +51,18 @@ public class Courier {
     )
     private Instant createdAt;
 
+    // --------------------------------------------------
+    //  🔥 AI/REAL-TIME TRACKING FIELDS
+    // --------------------------------------------------
+    @Column(name = "current_latitude", columnDefinition = "DECIMAL(10,8)")
+    private Double currentLatitude;
+
+    @Column(name = "current_longitude", columnDefinition = "DECIMAL(11,8)")
+    private Double currentLongitude;
+
+    @Column(name = "last_location_at")
+    private Instant lastLocationAt;
+
     @PrePersist
     void onCreate() {
         if (id == null) {
