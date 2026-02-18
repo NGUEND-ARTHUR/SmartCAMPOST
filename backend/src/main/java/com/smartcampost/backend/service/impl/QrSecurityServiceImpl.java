@@ -71,21 +71,28 @@ public class QrSecurityServiceImpl implements QrSecurityService {
             ParcelRepository parcelRepository,
             UserAccountRepository userAccountRepository,
             @Value("${smartcampost.qr.secret-key:}") String secretKey,
+            @Value("${smartcampost.jwt.secret:}") String jwtSecret,
             @Value("${smartcampost.qr.max-verifications-per-hour:100}") int maxVerificationsPerHour) {
         this.tokenRepository = tokenRepository;
         this.parcelRepository = parcelRepository;
         this.userAccountRepository = userAccountRepository;
-        
-        // SECURITY: QR secret key must be provided via environment variable
-        if (secretKey == null || secretKey.isBlank()) {
-            throw new IllegalStateException(
-                "QR secret key not configured! Set QR_SECRET_KEY environment variable.");
+
+        String effectiveSecretKey = secretKey;
+        if (effectiveSecretKey == null || effectiveSecretKey.isBlank()) {
+            if (jwtSecret != null && !jwtSecret.isBlank()) {
+                log.warn("QR secret key not configured; falling back to JWT secret. Set QR_SECRET_KEY for explicit QR key separation.");
+                effectiveSecretKey = jwtSecret;
+            } else {
+                throw new IllegalStateException(
+                    "QR secret key not configured! Set QR_SECRET_KEY environment variable.");
+            }
         }
-        if (secretKey.length() < 32) {
+
+        if (effectiveSecretKey.length() < 32) {
             throw new IllegalStateException(
                 "QR secret key must be at least 32 characters for security.");
         }
-        this.secretKey = secretKey;
+        this.secretKey = effectiveSecretKey;
         this.maxVerificationsPerHour = maxVerificationsPerHour;
     }
 
