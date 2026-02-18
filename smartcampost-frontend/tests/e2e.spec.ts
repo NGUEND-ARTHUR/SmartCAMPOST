@@ -60,9 +60,12 @@ test("app root loads and navigates to login", async ({ page }) => {
   await expect(page).toHaveTitle(/SmartCAMPOST|Smart/gi);
   // navigate to login page
   await page.goto("/auth/login");
-  await expect(page.locator("text=Sign in").first()).toBeVisible({
+  // Check for login form elements instead of text (language-agnostic)
+  await expect(page.locator("input[id=phoneOrEmail]")).toBeVisible({
     timeout: 5000,
   });
+  await expect(page.locator("input[id=password]")).toBeVisible();
+  await expect(page.locator("button[type=submit]")).toBeVisible();
 });
 
 test("login flow (mocked) redirects to dashboard", async ({ page }) => {
@@ -85,5 +88,6 @@ test("open register page and submit (mocked)", async ({ page }) => {
   await page.fill("input[id=phone]", "+237600000001");
   await page.fill("input[id=password]", "password123");
   await page.click("button[type=submit]");
-  await expect(page.locator("text=Create an account").first()).toBeVisible();
+  // Check that form is still visible (registration form should still be shown after mock)
+  await expect(page.locator("input[id=fullName]")).toBeVisible();
 });
