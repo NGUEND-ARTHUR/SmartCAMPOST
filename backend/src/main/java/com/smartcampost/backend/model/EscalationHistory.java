@@ -1,5 +1,6 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.EscalationSourceType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,8 +24,9 @@ public class EscalationHistory {
     @Column(name = "escalation_id", columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "source_type", nullable = false, length = 30)
-    private String sourceType;
+    private EscalationSourceType sourceType;
 
     @Column(name = "source_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID sourceId;
