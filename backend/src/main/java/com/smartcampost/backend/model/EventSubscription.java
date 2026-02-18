@@ -1,5 +1,6 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.SubscriptionEventCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,8 +26,9 @@ public class EventSubscription {
     @Column(name = "subscriber_name", nullable = false, unique = true, length = 100)
     private String subscriberName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_category", nullable = false, length = 50)
-    private String eventCategory;
+    private SubscriptionEventCategory eventCategory;
 
     @Column(name = "event_type_filter", length = 255)
     private String eventTypeFilter;

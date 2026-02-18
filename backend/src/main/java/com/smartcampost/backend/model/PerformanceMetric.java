@@ -1,5 +1,8 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.MetricPeriodType;
+import com.smartcampost.backend.model.enums.PerformanceMetricType;
+import com.smartcampost.backend.model.enums.PerformanceSubjectType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,17 +25,20 @@ public class PerformanceMetric {
     @Column(name = "metric_id", columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "metric_type", nullable = false, length = 30)
-    private String metricType;
+    private PerformanceMetricType metricType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false, length = 30)
-    private String subjectType;
+    private PerformanceSubjectType subjectType;
 
     @Column(name = "subject_id", columnDefinition = "BINARY(16)")
     private UUID subjectId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "period_type", nullable = false, length = 20)
-    private String periodType;
+    private MetricPeriodType periodType;
 
     @Column(name = "period_start", nullable = false)
     private Instant periodStart;

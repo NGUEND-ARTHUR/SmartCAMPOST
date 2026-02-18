@@ -1,5 +1,7 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.AiExecutionStatus;
+import com.smartcampost.backend.model.enums.AiSubjectType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,14 +35,16 @@ public class AiExecutionLog {
     @Column(name = "action_type", nullable = false, length = 100)
     private String actionType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "target_type", nullable = false, length = 30)
-    private String targetType;
+    private AiSubjectType targetType;
 
     @Column(name = "target_id", columnDefinition = "BINARY(16)")
     private UUID targetId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "execution_status", nullable = false, length = 20)
-    private String executionStatus;
+    private AiExecutionStatus executionStatus;
 
     @Column(name = "started_at", nullable = false)
     private Instant startedAt;

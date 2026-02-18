@@ -1,5 +1,7 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.PredictiveSubjectType;
+import com.smartcampost.backend.model.enums.PredictiveType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,11 +24,13 @@ public class PredictiveResult {
     @Column(name = "prediction_id", columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "prediction_type", nullable = false, length = 30)
-    private String predictionType;
+    private PredictiveType predictionType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false, length = 30)
-    private String subjectType;
+    private PredictiveSubjectType subjectType;
 
     @Column(name = "subject_id", columnDefinition = "BINARY(16)")
     private UUID subjectId;
