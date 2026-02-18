@@ -40,7 +40,7 @@ public class SystemEvent {
     @Column(name = "payload", nullable = false, columnDefinition = "JSON")
     private String payload;
 
-    @Column(name = "priority", nullable = false)
+    @Column(name = "priority", nullable = false, columnDefinition = "TINYINT")
     @Builder.Default
     private Integer priority = 5;
 
@@ -58,7 +58,7 @@ public class SystemEvent {
     @Column(name = "processor_id", length = 100)
     private String processorId;
 
-    @Column(name = "retry_count", nullable = false)
+    @Column(name = "retry_count", nullable = false, columnDefinition = "TINYINT")
     @Builder.Default
     private Integer retryCount = 0;
 
