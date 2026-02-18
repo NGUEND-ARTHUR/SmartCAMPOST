@@ -1,6 +1,7 @@
 package com.smartcampost.backend.model;
 
 import com.smartcampost.backend.model.enums.AnomalyStatus;
+import com.smartcampost.backend.model.enums.AnomalySubjectType;
 import com.smartcampost.backend.model.enums.AnomalyType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
 import jakarta.persistence.*;
@@ -35,7 +36,7 @@ public class AnomalyEvent {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false, length = 20)
-    private String subjectType;
+    private AnomalySubjectType subjectType;
 
     @Column(name = "subject_id", columnDefinition = "BINARY(16)")
     private UUID subjectId;
