@@ -10,6 +10,7 @@ public enum ErrorCode {
     AUTH_USER_NOT_FOUND,
     AUTH_UNAUTHORIZED,
     AUTH_FORBIDDEN,
+    AUTH_ACCOUNT_LOCKED,
 
     // =====================================================
     // OTP

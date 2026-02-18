@@ -68,11 +68,12 @@ export function Register() {
     if (!("OTPCredential" in window)) return;
 
     const controller = new AbortController();
-    (nav.credentials
-      .get({
+    (
+      nav.credentials.get({
         otp: { transport: ["sms"] },
         signal: controller.signal,
-      }) as Promise<any>)
+      }) as Promise<any>
+    )
       .then((cred) => {
         const code = cred?.code;
         if (typeof code === "string" && code.trim()) {
@@ -220,7 +221,9 @@ export function Register() {
                   autoComplete="one-time-code"
                   name="otp"
                   maxLength={6}
-                  onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) =>
+                    setOtpValue(e.target.value.replace(/\D/g, ""))
+                  }
                   required
                 />
                 {errors.otp && (

@@ -24,6 +24,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class AgencyAgentServiceImpl implements AgencyAgentService {
 
     private static final double CONGESTION_TRIGGER_LEVEL = 0.80;

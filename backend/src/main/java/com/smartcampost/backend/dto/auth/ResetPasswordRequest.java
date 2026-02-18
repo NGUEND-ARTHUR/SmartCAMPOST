@@ -1,5 +1,8 @@
 package com.smartcampost.backend.dto.auth;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +14,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResetPasswordRequest {
 
-    private String phone;      // numéro pour identifier le compte
-    private String otp;        // code OTP reçu
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^\\+?[0-9]{8,15}$", message = "Invalid phone number format")
+    private String phone;
+
+    @NotBlank(message = "OTP is required")
+    @Pattern(regexp = "^[0-9]{6}$", message = "OTP must be 6 digits")
+    private String otp;
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
+             message = "Password must contain at least one uppercase, one lowercase, and one digit")
     private String newPassword;
 }

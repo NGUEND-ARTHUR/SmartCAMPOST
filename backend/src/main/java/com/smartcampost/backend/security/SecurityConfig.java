@@ -38,7 +38,6 @@ public class SecurityConfig {
                         //                    PUBLIC AUTH ROUTES
                         // ===================================================
                         .requestMatchers(
-                            "/actuator/**",
                             "/api/payments/mtn/**",
                             "/api/track/**",
                             "/api/auth/register",
@@ -50,6 +49,14 @@ public class SecurityConfig {
                             "/api/auth/password/reset/request",
                             "/api/auth/password/reset/confirm"
                         ).permitAll()
+
+                        // ===================================================
+                        //              ACTUATOR (ADMIN ONLY in PRODUCTION)
+                        // ===================================================
+                        .requestMatchers("/actuator/health", "/actuator/info")
+                        .permitAll()
+                        .requestMatchers("/actuator/**")
+                        .hasRole("ADMIN")
 
                         // ===================================================
                         //                    DASHBOARD MODULE
@@ -189,7 +196,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allow origins from environment variable CORS_ALLOWED_ORIGINS (comma-separated),
-        // fall back to localhost dev ports. If not provided, allow all origins via patterns.
+        // fall back to localhost dev ports. NEVER allow * in production.
         String env = System.getenv("CORS_ALLOWED_ORIGINS");
         if (env != null && !env.isBlank()) {
             List<String> origins = Arrays.stream(env.split(","))
@@ -198,19 +205,26 @@ public class SecurityConfig {
                     .toList();
             configuration.setAllowedOrigins(origins);
         } else {
+            // Development only - strict localhost origins
             configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "http://localhost:5175",
                 "http://localhost:5176"
             ));
-            // also allow all origin patterns (useful for deployed previews)
-            configuration.setAllowedOriginPatterns(List.of("*"));
+            // SECURITY: Do NOT use allowedOriginPatterns("*") - commented out for security
+            // configuration.setAllowedOriginPatterns(List.of("*"));
         }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        // SECURITY: Explicitly list allowed headers instead of "*"
+        configuration.setAllowedHeaders(List.of(
+            "Authorization", "Content-Type", "Accept", "Origin", 
+            "X-Requested-With", "X-CSRF-TOKEN"
+        ));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
+        // SECURITY: Set max age for preflight cache
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);

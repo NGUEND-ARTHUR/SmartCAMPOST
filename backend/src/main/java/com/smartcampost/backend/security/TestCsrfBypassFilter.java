@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -15,7 +16,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * SECURITY: This filter is ONLY active in test profile.
+ * It bypasses CSRF for specific test endpoints.
+ * NEVER enable in production!
+ */
 @Component
+@Profile("test")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TestCsrfBypassFilter extends OncePerRequestFilter {
 

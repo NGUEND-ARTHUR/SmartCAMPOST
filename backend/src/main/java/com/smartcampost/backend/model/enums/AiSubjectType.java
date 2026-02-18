@@ -6,5 +6,8 @@ package com.smartcampost.backend.model.enums;
 public enum AiSubjectType {
     COURIER,
     AGENCY,
-    PARCEL
+    PARCEL,
+    PAYMENT,
+    CLIENT,
+    SYSTEM
 }
