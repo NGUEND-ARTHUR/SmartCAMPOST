@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Search, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import type { Payment } from "@/types";
 import { receiptService } from "@/services/payments/receipts.api";
-import { paymentService } from "@/services/paymentService";
+import { usePayments } from "@/hooks";
 
 const statusColors: Record<string, string> = {
   INIT: "bg-muted text-muted-foreground",
@@ -29,30 +29,18 @@ const statusColors: Record<string, string> = {
 
 export default function ClientPayments() {
   const [q, setQ] = useState("");
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: paymentsResponse,
+    isLoading,
+    error: queryError,
+  } = usePayments(0, 1000);
 
-  useEffect(() => {
-    loadPayments();
-  }, []);
-
-  const loadPayments = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await paymentService.getPayments();
-      setPayments(data || []);
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "Failed to load payments";
-      setError(errorMsg);
-      console.error("Payment error:", err);
-      setPayments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const payments = paymentsResponse?.content ?? [];
+  const error = queryError
+    ? queryError instanceof Error
+      ? queryError.message
+      : "Failed to load payments"
+    : null;
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();

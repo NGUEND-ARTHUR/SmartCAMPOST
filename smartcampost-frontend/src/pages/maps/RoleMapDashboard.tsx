@@ -10,6 +10,52 @@ import TrackingMap from "@/components/maps/TrackingMap";
 import { useAuthStore } from "@/store/authStore";
 import { parcelService } from "@/services/parcels";
 import { mapService, ParcelMapResponse } from "@/services/maps";
+import { geolocationService } from "@/services/common/geolocation.api";
+
+// Simple city geocoding cache to avoid repeated API calls
+const CITY_GEOCODE_CACHE: Record<string, { lat: number; lng: number }> = {
+  // Cameroon major cities
+  douala: { lat: 4.0511, lng: 9.7679 },
+  yaounde: { lat: 3.8667, lng: 11.5167 },
+  yaoundé: { lat: 3.8667, lng: 11.5167 },
+  bafoussam: { lat: 5.4767, lng: 10.4178 },
+  garoua: { lat: 9.3, lng: 13.4 },
+  maroua: { lat: 10.5908, lng: 14.3158 },
+  bamenda: { lat: 5.9597, lng: 10.1494 },
+  ngaoundere: { lat: 7.3167, lng: 13.5833 },
+  ngaoundéré: { lat: 7.3167, lng: 13.5833 },
+  bertoua: { lat: 4.5767, lng: 13.6844 },
+  limbe: { lat: 4.0167, lng: 9.2 },
+  ebolowa: { lat: 2.9, lng: 11.15 },
+  kribi: { lat: 2.9394, lng: 9.9089 },
+  buea: { lat: 4.1561, lng: 9.2325 },
+};
+
+async function geocodeCity(
+  city?: string,
+  country: string = "Cameroon",
+): Promise<{ lat: number; lng: number } | null> {
+  if (!city) return null;
+
+  const key = city.toLowerCase().trim();
+  if (CITY_GEOCODE_CACHE[key]) {
+    return CITY_GEOCODE_CACHE[key];
+  }
+
+  try {
+    const result = await geolocationService.geocode({
+      address: "",
+      city,
+      country,
+    });
+    const coords = { lat: result.latitude, lng: result.longitude };
+    CITY_GEOCODE_CACHE[key] = coords;
+    return coords;
+  } catch {
+    // Fallback to Douala coordinates
+    return { lat: 4.0511, lng: 9.7679 };
+  }
+}
 
 type MarkerItem = {
   id: string;
@@ -21,34 +67,60 @@ type TrackedParcelItem = {
   id: string;
   trackingRef: string;
   status?: string;
+  senderCity?: string;
+  recipientCity?: string;
 };
 
 const TRACKING_ROLES = new Set(["CLIENT", "COURIER", "AGENT"]);
 const REFRESH_INTERVAL_MS = 15000;
 
-function extractParcelMarker(parcelMap: ParcelMapResponse): MarkerItem | null {
+async function extractParcelMarker(
+  parcelMap: ParcelMapResponse,
+  fallbackData?: { senderCity?: string; recipientCity?: string },
+): Promise<MarkerItem | null> {
+  // 1. Try current location (most recent GPS data)
   const lat = parcelMap.currentLocation?.latitude;
   const lng = parcelMap.currentLocation?.longitude;
   if (typeof lat === "number" && typeof lng === "number") {
     return {
       id: parcelMap.parcelId,
       position: [lat, lng],
-      label: `${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"}`,
+      label: `📦 ${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"}`,
     };
   }
 
+  // 2. Try most recent scan event with GPS
   const timeline = parcelMap.timeline ?? [];
   const withGps = [...timeline]
     .reverse()
     .find(
       (e) => typeof e.latitude === "number" && typeof e.longitude === "number",
     );
-  if (!withGps) return null;
+  if (withGps) {
+    return {
+      id: parcelMap.parcelId,
+      position: [withGps.latitude as number, withGps.longitude as number],
+      label: `📍 ${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"}`,
+    };
+  }
 
+  // 3. Fallback to geocoding sender city if available
+  if (fallbackData?.senderCity) {
+    const cityCoords = await geocodeCity(fallbackData.senderCity, "Cameroon");
+    if (cityCoords) {
+      return {
+        id: parcelMap.parcelId,
+        position: [cityCoords.lat, cityCoords.lng],
+        label: `� ${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"} (${fallbackData.senderCity})`,
+      };
+    }
+  }
+
+  // 4. Default to Douala (major logistics hub) if no location data available
   return {
     id: parcelMap.parcelId,
-    position: [withGps.latitude as number, withGps.longitude as number],
-    label: `${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"}`,
+    position: [4.0511, 9.7679], // Douala coordinates
+    label: `📦 ${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"} (Pending GPS)`,
   };
 }
 
@@ -112,9 +184,19 @@ export default function RoleMapDashboard() {
             )
             .map((r) => r.value);
 
-          const mapMarkers = resolved
-            .map(extractParcelMarker)
-            .filter((m): m is MarkerItem => m !== null);
+          const mapMarkers = (
+            await Promise.all(
+              resolved.map(async (parcelMap) => {
+                const parcel = filtered.find(
+                  (p) => p.id === parcelMap.parcelId,
+                );
+                return await extractParcelMarker(parcelMap, {
+                  senderCity: parcel?.senderCity,
+                  recipientCity: parcel?.recipientCity,
+                });
+              }),
+            )
+          ).filter((m): m is MarkerItem => m !== null);
 
           setMarkers(mapMarkers);
           setTrackedParcels(
@@ -122,6 +204,8 @@ export default function RoleMapDashboard() {
               id: p.id,
               trackingRef: p.trackingRef,
               status: p.status,
+              senderCity: p.senderCity,
+              recipientCity: p.recipientCity,
             })),
           );
 

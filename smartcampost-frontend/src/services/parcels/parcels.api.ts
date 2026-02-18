@@ -21,6 +21,13 @@ export interface ParcelResponse {
   locked?: boolean;
   createdAt: string;
   expectedDeliveryAt?: string;
+  // Address info (may be provided by backend)
+  senderCity?: string;
+  senderRegion?: string;
+  senderCountry?: string;
+  recipientCity?: string;
+  recipientRegion?: string;
+  recipientCountry?: string;
 }
 
 export interface ParcelDetailResponse {

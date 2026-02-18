@@ -47,6 +47,44 @@ type RawAuth = {
 };
 
 class ApiClient {
+  // Helper to transform backend AuthResponse to frontend LoginResponse
+  private transformAuthToLoginResponse(
+    auth: RawAuth,
+    emailFallback?: string,
+  ): LoginResponse {
+    const rawRole = String(auth.role || "").trim();
+    const normalizedRole = (() => {
+      if (!rawRole) return "CLIENT";
+      const upper = rawRole.toUpperCase();
+      if (
+        upper === "CLIENT" ||
+        upper === "AGENT" ||
+        upper === "COURIER" ||
+        upper === "STAFF" ||
+        upper === "ADMIN" ||
+        upper === "FINANCE" ||
+        upper === "RISK"
+      ) {
+        return upper;
+      }
+      if (rawRole === "admin") return "ADMIN";
+      if (rawRole === "user") return "CLIENT";
+      return "CLIENT";
+    })();
+
+    const user = {
+      id: auth.userId || auth.entityId || "0",
+      email: auth.phone || emailFallback || "",
+      name: auth.fullName || "",
+      role: normalizedRole,
+    };
+
+    return {
+      user,
+      token: auth.accessToken || auth.token || "",
+    } as LoginResponse;
+  }
+
   private parseErrorResponse(status: number, responseText: string): ApiError {
     // Try to parse as JSON first
     try {
@@ -173,38 +211,7 @@ class ApiClient {
       body: JSON.stringify(payload),
     });
 
-    // map backend AuthResponse to frontend LoginResponse
-    const rawRole = String(auth.role || "").trim();
-    const normalizedRole = (() => {
-      if (!rawRole) return "CLIENT";
-      const upper = rawRole.toUpperCase();
-      if (
-        upper === "CLIENT" ||
-        upper === "AGENT" ||
-        upper === "COURIER" ||
-        upper === "STAFF" ||
-        upper === "ADMIN" ||
-        upper === "FINANCE" ||
-        upper === "RISK"
-      ) {
-        return upper;
-      }
-      if (rawRole === "admin") return "ADMIN";
-      if (rawRole === "user") return "CLIENT";
-      return "CLIENT";
-    })();
-
-    const user = {
-      id: auth.userId || auth.entityId || "0",
-      email: auth.phone || credentials.email || "",
-      name: auth.fullName || "",
-      role: normalizedRole,
-    };
-
-    return {
-      user,
-      token: auth.accessToken || auth.token || "",
-    } as LoginResponse;
+    return this.transformAuthToLoginResponse(auth, credentials.email);
   }
 
   async requestOtpLogin(payload: {
@@ -220,10 +227,12 @@ class ApiClient {
     identifier: string;
     otp: string;
   }): Promise<LoginResponse> {
-    return this.request<LoginResponse>("/auth/login/otp/confirm", {
+    const auth = await this.request<RawAuth>("/auth/login/otp/confirm", {
       method: "POST",
       body: JSON.stringify({ phone: payload.identifier, otp: payload.otp }),
     });
+
+    return this.transformAuthToLoginResponse(auth, payload.identifier);
   }
 
   async requestPasswordReset(payload: {
@@ -250,11 +259,13 @@ class ApiClient {
     });
   }
 
-  async register(data: RegisterRequest): Promise<unknown> {
-    return this.request<unknown>("/auth/register", {
+  async register(data: RegisterRequest): Promise<LoginResponse> {
+    const auth = await this.request<RawAuth>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     });
+
+    return this.transformAuthToLoginResponse(auth, data.email || data.phone);
   }
 
   async sendOtp(phone: string): Promise<{ otp?: string }> {
