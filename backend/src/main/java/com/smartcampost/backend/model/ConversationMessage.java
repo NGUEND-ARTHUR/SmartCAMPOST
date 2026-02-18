@@ -31,7 +31,7 @@ public class ConversationMessage {
     private ConversationRole role;
 
     @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "timestamp", nullable = false)

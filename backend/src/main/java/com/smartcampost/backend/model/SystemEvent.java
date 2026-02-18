@@ -63,7 +63,7 @@ public class SystemEvent {
     private Integer retryCount = 0;
 
     @Lob
-    @Column(name = "error_message")
+    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
     @Column(name = "correlation_id", length = 100)
