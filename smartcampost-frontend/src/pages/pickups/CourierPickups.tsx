@@ -98,7 +98,8 @@ export default function CourierPickups() {
                     <div className="flex items-center gap-3">
                       <Badge
                         className={
-                          statusColors[p.state] || "bg-gray-100 text-gray-800"
+                          statusColors[p.state] ||
+                          "bg-muted text-muted-foreground"
                         }
                       >
                         {p.state}

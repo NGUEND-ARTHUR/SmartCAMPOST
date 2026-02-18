@@ -131,7 +131,7 @@ export default function ApiCoverage() {
                   </div>
                   <div className="mt-2">
                     <label className="block text-xs">Custom response</label>
-                    <pre className="bg-gray-100 p-2 rounded text-xs">
+                    <pre className="bg-muted p-2 rounded text-xs">
                       {responses["__custom"]
                         ? JSON.stringify(responses["__custom"], null, 2)
                         : "(no custom call yet)"}
@@ -185,7 +185,7 @@ export default function ApiCoverage() {
             {/* Response */}
             <div className="mt-2">
               <label className="block text-xs">Response</label>
-              <pre className="bg-gray-100 p-2 rounded text-xs">
+              <pre className="bg-muted p-2 rounded text-xs">
                 {responses[ep.id]
                   ? JSON.stringify(responses[ep.id], null, 2)
                   : "(no response yet)"}

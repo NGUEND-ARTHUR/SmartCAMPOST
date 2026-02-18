@@ -73,10 +73,10 @@ export default function CourierDashboard() {
 
   const getPriorityColor = (priority: string) =>
     priority === "high"
-      ? "bg-red-100 text-red-800"
+      ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
       : priority === "normal"
-        ? "bg-blue-100 text-blue-800"
-        : "bg-gray-100 text-gray-800";
+        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+        : "bg-muted text-muted-foreground";
 
   const getTaskTypeIcon = (type: string) =>
     type === "pickup" ? Package : Truck;
@@ -109,20 +109,24 @@ export default function CourierDashboard() {
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
           <h1 className="mb-2">{t("courierDashboard.title")}</h1>
-          <p className="text-gray-600">{t("courierDashboard.subtitle")}</p>
+          <p className="text-muted-foreground">
+            {t("courierDashboard.subtitle")}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {cards.map((card, i) => (
-            <div key={i} className="bg-white rounded-lg shadow p-6">
+            <div key={i} className="bg-card rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">{card.title}</p>
-                  <p className="text-3xl font-semibold text-gray-900">
+                  <p className="text-muted-foreground text-sm mb-1">
+                    {card.title}
+                  </p>
+                  <p className="text-3xl font-semibold text-foreground">
                     {card.value}
                   </p>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-full">
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
                   <card.icon className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
@@ -130,15 +134,15 @@ export default function CourierDashboard() {
           ))}
         </div>
 
-        <div className="bg-white rounded-lg shadow mb-6">
-          <div className="border-b border-gray-200">
+        <div className="bg-card rounded-lg shadow mb-6">
+          <div className="border-b border-border">
             <nav className="flex -mb-px">
               <button
                 onClick={() => setFilter("all")}
                 className={`px-6 py-4 border-b-2 font-medium text-sm ${
                   filter === "all"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-muted-foreground"
                 }`}
               >
                 {t("courierDashboard.tabs.allTasks", { count: tasks.length })}
@@ -148,8 +152,8 @@ export default function CourierDashboard() {
                 onClick={() => setFilter("pickup")}
                 className={`px-6 py-4 border-b-2 font-medium text-sm ${
                   filter === "pickup"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-muted-foreground"
                 }`}
               >
                 {t("courierDashboard.tabs.pickups", {
@@ -161,8 +165,8 @@ export default function CourierDashboard() {
                 onClick={() => setFilter("delivery")}
                 className={`px-6 py-4 border-b-2 font-medium text-sm ${
                   filter === "delivery"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-muted-foreground"
                 }`}
               >
                 {t("courierDashboard.tabs.deliveries", {
@@ -179,13 +183,13 @@ export default function CourierDashboard() {
             return (
               <div
                 key={task.id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                className="bg-card rounded-lg shadow hover:shadow-md transition-shadow"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
                       <div
-                        className={`p-3 rounded-full ${task.type === "pickup" ? "bg-blue-100" : "bg-green-100"}`}
+                        className={`p-3 rounded-full ${task.type === "pickup" ? "bg-blue-100 dark:bg-blue-900/30" : "bg-green-100 dark:bg-green-900/30"}`}
                       >
                         <Icon
                           className={`w-6 h-6 ${task.type === "pickup" ? "text-blue-600" : "text-green-600"}`}
@@ -193,7 +197,7 @@ export default function CourierDashboard() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-foreground">
                             {task.trackingNumber}
                           </h3>
                           <span
@@ -201,22 +205,22 @@ export default function CourierDashboard() {
                           >
                             {task.priority}
                           </span>
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground capitalize">
                             {task.type}
                           </span>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="flex items-center text-gray-600 text-sm">
+                          <div className="flex items-center text-muted-foreground text-sm">
                             <MapPin className="w-4 h-4 mr-2" />
                             {task.address}
                           </div>
-                          <div className="flex items-center text-gray-600 text-sm">
+                          <div className="flex items-center text-muted-foreground text-sm">
                             <Clock className="w-4 h-4 mr-2" />
                             Scheduled:{" "}
                             {new Date(task.scheduledTime).toLocaleString()}
                           </div>
-                          <div className="text-gray-600 text-sm">
+                          <div className="text-muted-foreground text-sm">
                             <span className="font-medium">Customer:</span>{" "}
                             {task.customerName} • {task.customerPhone}
                           </div>
@@ -241,7 +245,7 @@ export default function CourierDashboard() {
                             `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
                           )
                         }
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm whitespace-nowrap"
+                        className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm whitespace-nowrap"
                       >
                         View Details
                       </button>
@@ -255,11 +259,11 @@ export default function CourierDashboard() {
           {filteredTasks.length === 0 && (
             <div className="bg-white rounded-lg shadow p-12 text-center">
               <div className="max-w-sm mx-auto">
-                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="mb-2 text-gray-900">
+                <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="mb-2 text-foreground">
                   {t("courierDashboard.noTasksFound")}
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-muted-foreground">
                   {t("courierDashboard.noTasksMessage", {
                     filter:
                       filter !== "all"
@@ -276,7 +280,7 @@ export default function CourierDashboard() {
                   </button>
                   <button
                     onClick={() => navigate(`/courier/deliveries`)}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm whitespace-nowrap"
+                    className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm whitespace-nowrap"
                   >
                     {t("courierDashboard.actions.goToDeliveries")}
                   </button>

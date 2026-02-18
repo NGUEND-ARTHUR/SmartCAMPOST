@@ -273,7 +273,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-muted-foreground text-sm">Risk Score</p>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className={`h-2 rounded-full w-[${anomalyResult.riskScore}%] ${
                             anomalyResult.riskScore > 70

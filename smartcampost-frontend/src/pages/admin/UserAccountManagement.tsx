@@ -196,7 +196,8 @@ export default function UserAccountManagement() {
                     <TableCell>
                       <Badge
                         className={
-                          roleColors[user.role] || "bg-gray-100 text-gray-800"
+                          roleColors[user.role] ||
+                          "bg-muted text-muted-foreground"
                         }
                       >
                         {user.role}

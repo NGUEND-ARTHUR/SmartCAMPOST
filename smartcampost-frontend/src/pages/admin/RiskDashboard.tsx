@@ -101,7 +101,7 @@ export default function RiskDashboard() {
       case "low":
         return "bg-blue-100 text-blue-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -114,7 +114,7 @@ export default function RiskDashboard() {
       case "resolved":
         return <CheckCircle2 className="w-5 h-5 text-green-600" />;
       default:
-        return <FileWarning className="w-5 h-5 text-gray-600" />;
+        return <FileWarning className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
@@ -127,7 +127,7 @@ export default function RiskDashboard() {
       case "resolved":
         return "bg-green-100 text-green-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -137,7 +137,7 @@ export default function RiskDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2">Risk Management Dashboard</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Monitor and manage security alerts and compliance
           </p>
         </div>
@@ -147,8 +147,10 @@ export default function RiskDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm mb-1">Active Alerts</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-muted-foreground text-sm mb-1">
+                  Active Alerts
+                </p>
+                <p className="text-3xl font-semibold text-foreground">
                   {stats.activeAlerts}
                 </p>
               </div>
@@ -161,8 +163,10 @@ export default function RiskDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm mb-1">Resolved Alerts</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-muted-foreground text-sm mb-1">
+                  Resolved Alerts
+                </p>
+                <p className="text-3xl font-semibold text-foreground">
                   {stats.resolvedAlerts}
                 </p>
               </div>
@@ -175,8 +179,10 @@ export default function RiskDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm mb-1">Compliance Score</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-muted-foreground text-sm mb-1">
+                  Compliance Score
+                </p>
+                <p className="text-3xl font-semibold text-foreground">
                   {stats.complianceScore}%
                 </p>
               </div>
@@ -189,8 +195,10 @@ export default function RiskDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm mb-1">Fraud Detected</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-muted-foreground text-sm mb-1">
+                  Fraud Detected
+                </p>
+                <p className="text-3xl font-semibold text-foreground">
                   {stats.fraudDetected}
                 </p>
               </div>
@@ -250,26 +258,26 @@ export default function RiskDashboard() {
 
         {/* Recent Alerts */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="p-6 border-b border-border flex items-center justify-between">
             <h2 className="font-semibold">Recent Risk Alerts</h2>
             <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
               View All Alerts →
             </button>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border">
             {recentAlerts.map((alert) => (
               <div
                 key={alert.id}
-                className="p-6 hover:bg-gray-50 transition-colors"
+                className="p-6 hover:bg-accent transition-colors"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="bg-gray-100 p-2 rounded-full">
+                    <div className="bg-muted p-2 rounded-full">
                       {getStatusIcon(alert.status)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-foreground">
                           {alert.type}
                         </h3>
                         <span
@@ -283,10 +291,10 @@ export default function RiskDashboard() {
                           {alert.status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-muted-foreground mb-2">
                         {alert.description}
                       </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                         <span>Tracking: {alert.tracking}</span>
                         <span>•</span>
                         <span>{alert.time}</span>
@@ -297,7 +305,7 @@ export default function RiskDashboard() {
                     <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                       Investigate
                     </button>
-                    <button className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <button className="px-4 py-2 text-sm border border-border text-muted-foreground rounded-lg hover:bg-accent transition-colors">
                       Dismiss
                     </button>
                   </div>

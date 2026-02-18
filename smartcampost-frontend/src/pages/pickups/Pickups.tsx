@@ -307,7 +307,7 @@ export default function Pickups() {
                         <Badge
                           className={
                             stateColors[pickup.state as PickupState] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           {pickup.state}

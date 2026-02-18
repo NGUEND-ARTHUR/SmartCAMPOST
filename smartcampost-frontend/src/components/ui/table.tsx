@@ -15,7 +15,7 @@ export const Table = ({
 );
 
 export const TableHeader = ({ children }: { children: React.ReactNode }) => (
-  <thead className="bg-gray-50">{children}</thead>
+  <thead className="bg-muted">{children}</thead>
 );
 export const TableBody = ({ children }: { children: React.ReactNode }) => (
   <tbody>{children}</tbody>

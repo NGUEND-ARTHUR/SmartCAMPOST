@@ -109,7 +109,7 @@ export default function RiskAlerts() {
                         <Badge
                           className={
                             severityColors[alert.severity] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-muted text-muted-foreground"
                           }
                         >
                           <AlertTriangle className="w-3 h-3 mr-1" />

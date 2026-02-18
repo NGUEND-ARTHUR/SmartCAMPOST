@@ -470,7 +470,9 @@ export default function ScanConsole() {
               {scanHistory.length === 0 ? (
                 <div className="p-12 text-center">
                   <Scan className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">{t("scan.history.noScans")}</p>
+                  <p className="text-muted-foreground">
+                    {t("scan.history.noScans")}
+                  </p>
                   <p className="text-sm text-muted-foreground/70 mt-1">
                     {t("scan.history.hint")}
                   </p>
