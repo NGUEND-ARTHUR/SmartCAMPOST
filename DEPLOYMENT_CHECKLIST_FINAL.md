@@ -6,10 +6,12 @@
 
 ---
 
-## 1. Entity-Schema Validation ✅
+## 1. Entity-Schema Validation
 
 ### 1.1 DECIMAL Type Fields (Coordinates, Amounts)
+
 All Double/BigDecimal fields mapped with explicit `columnDefinition`:
+
 - ✅ Location: `latitude/longitude` → `DECIMAL(10,8)` / `DECIMAL(11,8)`
 - ✅ ScanEvent: `latitude/longitude` → `DECIMAL(10,8)` / `DECIMAL(11,8)`
 - ✅ Parcel: `creation_latitude/longitude` → `DECIMAL(10,8)` / `DECIMAL(11,8)`
@@ -20,8 +22,10 @@ All Double/BigDecimal fields mapped with explicit `columnDefinition`:
 ---
 
 ### 1.2 TEXT Type Fields (Large Text)
+
 All large text fields use `columnDefinition="TEXT"`:
-- ✅ Notification: `message` 
+
+- ✅ Notification: `message`
 - ✅ SupportTicket: `message`, `description`
 - ✅ ScanEvent: `comment` (1000 chars max)
 
@@ -31,10 +35,10 @@ All large text fields use `columnDefinition="TEXT"`:
 
 ### 1.3 ENUM Type Fields (Critical - 20 SQL ENUMs)
 
-#### Verified Mappings:
+#### Verified Mappings
 
 | SQL Column | Entity.Field | Enum Class | Status |
-|----------|-------------|-----------|--------|
+| --- | --- | --- | --- |
 | user_account.role | UserAccount.role | UserRole | ✅ |
 | client/agent/courier/staff.status | *Status | StaffStatus/CourierStatus | ✅ |
 | parcel.service_type | Parcel.serviceType | ServiceType | ✅ |
@@ -60,6 +64,7 @@ All large text fields use `columnDefinition="TEXT"`:
 | support_ticket.priority | SupportTicket.priority | SupportTicketPriority | ✅ |
 
 **KEY FIX**: LocationSource enum updated to match SQL exactly:
+
 ```java
 // ❌ OLD:  DEVICE_GPS, MANUAL_ENTRY, NETWORK, UNKNOWN
 // ✅ NEW:  DEVICE_GPS, MANUAL, NETWORK, CACHED
@@ -74,8 +79,9 @@ All large text fields use `columnDefinition="TEXT"`:
 ### 1.4 Column Name Mappings
 
 All mismatched column names corrected with explicit `@Column(name="...")`:
+
 - ✅ UssdSession: `session_state` ← `@Column(name="session_state")`
-- ✅ QrVerificationToken: `created_at`, `expires_at`, `revoked_at` 
+- ✅ QrVerificationToken: `created_at`, `expires_at`, `revoked_at`
 - ✅ SupportTicket: `created_at`, `updated_at`
 
 ---
@@ -83,6 +89,7 @@ All mismatched column names corrected with explicit `@Column(name="...")`:
 ### 1.5 Length Constraints
 
 All VARCHAR fields with explicit length constraints:
+
 - ✅ Notification: `subject/message` proper length
 - ✅ SupportTicket: `subject/message` proper length
 - ✅ Refund: `reason` length 500+
@@ -92,9 +99,9 @@ All VARCHAR fields with explicit length constraints:
 
 ---
 
-## 2. Compilation Status ✅
+## 2. Compilation Status
 
-```
+```text
 BUILD SUCCESS
 Total time: 33.832 s
 EXIT CODE: 0
@@ -104,10 +111,12 @@ EXIT CODE: 0
 
 ---
 
-## 3. Migration SQL Status ✅
+## 3. Migration SQL Status
 
 ### V3.0 Migration Prepared
+
 Flyway migration V3.0__SchemaExtensions.sql includes:
+
 1. **pickup_request**: Add `pickup_latitude`, `pickup_longitude`, `location_mode`
 2. **scan_event**: Add `is_synced`, `offline_created_at`, `synced_at`
 3. **courier.status ENUM**: Extend with missing statuses (BUSY, ON_ROUTE)
@@ -116,11 +125,12 @@ Flyway migration V3.0__SchemaExtensions.sql includes:
 
 ---
 
-## 4. Service Layer Conversions ✅
+## 4. Service Layer Conversions
 
 All ENUM↔String conversions properly handled in service layer:
 
 ### SupportTicketServiceImpl - parseCategory() Method
+
 ```java
 private SupportTicketCategory parseCategory(String rawCategory) {
     if (rawCategory == null || rawCategory.isBlank()) {
@@ -135,6 +145,7 @@ private SupportTicketCategory parseCategory(String rawCategory) {
 ```
 
 ### ScanEventServiceImpl - resolveLocationSource() Method
+
 ```java
 private LocationSource resolveLocationSource(String raw) {
     if (raw == null || raw.isBlank()) {
@@ -156,20 +167,23 @@ private LocationSource resolveLocationSource(String raw) {
 
 ## 5. Pre-Deployment Verification
 
-### ✅ Prerequisites Check
+### Prerequisites Check
+
 - [x] Java 17 available
 - [x] Maven 3.8+ available
 - [x] TiDB Cloud smartcampostDB accessible
 - [x] Render backend deployment configured
 - [x] Backend compiles cleanly (EXIT: 0)
 
-### ✅ Database Readiness
+### Database Readiness
+
 - [x] V3.0 migration SQL prepared
 - [x] TiDB Cloud connection tested
 - [x] Schema validation set to `validate` (not `create` or `update`)
 - [x] Flyway migrations configured
 
-### ✅ Entity-Schema Alignment
+### Entity-Schema Alignment
+
 - [x] 20 SQL ENUM columns properly mapped to Java enums
 - [x] All DECIMAL fields have columnDefinition
 - [x] All TEXT fields use columnDefinition="TEXT"
@@ -177,9 +191,10 @@ private LocationSource resolveLocationSource(String raw) {
 
 ---
 
-## 6. Deployment Steps (Final)
+## 6. Deployment Steps
 
 ### Step 1: Commit All Fixes
+
 ```bash
 cd backend
 git add -A
@@ -188,12 +203,14 @@ git push origin main
 ```
 
 ### Step 2: Run V3.0 Migration on TiDB Cloud
+
 ```bash
 # Via Azure CLI or TiDB console:
 # Execute V3.0__SchemaExtensions.sql on smartcampostDB
 ```
 
 ### Step 3: Deploy to Render
+
 ```bash
 # Trigger Render deploy via GitHub push:
 git push origin main
@@ -204,6 +221,7 @@ git push origin main
 ```
 
 ### Step 4: Verify Deployment
+
 ```bash
 # Test health endpoint:
 curl https://<RENDER_BACKEND_URL>/health
@@ -216,13 +234,15 @@ curl https://<RENDER_BACKEND_URL>/health
 
 ## 7. Rollback Plan (If Needed)
 
-### If V3.0 Migration Fails:
+### If V3.0 Migration Fails
+
 1. Roll back to V2.0 in TiDB (restore from backup)
 2. Check error logs for column/enum mismatch details
 3. Fix entity in code and run migration again
 
-### If Render Deploy Fails:
-```
+### If Render Deploy Fails
+
+```text
 1. Check Render logs for exact error
 2. If "wrong column type" error:
    - Identify column in error message
@@ -236,6 +256,7 @@ curl https://<RENDER_BACKEND_URL>/health
 ## 8. Post-Deployment Validation
 
 ### Smoke Tests
+
 - [ ] Register new user (test UserRole enum)
 - [ ] Create parcel (test ServiceType, DeliveryOption, PaymentOption enums)
 - [ ] Create pickup request (test PickupRequestState enum)
@@ -244,6 +265,7 @@ curl https://<RENDER_BACKEND_URL>/health
 - [ ] Send notification (test NotificationChannel, NotificationType enums)
 
 ### Monitoring
+
 - [ ] Check Render CPU/Memory usage
 - [ ] Monitor TiDB Cloud connection pool
 - [ ] Verify no schema validation errors in logs
@@ -251,19 +273,23 @@ curl https://<RENDER_BACKEND_URL>/health
 
 ---
 
-## 9. Key Learnings & Prevention
+## 9. Key Learnings and Prevention
 
 ### Root Cause: Type Mismatch Pattern
+
 **Problem**: SQL defines ENUM(`'VALUE1'`,`'VALUE2'`) but Java entities map as plain `String` without `@Enumerated(EnumType.STRING)`.
 
 **Solution**: For every ENUM column in SQL, ensure:
+
 1. Java entity has corresponding enum class
 2. Field decorated with `@Enumerated(EnumType.STRING)`
 3. Enum values exactly match SQL ENUM values
 4. Service layer handles String↔Enum conversion for DTOs
 
 ### Future Prevention Checklist
+
 Before next deployment:
+
 1. [ ] Run audit: `grep -r "private String" src/main/java/com/smartcampost/backend/model/`
 2. [ ] Cross-check against SQL schema for hidden ENUM columns
 3. [ ] Verify all enum values in Java match SQL ENUM definitions
@@ -273,9 +299,10 @@ Before next deployment:
 
 ---
 
-## 10. Contact / Escalation
+## 10. Contact and Escalation
 
 **Issues**: If deployment fails:
+
 1. Check Render logs → look for "wrong column type" or "schema validation"
 2. Verify LocationSource enum: `{DEVICE_GPS, MANUAL, NETWORK, CACHED}`
 3. Verify SupportTicketCategory enum: `{COMPLAINT, CLAIM, TECHNICAL, PAYMENT, OTHER}`
@@ -285,4 +312,3 @@ Before next deployment:
 
 **Last Updated**: 2026-02-18 13:00  
 **Status**: ✅ READY FOR PRODUCTION DEPLOYMENT
-
