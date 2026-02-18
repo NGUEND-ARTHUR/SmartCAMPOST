@@ -23,6 +23,7 @@ public class GlobalExceptionHandler {
             case AUTH_INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
             case AUTH_PHONE_EXISTS        -> HttpStatus.CONFLICT;
             case AUTH_USER_NOT_FOUND      -> HttpStatus.NOT_FOUND;
+            case AUTH_ACCOUNT_LOCKED      -> HttpStatus.LOCKED;  // 423 Locked
             default -> HttpStatus.BAD_REQUEST;
         };
 

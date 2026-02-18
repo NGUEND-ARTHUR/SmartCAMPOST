@@ -6,5 +6,7 @@ package com.smartcampost.backend.model.enums;
 public enum AiModuleType {
     COURIER,
     AGENCY,
-    RISK
+    RISK,
+    PREDICTIVE,
+    GENERAL
 }

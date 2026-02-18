@@ -17,7 +17,6 @@ import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.QrVerificationTokenRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.QrSecurityService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +42,6 @@ import java.util.UUID;
  * Provides cryptographic security for QR code generation and verification.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class QrSecurityServiceImpl implements QrSecurityService {
 
@@ -52,21 +50,44 @@ public class QrSecurityServiceImpl implements QrSecurityService {
     private final UserAccountRepository userAccountRepository;
 
     /**
-     * Secret key for HMAC signature (should be configured in application.yaml)
+     * Secret key for HMAC signature - MUST be configured via environment variable
      */
-    @Value("${smartcampost.qr.secret-key:SmartCampostSecureQRKey2024!@#$%}")
-    private String secretKey;
+    private final String secretKey;
 
     /**
-     * Maximum verification attempts per hour (rate limiting)
+     * Maximum verification attempts per hour (rate limiting).
+     * Reserved for future rate-limiting implementation.
      */
-    @Value("${smartcampost.qr.max-verifications-per-hour:100}")
-    private int maxVerificationsPerHour;
+    @SuppressWarnings("unused")
+    private final int maxVerificationsPerHour;
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final int TOKEN_LENGTH = 32;
     private static final int SIGNATURE_LENGTH = 16;
     private static final int QR_PAYLOAD_VERSION = 1;
+
+    public QrSecurityServiceImpl(
+            QrVerificationTokenRepository tokenRepository,
+            ParcelRepository parcelRepository,
+            UserAccountRepository userAccountRepository,
+            @Value("${smartcampost.qr.secret-key:}") String secretKey,
+            @Value("${smartcampost.qr.max-verifications-per-hour:100}") int maxVerificationsPerHour) {
+        this.tokenRepository = tokenRepository;
+        this.parcelRepository = parcelRepository;
+        this.userAccountRepository = userAccountRepository;
+        
+        // SECURITY: QR secret key must be provided via environment variable
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException(
+                "QR secret key not configured! Set QR_SECRET_KEY environment variable.");
+        }
+        if (secretKey.length() < 32) {
+            throw new IllegalStateException(
+                "QR secret key must be at least 32 characters for security.");
+        }
+        this.secretKey = secretKey;
+        this.maxVerificationsPerHour = maxVerificationsPerHour;
+    }
 
     // ==================== TOKEN GENERATION ====================
 

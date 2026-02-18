@@ -19,6 +19,14 @@ public class Staff {
     @Column(name = "staff_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "agency_id",
+            referencedColumnName = "agency_id",
+            foreignKey = @ForeignKey(name = "fk_staff_agency")
+    )
+    private Agency agency;
+
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 

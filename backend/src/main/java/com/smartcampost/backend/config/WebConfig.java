@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
+@SuppressWarnings("null")
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {

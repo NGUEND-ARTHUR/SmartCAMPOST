@@ -17,16 +17,16 @@ public class MtnController {
 
     private final MtnService mtnService;
 
-    @Value("${MTN_CONSUMER_KEY:}")
+    @Value("${mtn.consumer-key:}")
     private String mtnKey;
 
-    @Value("${MTN_CONSUMER_SECRET:}")
+    @Value("${mtn.consumer-secret:}")
     private String mtnSecret;
     
-    @Value("${MTN_TOKEN_URL:}")
+    @Value("${mtn.token-url:}")
     private String mtnTokenUrl;
 
-    @Value("${MTN_INIT_URL:}")
+    @Value("${mtn.init-url:}")
     private String mtnInitUrl;
 
     /**

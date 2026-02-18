@@ -3,79 +3,108 @@ spring:
     name: smartcampost-backend
 
   datasource:
-    url: jdbc:mysql://localhost:3306/smartcampost?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Douala
-    username: root
-    password: "Arthur@237"   # quotes OK for @
+    # SECURITY: Use environment variables for database credentials in production
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/smartcampost?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=false&serverTimezone=Africa/Douala}
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
       pool-name: SmartPool
+      # SECURITY: Connection timeout
+      connection-timeout: 30000
+      # SECURITY: Leak detection
+      leak-detection-threshold: 60000
 
   jpa:
     hibernate:
-      ddl-auto: update        # use "validate" in production
+      ddl-auto: ${JPA_DDL_AUTO:validate}  # Use "validate" in production, "update" only in dev
     properties:
       hibernate:
-        format_sql: true
-    show-sql: true
+        format_sql: false  # Disable in production
+    show-sql: ${SHOW_SQL:false}  # SECURITY: Disable SQL logging in production
 
   ai:
     openai:
-      # DO NOT hardcode keys in source. Use an env var:
-      api-key: ${OPENAI_API_KEY:}   # leave empty default locally if you prefer
-  # System prompt used for AI assistant (override via env SMARTCAMPOST_AI_SYSTEM_PROMPT)
+      # SECURITY: API key from environment variable only
+      api-key: ${OPENAI_API_KEY:}
 
 server:
-  port: 8080
+  port: ${PORT:8080}
+  # SECURITY: Error handling
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
 
-# MTN Mobile Money credentials for local testing (move to secure env in production)
-MTN_CONSUMER_KEY: xTZAlZAqwp4AKPR3BVkYECi4rZgEaZbn
-MTN_CONSUMER_SECRET: RlbUxdfmZzwo68xf
-# Optional: set these to real MTN sandbox/production endpoints
-MTN_TOKEN_URL: ""
-MTN_INIT_URL: ""
+# SECURITY: MTN Mobile Money credentials from environment variables only
+mtn:
+  consumer-key: ${MTN_CONSUMER_KEY:}
+  consumer-secret: ${MTN_CONSUMER_SECRET:}
+  token-url: ${MTN_TOKEN_URL:http://localhost:9200/token}
+  init-url: ${MTN_INIT_URL:http://localhost:9200/init}
 
-# SmartCAMPOST QR Code Security Configuration
+# SmartCAMPOST Security Configuration
 smartcampost:
-  ai:
-    system-prompt: "You are SmartCAMPOST AI, the official intelligent assistant of Cameroon Postal Services. You help users track parcels, understand delivery timelines, resolve issues, manage pickups, payments, and accounts. Be concise, accurate, friendly, and professional. If data is missing, ask clarifying questions. Never hallucinate parcel statuses or user data. When relevant, guide users step-by-step."
-  qr:
-    # Secret key for HMAC-SHA256 signature (MUST be changed in production!)
-    # Use an environment variable: ${QR_SECRET_KEY:defaultKey}
-    secret-key: ${QR_SECRET_KEY:SmartCampost2024SecureQRKey!@#$%^&*}
-    # Maximum QR code verifications per token per hour (rate limiting)
-    max-verifications-per-hour: 100
-    # Temporary QR code validity in hours
-    temporary-validity-hours: 48
+  # JWT Configuration - MUST be set in production
+  jwt:
+    secret: ${SMARTCAMPOST_JWT_SECRET:}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:8}
 
-  # Self-Healing System Configuration
+  # Default Admin Bootstrap - Creates admin on first startup
+  # SECURITY: Remove password from config after first use in production!
+  bootstrap:
+    default-admin:
+      phone: ${ADMIN_PHONE:+237690000000}
+      password: ${ADMIN_PASSWORD:Admin@SmartCAMPOST2026}
+      full-name: ${ADMIN_FULLNAME:SmartCAMPOST Administrator}
+      email: ${ADMIN_EMAIL:admin@smartcampost.cm}
+
+  ai:
+    system-prompt: ${SMARTCAMPOST_AI_SYSTEM_PROMPT:You are SmartCAMPOST AI, the official intelligent assistant of Cameroon Postal Services. You help users track parcels, understand delivery timelines, resolve issues, manage pickups, payments, and accounts. Be concise, accurate, friendly, and professional. If data is missing, ask clarifying questions. Never hallucinate parcel statuses or user data. When relevant, guide users step-by-step.}
+  
+  otp:
+    # SECURITY: Never expose OTP in production responses
+    expose-code-in-response: ${SMARTCAMPOST_OTP_EXPOSE_CODE:false}
+
+  qr:
+    # SECURITY: QR secret key from environment variable only
+    secret-key: ${QR_SECRET_KEY:}
+    max-verifications-per-hour: ${QR_MAX_VERIFICATIONS:100}
+    temporary-validity-hours: ${QR_TEMP_VALIDITY_HOURS:48}
+
+  security:
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      requests-per-minute: ${RATE_LIMIT_RPM:60}
+      auth-requests-per-minute: ${AUTH_RATE_LIMIT_RPM:10}
+
   selfhealing:
-    # Congestion detection threshold (number of parcels)
     congestion-threshold: 50
-    # High congestion level (percentage)
     high-congestion-level: 0.8
-    # Critical congestion level
     critical-congestion-level: 0.95
-    # Notification interval for affected clients (in minutes)
     notification-interval-minutes: 30
+
   ussd:
-    # Session timeout in minutes
     session-timeout-minutes: 5
-    # Max menu depth
     max-menu-depth: 5
+
   gps:
-    # GPS is mandatory for all critical actions
     mandatory: true
-    # Maximum acceptable GPS accuracy in meters
     max-accuracy-meters: 100
+
   offline:
-    # Max events in offline queue
     max-queue-size: 100
-    # Auto-sync when online
     auto-sync: true
 
+# SECURITY: Logging configuration for production
 logging:
   level:
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql: trace
+    root: ${LOG_LEVEL:INFO}
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:ERROR}
+    org.hibernate.type.descriptor.sql: ERROR
+    com.smartcampost: ${APP_LOG_LEVEL:INFO}
+  # SECURITY: Don't log sensitive data
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

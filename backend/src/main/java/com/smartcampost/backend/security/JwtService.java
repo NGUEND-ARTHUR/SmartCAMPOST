@@ -4,6 +4,7 @@ import com.smartcampost.backend.model.UserAccount;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -15,12 +16,23 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-    private static final String SECRET =
-            "SUP3R-S3CR3T-K3Y-1234567890123456-SMARTCAMPOST-EXTRA"; // ✅ longer
     private final SecretKey key;
+    private final long tokenValidityMs;
 
-    public JwtService() {
-        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    public JwtService(
+            @Value("${smartcampost.jwt.secret:}") String jwtSecret,
+            @Value("${smartcampost.jwt.expiration-hours:8}") int expirationHours) {
+        // SECURITY: JWT secret MUST be provided via environment variable in production
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException(
+                "JWT secret not configured! Set SMARTCAMPOST_JWT_SECRET environment variable.");
+        }
+        if (jwtSecret.length() < 32) {
+            throw new IllegalStateException(
+                "JWT secret must be at least 32 characters for security.");
+        }
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.tokenValidityMs = expirationHours * 60L * 60L * 1000L;
     }
 
     public String generateToken(UserAccount user) {
@@ -30,7 +42,7 @@ public class JwtService {
         claims.put("entityId", user.getEntityId().toString());
 
         long now = System.currentTimeMillis();
-        long exp = now + (1000L * 60 * 60 * 24); // 24 hours
+        long exp = now + tokenValidityMs;
 
         return Jwts.builder()
                 .setClaims(claims)

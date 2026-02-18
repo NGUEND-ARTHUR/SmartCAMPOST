@@ -10,6 +10,7 @@ import com.smartcampost.backend.model.*;
 import com.smartcampost.backend.model.enums.OtpPurpose;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.*;
+import com.smartcampost.backend.security.AccountLockoutService;
 import com.smartcampost.backend.security.JwtService;
 import com.smartcampost.backend.service.AuthService;
 import com.smartcampost.backend.service.OtpService;
@@ -32,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final CourierRepository courierRepository;
     private final JwtService jwtService;
     private final OtpService otpService;
+    private final AccountLockoutService lockoutService;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -125,14 +127,36 @@ public class AuthServiceImpl implements AuthService {
 
         Objects.requireNonNull(request, "request is required");
 
-        UserAccount user = userAccountRepository.findByPhone(request.getPhone())
-            .orElseThrow(() ->
-                new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials")
+        // SECURITY: Check if account is locked due to too many failed attempts
+        if (lockoutService.isLocked(request.getPhone())) {
+            long remainingSeconds = lockoutService.getRemainingLockoutSeconds(request.getPhone());
+            throw new AuthException(
+                ErrorCode.AUTH_ACCOUNT_LOCKED,
+                "Account temporarily locked. Try again in " + (remainingSeconds / 60) + " minutes."
             );
+        }
+
+        UserAccount user = userAccountRepository.findByPhone(request.getPhone())
+            .orElseThrow(() -> {
+                // Record failed attempt even for non-existent accounts (prevents user enumeration)
+                lockoutService.recordFailedAttempt(request.getPhone());
+                return new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials");
+            });
 
         if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
+            // Record failed attempt
+            boolean nowLocked = lockoutService.recordFailedAttempt(request.getPhone());
+            if (nowLocked) {
+                throw new AuthException(
+                    ErrorCode.AUTH_ACCOUNT_LOCKED,
+                    "Account locked due to too many failed attempts. Try again later."
+                );
+            }
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
         }
+
+        // SECURITY: Clear lockout on successful login
+        lockoutService.clearLockout(request.getPhone());
 
         String fullName = resolveFullName(user);
         String token = jwtService.generateToken(user);
