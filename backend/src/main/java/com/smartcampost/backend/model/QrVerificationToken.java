@@ -98,7 +98,7 @@ public class QrVerificationToken {
     /**
      * Whether the token is still valid (can be revoked)
      */
-    @Column(name = "is_valid", nullable = false)
+    @Column(name = "valid", nullable = false)
     @Builder.Default
     private boolean valid = true;
 
@@ -122,13 +122,13 @@ public class QrVerificationToken {
     /**
      * IP address from which the token was last verified
      */
-    @Column(name = "last_verification_ip", length = 45)
+    @Column(name = "last_client_ip", length = 45)
     private String lastVerificationIp;
 
     /**
      * User agent from which the token was last verified
      */
-    @Column(name = "last_verification_user_agent", length = 512)
+    @Column(name = "last_user_agent", length = 512)
     private String lastVerificationUserAgent;
 
     @PrePersist

@@ -29,7 +29,7 @@ public class SupportTicket {
     @Column(name = "subject", nullable = false, length = 150)
     private String subject;
 
-    @Column(name = "message", nullable = false, length = 2000)
+    @Column(name = "description", nullable = false, length = 2000)
     private String message;
 
     @Enumerated(EnumType.STRING)

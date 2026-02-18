@@ -15,10 +15,10 @@ import java.util.UUID;
 public class UssdSession {
 
     @Id
-    @Column(name = "session_id", columnDefinition = "BINARY(16)")
+    @Column(name = "ussd_session_id", columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(name = "msisdn", nullable = false, length = 20)
+    @Column(name = "phone", nullable = false, length = 20)
     private String msisdn; // phone number
 
     @Column(name = "session_ref", nullable = false, length = 100)
