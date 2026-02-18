@@ -48,7 +48,7 @@ public class AiDecisionLog {
     private Float confidenceScore;
 
     @Lob
-    @Column(name = "reasoning")
+    @Column(name = "reasoning", columnDefinition = "TEXT")
     private String reasoning;
 
     @Column(name = "was_overridden", nullable = false)
