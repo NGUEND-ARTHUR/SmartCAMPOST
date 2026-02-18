@@ -57,6 +57,13 @@ public class RiskAlert {
     @JoinColumn(name = "reviewed_by_staff_id")
     private Staff reviewedByStaff;
 
+    @Column(name = "ai_confidence_score")
+    private Float aiConfidenceScore;
+
+    @Lob
+    @Column(name = "ai_reasoning", columnDefinition = "TEXT")
+    private String aiReasoning;
+
     @PrePersist
     void onCreate() {
         if (id == null) id = UUID.randomUUID();
