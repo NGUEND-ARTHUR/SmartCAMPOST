@@ -240,22 +240,22 @@ export default function ScanConsole() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2">{t("scan.title")}</h1>
-          <p className="text-gray-600">{t("scan.subtitle")}</p>
+          <p className="text-muted-foreground">{t("scan.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Scan Panel */}
           <div className="space-y-6">
             {/* Scanner Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="bg-card text-card-foreground rounded-lg shadow-lg p-8 border border-border">
               {/* Mode Toggle */}
               <div className="flex justify-center gap-2 mb-6">
                 <button
                   onClick={() => setScanMode("camera")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     scanMode === "camera"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
                   <Camera className="w-4 h-4" />
@@ -265,8 +265,8 @@ export default function ScanConsole() {
                   onClick={() => setScanMode("manual")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     scanMode === "manual"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
                   <Keyboard className="w-4 h-4" />
@@ -287,13 +287,13 @@ export default function ScanConsole() {
 
                   {/* Status Selection for Camera Mode */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       {t("scan.status.label")}
                     </label>
                     <select
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
                       title={t("scan.status.selectTitle")}
                     >
                       {statusOptions.map((option) => (
@@ -306,14 +306,14 @@ export default function ScanConsole() {
 
                   {/* Location for Camera Mode */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       {t("scan.location.label")}
                     </label>
                     <input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                       title={t("scan.location.title")}
                       placeholder={t("scan.location.placeholder")}
                     />
@@ -323,8 +323,8 @@ export default function ScanConsole() {
                 /* Manual Entry Mode */
                 <>
                   <div className="flex items-center justify-center mb-6">
-                    <div className="bg-blue-100 p-4 rounded-full">
-                      <Scan className="w-12 h-12 text-blue-600" />
+                    <div className="bg-primary/10 p-4 rounded-full">
+                      <Scan className="w-12 h-12 text-primary" />
                     </div>
                   </div>
 
@@ -333,7 +333,7 @@ export default function ScanConsole() {
                   <div className="space-y-4">
                     {/* Barcode Input */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         {t("scan.trackingNumber.label")}
                       </label>
                       <input
@@ -343,20 +343,20 @@ export default function ScanConsole() {
                         onChange={(e) => setBarcode(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder={t("scan.trackingNumber.placeholder")}
-                        className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border-2 border-input bg-background text-foreground rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
                       />
                     </div>
 
                     {/* Status Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         {t("scan.status.label")}
                       </label>
                       <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
                         title={t("scan.status.selectTitle")}
                       >
@@ -370,14 +370,14 @@ export default function ScanConsole() {
 
                     {/* Location */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         {t("scan.location.label")}
                       </label>
                       <input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
                         title={t("scan.location.title")}
                         placeholder={t("scan.location.placeholder")}
@@ -388,7 +388,7 @@ export default function ScanConsole() {
                     <button
                       onClick={() => void handleScan()}
                       disabled={recordScan.isPending || !barcode.trim()}
-                      className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="w-full bg-primary text-primary-foreground py-4 rounded-lg hover:bg-primary/90 transition-colors font-semibold text-lg disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed flex items-center justify-center"
                     >
                       {recordScan.isPending ? (
                         <>
@@ -407,11 +407,11 @@ export default function ScanConsole() {
               )}
 
               {/* Tips */}
-              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900 font-medium mb-2">
+              <div className="mt-6 bg-primary/5 border border-primary/20 rounded-lg p-4">
+                <p className="text-sm text-primary font-medium mb-2">
                   {t("scan.tips.title")}
                 </p>
-                <ul className="text-sm text-blue-700 space-y-1">
+                <ul className="text-sm text-primary/80 space-y-1">
                   <li>{t("scan.tips.barcodeScanner")}</li>
                   <li>{t("scan.tips.pressEnter")}</li>
                   <li>{t("scan.tips.autoFocus")}</li>
@@ -421,44 +421,44 @@ export default function ScanConsole() {
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-card text-card-foreground rounded-lg shadow border border-border p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">
+                    <p className="text-sm text-muted-foreground mb-1">
                       {t("scan.todaysScans")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground">
                       {scanHistory.length}
                     </p>
                   </div>
                   <CheckCircle2 className="w-8 h-8 text-green-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-card text-card-foreground rounded-lg shadow border border-border p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">
+                    <p className="text-sm text-muted-foreground mb-1">
                       {t("scan.successRate")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">100%</p>
+                    <p className="text-2xl font-bold text-foreground">100%</p>
                   </div>
-                  <Package className="w-8 h-8 text-blue-600" />
+                  <Package className="w-8 h-8 text-primary" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Scan History */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="bg-card text-card-foreground rounded-lg shadow border border-border">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <div className="flex items-center">
-                <History className="w-5 h-5 text-gray-400 mr-2" />
+                <History className="w-5 h-5 text-muted-foreground mr-2" />
                 <h2 className="font-semibold">{t("scan.history.title")}</h2>
               </div>
               {scanHistory.length > 0 && (
                 <button
                   onClick={clearHistory}
-                  className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
+                  className="text-sm text-muted-foreground hover:text-foreground flex items-center"
                 >
                   <RefreshCw className="w-4 h-4 mr-1" />
                   {t("scan.history.clear")}
@@ -469,23 +469,23 @@ export default function ScanConsole() {
             <div className="max-h-screen overflow-y-auto">
               {scanHistory.length === 0 ? (
                 <div className="p-12 text-center">
-                  <Scan className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">{t("scan.history.noScans")}</p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <Scan className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">{t("scan.history.noScans")}</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">
                     {t("scan.history.hint")}
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-border">
                   {scanHistory.map((scan) => (
                     <div
                       key={scan.id}
-                      className="p-4 hover:bg-gray-50 transition-colors"
+                      className="p-4 hover:bg-accent transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-3">
                           <div
-                            className={`p-2 rounded-full mt-1 ${scan.success ? "bg-green-100" : "bg-red-100"}`}
+                            className={`p-2 rounded-full mt-1 ${scan.success ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"}`}
                           >
                             {scan.success ? (
                               <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -494,15 +494,15 @@ export default function ScanConsole() {
                             )}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-foreground">
                               {scan.trackingNumber}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               {t("scan.history.status", {
                                 status: scan.status,
                               })}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs text-muted-foreground/70 mt-1">
                               {new Date(scan.timestamp).toLocaleString()}
                             </p>
                           </div>

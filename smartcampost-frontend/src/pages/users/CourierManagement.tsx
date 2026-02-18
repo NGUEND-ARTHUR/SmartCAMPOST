@@ -35,11 +35,11 @@ import { useCouriers, useCreateCourier, useUpdateCourierStatus } from "@/hooks";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-800",
-  INACTIVE: "bg-gray-100 text-gray-800",
-  SUSPENDED: "bg-red-100 text-red-800",
-  ON_DELIVERY: "bg-blue-100 text-blue-800",
-  AVAILABLE: "bg-emerald-100 text-emerald-800",
+  ACTIVE: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  INACTIVE: "bg-muted text-muted-foreground",
+  SUSPENDED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  ON_DELIVERY: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  AVAILABLE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
 };
 
 export default function CourierManagement() {

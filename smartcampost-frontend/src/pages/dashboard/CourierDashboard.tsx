@@ -105,7 +105,7 @@ export default function CourierDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
           <h1 className="mb-2">{t("courierDashboard.title")}</h1>

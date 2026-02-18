@@ -74,12 +74,12 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-between items-start mb-4">
             <div></div>
-            <Package className="w-12 h-12 text-blue-600" />
+            <Package className="w-12 h-12 text-primary" />
             <LanguageSwitcher variant="compact" />
           </div>
           <CardTitle>{t("common.welcome")}</CardTitle>
