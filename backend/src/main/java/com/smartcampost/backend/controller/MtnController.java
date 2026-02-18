@@ -88,7 +88,7 @@ public class MtnController {
             }
         }
 
-        var res = mtnService.initPayment(req);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.status(503)
+            .body("MTN init endpoint not configured on backend (mtn.init-url)");
     }
 }

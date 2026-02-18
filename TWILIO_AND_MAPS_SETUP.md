@@ -3,6 +3,7 @@
 ## 🎯 Overview
 
 This guide provides setup instructions for:
+
 1. **Twilio Integration** - SMS/OTP delivery
 2. **Map-Based Location Selection** - Click on map to set coordinates
 3. **Parcel Creation & Tracking** - End-to-end functionality verification
@@ -14,7 +15,7 @@ This guide provides setup instructions for:
 
 ### Step 1: Get Twilio Credentials
 
-1. **Sign up/Login** at https://www.twilio.com
+1. **Sign up/Login** at <https://www.twilio.com>
 2. **Navigate to Console** → Account info
 3. **Copy these values:**
    - **Account SID** (e.g., `AC1234567890abcdef`)
@@ -32,18 +33,21 @@ This guide provides setup instructions for:
 1. Go to your Render service dashboard
 2. **Settings** → **Environment**
 3. Add these variables:
-   ```
+
+   ```env
    NOTIFICATION_GATEWAY=twilio
    TWILIO_ACCOUNT_SID=AC1234567890abcdef
    TWILIO_AUTH_TOKEN=your_auth_token_here
    TWILIO_FROM_NUMBER=+1234567890
-  SMARTCAMPOST_WEBOTP_DOMAIN=smartcampost.vercel.app
+   SMARTCAMPOST_WEBOTP_DOMAIN=smartcampost.vercel.app
    ```
+
 4. Click Deploy → redeploy service
 
 **On Local Development:**
 
 Create `.env` file in `backend/` directory:
+
 ```properties
 NOTIFICATION_GATEWAY=twilio
 TWILIO_ACCOUNT_SID=AC1234567890abcdef
@@ -63,9 +67,10 @@ Then restart your Spring Boot application.
 3. Click "Send OTP"
 4. **Check:** SMS should arrive within 10 seconds
 5. **Autofill (supported browsers):** SMS should include `@your-domain #123456` and OTP field auto-fills
-5. Enter OTP and complete registration
+6. Enter OTP and complete registration
 
 **What's Happening:**
+
 - `OtpServiceImpl` generates 6-digit code
 - `TwilioNotificationGatewayServiceImpl` sends SMS via Twilio API
 - OTP expires after 5 minutes
@@ -90,22 +95,26 @@ The **Addresses** page now has a map-based location picker!
 **Three Ways to Select Location:**
 
 #### Option A: Click on Map
+
 - Switch to "Location on Map" tab
 - Click anywhere on the map
 - Marker appears at your location
 - Coordinates auto-fill
 
 #### Option B: Use GPS
+
 - Click **"Use My Current Location"** button
 - Browser asks for permission
 - Your GPS location is selected
 
 #### Option C: Manual Entry
+
 - Scroll to "Or enter coordinates manually"
 - Enter Latitude and Longitude (e.g., `4.0511` and `9.7679`)
 - Click **Apply Coordinates**
 
 **Save Address:**
+
 - Fill address details (label, street, city, region)
 - Select location on map
 - Click **Done**
@@ -130,7 +139,8 @@ The **Addresses** page now has a map-based location picker!
 6. Click **Create** → API call to `POST /api/parcels`
 
 **API Integration:**
-```
+
+```text
 Frontend: parcelService.create(data)
   ↓
 Backend: ParcelController.createParcel()
@@ -172,6 +182,7 @@ When a scan is registered, the map automatically updates the parcel location.
 ### OTP Delivery (SMS via Twilio)
 
 **When OTP is Sent:**
+
 - ✅ User Registration
 - ✅ Login with OTP
 - ✅ Password Reset
@@ -179,7 +190,7 @@ When a scan is registered, the map automatically updates the parcel location.
 
 **OTP Flow:**
 
-```
+```text
 User Action
   ↓
 AuthService.requestOtp()
@@ -201,6 +212,7 @@ Twilio API → User's Phone
 - 🔔 **Pickup Requested** - Agency is notified
 
 **All SMS include:**
+
 - Parcel tracking reference
 - Current status
 - Key information (time window, location, etc.)
@@ -212,18 +224,21 @@ Twilio API → User's Phone
 ### ✅ Before Deploying to Render/Vercel
 
 #### Backend (Render)
+
 - [ ] Twilio credentials in environment variables
 - [ ] Database migrations applied
 - [ ] Compile with: `mvn clean package -DskipTests`
 - [ ] Test SMS sending locally with mock data
 
 #### Frontend (Vercel)
+
 - [ ] Map component renders (Leaflet loads)
 - [ ] API endpoints updated to production backend
 - [ ] LocationPicker component bundled correctly
 - [ ] Tabs component imported from UI library
 
 #### Database
+
 - [ ] Address table has `latitude` and `longitude` columns
 - [ ] OtpCode table exists
 - [ ] Notification table exists
@@ -231,6 +246,7 @@ Twilio API → User's Phone
 ### 🚀 Deploy
 
 **Backend Changes:**
+
 ```bash
 cd backend
 git add -A
@@ -239,6 +255,7 @@ git push origin main  # Render auto-deploys
 ```
 
 **Frontend Changes:**
+
 ```bash
 cd smartcampost-frontend
 git add -A  
@@ -249,7 +266,8 @@ git push origin main  # Vercel auto-deploys
 **Verify Deployment:**
 
 1. **Backend:** Check Render logs for Twilio init
-   ```
+
+   ```text
    "Twilio gateway initialized (from=+1234567890)"
    ```
 
@@ -271,12 +289,14 @@ git push origin main  # Vercel auto-deploys
 ### SMS Not Sending
 
 **Check:**
+
 1. Twilio credentials are correct (no typos)
 2. Phone number format includes country code (+237... for Cameroon)
 3. Render environment variables are set (restart deployment)
 4. Check Render logs: `notification.gateway` should show `twilio`
 
 **Debug:**
+
 ```bash
 # Local testing
 export NOTIFICATION_GATEWAY=twilio
@@ -291,12 +311,14 @@ mvn spring-boot:run
 ### Map Not Appearing
 
 **Check:**
+
 1. Leaflet CSS is imported in LocationPicker
 2. React-Leaflet is installed: `npm list react-leaflet`
 3. Browser console for errors
 4. Network tab - check if tile layer loads
 
 **Fix:**
+
 ```bash
 cd smartcampost-frontend
 npm install react-leaflet leaflet
@@ -306,12 +328,14 @@ npm run dev
 ### Coordinates Not Saving
 
 **Check:**
+
 1. Address latitude/longitude are being sent in request
 2. Backend Address model has these columns
 3. Backend API accepts these fields
 4. No validation errors on form
 
 **Test API Directly:**
+
 ```bash
 curl -X POST http://localhost:8080/api/addresses \
   -H "Content-Type: application/json" \
@@ -331,22 +355,26 @@ curl -X POST http://localhost:8080/api/addresses \
 ## 7️⃣ API Endpoints Reference
 
 ### Address Endpoints
+
 - `GET /api/addresses/me` - Get user's addresses
 - `POST /api/addresses` - Create address with lat/lng
 - `PUT /api/addresses/{id}` - Update address coordinates
 - `DELETE /api/addresses/{id}` - Delete address
 
 ### OTP Endpoints
+
 - `POST /api/auth/send-otp` - Request OTP (SMS sent)
 - `POST /api/auth/verify-otp` - Verify OTP code
 
 ### Parcel Endpoints
+
 - `POST /api/parcels` - Create parcel
 - `GET /api/parcels/me` - Get user's parcels
 - `GET /api/parcels/{id}` - Get parcel detail
 - `GET /api/parcels/tracking/{trackingRef}` - Track by ref
 
 ### Notification Endpoints
+
 - `POST /api/notifications` - Trigger notification
 - `GET /api/notifications` - List notifications
 

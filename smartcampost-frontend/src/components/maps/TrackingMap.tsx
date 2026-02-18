@@ -284,10 +284,31 @@ export default function TrackingMap({
             )}
 
             {/* Origin marker */}
-            {null}
+            {fullRoute.length > 0 && (
+              <Marker position={fullRoute[0]} icon={originIcon}>
+                <Popup>
+                  <div className="text-center">
+                    <strong>📍 {t("trackingMap.origin", "Origin")}</strong>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
 
             {/* Destination marker */}
-            {null}
+            {fullRoute.length > 1 && (
+              <Marker
+                position={fullRoute[fullRoute.length - 1]}
+                icon={destinationIcon}
+              >
+                <Popup>
+                  <div className="text-center">
+                    <strong>
+                      🏁 {t("trackingMap.destination", "Destination")}
+                    </strong>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
 
             {/* Transit checkpoints */}
             {scanEvents

@@ -15,4 +15,13 @@ public interface AiAgentRecommendationRepository extends JpaRepository<AiAgentRe
             AiSubjectType subjectType,
             UUID subjectId
     );
+
+        Optional<AiAgentRecommendation> findTopBySubjectTypeAndSubjectIdOrderByCreatedAtDesc(
+            AiSubjectType subjectType,
+            UUID subjectId
+        );
+
+        Optional<AiAgentRecommendation> findTopByModuleTypeOrderByCreatedAtDesc(
+            AiModuleType moduleType
+        );
 }

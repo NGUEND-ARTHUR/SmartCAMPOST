@@ -44,7 +44,8 @@ export default function ClientPayments() {
       const data = await paymentService.getPayments();
       setPayments(data || []);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to load payments";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to load payments";
       setError(errorMsg);
       console.error("Payment error:", err);
       setPayments([]);
@@ -100,60 +101,63 @@ export default function ClientPayments() {
               {filtered.length === 0 ? (
                 <EmptyState
                   icon={Receipt}
-              title="No payments found"
-              description="Try adjusting your search"
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Parcel</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.id}</TableCell>
-                    <TableCell>{p.parcelId || "—"}</TableCell>
-                    <TableCell>
-                      {(p.amount ?? 0).toLocaleString()} {p.currency || "XAF"}
-                    </TableCell>
-                    <TableCell>{p.method || "—"}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          statusColors[p.status || "INIT"] || statusColors.INIT
-                        }
-                      >
-                        {p.status || "INIT"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {p.createdAt
-                        ? new Date(p.createdAt).toLocaleString()
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {p.status === "SUCCESS" && p.parcelId ? (
-                        <Button
-                          size="sm"
-                          onClick={async () => {
-                            try {
-                              if (!p.parcelId)
-                                return alert("Parcel ID missing");
-                              const receipt = await receiptService.getByParcel(
-                                p.parcelId!,
-                              );
-                              const w = window.open("", "_blank");
-                              if (!w)
-                                return alert("Unable to open print window");
-                              const html = `
+                  title="No payments found"
+                  description="Try adjusting your search"
+                />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Payment</TableHead>
+                      <TableHead>Parcel</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="font-medium">{p.id}</TableCell>
+                        <TableCell>{p.parcelId || "—"}</TableCell>
+                        <TableCell>
+                          {(p.amount ?? 0).toLocaleString()}{" "}
+                          {p.currency || "XAF"}
+                        </TableCell>
+                        <TableCell>{p.method || "—"}</TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              statusColors[p.status || "INIT"] ||
+                              statusColors.INIT
+                            }
+                          >
+                            {p.status || "INIT"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {p.createdAt
+                            ? new Date(p.createdAt).toLocaleString()
+                            : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {p.status === "SUCCESS" && p.parcelId ? (
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  if (!p.parcelId)
+                                    return alert("Parcel ID missing");
+                                  const receipt =
+                                    await receiptService.getByParcel(
+                                      p.parcelId!,
+                                    );
+                                  const w = window.open("", "_blank");
+                                  if (!w)
+                                    return alert("Unable to open print window");
+                                  const html = `
                                 <html>
                                 <head>
                                   <title>Receipt ${receipt.receiptNumber}</title>
@@ -173,29 +177,30 @@ export default function ClientPayments() {
                                 </body>
                                 </html>
                               `;
-                              w.document.open();
-                              w.document.write(html);
-                              w.document.close();
-                              w.print();
-                            } catch (err: unknown) {
-                              const msg =
-                                (err as { message?: string } | undefined)
-                                  ?.message ??
-                                String(err ?? "Failed to load receipt");
-                              alert(msg);
-                            }
-                          }}
-                        >
-                          View / Print
-                        </Button>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                                  w.document.open();
+                                  w.document.write(html);
+                                  w.document.close();
+                                  w.print();
+                                } catch (err: unknown) {
+                                  const msg =
+                                    (err as { message?: string } | undefined)
+                                      ?.message ??
+                                    String(err ?? "Failed to load receipt");
+                                  alert(msg);
+                                }
+                              }}
+                            >
+                              View / Print
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </>
           )}
         </CardContent>

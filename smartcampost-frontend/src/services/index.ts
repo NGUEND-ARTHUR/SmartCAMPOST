@@ -16,3 +16,4 @@ export * from "./compliance";
 export * from "./analytics";
 export * from "./common";
 export * from "./ai";
+export * from "./maps";

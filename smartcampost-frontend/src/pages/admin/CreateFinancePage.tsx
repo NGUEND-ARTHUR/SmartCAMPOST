@@ -38,7 +38,7 @@ export default function CreateFinancePage() {
       setError("All fields are required and initial balance must be a number.");
       return;
     }
-    
+
     try {
       setIsLoading(true);
       await financeService.createFinance({
@@ -50,7 +50,9 @@ export default function CreateFinancePage() {
       setForm({ name: "", description: "", initialBalance: "" });
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create finance record");
+      setError(
+        err instanceof Error ? err.message : "Failed to create finance record",
+      );
     } finally {
       setIsLoading(false);
     }

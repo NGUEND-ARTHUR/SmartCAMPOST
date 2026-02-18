@@ -64,7 +64,8 @@ export default function Addresses() {
       const data = await addressService.getMyAddresses();
       setAddresses(data || []);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to load addresses";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to load addresses";
       setError(errorMsg);
       console.error("Address error:", err);
       setAddresses([]);
@@ -129,7 +130,10 @@ export default function Addresses() {
       }
 
       if (editingAddress) {
-        const updated = await addressService.updateAddress(editingAddress.id, updateData);
+        const updated = await addressService.updateAddress(
+          editingAddress.id,
+          updateData,
+        );
         setAddresses(
           addresses.map((addr) =>
             addr.id === editingAddress.id ? updated : addr,
@@ -143,7 +147,8 @@ export default function Addresses() {
       }
       setIsDialogOpen(false);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to save address";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to save address";
       toast.error(errorMsg);
     } finally {
       setIsSaving(false);
@@ -156,7 +161,8 @@ export default function Addresses() {
       setAddresses(addresses.filter((addr) => addr.id !== id));
       toast.success(t("addresses.toasts.deleted"));
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to delete address";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to delete address";
       toast.error(errorMsg);
     }
   };
@@ -170,9 +176,7 @@ export default function Addresses() {
             {t("addresses.page.subtitle")}
           </p>
         </div>
-        {error && (
-          <div className="text-sm text-red-600">{error}</div>
-        )}
+        {error && <div className="text-sm text-red-600">{error}</div>}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()} disabled={isLoading}>
@@ -270,7 +274,8 @@ export default function Addresses() {
                   <div className="p-3 bg-muted rounded-lg">
                     <p className="text-sm font-medium">📍 Location Selected</p>
                     <p className="text-xs text-muted-foreground">
-                      Lat: {selectedLat.toFixed(6)} | Lng: {selectedLng.toFixed(6)}
+                      Lat: {selectedLat.toFixed(6)} | Lng:{" "}
+                      {selectedLng.toFixed(6)}
                     </p>
                   </div>
                 )}
@@ -289,14 +294,16 @@ export default function Addresses() {
             </Tabs>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                disabled={isSaving}
+              >
                 {t("common.cancel")}
               </Button>
               <Button onClick={handleSubmit} disabled={isSaving}>
                 {isSaving ? (
-                  <>
-                    {editingAddress ? "Updating..." : "Adding..."}
-                  </>
+                  <>{editingAddress ? "Updating..." : "Adding..."}</>
                 ) : (
                   <>
                     {editingAddress

@@ -10,7 +10,6 @@ public interface PaymentGatewayService {
 
     /**
      * Vérifie le statut vrai / faux d'une transaction auprès du gateway.
-     * Pour l'instant on mock, tu pourras implémenter l’appel réel plus tard.
      */
     boolean verifyPayment(String externalRef);
 }

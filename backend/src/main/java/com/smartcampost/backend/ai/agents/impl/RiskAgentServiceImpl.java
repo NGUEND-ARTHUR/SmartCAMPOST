@@ -1,16 +1,21 @@
 package com.smartcampost.backend.ai.agents.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartcampost.backend.ai.agents.RiskAgentService;
 import com.smartcampost.backend.ai.events.DeliveryAttemptRecordedEvent;
 import com.smartcampost.backend.ai.events.ScanEventRecordedEvent;
+import com.smartcampost.backend.model.AiAgentRecommendation;
 import com.smartcampost.backend.dto.analytics.EtaPredictionResponse;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.RiskAlert;
+import com.smartcampost.backend.model.enums.AiModuleType;
+import com.smartcampost.backend.model.enums.AiSubjectType;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.RiskAlertStatus;
 import com.smartcampost.backend.model.enums.RiskAlertType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
 import com.smartcampost.backend.model.enums.ScanEventType;
+import com.smartcampost.backend.repository.AiAgentRecommendationRepository;
 import com.smartcampost.backend.repository.DeliveryAttemptRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.RiskAlertRepository;
@@ -21,7 +26,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,6 +51,8 @@ public class RiskAgentServiceImpl implements RiskAgentService {
     private final RiskAlertRepository riskAlertRepository;
     private final DeliveryAttemptRepository deliveryAttemptRepository;
     private final AnalyticsService analyticsService;
+    private final AiAgentRecommendationRepository aiAgentRecommendationRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void onScanEventRecorded(ScanEventRecordedEvent event) {
@@ -146,6 +155,7 @@ public class RiskAgentServiceImpl implements RiskAgentService {
             alert.setDescription(description);
             alert.setStatus(RiskAlertStatus.OPEN);
             riskAlertRepository.save(alert);
+            saveRiskRecommendation(parcelId, type, severity, description, alert.getId());
             return;
         }
 
@@ -160,6 +170,36 @@ public class RiskAgentServiceImpl implements RiskAgentService {
                 .resolved(false)
                 .description(description)
                 .build();
-        riskAlertRepository.save(alert);
+        RiskAlert saved = riskAlertRepository.save(alert);
+        saveRiskRecommendation(parcelId, type, severity, description, saved.getId());
+        }
+
+        private void saveRiskRecommendation(
+            UUID parcelId,
+            RiskAlertType type,
+            RiskSeverity severity,
+            String description,
+            UUID alertId
+        ) {
+        try {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("alertId", alertId != null ? alertId.toString() : null);
+            payload.put("parcelId", parcelId != null ? parcelId.toString() : null);
+            payload.put("alertType", type != null ? type.name() : null);
+            payload.put("severity", severity != null ? severity.name() : null);
+            payload.put("description", description);
+            payload.put("generatedAt", Instant.now().toString());
+
+            aiAgentRecommendationRepository.save(AiAgentRecommendation.builder()
+                .moduleType(AiModuleType.RISK)
+                .subjectType(AiSubjectType.PARCEL)
+                .subjectId(parcelId)
+                .summary("Risk alert " + (type != null ? type.name() : "UNKNOWN")
+                    + " (" + (severity != null ? severity.name() : "UNKNOWN") + ")")
+                .payloadJson(objectMapper.writeValueAsString(payload))
+                .build());
+        } catch (Exception ex) {
+            log.debug("RiskAgent: failed to persist AI recommendation for parcel {}: {}", parcelId, ex.getMessage());
+        }
     }
 }
