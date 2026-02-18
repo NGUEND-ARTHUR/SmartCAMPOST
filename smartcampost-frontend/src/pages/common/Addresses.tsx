@@ -25,6 +25,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { Address } from "@/types";
 import { toast } from "sonner";
 import { addressService } from "@/services/addressService";
+import LocationPicker from "@/components/maps/LocationPicker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const labelIcons: Record<string, ComponentType<any>> = {
   Home: Home,
@@ -40,6 +42,9 @@ export default function Addresses() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showMapTab, setShowMapTab] = useState(false);
+  const [selectedLat, setSelectedLat] = useState<number | null>(null);
+  const [selectedLng, setSelectedLng] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     label: "",
     street: "",
@@ -78,6 +83,8 @@ export default function Addresses() {
         region: address.region || "",
         country: address.country || "Cameroon",
       });
+      setSelectedLat(address.latitude || null);
+      setSelectedLng(address.longitude || null);
     } else {
       setEditingAddress(null);
       setFormData({
@@ -87,11 +94,14 @@ export default function Addresses() {
         region: "",
         country: "Cameroon",
       });
+      setSelectedLat(null);
+      setSelectedLng(null);
     }
+    setShowMapTab(false);
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !formData.label ||
       !formData.street ||
@@ -104,14 +114,22 @@ export default function Addresses() {
 
     try {
       setIsSaving(true);
+      const updateData: any = {
+        label: formData.label,
+        street: formData.street,
+        city: formData.city,
+        region: formData.region,
+        country: formData.country,
+      };
+
+      // Include coordinates if available
+      if (selectedLat !== null && selectedLng !== null) {
+        updateData.latitude = selectedLat;
+        updateData.longitude = selectedLng;
+      }
+
       if (editingAddress) {
-        const updated = await addressService.updateAddress(editingAddress.id, {
-          label: formData.label,
-          street: formData.street,
-          city: formData.city,
-          region: formData.region,
-          country: formData.country,
-        });
+        const updated = await addressService.updateAddress(editingAddress.id, updateData);
         setAddresses(
           addresses.map((addr) =>
             addr.id === editingAddress.id ? updated : addr,
@@ -119,13 +137,7 @@ export default function Addresses() {
         );
         toast.success(t("addresses.toasts.updated"));
       } else {
-        const created = await addressService.createAddress({
-          label: formData.label,
-          street: formData.street,
-          city: formData.city,
-          region: formData.region,
-          country: formData.country,
-        });
+        const created = await addressService.createAddress(updateData);
         setAddresses([...addresses, created]);
         toast.success(t("addresses.toasts.added"));
       }
@@ -168,7 +180,7 @@ export default function Addresses() {
               {t("addresses.page.addAddress")}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingAddress
@@ -182,68 +194,100 @@ export default function Addresses() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="label">{t("addresses.form.label")}</Label>
-                <Input
-                  id="label"
-                  placeholder={t("addresses.form.labelPlaceholder")}
-                  value={formData.label}
-                  onChange={(e) =>
-                    setFormData({ ...formData, label: e.target.value })
-                  }
-                />
-              </div>
+            <Tabs
+              value={showMapTab ? "map" : "form"}
+              onValueChange={(value) => setShowMapTab(value === "map")}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="form">Address Details</TabsTrigger>
+                <TabsTrigger value="map">Location on Map</TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="street">{t("addresses.form.street")}</Label>
-                <Input
-                  id="street"
-                  placeholder={t("addresses.form.streetPlaceholder")}
-                  value={formData.street}
-                  onChange={(e) =>
-                    setFormData({ ...formData, street: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <TabsContent value="form" className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">{t("addresses.form.city")}</Label>
+                  <Label htmlFor="label">{t("addresses.form.label")}</Label>
                   <Input
-                    id="city"
-                    placeholder={t("addresses.form.cityPlaceholder")}
-                    value={formData.city}
+                    id="label"
+                    placeholder={t("addresses.form.labelPlaceholder")}
+                    value={formData.label}
                     onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
+                      setFormData({ ...formData, label: e.target.value })
                     }
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="region">{t("addresses.form.region")}</Label>
+                  <Label htmlFor="street">{t("addresses.form.street")}</Label>
                   <Input
-                    id="region"
-                    placeholder={t("addresses.form.regionPlaceholder")}
-                    value={formData.region}
+                    id="street"
+                    placeholder={t("addresses.form.streetPlaceholder")}
+                    value={formData.street}
                     onChange={(e) =>
-                      setFormData({ ...formData, region: e.target.value })
+                      setFormData({ ...formData, street: e.target.value })
                     }
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="country">{t("addresses.form.country")}</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) =>
-                    setFormData({ ...formData, country: e.target.value })
-                  }
-                  disabled
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">{t("addresses.form.city")}</Label>
+                    <Input
+                      id="city"
+                      placeholder={t("addresses.form.cityPlaceholder")}
+                      value={formData.city}
+                      onChange={(e) =>
+                        setFormData({ ...formData, city: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="region">{t("addresses.form.region")}</Label>
+                    <Input
+                      id="region"
+                      placeholder={t("addresses.form.regionPlaceholder")}
+                      value={formData.region}
+                      onChange={(e) =>
+                        setFormData({ ...formData, region: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">{t("addresses.form.country")}</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) =>
+                      setFormData({ ...formData, country: e.target.value })
+                    }
+                    disabled
+                  />
+                </div>
+
+                {selectedLat && selectedLng && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm font-medium">📍 Location Selected</p>
+                    <p className="text-xs text-muted-foreground">
+                      Lat: {selectedLat.toFixed(6)} | Lng: {selectedLng.toFixed(6)}
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="map" className="py-4">
+                <LocationPicker
+                  latitude={selectedLat}
+                  longitude={selectedLng}
+                  onLocationChange={(lat, lng) => {
+                    setSelectedLat(lat);
+                    setSelectedLng(lng);
+                  }}
                 />
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>
                 {t("common.cancel")}
