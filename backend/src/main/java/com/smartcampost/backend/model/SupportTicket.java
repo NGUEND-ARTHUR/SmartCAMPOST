@@ -1,4 +1,5 @@
 package com.smartcampost.backend.model;
+import com.smartcampost.backend.model.enums.SupportTicketCategory;
 import com.smartcampost.backend.model.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,8 +37,9 @@ public class SupportTicket {
     @Column(name = "status", nullable = false, length = 30)
     private TicketStatus status;
 
-    @Column(name = "category", length = 100)
-    private String category; // e.g. "DELIVERY", "PAYMENT", "REFUND"
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private SupportTicketCategory category;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -50,6 +52,7 @@ public class SupportTicket {
         if (id == null) id = UUID.randomUUID();
         if (createdAt == null) createdAt = Instant.now();
         if (status == null) status = TicketStatus.OPEN;
+        if (category == null) category = SupportTicketCategory.OTHER;
     }
 
     @PreUpdate
