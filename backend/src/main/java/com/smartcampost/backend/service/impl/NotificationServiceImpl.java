@@ -593,7 +593,8 @@ public class NotificationServiceImpl implements NotificationService {
         String subject = "Delivery OTP for your parcel";
         String message = "Your OTP for the delivery of parcel "
                 + (trackingRef != null ? trackingRef : "your parcel")
-                + " is: " + otpCode + ". It is valid for 10 minutes.";
+                + " is: " + otpCode + ". It is valid for 10 minutes."
+                + buildWebOtpSuffix(otpCode);
 
         Notification notif = Notification.builder()
                 .parcel(parcel)
@@ -862,6 +863,21 @@ public class NotificationServiceImpl implements NotificationService {
 
                 notificationRepository.save(notif);
     }
+
+        private String buildWebOtpSuffix(String code) {
+                String domain = System.getenv("SMARTCAMPOST_WEBOTP_DOMAIN");
+                if (domain == null || domain.isBlank()) {
+                        return "";
+                }
+                String normalized = domain.trim()
+                                .replace("https://", "")
+                                .replace("http://", "")
+                                .replaceAll("/.*$", "");
+                if (normalized.isBlank()) {
+                        return "";
+                }
+                return "\n@" + normalized + " #" + code;
+        }
 
     private String buildDefaultSubject(NotificationType type) {
         return switch (type) {

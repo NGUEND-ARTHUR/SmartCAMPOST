@@ -1,7 +1,7 @@
 /**
- * AI Chatbot Component
- * Interactive chatbot for customer support with predefined responses
- * and integration capability for external AI services
+ * AI Chatbot Component - Enhanced with Role-Based Features
+ * Interactive chatbot for customer support with role-specific responses
+ * and full platform integration capability
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -18,6 +18,11 @@ import {
   Clock,
   ThumbsUp,
   ThumbsDown,
+  BarChart3,
+  Users,
+  Truck,
+  TrendingUp,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAIChat } from "@/hooks/ai/useAI";
+import { useAuthStore } from "@/store/authStore"; // Use auth store for user role
 
 interface Message {
   id: string;
@@ -301,11 +307,16 @@ export default function AIChatbot({
 }: AIChatbotProps) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: `Hello! 👋 I'm SmartBot, your AI assistant.
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const aiMutation = useAIChat();
+  const { user } = useAuthStore(); // Get authenticated user and role
+
+  // Generate role-specific welcome message and actions
+  const getWelcomeContent = () => {
+    if (!user) {
+      return {
+        message: `Hello! 👋 I'm SmartBot, your AI assistant.
 
 I can help you with:
 - 📦 Tracking parcels
@@ -314,19 +325,111 @@ I can help you with:
 - 📍 Agency locations
 
 How can I assist you today?`,
+        suggestions: [
+          "Track my parcel",
+          "What are your prices?",
+          "Find an agency",
+        ],
+      };
+    }
+
+    const role = user.role?.toUpperCase() || "CLIENT";
+    
+    if (role === "CLIENT") {
+      return {
+        message: `Hello ${user.fullName || "there"}! 👋 Welcome to SmartCAMPOST.
+
+I can help you with:
+- 📦 Track your parcels in real-time
+- 💰 Get instant shipping quotes
+- 🚚 Schedule pickups and deliveries
+- 📍 Find our agency locations
+
+What do you need help with today?`,
+        suggestions: [
+          "Track my parcel",
+          "Create new shipment",
+          "Check delivery rates",
+        ],
+      };
+    } else if (role === "COURIER") {
+      return {
+        message: `Welcome back, ${user.fullName || "Courier"}! 🚚
+
+I'm here to help you with:
+- 📍 Optimize your delivery route
+- 📦 View your assigned parcels
+- 💰 Cash collection support
+- 📊 Performance analytics
+
+What do you need?`,
+        suggestions: [
+          "Show my assignments",
+          "Optimize my route",
+          "Update delivery status",
+        ],
+      };
+    } else if (role === "AGENCY_ADMIN") {
+      return {
+        message: `Welcome, Agency Manager 🏢
+
+I can assist you with:
+- 📦 Parcel inventory management
+- 👥 Staff and courier management
+- 📊 Performance analytics & reports
+- ⚠️ Alert management
+
+What do you need today?`,
+        suggestions: [
+          "Parcel statistics",
+          "Staff management",
+          "Generate reports",
+        ],
+      };
+    } else if (role === "ADMIN") {
+      return {
+        message: `Welcome, System Administrator ⚙️
+
+I can help you with:
+- 🌐 System-wide analytics
+- 👥 User account management
+- 🏢 Agency management
+- 📋 Compliance reports
+
+What do you need?`,
+        suggestions: [
+          "System analytics",
+          "Manage users",
+          "View all agencies",
+        ],
+      };
+    }
+
+    return {
+      message: `Hello! 👋 I'm SmartBot, your AI assistant.
+
+I can help you with:
+- 📦 Tracking parcels
+- 💰 Pricing & payments
+- 🚚 Delivery information
+
+What can I help you with?`,
+      suggestions: ["Track my parcel", "Contact support"],
+    };
+  };
+
+  const welcome = getWelcomeContent();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      content: welcome.message,
       timestamp: new Date(),
-      suggestions: [
-        "Track my parcel",
-        "What are your prices?",
-        "Find an agency",
-      ],
+      suggestions: welcome.suggestions,
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const aiMutation = useAIChat();
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -340,13 +443,13 @@ How can I assist you today?`,
     }
   }, [isOpen, isMinimized]);
 
-  // Reference userPhone to avoid unused-var lint and for future personalization
+  // Initialize user context
   useEffect(() => {
-    if (userPhone) {
-      // Lightweight use to satisfy lint and keep value available
-      void userPhone;
+    if (user?.phone) {
+      // User context is available for AI
+      void user.phone;
     }
-  }, [userPhone]);
+  }, [user]);
 
   const handleSend = useCallback(
     async (text?: string) => {
@@ -368,7 +471,9 @@ How can I assist you today?`,
       const payload = {
         message: query,
         language: "en",
-        context: userPhone || undefined,
+        context: userPhone || user?.phone || undefined,
+        // Pass user role for AI context awareness
+        userRole: user?.role,
       };
       try {
         setIsTyping(true);
@@ -424,13 +529,13 @@ How can I assist you today?`,
         // small delay for UX
         await new Promise((resolve) => setTimeout(resolve, 250));
 
-        // Use react-query mutation
+        // Use react-query mutation with user context
         let aiResp = null;
         if (aiMutation) {
           aiResp = await aiMutation.mutateAsync({
             message: query,
             language: "en",
-            context: userPhone || undefined,
+            context: userPhone || user?.phone || undefined,
           });
         } else {
           // fallback to local KB
@@ -467,7 +572,7 @@ How can I assist you today?`,
         setIsTyping(false);
       }
     },
-    [inputValue, aiMutation, userPhone],
+    [inputValue, aiMutation, userPhone, user?.phone, user?.role],
   );
 
   const handleFeedback = (
@@ -484,7 +589,128 @@ How can I assist you today?`,
     onClose?.();
   };
 
-  // Floating button when closed
+  // Generate role-based quick actions
+  const getQuickActions = (): QuickAction[] => {
+    if (!user) {
+      return [
+        {
+          icon: <Package className="w-4 h-4" />,
+          label: "Track Parcel",
+          query: "How do I track my parcel?",
+        },
+        {
+          icon: <CreditCard className="w-4 h-4" />,
+          label: "Pricing",
+          query: "What are your prices?",
+        },
+        {
+          icon: <MapPin className="w-4 h-4" />,
+          label: "Agencies",
+          query: "Where are your agencies?",
+        },
+      ];
+    }
+
+    const role = user.role?.toUpperCase() || "CLIENT";
+
+    if (role === "CLIENT") {
+      return [
+        {
+          icon: <Package className="w-4 h-4" />,
+          label: "Track Parcel",
+          query: "How do I track my parcel?",
+        },
+        {
+          icon: <Package className="w-4 h-4" />,
+          label: "Create Shipment",
+          query: "How do I create a new shipment?",
+        },
+        {
+          icon: <CreditCard className="w-4 h-4" />,
+          label: "Get Quote",
+          query: "Can you give me a shipping quote?",
+        },
+        {
+          icon: <Clock className="w-4 h-4" />,
+          label: "Delivery Time",
+          query: "How long does delivery take?",
+        },
+      ];
+    } else if (role === "COURIER") {
+      return [
+        {
+          icon: <Truck className="w-4 h-4" />,
+          label: "My Assignments",
+          query: "Show me my delivery assignments",
+        },
+        {
+          icon: <TrendingUp className="w-4 h-4" />,
+          label: "Optimize Route",
+          query: "Can you optimize my delivery route?",
+        },
+        {
+          icon: <Package className="w-4 h-4" />,
+          label: "Update Status",
+          query: "How do I update delivery status?",
+        },
+        {
+          icon: <CreditCard className="w-4 h-4" />,
+          label: "Payment Tips",
+          query: "Tips for collecting payments safely",
+        },
+      ];
+    } else if (role === "AGENCY_ADMIN") {
+      return [
+        {
+          icon: <BarChart3 className="w-4 h-4" />,
+          label: "Parcel Stats",
+          query: "Show me parcel inventory statistics",
+        },
+        {
+          icon: <Users className="w-4 h-4" />,
+          label: "Staff Mgmt",
+          query: "How do I manage agency staff?",
+        },
+        {
+          icon: <TrendingUp className="w-4 h-4" />,
+          label: "Reports",
+          query: "Generate agency performance report",
+        },
+        {
+          icon: <AlertCircle className="w-4 h-4" />,
+          label: "Alerts",
+          query: "Show me active parcel alerts",
+        },
+      ];
+    } else if (role === "ADMIN") {
+      return [
+        {
+          icon: <BarChart3 className="w-4 h-4" />,
+          label: "System Analytics",
+          query: "Show system-wide analytics",
+        },
+        {
+          icon: <Users className="w-4 h-4" />,
+          label: "User Management",
+          query: "Show user accounts dashboard",
+        },
+        {
+          icon: <MapPin className="w-4 h-4" />,
+          label: "Agencies",
+          query: "List all agencies",
+        },
+        {
+          icon: <TrendingUp className="w-4 h-4" />,
+          label: "Reports",
+          query: "Generate compliance report",
+        },
+      ];
+    }
+
+    return [];
+  };
+
+  const quickActions = getQuickActions();
   if (!isOpen) {
     return (
       <Button

@@ -4,16 +4,20 @@ import com.smartcampost.backend.dto.ai.*;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionRequest;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionResponse;
 import com.smartcampost.backend.service.AIService;
+import com.smartcampost.backend.service.AiAgentRecommendationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AIController {
     private final AIService aiService;
+    private final AiAgentRecommendationService aiAgentRecommendationService;
     
 
     /**
@@ -68,5 +72,37 @@ public class AIController {
             @Valid @RequestBody DeliveryPredictionRequest request
     ) {
         return ResponseEntity.ok(aiService.predictDeliveryTime(request));
+    }
+
+    /**
+     * Get latest AI recommendation for a courier
+     * Returns optimized route, performance insights, and suggestions
+     */
+    @GetMapping("/agent/courier/{courierId}/recommendation")
+    public ResponseEntity<AiAgentRecommendationResponse> getCourierRecommendation(
+            @PathVariable("courierId") UUID courierId
+    ) {
+        return ResponseEntity.ok(aiAgentRecommendationService.getLatestForCourier(courierId));
+    }
+
+    /**
+     * Get latest AI recommendation for an agency
+     * Returns congestion alerts, redistribution suggestions, and insights
+     */
+    @GetMapping("/agent/agency/{agencyId}/recommendation")
+    public ResponseEntity<AiAgentRecommendationResponse> getAgencyRecommendation(
+            @PathVariable("agencyId") UUID agencyId
+    ) {
+        return ResponseEntity.ok(aiAgentRecommendationService.getLatestForAgency(agencyId));
+    }
+
+    /**
+     * Get AI agent status for current authenticated user
+     * Returns recommendations based on user's role and data
+     */
+    @GetMapping("/agent/status")
+    public ResponseEntity<AgentStatusResponse> getAgentStatus() {
+        // This will be implemented by the AIService to return role-specific agent status
+        return ResponseEntity.ok(aiService.getAgentStatus());
     }
 }

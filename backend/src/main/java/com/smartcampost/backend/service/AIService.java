@@ -20,4 +20,9 @@ public interface AIService {
      * Predict delivery time based on various factors
      */
     DeliveryPredictionResponse predictDeliveryTime(DeliveryPredictionRequest request);
+
+    /**
+     * Get agent status and recommendations for authenticated user
+     */
+    AgentStatusResponse getAgentStatus();
 }
