@@ -31,7 +31,6 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
                 .type(request.getType())
                 .providerName(request.getProviderName())
                 .apiKey(request.getApiKey())
-                .apiSecret(request.getApiSecret())
                 .endpointUrl(request.getEndpointUrl())
                 .enabled(request.isEnabled())
                 .createdAt(Instant.now())
@@ -57,7 +56,6 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
         config.setType(request.getType());
         config.setProviderName(request.getProviderName());
         config.setApiKey(request.getApiKey());
-        config.setApiSecret(request.getApiSecret());
         config.setEndpointUrl(request.getEndpointUrl());
         config.setEnabled(request.isEnabled());
         config.setUpdatedAt(Instant.now());
