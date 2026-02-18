@@ -37,6 +37,7 @@ This guide provides setup instructions for:
    TWILIO_ACCOUNT_SID=AC1234567890abcdef
    TWILIO_AUTH_TOKEN=your_auth_token_here
    TWILIO_FROM_NUMBER=+1234567890
+  SMARTCAMPOST_WEBOTP_DOMAIN=smartcampost.vercel.app
    ```
 4. Click Deploy → redeploy service
 
@@ -48,6 +49,7 @@ NOTIFICATION_GATEWAY=twilio
 TWILIO_ACCOUNT_SID=AC1234567890abcdef
 TWILIO_AUTH_TOKEN=your_auth_token_here
 TWILIO_FROM_NUMBER=+1234567890
+SMARTCAMPOST_WEBOTP_DOMAIN=localhost:5173
 ```
 
 Then restart your Spring Boot application.
@@ -60,6 +62,7 @@ Then restart your Spring Boot application.
 2. Enter phone number (same format as Twilio: `+237123456789`)
 3. Click "Send OTP"
 4. **Check:** SMS should arrive within 10 seconds
+5. **Autofill (supported browsers):** SMS should include `@your-domain #123456` and OTP field auto-fills
 5. Enter OTP and complete registration
 
 **What's Happening:**

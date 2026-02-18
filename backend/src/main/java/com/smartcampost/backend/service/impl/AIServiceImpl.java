@@ -3,6 +3,8 @@ package com.smartcampost.backend.service.impl;
 import com.smartcampost.backend.dto.ai.*;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionRequest;
 import com.smartcampost.backend.dto.analytics.DeliveryPredictionResponse;
+import com.smartcampost.backend.model.enums.UserRole;
+import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.service.AIService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,58 +23,107 @@ public class AIServiceImpl implements AIService {
     private final com.smartcampost.backend.service.impl.client.OpenAIClient openAIClient;
     private final com.smartcampost.backend.repository.UserAccountRepository userAccountRepository;
     private final com.smartcampost.backend.repository.ParcelRepository parcelRepository;
+    private final com.smartcampost.backend.repository.CourierRepository courierRepository;
+    private final com.smartcampost.backend.repository.AgencyRepository agencyRepository;
+    private final com.smartcampost.backend.repository.AiAgentRecommendationRepository aiAgentRecommendationRepository;
 
     // Knowledge base fallback for local responses when AI key not configured
     private static final Map<String, KnowledgeEntry> KNOWLEDGE_BASE = new HashMap<>();
 
     static {
-        // Tracking
+        // ========== CLIENT/CUSTOMER ROLE ==========
         KNOWLEDGE_BASE.put("track", new KnowledgeEntry(
                 "TRACKING",
-                "To track your parcel:\n1. Go to 'My Parcels' in your dashboard\n2. Click on the parcel to see its status\n3. View the live map showing its journey\n\nYou can also enter your tracking code on the home page.",
-                Arrays.asList("Where is my parcel?", "How do I change delivery address?")
+                "📦 To track your parcel:\n1. Go to 'My Parcels' in your dashboard\n2. Click on the parcel to see its status\n3. View the live map showing its journey\n\nYou can also enter your tracking code on the home page for quick tracking.",
+                Arrays.asList("Where is my parcel?", "How do I change delivery address?", "Is my parcel delayed?")
         ));
 
-        // Pricing
         KNOWLEDGE_BASE.put("price", new KnowledgeEntry(
                 "PRICING",
-                "Our pricing is based on:\n- Weight: Charged per kg\n- Distance: Based on origin and destination\n- Service Type: Standard (3-5 days) or Express (1-2 days)\n\nCreate a new parcel for an instant quote.",
-                Arrays.asList("Do you offer discounts?", "Is insurance included?")
+                "💰 Our pricing is based on:\n- **Weight**: Charged per kg\n- **Distance**: Based on origin and destination\n- **Service Type**: Standard (3-5 days) or Express (1-2 days)\n\nCreate a new parcel in your dashboard for an instant quote.",
+                Arrays.asList("Do you offer volume discounts?", "Is insurance included?", "What about fragile items?")
         ));
 
-        // Delivery
         KNOWLEDGE_BASE.put("delivery", new KnowledgeEntry(
                 "DELIVERY",
-                "Delivery times:\n- Standard: 3-5 business days\n- Express: 1-2 business days\n\nTrack your parcel in real-time on our map.",
-                Arrays.asList("Can I schedule delivery time?", "Do you deliver on weekends?")
+                "🚚 Delivery times depend on service:\n- **Standard**: 3-5 business days\n- **Express**: 1-2 business days\n\nTrack your parcel in real-time on our map.",
+                Arrays.asList("Can I schedule delivery time?", "Do you deliver on weekends?", "What if I'm not home?")
         ));
 
-        // Payment
         KNOWLEDGE_BASE.put("payment", new KnowledgeEntry(
                 "PAYMENT",
-                "We accept:\n- Mobile Money (Orange, MTN)\n- Bank Transfer\n- Cash at agencies\n\nPayment is required before pickup.",
-                Arrays.asList("Can I pay on delivery?", "How do I get a receipt?")
+                "💳 We accept multiple payment methods:\n- **Mobile Money**: Orange Money, MTN Mobile Money\n- **Bank Transfer**: All major banks\n- **Cash**: At our agencies\n\nPayment is required before pickup.",
+                Arrays.asList("Can I pay on delivery?", "How do I get a receipt?", "Do you accept international cards?")
         ));
 
-        // Pickup
         KNOWLEDGE_BASE.put("pickup", new KnowledgeEntry(
                 "PICKUP",
-                "For pickup:\n1. Create your parcel\n2. Choose a date and time slot\n3. Our courier will collect your package\n\nYou'll receive SMS notifications.",
-                Arrays.asList("What if I miss the pickup?", "Can someone else give the parcel?")
+                "📍 For pickup scheduling:\n1. Create your parcel with origin address\n2. Choose a pickup date and time slot\n3. Our courier will collect your package\n\nYou'll receive SMS notifications.",
+                Arrays.asList("What if I miss the pickup?", "Can someone else give the parcel?", "Where do I pack my parcel?")
         ));
 
-        // Support
+        KNOWLEDGE_BASE.put("lost", new KnowledgeEntry(
+                "CLAIMS",
+                "⚠️ For lost or damaged parcels:\n1. File a claim in your dashboard within 24 hours\n2. We'll investigate and follow up\n3. Compensation is based on declared value and insurance coverage\n\nResponse time: 2-5 business days",
+                Arrays.asList("How much compensation?", "What if I wasn't insured?", "What's your investigation process?")
+        ));
+
+        // ========== COURIER ROLE ==========
+        KNOWLEDGE_BASE.put("courier", new KnowledgeEntry(
+                "COURIER_HELP",
+                "🚚 **Courier Dashboard**:\n- View assigned deliveries\n- Optimize your route with AI suggestions\n- Update delivery status\n- Collect cash payments safely\n\nWhat do you need help with?",
+                Arrays.asList("How to optimize my route?", "Payment collection tips", "Handle delivery issues")
+        ));
+
+        KNOWLEDGE_BASE.put("route", new KnowledgeEntry(
+                "ROUTE_OPTIMIZATION",
+                "🛣️ Our AI can optimize your route:\n- Nearest-neighbor algorithm for efficiency\n- Priority stops handled first\n- Real-time traffic considerations\n\nGo to Dashboard > Route Optimization for suggestions.",
+                Arrays.asList("Current route issues?", "How accurate is it?", "Can I customize stops?")
+        ));
+
+        // ========== AGENCY ROLE ==========
+        KNOWLEDGE_BASE.put("agency", new KnowledgeEntry(
+                "AGENCY_HELP",
+                "🏢 **Agency Dashboard**:\n- Monitor incoming parcels\n- Manage staff and couriers\n- View congestion analytics\n- Generate performance reports\n\nWhat do you need?",
+                Arrays.asList("Parcel statistics", "Staff management", "Performance reports")
+        ));
+
+        KNOWLEDGE_BASE.put("inventory", new KnowledgeEntry(
+                "INVENTORY",
+                "📦 **Parcel Inventory**:\n- Track all parcels at your agency\n- Filter by status (arrived, out for delivery, picked up)\n- Set up automatic alerts for delays\n- Export reports for audit\n\nCheck Dashboard > Inventory.",
+                Arrays.asList("Current parcel count?", "How to set alerts?", "Export reports?")
+        ));
+
+        // ========== UNIVERSAL ==========
         KNOWLEDGE_BASE.put("help", new KnowledgeEntry(
                 "SUPPORT",
-                "I can help with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery info\n- 📍 Agency locations\n\nWhat do you need help with?",
-                Arrays.asList("Track my parcel", "Find an agency", "Contact support")
+                "ℹ️ I can assist you with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery information\n- 📍 Agency locations\n- 🛣️ Route optimization\n- 📋 Account management\n\nWhat do you need?",
+                Arrays.asList("Track my parcel", "Find an agency", "I have a problem")
         ));
 
-        // Greeting
         KNOWLEDGE_BASE.put("hello", new KnowledgeEntry(
                 "GREETING",
-                "Hello! 👋 Welcome to SmartCAMPOST!\n\nI'm your AI assistant. How can I help you today?",
-                Arrays.asList("Track my parcel", "What are your prices?", "Find an agency")
+                "👋 Hello! Welcome to SmartCAMPOST AI Assistant!\n\nI'm here to help you with parcels, tracking, payments, and platform features. What's on your mind?",
+                Arrays.asList("Track my parcel", "What are your prices?", "Find nearest agency")
+        ));
+
+        KNOWLEDGE_BASE.put("hi", new KnowledgeEntry(
+                "GREETING",
+                "👋 Hi there! I'm SmartCAMPOST AI. How can I help you today?",
+                Arrays.asList("Create a parcel", "Track a delivery", "Check rates")
+        ));
+
+        KNOWLEDGE_BASE.put("contact", new KnowledgeEntry(
+                "CONTACT",
+                "📞 **Contact Us**:\n- **Phone**: +237 6XX XXX XXX\n- **Email**: support@smartcampost.cm\n- **WhatsApp**: +237 6XX XXX XXX\n- **Agencies**: Find locations in map view\n- **In-app**: File tickets in dashboard\n\nResponse time: 2-4 hours",
+                Arrays.asList("Find nearest agency", "Email support", "File a complaint")
+        ));
+
+        // ========== ADMIN/MODERATOR ==========
+        KNOWLEDGE_BASE.put("admin", new KnowledgeEntry(
+                "ADMIN_HELP",
+                "⚙️ **Admin Dashboard**:\n- Monitor all agencies & couriers\n- View system-wide analytics\n- Manage user accounts\n- Generate compliance reports\n\nWhat do you need to manage?",
+                Arrays.asList("User management", "System analytics", "Generate reports")
         ));
     }
 
@@ -169,26 +220,45 @@ public class AIServiceImpl implements AIService {
 
         // Build RAG context
         StringBuilder rag = new StringBuilder();
+        UserRole userRole = null;
+        String userPhone = null;
+        UUID userId = null;
 
-        // 1) If user is authenticated, inject user role and phone
+        // 1) Extract user role and phone from authentication
         try {
             var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated()) {
                 String subject = auth.getName();
                 try {
-                    java.util.UUID userId = java.util.UUID.fromString(subject);
-                    java.util.UUID nonNullUserId = java.util.Objects.requireNonNull(userId, "userId is required");
+                    userId = java.util.UUID.fromString(subject);
+                    UUID nonNullUserId = java.util.Objects.requireNonNull(userId, "userId is required");
                     var userOpt = userAccountRepository.findById(nonNullUserId);
-                    userOpt.ifPresent(user -> {
+                    if (userOpt.isPresent()) {
+                        var user = userOpt.get();
+                        userRole = user.getRole();
+                        userPhone = user.getPhone();
                         rag.append("USER_ROLE: ").append(user.getRole()).append("\n");
                         rag.append("USER_PHONE: ").append(user.getPhone()).append("\n");
-                    });
+                        
+                        // Add role-specific context
+                        if (user.getRole() == UserRole.CLIENT) {
+                            rag.append("CONTEXT: User is a client/shipper\n");
+                        } else if (user.getRole() == UserRole.COURIER) {
+                            rag.append("CONTEXT: User is a courier with delivery assignments\n");
+                        } else if (user.getRole() == UserRole.AGENT || user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.STAFF) {
+                            rag.append("CONTEXT: User is staff/admin\n");
+                        }
+                    }
                 } catch (IllegalArgumentException ex) {
                     var userOpt = userAccountRepository.findByPhone(subject);
-                    userOpt.ifPresent(user -> {
+                    if (userOpt.isPresent()) {
+                        var user = userOpt.get();
+                        userRole = user.getRole();
+                        userPhone = user.getPhone();
+                        userId = user.getId();
                         rag.append("USER_ROLE: ").append(user.getRole()).append("\n");
                         rag.append("USER_PHONE: ").append(user.getPhone()).append("\n");
-                    });
+                    }
                 }
             }
         } catch (Exception e) {
@@ -198,7 +268,9 @@ public class AIServiceImpl implements AIService {
         // 2) If request contains a tracking context, fetch parcel
         if (request.getContext() != null && !request.getContext().isBlank()) {
             String ctx = request.getContext().trim();
-            parcelRepository.findByTrackingRef(ctx).ifPresent(parcel -> {
+            var parcelOpt = parcelRepository.findByTrackingRef(ctx);
+            if (parcelOpt.isPresent()) {
+                var parcel = parcelOpt.get();
                 rag.append("PARCEL: ").append(parcel.getTrackingRef()).append("\n");
                 rag.append("STATUS: ").append(parcel.getStatus()).append("\n");
                 if (parcel.getExpectedDeliveryAt() != null) {
@@ -207,21 +279,21 @@ public class AIServiceImpl implements AIService {
                 if (parcel.getDestinationAgency() != null) {
                     rag.append("DESTINATION_AGENCY: ").append(parcel.getDestinationAgency().getAgencyName()).append("\n");
                 }
-            });
+            }
         }
 
-        // 3) Add explicit instruction about privacy
-        rag.append("NOTE: Do not disclose passwords, OTPs, or other users' private data. Only include allowed fields.");
+        // 3) Add privacy and role-specific instructions
+        rag.append("NOTE: Do not disclose passwords, OTPs, or sensitive data. Only include relevant allowed fields.\n");
+        rag.append("INSTRUCTIONS: Tailor responses specifically for ").append(userRole != null ? userRole.name() : "GUEST").append(" role.\n");
 
-        // If OpenAI key not configured, fallback to local KB
+        // If OpenAI key not configured, fallback to local KB with role awareness
         try {
             String apiKey = System.getenv("OPENAI_API_KEY");
             if (apiKey == null || apiKey.isBlank()) {
-                // Fallback: reuse basic keyword matching
-                return fallbackLocalResponse(request, sessionId);
+                return fallbackLocalResponse(request, sessionId, userRole, userPhone);
             }
         } catch (Exception ignored) {
-            return fallbackLocalResponse(request, sessionId);
+            return fallbackLocalResponse(request, sessionId, userRole, userPhone);
         }
 
         // Build messages for OpenAI
@@ -229,7 +301,10 @@ public class AIServiceImpl implements AIService {
         // System prompt from environment or application property
         String systemPrompt = System.getenv("SMARTCAMPOST_AI_SYSTEM_PROMPT");
         if (systemPrompt == null || systemPrompt.isBlank()) {
-            systemPrompt = "You are SmartCAMPOST AI, the official intelligent assistant of Cameroon Postal Services. Be concise, accurate, friendly, and professional. If data is missing, ask clarifying questions. Never hallucinate parcel statuses or user data.";
+            systemPrompt = "You are SmartCAMPOST AI, the intelligent assistant of Cameroon Postal Services. "
+                    + "Be concise, accurate, friendly, and professional. Provide personalized help based on user role. "
+                    + "If data is missing, ask clarifying questions. Never hallucinate parcel statuses. "
+                    + (userRole != null ? "The user is a " + userRole.name() + ". Customize your advice accordingly." : "");
         }
 
         Map<String, String> sys = new HashMap<>();
@@ -256,24 +331,25 @@ public class AIServiceImpl implements AIService {
             var responseMono = openAIClient.createChatCompletion(model, messages, maxTokens, temperature);
             String aiText = responseMono.block();
             if (aiText == null || aiText.isBlank()) {
-                return fallbackLocalResponse(request, sessionId);
+                return fallbackLocalResponse(request, sessionId, userRole, userPhone);
             }
 
-            // Build ChatResponse
+            // Build ChatResponse with role-specific suggestions
+            List<String> suggestions = generateSuggestionsForRole(userRole, request.getMessage());
             return ChatResponse.builder()
                     .message(aiText.trim())
                     .sessionId(sessionId)
-                    .suggestions(java.util.Arrays.asList("Track my parcel", "Pricing info", "Contact support"))
+                    .suggestions(suggestions)
                     .intent("AI_ASSISTANT")
                     .confidence(0.75)
                     .build();
         } catch (Exception e) {
             log.error("AI chat failed: {}", e.getMessage());
-            return fallbackLocalResponse(request, sessionId);
+            return fallbackLocalResponse(request, sessionId, userRole, userPhone);
         }
     }
 
-    private ChatResponse fallbackLocalResponse(ChatRequest request, String sessionId) {
+    private ChatResponse fallbackLocalResponse(ChatRequest request, String sessionId, UserRole userRole, String userPhone) {
         String message = request.getMessage().toLowerCase();
         KnowledgeEntry bestMatch = null;
         for (Map.Entry<String, KnowledgeEntry> entry : KNOWLEDGE_BASE.entrySet()) {
@@ -283,23 +359,61 @@ public class AIServiceImpl implements AIService {
             }
         }
 
+        List<String> suggestions = new ArrayList<>();
         if (bestMatch != null) {
+            suggestions.addAll(bestMatch.suggestions);
             return ChatResponse.builder()
                     .message(bestMatch.response)
                     .sessionId(sessionId)
-                    .suggestions(bestMatch.suggestions)
+                    .suggestions(suggestions)
                     .intent(bestMatch.intent)
                     .confidence(0.85)
                     .build();
         }
 
+        // Default response with role-specific suggestions
+        suggestions = generateSuggestionsForRole(userRole, message);
         return ChatResponse.builder()
-                .message("I'm not sure I understand. Try sharing a tracking code or ask 'How much does shipping cost?'")
+                .message("I'm not sure I understand. Could you rephrase your question? "
+                        + (userRole != null ? "I'm here to help " + userRole.name().toLowerCase() + "s with " : "")
+                        + "parcels, tracking, and deliveries.")
                 .sessionId(sessionId)
-                .suggestions(java.util.Arrays.asList("Track my parcel", "Pricing info", "Contact support"))
+                .suggestions(suggestions)
                 .intent("UNKNOWN")
                 .confidence(0.3)
                 .build();
+    }
+
+    private List<String> generateSuggestionsForRole(UserRole role, String context) {
+        List<String> suggestions = new ArrayList<>();
+        
+        if (role == UserRole.CLIENT) {
+            suggestions.addAll(Arrays.asList(
+                    "Track my parcel",
+                    "Create new shipment",
+                    "View my addresses"
+            ));
+        } else if (role == UserRole.COURIER) {
+            suggestions.addAll(Arrays.asList(
+                    "Show my assignments",
+                    "Optimize my route",
+                    "Update delivery status"
+            ));
+        } else if (role == UserRole.AGENT || role == UserRole.ADMIN || role == UserRole.STAFF) {
+            suggestions.addAll(Arrays.asList(
+                    "Parcel inventory",
+                    "Staff management",
+                    "Generate reports"
+            ));
+        } else {
+            suggestions.addAll(Arrays.asList(
+                    "Track my parcel",
+                    "Pricing info",
+                    "Contact support"
+            ));
+        }
+        
+        return suggestions;
     }
 
     @Override
@@ -374,6 +488,94 @@ public class AIServiceImpl implements AIService {
         }
         
         return total;
+    }
+
+    @Override
+    public AgentStatusResponse getAgentStatus() {
+        log.info("Fetching agent status for authenticated user");
+
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated()) {
+                return AgentStatusResponse.builder()
+                        .role("GUEST")
+                        .agentHealth("OFFLINE")
+                        .summary("No authenticated user")
+                        .recommendations(Collections.emptyList())
+                        .build();
+            }
+
+            String subject = auth.getName();
+            UUID userId;
+            try {
+                userId = UUID.fromString(subject);
+            } catch (IllegalArgumentException ex) {
+                return AgentStatusResponse.builder()
+                        .role("GUEST")
+                        .agentHealth("OFFLINE")
+                        .summary("Invalid user ID")
+                        .recommendations(Collections.emptyList())
+                        .build();
+            }
+
+            var userOpt = userAccountRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return AgentStatusResponse.builder()
+                        .role("GUEST")
+                        .agentHealth("OFFLINE")
+                        .summary("User not found")
+                        .recommendations(Collections.emptyList())
+                        .build();
+            }
+
+            var user = userOpt.get();
+            UserRole userRole = user.getRole();
+            List<AgentStatusResponse.RecommendationItem> recommendations = new ArrayList<>();
+
+            // Generate role-specific recommendations
+            if (userRole == UserRole.CLIENT) {
+                recommendations.add(AgentStatusResponse.RecommendationItem.builder()
+                        .title("Client Features Ready")
+                        .description("Track parcels, create shipments, and manage your addresses")
+                        .priority("MEDIUM")
+                        .actionType("INFO")
+                        .createdAt(System.currentTimeMillis())
+                        .build());
+            } else if (userRole == UserRole.COURIER) {
+                recommendations.add(AgentStatusResponse.RecommendationItem.builder()
+                        .title("Courier Dashboard Ready")
+                        .description("View assignments and optimize your delivery routes")
+                        .priority("MEDIUM")
+                        .actionType("INFO")
+                        .createdAt(System.currentTimeMillis())
+                        .build());
+            } else if (userRole == UserRole.AGENT || userRole == UserRole.ADMIN || userRole == UserRole.STAFF) {
+                recommendations.add(AgentStatusResponse.RecommendationItem.builder()
+                        .title("Admin Tools Available")
+                        .description("Manage operations, view analytics, and generate reports")
+                        .priority("MEDIUM")
+                        .actionType("INFO")
+                        .createdAt(System.currentTimeMillis())
+                        .build());
+            }
+
+            return AgentStatusResponse.builder()
+                    .role(userRole.toString())
+                    .agentHealth("HEALTHY")
+                    .summary("AI Agents are operational and " + (recommendations.isEmpty() ? "no active recommendations" : "have " + recommendations.size() + " recommendation(s)"))
+                    .recommendations(recommendations)
+                    .lastActivityAt(System.currentTimeMillis())
+                    .build();
+
+        } catch (Exception ex) {
+            log.error("Error getting agent status: {}", ex.getMessage());
+            return AgentStatusResponse.builder()
+                    .role("UNKNOWN")
+                    .agentHealth("DEGRADED")
+                    .summary("Error retrieving agent status: " + ex.getMessage())
+                    .recommendations(Collections.emptyList())
+                    .build();
+        }
     }
 
     // Inner class for knowledge base entries

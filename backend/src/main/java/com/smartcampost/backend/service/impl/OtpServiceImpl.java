@@ -127,7 +127,23 @@ public class OtpServiceImpl implements OtpService {
             case LOGIN -> "login";
             case RESET_PASSWORD -> "password reset";
         };
-        return "SmartCAMPOST " + label + " code: " + code + ". Valid for " + TTL_MINUTES + " minutes.";
+        return "SmartCAMPOST " + label + " code: " + code + ". Valid for " + TTL_MINUTES + " minutes."
+                + buildWebOtpSuffix(code);
+    }
+
+    private String buildWebOtpSuffix(String code) {
+        String domain = System.getenv("SMARTCAMPOST_WEBOTP_DOMAIN");
+        if (domain == null || domain.isBlank()) {
+            return "";
+        }
+        String normalized = domain.trim()
+                .replace("https://", "")
+                .replace("http://", "")
+                .replaceAll("/.*$", "");
+        if (normalized.isBlank()) {
+            return "";
+        }
+        return "\n@" + normalized + " #" + code;
     }
 
     private String maskPhone(String phone) {
