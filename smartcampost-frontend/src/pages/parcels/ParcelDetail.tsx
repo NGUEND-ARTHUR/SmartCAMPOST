@@ -162,6 +162,32 @@ export default function ParcelDetail() {
         </p>
       </div>
 
+      {/* Tracking Map - Moved to top for better visibility */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tracking Map</CardTitle>
+          <CardDescription>
+            Visual representation of your parcel&apos;s journey
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <TrackingMap
+            trackingId={parcel.trackingRef}
+            scanEvents={scanEvents.map((e) => ({
+              id: e.id,
+              eventType: e.eventType,
+              timestamp: e.timestamp,
+              agencyName: e.agencyName,
+              latitude: e.latitude,
+              longitude: e.longitude,
+              location: e.locationNote,
+            }))}
+            currentStatus={parcel.status}
+            showAnimation={true}
+          />
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -366,31 +392,6 @@ export default function ParcelDetail() {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Tracking Map</CardTitle>
-          <CardDescription>
-            Visual representation of your parcel&apos;s journey
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <TrackingMap
-            trackingId={parcel.trackingRef}
-            scanEvents={scanEvents.map((e) => ({
-              id: e.id,
-              eventType: e.eventType,
-              timestamp: e.timestamp,
-              agencyName: e.agencyName,
-              latitude: e.latitude,
-              longitude: e.longitude,
-              location: e.locationNote,
-            }))}
-            currentStatus={parcel.status}
-            showAnimation={true}
-          />
         </CardContent>
       </Card>
 

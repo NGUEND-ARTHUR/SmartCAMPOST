@@ -213,38 +213,38 @@ export function ParcelList() {
                         {new Date(parcel.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            navigate(`/client/parcels/${parcel.id}`)
-                          }
-                        >
-                          {t("parcelList.actions.viewDetails")}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            navigate(`/client/parcels/${parcel.id}#tracking`)
-                          }
-                        >
-                          {t("parcelList.actions.track")}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            window.open(
-                              `/client/parcels/${parcel.id}?print=label`,
-                              "_blank",
-                            )
-                          }
-                        >
-                          {t("parcelList.actions.printLabel")}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              navigate(`/client/parcels/${parcel.id}`)
+                            }
+                          >
+                            {t("parcelList.actions.viewDetails")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              navigate(`/client/parcels/${parcel.id}#tracking`)
+                            }
+                          >
+                            {t("parcelList.actions.track")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              window.open(
+                                `/client/parcels/${parcel.id}?print=label`,
+                                "_blank",
+                              )
+                            }
+                          >
+                            {t("parcelList.actions.printLabel")}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
