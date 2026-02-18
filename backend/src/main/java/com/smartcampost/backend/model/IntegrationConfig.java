@@ -15,26 +15,23 @@ import java.util.UUID;
 public class IntegrationConfig {
 
     @Id
-    @Column(name = "config_id", columnDefinition = "BINARY(16)")
+    @Column(name = "integration_id", columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 50)
+    @Column(name = "integration_type", nullable = false, length = 50)
     private IntegrationType type; // SMS, EMAIL, PAYMENT_GATEWAY...
 
     @Column(name = "provider_name", nullable = false, length = 100)
     private String providerName;
 
-    @Column(name = "api_key", length = 500)
+    @Column(name = "api_key", length = 255)
     private String apiKey;
 
-    @Column(name = "api_secret", length = 500)
-    private String apiSecret;
-
-    @Column(name = "endpoint_url", length = 500)
+    @Column(name = "base_url", length = 255)
     private String endpointUrl;
 
-    @Column(name = "enabled", nullable = false)
+    @Column(name = "active", nullable = false)
     private boolean enabled;
 
     @Column(name = "created_at", nullable = false, updatable = false)
