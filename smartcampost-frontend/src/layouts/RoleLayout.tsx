@@ -13,6 +13,7 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/client", labelKey: "nav.dashboard" },
     { to: "/client/parcels", labelKey: "nav.myParcels" },
     { to: "/client/map", labelKey: "nav.map" },
+    { to: "/client/tracking", labelKey: "nav.tracking" },
     { to: "/client/pickups", labelKey: "nav.pickups" },
     { to: "/client/payments", labelKey: "nav.payments" },
     { to: "/client/support", labelKey: "nav.support" },

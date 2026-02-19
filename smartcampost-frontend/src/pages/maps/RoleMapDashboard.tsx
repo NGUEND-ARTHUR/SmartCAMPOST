@@ -111,7 +111,7 @@ async function extractParcelMarker(
       return {
         id: parcelMap.parcelId,
         position: [cityCoords.lat, cityCoords.lng],
-        label: `� ${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"} (${fallbackData.senderCity})`,
+        label: `📦 ${parcelMap.trackingNumber ?? parcelMap.parcelId} • ${parcelMap.status ?? "UNKNOWN"} (${fallbackData.senderCity})`,
       };
     }
   }
@@ -311,7 +311,10 @@ export default function RoleMapDashboard() {
             Refresh
           </Button>
           {role === "CLIENT" && (
-            <Button variant="outline" onClick={() => navigate("/tracking")}>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/client/tracking")}
+            >
               {t("nav.tracking")}
             </Button>
           )}
@@ -367,11 +370,10 @@ export default function RoleMapDashboard() {
               </CardTitle>
               <Badge variant="secondary">{markers.length} markers</Badge>
             </CardHeader>
-            <CardContent>
-              {markers.length > 0 ? (
-                <LeafletMap markers={markers} height="62vh" />
-              ) : (
-                <div className="text-sm text-muted-foreground py-10 text-center">
+            <CardContent className="space-y-3">
+              <LeafletMap markers={markers} height="62vh" />
+              {markers.length === 0 && (
+                <div className="text-sm text-muted-foreground text-center">
                   No GPS map data available yet. Scan events and geolocation
                   updates will appear here.
                 </div>

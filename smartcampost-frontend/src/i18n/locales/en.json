@@ -58,7 +58,9 @@
     "update": "Update",
     "refresh": "Refresh",
     "noResults": "No results found",
-    "selectAll": "Select All"
+    "selectAll": "Select All",
+    "pageOf": "Page {{page}} of {{total}}",
+    "errorOccurred": "An error occurred"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -578,11 +580,65 @@
   },
   "support": {
     "title": "Support",
+    "subtitle": "Create and manage your support tickets.",
+    "add": "New ticket",
+
     "createTicket": "Create Ticket",
     "ticketSubject": "Subject",
     "ticketMessage": "Message",
     "ticketPriority": "Priority",
+
+    "create": {
+      "title": "Create a support ticket",
+      "subtitle": "Describe your issue and our team will respond.",
+      "action": "Create ticket",
+      "creating": "Creating...",
+      "success": "Ticket created",
+      "error": "Failed to create ticket"
+    },
+
+    "form": {
+      "requiredFields": "Please fill in all required fields.",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "parcel": "Parcel (optional)",
+      "parcelPlaceholder": "Select a parcel",
+      "subject": "Subject",
+      "subjectPlaceholder": "Short summary of your issue",
+      "description": "Description",
+      "descriptionPlaceholder": "Explain your issue with as much detail as possible"
+    },
+
+    "category": {
+      "delivery": "Delivery",
+      "payment": "Payment",
+      "damaged": "Damaged parcel",
+      "lost": "Lost parcel",
+      "other": "Other"
+    },
+
+    "stats": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "total": "Total"
+    },
+
+    "list": {
+      "searchPlaceholder": "Search by subject or ticket ID...",
+      "statusPlaceholder": "Status",
+      "errorTitle": "Unable to load tickets",
+      "emptyTitle": "No tickets",
+      "emptyDefault": "You haven't created any support tickets yet.",
+      "emptyFiltered": "No tickets match your search.",
+      "createAction": "Create a ticket",
+      "ticketId": "Ticket #{{id}}",
+      "created": "Created",
+      "viewDetails": "View details"
+    },
+
     "status": {
+      "all": "All",
       "open": "Open",
       "inProgress": "In Progress",
       "resolved": "Resolved",

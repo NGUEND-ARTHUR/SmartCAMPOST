@@ -129,7 +129,7 @@ export function CreateParcel() {
           <CardDescription>{t("parcels.create.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {addressesError && (
+          {Boolean(addressesError) && (
             <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg dark:bg-red-900/30 dark:text-red-400">
               <p className="font-semibold">Error loading addresses</p>
               <p className="text-sm">

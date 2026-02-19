@@ -58,7 +58,9 @@
     "update": "Mettre à jour",
     "refresh": "Rafraîchir",
     "noResults": "Aucun résultat trouvé",
-    "selectAll": "Tout sélectionner"
+    "selectAll": "Tout sélectionner",
+    "pageOf": "Page {{page}} sur {{total}}",
+    "errorOccurred": "Une erreur s'est produite"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -578,13 +580,67 @@
   },
   "support": {
     "title": "Support",
+    "subtitle": "Créez et gérez vos tickets de support.",
+    "add": "Nouveau ticket",
+
     "createTicket": "Créer un Ticket",
     "ticketSubject": "Sujet",
     "ticketMessage": "Message",
     "ticketPriority": "Priorité",
+
+    "create": {
+      "title": "Créer un ticket de support",
+      "subtitle": "Décrivez votre problème et notre équipe vous répondra.",
+      "action": "Créer le ticket",
+      "creating": "Création...",
+      "success": "Ticket créé",
+      "error": "Échec de la création du ticket"
+    },
+
+    "form": {
+      "requiredFields": "Veuillez remplir tous les champs requis.",
+      "category": "Catégorie",
+      "categoryPlaceholder": "Choisir une catégorie",
+      "parcel": "Colis (optionnel)",
+      "parcelPlaceholder": "Choisir un colis",
+      "subject": "Sujet",
+      "subjectPlaceholder": "Résumé court de votre problème",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez votre problème avec le plus de détails possible"
+    },
+
+    "category": {
+      "delivery": "Livraison",
+      "payment": "Paiement",
+      "damaged": "Colis endommagé",
+      "lost": "Colis perdu",
+      "other": "Autre"
+    },
+
+    "stats": {
+      "open": "Ouverts",
+      "inProgress": "En cours",
+      "resolved": "Résolus",
+      "total": "Total"
+    },
+
+    "list": {
+      "searchPlaceholder": "Rechercher par sujet ou ID du ticket...",
+      "statusPlaceholder": "Statut",
+      "errorTitle": "Impossible de charger les tickets",
+      "emptyTitle": "Aucun ticket",
+      "emptyDefault": "Vous n'avez pas encore créé de ticket de support.",
+      "emptyFiltered": "Aucun ticket ne correspond à votre recherche.",
+      "createAction": "Créer un ticket",
+      "ticketId": "Ticket #{{id}}",
+      "created": "Créé",
+      "viewDetails": "Voir les détails"
+    },
+
     "status": {
+      "all": "Tous",
       "open": "Ouvert",
-      "inProgress": "En Cours",
+      "inProgress": "En cours",
       "resolved": "Résolu",
       "closed": "Fermé"
     },
