@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Payment } from "@/types";
 import { receiptService } from "@/services/payments/receipts.api";
 import { usePayments } from "@/hooks";
 
@@ -126,8 +125,8 @@ export default function ClientPayments() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {p.createdAt
-                            ? new Date(p.createdAt).toLocaleString()
+                          {p.timestamp
+                            ? new Date(p.timestamp).toLocaleString()
                             : "—"}
                         </TableCell>
                         <TableCell>

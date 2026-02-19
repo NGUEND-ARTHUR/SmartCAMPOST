@@ -9,8 +9,11 @@
   ],
   "routes": [
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/smartcampost-frontend/dist/$1"
+      "dest": "/smartcampost-frontend/dist/index.html"
     }
   ]
 }

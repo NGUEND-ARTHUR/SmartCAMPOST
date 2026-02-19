@@ -59,12 +59,19 @@ const priorityColors: Record<TicketPriority, string> = {
 
 export default function Support() {
   const { t } = useTranslation();
-  const categoryLabels: Record<string, string> = {
+  const categoryLabels: Record<TicketCategory, string> = {
     DELIVERY: t("support.category.delivery"),
     PAYMENT: t("support.category.payment"),
     DAMAGED: t("support.category.damaged"),
     LOST: t("support.category.lost"),
     OTHER: t("support.category.other"),
+  };
+
+  const statusLabelKey: Record<TicketStatus, string> = {
+    OPEN: "open",
+    IN_PROGRESS: "inProgress",
+    RESOLVED: "resolved",
+    CLOSED: "closed",
   };
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -366,14 +373,14 @@ export default function Support() {
                 {filteredTickets.map((ticket) => (
                   <Card key={ticket.id}>
                     <CardContent className="pt-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex gap-4 flex-1">
-                          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                            <MessageSquare className="w-6 h-6 text-blue-600" />
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div className="flex gap-4 flex-1 min-w-0">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <MessageSquare className="w-6 h-6" />
                           </div>
-                          <div className="flex-1 space-y-2">
+                          <div className="flex-1 space-y-2 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-semibold">
+                              <h3 className="font-semibold wrap-break-word">
                                 {ticket.subject}
                               </h3>
                               <Badge
@@ -382,12 +389,12 @@ export default function Support() {
                                 }
                               >
                                 {t(
-                                  `support.status.${ticket.status.replace("_", "").toLowerCase()}`,
+                                  `support.status.${statusLabelKey[ticket.status as TicketStatus]}`,
                                 )}
                               </Badge>
                               <Badge variant="outline">
                                 {ticket.category
-                                  ? categoryLabels[ticket.category]
+                                  ? categoryLabels[ticket.category as TicketCategory]
                                   : ""}
                               </Badge>
                             </div>
@@ -409,9 +416,11 @@ export default function Support() {
                             </div>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
-                          {t("support.list.viewDetails")}
-                        </Button>
+                        <div className="shrink-0">
+                          <Button variant="outline" size="sm">
+                            {t("support.list.viewDetails")}
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

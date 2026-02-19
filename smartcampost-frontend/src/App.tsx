@@ -95,6 +95,7 @@ function App() {
           <Route path="pickups" element={<Pickups />} />
           <Route path="payments" element={<ClientPayments />} />
           <Route path="map" element={<RoleMapDashboard />} />
+          <Route path="tracking" element={<TrackingPage />} />
           <Route path="support" element={<Support />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
