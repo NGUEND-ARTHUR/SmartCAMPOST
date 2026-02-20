@@ -446,7 +446,16 @@
           "evening": "Evening (15:00 - 18:00)"
         },
         "instructions": "Additional Instructions (Optional)",
-        "instructionsPlaceholder": "Any special instructions for the courier..."
+        "instructionsPlaceholder": "Any special instructions for the courier...",
+        "manualOverride": "Manual location override",
+        "chooseOnMap": "Choose on map",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "extraFee": "Extra pickup fee",
+        "locationPicker": {
+          "title": "Choose pickup location",
+          "description": "Search a place or click on the map to pick the exact pickup point"
+        }
       },
       "toasts": {
         "requiredFields": "Please fill in all required fields",

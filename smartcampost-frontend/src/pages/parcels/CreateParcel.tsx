@@ -377,6 +377,27 @@ export function CreateParcel() {
                     </TabsContent>
                   </Tabs>
                 </div>
+
+                <Card className="bg-muted">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Delivery rates</CardTitle>
+                    <CardDescription>
+                      Agency pickup is free. Home delivery has an extra fee.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Agency pickup</span>
+                        <span>0 XAF</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Home delivery</span>
+                        <span>+ 500 XAF</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
 

@@ -446,7 +446,16 @@
           "evening": "Soir (15:00 - 18:00)"
         },
         "instructions": "Instructions supplémentaires (optionnel)",
-        "instructionsPlaceholder": "Instructions particulières pour le coursier..."
+        "instructionsPlaceholder": "Instructions particulières pour le coursier...",
+        "manualOverride": "Choisir manuellement l’emplacement",
+        "chooseOnMap": "Choisir sur la carte",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "extraFee": "Frais extra de collecte",
+        "locationPicker": {
+          "title": "Choisir le point de collecte",
+          "description": "Recherchez un lieu ou cliquez sur la carte pour définir le point exact"
+        }
       },
       "toasts": {
         "requiredFields": "Veuillez remplir tous les champs requis",
