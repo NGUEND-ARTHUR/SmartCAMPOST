@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  MapContainer,
-  TileLayer,
   Marker,
   Popup,
   useMap,
@@ -9,6 +7,8 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+import { CameroonMap } from "@/components/maps/core/CameroonMap";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -27,6 +27,8 @@ export type MapProps = {
   height?: string;
   markers?: Array<{ id: string; position: [number, number]; label?: string }>;
   showCircle?: { center: [number, number]; radius: number } | null;
+  showSearch?: boolean;
+  showControls?: boolean;
 };
 
 function FitBounds({ markers }: { markers?: MapProps["markers"] }) {
@@ -45,25 +47,26 @@ export default function LeafletMap({
   height = "400px",
   markers = [],
   showCircle = null,
+  showSearch = false,
+  showControls = true,
 }: MapProps) {
   return (
-    <div className="w-full rounded overflow-hidden">
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        style={{ height, width: "100%" }}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {markers.map((m) => (
-          <Marker key={m.id} position={m.position}>
-            <Popup>{m.label ?? m.id}</Popup>
-          </Marker>
-        ))}
-        {showCircle && (
-          <Circle center={showCircle.center} radius={showCircle.radius} />
-        )}
-        <FitBounds markers={markers} />
-      </MapContainer>
-    </div>
+    <CameroonMap
+      center={center}
+      zoom={zoom}
+      height={height}
+      showSearch={showSearch}
+      showControls={showControls}
+    >
+      {markers.map((m) => (
+        <Marker key={m.id} position={m.position}>
+          <Popup>{m.label ?? m.id}</Popup>
+        </Marker>
+      ))}
+      {showCircle && (
+        <Circle center={showCircle.center} radius={showCircle.radius} />
+      )}
+      <FitBounds markers={markers} />
+    </CameroonMap>
   );
 }

@@ -13,7 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
-import { geolocationService } from "@/services/common/geolocation.api";
+import {
+  geolocationService,
+  type GeoSearchResult,
+} from "@/services/common/geolocation.api";
 import { toast } from "sonner";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -98,6 +101,8 @@ export default function LocationPicker({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResultLabel, setSearchResultLabel] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<GeoSearchResult[]>([]);
+  const [isResultsOpen, setIsResultsOpen] = useState(false);
 
   // Current position for map center
   const currentPosition: [number, number] = useMemo(() => {
@@ -229,26 +234,29 @@ export default function LocationPicker({
 
     setIsSearching(true);
     try {
-      const result = await geolocationService.geocode({
-        address: query,
-        country: "Cameroon",
-      });
+      const results = await geolocationService.search({ query, limit: 6 });
+      const filtered = restrictToCameroon
+        ? results.filter((r) =>
+            cameroonBounds.contains(L.latLng(r.latitude, r.longitude)),
+          )
+        : results;
 
-      if (
-        restrictToCameroon &&
-        !cameroonBounds.contains(L.latLng(result.latitude, result.longitude))
-      ) {
-        toast.error("Search result is outside Cameroon");
-        setIsSearching(false);
+      setSearchResults(filtered);
+      setIsResultsOpen(true);
+
+      if (filtered.length === 0) {
+        toast.error("No results found");
         return;
       }
 
+      // Auto-select the top result for speed (user can still pick another)
+      const top = filtered[0];
       setIsFollowingUser(false);
       stopFollowingUser();
-      onLocationChange(result.latitude, result.longitude);
-      setManualLat(String(result.latitude));
-      setManualLng(String(result.longitude));
-      setSearchResultLabel(result.formattedAddress || null);
+      onLocationChange(top.latitude, top.longitude);
+      setManualLat(String(top.latitude));
+      setManualLng(String(top.longitude));
+      setSearchResultLabel(top.displayName || null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Search failed");
     } finally {
@@ -261,6 +269,59 @@ export default function LocationPicker({
     searchQuery,
     stopFollowingUser,
   ]);
+
+  // Debounced search suggestions
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!allowSearch) return;
+    if (q.length < 2) {
+      setSearchResults([]);
+      setIsResultsOpen(false);
+      return;
+    }
+
+    const id = window.setTimeout(async () => {
+      try {
+        const results = await geolocationService.search({ query: q, limit: 6 });
+        const filtered = restrictToCameroon
+          ? results.filter((r) =>
+              cameroonBounds.contains(L.latLng(r.latitude, r.longitude)),
+            )
+          : results;
+        setSearchResults(filtered);
+        setIsResultsOpen(true);
+      } catch {
+        // ignore background suggestion failures
+      }
+    }, 350);
+
+    return () => window.clearTimeout(id);
+  }, [allowSearch, cameroonBounds, restrictToCameroon, searchQuery]);
+
+  const selectSearchResult = useCallback(
+    (r: GeoSearchResult) => {
+      if (
+        restrictToCameroon &&
+        !cameroonBounds.contains(L.latLng(r.latitude, r.longitude))
+      ) {
+        toast.error("Please select a location within Cameroon");
+        return;
+      }
+      setIsFollowingUser(false);
+      stopFollowingUser();
+      onLocationChange(r.latitude, r.longitude);
+      setManualLat(String(r.latitude));
+      setManualLng(String(r.longitude));
+      setSearchResultLabel(r.displayName || null);
+      setIsResultsOpen(false);
+    },
+    [
+      cameroonBounds,
+      onLocationChange,
+      restrictToCameroon,
+      stopFollowingUser,
+    ],
+  );
 
   // Handle manual coordinate input
   const handleApplyCoordinates = () => {
@@ -303,34 +364,73 @@ export default function LocationPicker({
           {allowSearch && (
             <div className="space-y-2">
               <Label htmlFor="location-search">Search on map</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="location-search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Neighborhood, city, region, landmark..."
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      void handleSearch();
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => void handleSearch()}
-                  disabled={isSearching || !searchQuery.trim()}
-                >
-                  {isSearching ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Searching...
-                    </>
-                  ) : (
-                    "Search"
-                  )}
-                </Button>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <Input
+                    id="location-search"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setIsResultsOpen(true);
+                    }}
+                    placeholder="Neighborhood, city, region, landmark, building..."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void handleSearch();
+                      }
+                      if (e.key === "Escape") {
+                        setIsResultsOpen(false);
+                      }
+                    }}
+                    onFocus={() => {
+                      if (searchResults.length > 0) setIsResultsOpen(true);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => void handleSearch()}
+                    disabled={isSearching || !searchQuery.trim()}
+                  >
+                    {isSearching ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Searching...
+                      </>
+                    ) : (
+                      "Search"
+                    )}
+                  </Button>
+                </div>
+
+                {isResultsOpen && searchResults.length > 0 && (
+                  <div className="absolute z-50 mt-2 w-full rounded-md border bg-card shadow">
+                    <div className="max-h-60 overflow-auto">
+                      {searchResults.map((r, idx) => (
+                        <button
+                          key={`${r.latitude}-${r.longitude}-${idx}`}
+                          type="button"
+                          className="w-full px-3 py-2 text-left hover:bg-muted transition-colors"
+                          onClick={() => selectSearchResult(r)}
+                        >
+                          <div className="text-sm font-medium">
+                            {r.displayName ||
+                              [r.city, r.state, r.country]
+                                .filter(Boolean)
+                                .join(", ") ||
+                              "Result"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {[r.type, r.category]
+                              .filter(Boolean)
+                              .join(" • ")}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               {searchResultLabel && (
                 <p className="text-xs text-muted-foreground">

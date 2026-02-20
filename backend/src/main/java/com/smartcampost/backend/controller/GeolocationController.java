@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/geo")
 @RequiredArgsConstructor
@@ -18,6 +20,13 @@ public class GeolocationController {
             @Valid @RequestBody GeocodeRequest request
     ) {
         return ResponseEntity.ok(geolocationService.geocode(request));
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<GeoSearchResult>> search(
+            @Valid @RequestBody GeoSearchRequest request
+    ) {
+        return ResponseEntity.ok(geolocationService.search(request));
     }
 
     @PostMapping("/route-eta")
