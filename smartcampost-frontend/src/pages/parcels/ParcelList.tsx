@@ -31,7 +31,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import NotificationsDrawer from "@/components/NotificationsDrawer";
-import { exportToCsv } from "@/lib/exportCsv";
+import { exportToCsv, exportToJson, exportToPdf, exportToXlsx } from "@/lib/exportCsv";
 import { useMyParcels } from "@/hooks";
 
 export function ParcelList() {
@@ -40,6 +40,11 @@ export function ParcelList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [page, setPage] = useState(0);
+  const [exportFormat, setExportFormat] = useState<
+    "CSV" | "JSON" | "XLSX" | "PDF"
+  >(
+    "CSV",
+  );
 
   const { data, isLoading, error } = useMyParcels(page, 20);
 
@@ -64,21 +69,51 @@ export function ParcelList() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationsDrawer />
+          <Select
+            value={exportFormat}
+            onValueChange={(value: string) =>
+              setExportFormat(value as "CSV" | "JSON" | "XLSX" | "PDF")
+            }
+          >
+            <SelectTrigger className="w-28" title="Export format">
+              <SelectValue placeholder="CSV" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="CSV">CSV</SelectItem>
+              <SelectItem value="JSON">JSON</SelectItem>
+              <SelectItem value="XLSX">XLSX</SelectItem>
+              <SelectItem value="PDF">PDF</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             variant="ghost"
-            onClick={() =>
-              exportToCsv(
-                "parcels_export.csv",
-                filteredParcels.map((p) => ({
-                  id: p.id,
-                  trackingRef: p.trackingRef,
-                  status: p.status,
-                  serviceType: p.serviceType,
-                  deliveryOption: p.deliveryOption,
-                  createdAt: p.createdAt,
-                })),
-              )
-            }
+            onClick={async () => {
+              const rows = filteredParcels.map((p) => ({
+                id: p.id,
+                trackingRef: p.trackingRef,
+                status: p.status,
+                serviceType: p.serviceType,
+                deliveryOption: p.deliveryOption,
+                createdAt: p.createdAt,
+              }));
+
+              if (exportFormat === "JSON") {
+                exportToJson("parcels_export.json", rows);
+                return;
+              }
+
+              if (exportFormat === "XLSX") {
+                await exportToXlsx("parcels_export.xlsx", rows, "parcels");
+                return;
+              }
+
+              if (exportFormat === "PDF") {
+                await exportToPdf("parcels_export.pdf", rows, "Parcels Export");
+                return;
+              }
+
+              exportToCsv("parcels_export.csv", rows);
+            }}
           >
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -237,7 +272,7 @@ export function ParcelList() {
                             size="sm"
                             onClick={() =>
                               window.open(
-                                `/client/parcels/${parcel.id}?print=label`,
+                                `/client/parcels/${parcel.id}/print-label`,
                                 "_blank",
                               )
                             }

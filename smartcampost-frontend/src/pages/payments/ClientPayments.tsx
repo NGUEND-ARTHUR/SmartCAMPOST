@@ -144,6 +144,9 @@ export default function ClientPayments() {
                                   const w = window.open("", "_blank");
                                   if (!w)
                                     return alert("Unable to open print window");
+                                  const currency = p.currency || "XAF";
+                                  const amount =
+                                    receipt.totalAmount ?? p.amount ?? 0;
                                   const html = `
                                 <html>
                                 <head>
@@ -156,18 +159,26 @@ export default function ClientPayments() {
                                   <p><strong>Delivered At:</strong> ${receipt.deliveredAt || ""}</p>
                                   <p><strong>Receiver:</strong> ${receipt.receiverName || ""}</p>
                                   <p><strong>Courier:</strong> ${receipt.courierName || ""}</p>
-                                  <p><strong>Amount:</strong> ${receipt.totalAmount ?? 0} ${"XAF"}</p>
+                                  <p><strong>Amount:</strong> ${amount} ${currency}</p>
                                   <p><strong>Payment method:</strong> ${receipt.paymentMethod || ""}</p>
                                   <hr />
                                   <p>Generated: ${receipt.generatedAt || ""}</p>
-                                  ${receipt.pdfUrl ? `<p><a href="${receipt.pdfUrl}" target="_blank">Open PDF</a></p>` : ""}
+                                  ${receipt.pdfUrl ? `<p><a href="${receipt.pdfUrl}" target="_blank" rel="noopener noreferrer">Open PDF</a></p>` : ""}
                                 </body>
                                 </html>
                               `;
                                   w.document.open();
                                   w.document.write(html);
                                   w.document.close();
-                                  w.print();
+                                  w.focus();
+                                  // Small delay helps avoid blank printouts in some browsers.
+                                  setTimeout(() => {
+                                    try {
+                                      w.print();
+                                    } catch {
+                                      // ignore
+                                    }
+                                  }, 250);
                                 } catch (err: unknown) {
                                   const msg =
                                     (err as { message?: string } | undefined)
