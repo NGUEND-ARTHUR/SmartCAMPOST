@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -35,10 +35,16 @@ export default function PrintLabelPage() {
   const { parcelId } = useParams<{ parcelId: string }>();
   const [label, setLabel] = useState<QrLabelData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [qrLoaded, setQrLoaded] = useState(false);
+  const hasPrintedRef = useRef(false);
 
   useEffect(() => {
     if (!parcelId) return;
     let mounted = true;
+
+    setQrLoaded(false);
+    hasPrintedRef.current = false;
+    setLabel(null);
 
     const fetchLabel = async () => {
       try {
@@ -60,6 +66,23 @@ export default function PrintLabelPage() {
       mounted = false;
     };
   }, [parcelId, t]);
+
+  useEffect(() => {
+    if (!label) return;
+    if (!qrLoaded) return;
+    if (hasPrintedRef.current) return;
+    hasPrintedRef.current = true;
+
+    const id = window.setTimeout(() => {
+      try {
+        window.print();
+      } catch {
+        // ignore
+      }
+    }, 300);
+
+    return () => window.clearTimeout(id);
+  }, [label, qrLoaded]);
 
   if (loading) {
     return (
@@ -93,6 +116,7 @@ export default function PrintLabelPage() {
               src={`data:image/png;base64,${label.qrCodeImage}`}
               alt="QR Code"
               className="mx-auto mb-2 w-[150px] h-[150px]"
+              onLoad={() => setQrLoaded(true)}
             />
             <div className="text-center font-mono text-sm font-bold mb-2">
               {label.trackingRef}

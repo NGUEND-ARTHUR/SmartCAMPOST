@@ -230,6 +230,56 @@
       "flaggedTransactions": "Flagged Transactions"
     }
   },
+  "parcelList": {
+    "title": "My Parcels",
+    "subtitle": "Track and manage your parcels",
+    "createParcel": "Create Parcel",
+    "searchPlaceholder": "Search by tracking number...",
+    "filterByStatus": "Filter by status",
+    "status": {
+      "all": "All Status",
+      "created": "Created",
+      "accepted": "Accepted",
+      "inTransit": "In Transit",
+      "arrivedHub": "Arrived at Hub",
+      "outForDelivery": "Out for Delivery",
+      "delivered": "Delivered",
+      "returned": "Returned",
+      "cancelled": "Cancelled"
+    },
+    "errorLoading": "Error loading parcels",
+    "noParcelsFound": "No parcels found",
+    "tryAdjustingSearch": "Try adjusting your search or filters",
+    "createFirstParcel": "Create your first parcel to get started",
+    "table": {
+      "tracking": "Tracking",
+      "service": "Service",
+      "delivery": "Delivery",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "actions": {
+      "viewDetails": "View details",
+      "track": "Track",
+      "printLabel": "Print QR"
+    }
+  },
+  "label": {
+    "print": {
+      "title": "Print QR Label",
+      "instructions": "The print dialog will open automatically.",
+      "loading": "Loading label...",
+      "notFound": "Label not found",
+      "error": "Failed to load label",
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "amount": "Amount",
+      "size": "Size",
+      "copies": "Copies",
+      "printedAt": "Printed at: {{date}}"
+    }
+  },
   "parcels": {
     "title": "Parcels",
     "createTitle": "Create New Parcel",

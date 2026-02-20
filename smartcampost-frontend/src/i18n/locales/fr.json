@@ -230,6 +230,56 @@
       "flaggedTransactions": "Transactions Signalées"
     }
   },
+  "parcelList": {
+    "title": "Mes Colis",
+    "subtitle": "Suivez et gérez vos colis",
+    "createParcel": "Créer un colis",
+    "searchPlaceholder": "Rechercher par numéro de suivi...",
+    "filterByStatus": "Filtrer par statut",
+    "status": {
+      "all": "Tous les statuts",
+      "created": "Créé",
+      "accepted": "Accepté",
+      "inTransit": "En transit",
+      "arrivedHub": "Arrivé au hub",
+      "outForDelivery": "En cours de livraison",
+      "delivered": "Livré",
+      "returned": "Retourné",
+      "cancelled": "Annulé"
+    },
+    "errorLoading": "Erreur lors du chargement des colis",
+    "noParcelsFound": "Aucun colis trouvé",
+    "tryAdjustingSearch": "Essayez d’ajuster votre recherche ou vos filtres",
+    "createFirstParcel": "Créez votre premier colis pour commencer",
+    "table": {
+      "tracking": "Suivi",
+      "service": "Service",
+      "delivery": "Livraison",
+      "status": "Statut",
+      "created": "Créé",
+      "actions": "Actions"
+    },
+    "actions": {
+      "viewDetails": "Voir détails",
+      "track": "Suivre",
+      "printLabel": "Imprimer QR"
+    }
+  },
+  "label": {
+    "print": {
+      "title": "Imprimer l’étiquette QR",
+      "instructions": "La fenêtre d’impression va s’ouvrir automatiquement.",
+      "loading": "Chargement de l’étiquette...",
+      "notFound": "Étiquette introuvable",
+      "error": "Échec du chargement de l’étiquette",
+      "sender": "Expéditeur",
+      "recipient": "Destinataire",
+      "amount": "Montant",
+      "size": "Taille",
+      "copies": "Copies",
+      "printedAt": "Imprimé le : {{date}}"
+    }
+  },
   "parcels": {
     "title": "Colis",
     "createTitle": "Créer un Nouveau Colis",

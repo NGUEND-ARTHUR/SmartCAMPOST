@@ -23,6 +23,7 @@ import { Login, LoginOtp, ResetPassword, Register } from "./pages/auth";
 // Client pages
 import { ClientDashboard } from "./pages/dashboard";
 import { ParcelList, CreateParcel, ParcelDetail } from "./pages/parcels";
+import PrintLabelPage from "./pages/parcels/PrintLabelPage";
 import { Pickups } from "./pages/pickups";
 import { Support } from "./pages/support";
 
@@ -79,6 +80,15 @@ function App() {
         <Route path="/auth/login-otp" element={<LoginOtp />} />
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/register" element={<Register />} />
+
+        <Route
+          path="/client/parcels/:parcelId/print-label"
+          element={
+            <ProtectedWrapper allowedRoles={["CLIENT"]}>
+              <PrintLabelPage />
+            </ProtectedWrapper>
+          }
+        />
 
         <Route
           path="/client"
