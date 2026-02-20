@@ -115,7 +115,7 @@ export default function PrintLabelPage() {
             <img
               src={`data:image/png;base64,${label.qrCodeImage}`}
               alt="QR Code"
-              className="mx-auto mb-2 w-[150px] h-[150px]"
+              className="mx-auto mb-2 w-37.5 h-37.5"
               onLoad={() => setQrLoaded(true)}
             />
             <div className="text-center font-mono text-sm font-bold mb-2">

@@ -29,6 +29,12 @@ export type MapProps = {
   showCircle?: { center: [number, number]; radius: number } | null;
 };
 
+// Cameroon bounding box (approx.)
+const CAMEROON_BOUNDS: L.LatLngBoundsExpression = [
+  [1.6, 8.4], // south-west
+  [13.2, 16.2], // north-east
+];
+
 function FitBounds({ markers }: { markers?: MapProps["markers"] }) {
   const map = useMap();
   React.useEffect(() => {
@@ -40,7 +46,7 @@ function FitBounds({ markers }: { markers?: MapProps["markers"] }) {
 }
 
 export default function LeafletMap({
-  center = [3.848, 11.5021],
+  center = [7.3697, 12.3547],
   zoom = 12,
   height = "400px",
   markers = [],
@@ -52,6 +58,8 @@ export default function LeafletMap({
         center={center}
         zoom={zoom}
         style={{ height, width: "100%" }}
+        maxBounds={CAMEROON_BOUNDS}
+        maxBoundsViscosity={1.0}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {markers.map((m) => (

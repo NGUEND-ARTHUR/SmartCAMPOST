@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { httpClient } from "@/services/apiClient";
 
 export interface AddressDto {
@@ -13,8 +13,11 @@ export interface AddressDto {
 }
 
 export function useMyAddresses() {
-  return useQuery<AddressDto[]>("myAddresses", async () => {
-    const res = await httpClient.get("/addresses/me");
-    return res as AddressDto[];
+  return useQuery({
+    queryKey: ["myAddresses"],
+    queryFn: async () => {
+      const res = await httpClient.get<AddressDto[]>("/addresses/me");
+      return res as AddressDto[];
+    },
   });
 }
