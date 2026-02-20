@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -13,7 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
-import { useTheme } from "@/theme/theme";
+import { geolocationService } from "@/services/common/geolocation.api";
+import { toast } from "sonner";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -32,6 +33,9 @@ interface LocationPickerProps {
   longitude: number | null;
   onLocationChange: (latitude: number, longitude: number) => void;
   onClose?: () => void;
+  allowManualInput?: boolean;
+  allowSearch?: boolean;
+  restrictToCameroon?: boolean;
 }
 
 // Component to handle map clicks
@@ -67,9 +71,7 @@ function SetViewOnMarker({
   const map = useMap();
 
   React.useEffect(() => {
-    if (center && center[0] && center[1]) {
-      map.setView(center, zoom, { animate: true });
-    }
+    map.setView(center, zoom, { animate: true });
   }, [center, zoom, map]);
 
   return null;
@@ -80,54 +82,185 @@ export default function LocationPicker({
   longitude,
   onLocationChange,
   onClose,
+  allowManualInput = true,
+  allowSearch = true,
+  restrictToCameroon = true,
 }: LocationPickerProps) {
   const [isLocating, setIsLocating] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
+  const hasWarnedOutsideRef = useRef(false);
+  const [isFollowingUser, setIsFollowingUser] = useState(
+    latitude == null || longitude == null,
+  );
+
   const [manualLat, setManualLat] = useState(latitude?.toString() || "");
   const [manualLng, setManualLng] = useState(longitude?.toString() || "");
-  const { resolvedTheme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResultLabel, setSearchResultLabel] = useState<string | null>(null);
 
   // Current position for map center
   const currentPosition: [number, number] = useMemo(() => {
-    if (latitude && longitude) {
+    if (latitude != null && longitude != null) {
       return [latitude, longitude];
     }
     // Default to Douala, Cameroon (major delivery hub)
     return [4.0511, 9.7679];
   }, [latitude, longitude]);
 
-  // Get device GPS location
+  const cameroonBounds = useMemo(() => {
+    // Approx Cameroon bounding box
+    const southWest = L.latLng(1.65, 8.4);
+    const northEast = L.latLng(13.1, 16.3);
+    return L.latLngBounds(southWest, northEast);
+  }, []);
+
+  const stopFollowingUser = useCallback(() => {
+    if (watchIdRef.current != null && typeof navigator !== "undefined") {
+      navigator.geolocation?.clearWatch?.(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+  }, []);
+
+  // Follow device GPS location in real-time (until user selects a point)
+  useEffect(() => {
+    if (!isFollowingUser) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+
+    stopFollowingUser();
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        if (restrictToCameroon && !cameroonBounds.contains(L.latLng(lat, lng))) {
+          if (!hasWarnedOutsideRef.current) {
+            hasWarnedOutsideRef.current = true;
+            toast.error("Your current location appears outside Cameroon");
+          }
+          setIsFollowingUser(false);
+          stopFollowingUser();
+          return;
+        }
+
+        onLocationChange(lat, lng);
+        setManualLat(String(lat));
+        setManualLng(String(lng));
+        setSearchResultLabel(null);
+      },
+      () => {
+        setIsFollowingUser(false);
+        stopFollowingUser();
+      },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
+    );
+
+    return () => {
+      stopFollowingUser();
+    };
+  }, [
+    cameroonBounds,
+    isFollowingUser,
+    onLocationChange,
+    restrictToCameroon,
+    stopFollowingUser,
+  ]);
+
+  // Get device GPS location (one-shot) + re-enable follow
   const getCurrentLocation = useCallback(() => {
     setIsLocating(true);
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          onLocationChange(lat, lng);
-          setManualLat(lat.toString());
-          setManualLng(lng.toString());
-          setIsLocating(false);
-        },
-        () => {
-          setIsLocating(false);
-          // Continue with map - user can click
-        },
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
-    } else {
+    hasWarnedOutsideRef.current = false;
+    setIsFollowingUser(true);
+
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
       setIsLocating(false);
+      return;
     }
-  }, [onLocationChange]);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        if (restrictToCameroon && !cameroonBounds.contains(L.latLng(lat, lng))) {
+          toast.error("Your current location appears outside Cameroon");
+          setIsFollowingUser(false);
+          stopFollowingUser();
+          setIsLocating(false);
+          return;
+        }
+
+        onLocationChange(lat, lng);
+        setManualLat(String(lat));
+        setManualLng(String(lng));
+        setSearchResultLabel(null);
+        setIsLocating(false);
+      },
+      () => {
+        setIsFollowingUser(false);
+        stopFollowingUser();
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }, [cameroonBounds, onLocationChange, restrictToCameroon, stopFollowingUser]);
 
   // Handle map click
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
+      setIsFollowingUser(false);
+      stopFollowingUser();
+      if (restrictToCameroon && !cameroonBounds.contains(L.latLng(lat, lng))) {
+        toast.error("Please select a location within Cameroon");
+        return;
+      }
       onLocationChange(lat, lng);
       setManualLat(lat.toString());
       setManualLng(lng.toString());
+      setSearchResultLabel(null);
     },
-    [onLocationChange],
+    [cameroonBounds, onLocationChange, restrictToCameroon, stopFollowingUser],
   );
+
+  const handleSearch = useCallback(async () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    setIsSearching(true);
+    try {
+      const result = await geolocationService.geocode({
+        address: query,
+        country: "Cameroon",
+      });
+
+      if (
+        restrictToCameroon &&
+        !cameroonBounds.contains(L.latLng(result.latitude, result.longitude))
+      ) {
+        toast.error("Search result is outside Cameroon");
+        setIsSearching(false);
+        return;
+      }
+
+      setIsFollowingUser(false);
+      stopFollowingUser();
+      onLocationChange(result.latitude, result.longitude);
+      setManualLat(String(result.latitude));
+      setManualLng(String(result.longitude));
+      setSearchResultLabel(result.formattedAddress || null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Search failed");
+    } finally {
+      setIsSearching(false);
+    }
+  }, [
+    cameroonBounds,
+    onLocationChange,
+    restrictToCameroon,
+    searchQuery,
+    stopFollowingUser,
+  ]);
 
   // Handle manual coordinate input
   const handleApplyCoordinates = () => {
@@ -149,6 +282,8 @@ export default function LocationPicker({
       return;
     }
 
+    setIsFollowingUser(false);
+    stopFollowingUser();
     onLocationChange(lat, lng);
   };
 
@@ -165,11 +300,53 @@ export default function LocationPicker({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {allowSearch && (
+            <div className="space-y-2">
+              <Label htmlFor="location-search">Search on map</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="location-search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Neighborhood, city, region, landmark..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void handleSearch();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void handleSearch()}
+                  disabled={isSearching || !searchQuery.trim()}
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    "Search"
+                  )}
+                </Button>
+              </div>
+              {searchResultLabel && (
+                <p className="text-xs text-muted-foreground">
+                  Result: {searchResultLabel}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Map */}
           <div className="rounded-lg overflow-hidden border border-border">
             <MapContainer
               center={currentPosition}
               zoom={13}
+              maxBounds={restrictToCameroon ? cameroonBounds : undefined}
+              maxBoundsViscosity={restrictToCameroon ? 1.0 : undefined}
               style={{ height: "400px", width: "100%" }}
               className="rounded-lg"
             >
@@ -177,7 +354,7 @@ export default function LocationPicker({
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
-              {latitude && longitude && (
+              {latitude != null && longitude != null && (
                 <>
                   <Marker position={[latitude, longitude]}>
                     <Popup>
@@ -223,7 +400,7 @@ export default function LocationPicker({
           </div>
 
           {/* Current Coordinates Display */}
-          {latitude && longitude && (
+          {latitude != null && longitude != null && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm font-medium">Current Coordinates:</p>
               <p className="text-sm text-muted-foreground">
@@ -234,43 +411,45 @@ export default function LocationPicker({
           )}
 
           {/* Manual Coordinate Input */}
-          <div className="space-y-3 pt-4 border-t">
-            <p className="text-sm font-medium">
-              Or enter coordinates manually:
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="manual-lat">Latitude</Label>
-                <Input
-                  id="manual-lat"
-                  type="number"
-                  step="0.000001"
-                  placeholder="4.0511"
-                  value={manualLat}
-                  onChange={(e) => setManualLat(e.target.value)}
-                />
+          {allowManualInput && (
+            <div className="space-y-3 pt-4 border-t">
+              <p className="text-sm font-medium">
+                Or enter coordinates manually:
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="manual-lat">Latitude</Label>
+                  <Input
+                    id="manual-lat"
+                    type="number"
+                    step="0.000001"
+                    placeholder="4.0511"
+                    value={manualLat}
+                    onChange={(e) => setManualLat(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="manual-lng">Longitude</Label>
+                  <Input
+                    id="manual-lng"
+                    type="number"
+                    step="0.000001"
+                    placeholder="9.7679"
+                    value={manualLng}
+                    onChange={(e) => setManualLng(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="manual-lng">Longitude</Label>
-                <Input
-                  id="manual-lng"
-                  type="number"
-                  step="0.000001"
-                  placeholder="9.7679"
-                  value={manualLng}
-                  onChange={(e) => setManualLng(e.target.value)}
-                />
-              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleApplyCoordinates}
+                className="w-full"
+              >
+                Apply Coordinates
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleApplyCoordinates}
-              className="w-full"
-            >
-              Apply Coordinates
-            </Button>
-          </div>
+          )}
         </CardContent>
       </Card>
 

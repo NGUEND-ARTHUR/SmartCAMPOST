@@ -15,8 +15,8 @@ export interface AddressDto {
 export function useMyAddresses() {
   return useQuery({
     queryKey: ["myAddresses"],
-    queryFn: async () => {
-      const res = await httpClient.get<AddressDto[]>("/addresses/me");
+    queryFn: async (): Promise<AddressDto[]> => {
+      const res = await httpClient.get("/addresses/me");
       return res as AddressDto[];
     },
   });

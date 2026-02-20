@@ -34,6 +34,7 @@ import {
   useMyParcels,
   useGeolocation,
 } from "@/hooks";
+import LocationPicker from "@/components/maps/LocationPicker";
 
 const stateColors: Record<PickupState, string> = {
   REQUESTED: "bg-yellow-100 text-yellow-800",
@@ -46,6 +47,7 @@ export default function Pickups() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTimeWindow, setSelectedTimeWindow] = useState("");
@@ -54,6 +56,18 @@ export default function Pickups() {
   const [pickupLatitude, setPickupLatitude] = useState("");
   const [pickupLongitude, setPickupLongitude] = useState("");
   const [page, setPage] = useState(0);
+
+  const extraPickupFeeXaf = manualOverride ? 500 : 0;
+
+  const pickupLatValue = (() => {
+    const n = Number(pickupLatitude);
+    return Number.isFinite(n) ? n : null;
+  })();
+
+  const pickupLngValue = (() => {
+    const n = Number(pickupLongitude);
+    return Number.isFinite(n) ? n : null;
+  })();
 
   const { data, isLoading, error } = useMyPickups(page, 20);
   const { data: parcelsData } = useMyParcels(0, 100);
@@ -223,40 +237,102 @@ export default function Pickups() {
                   <Checkbox
                     id="manualOverride"
                     checked={manualOverride}
-                    onCheckedChange={setManualOverride}
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked === true;
+                      setManualOverride(isChecked);
+                      if (isChecked) {
+                        setIsLocationPickerOpen(true);
+                      } else {
+                        setPickupLatitude("");
+                        setPickupLongitude("");
+                      }
+                    }}
                     title="Manual location override"
                     aria-label="Manual location override"
                   />
                   <Label htmlFor="manualOverride">
-                    Manual location override
+                    {t("pickups.page.dialog.manualOverride")}
                   </Label>
                 </div>
+                {manualOverride && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setIsLocationPickerOpen(true)}
+                    className="w-full"
+                  >
+                    {t("pickups.page.dialog.chooseOnMap")}
+                  </Button>
+                )}
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <Label htmlFor="pickupLatitude">Latitude</Label>
+                    <Label htmlFor="pickupLatitude">
+                      {t("pickups.page.dialog.latitude")}
+                    </Label>
                     <Input
                       id="pickupLatitude"
                       value={pickupLatitude}
-                      onChange={(e) => setPickupLatitude(e.target.value)}
                       placeholder="e.g. 4.0511"
                       disabled={!manualOverride}
+                      readOnly
                       inputMode="decimal"
                       title="Pickup latitude"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="pickupLongitude">Longitude</Label>
+                    <Label htmlFor="pickupLongitude">
+                      {t("pickups.page.dialog.longitude")}
+                    </Label>
                     <Input
                       id="pickupLongitude"
                       value={pickupLongitude}
-                      onChange={(e) => setPickupLongitude(e.target.value)}
                       placeholder="e.g. 9.7679"
                       disabled={!manualOverride}
+                      readOnly
                       inputMode="decimal"
                       title="Pickup longitude"
                     />
                   </div>
                 </div>
+
+                <div className="flex justify-between text-sm rounded-md border border-border bg-muted px-3 py-2">
+                  <span className="text-muted-foreground">
+                    {t("pickups.page.dialog.extraFee")}
+                  </span>
+                  <span className="font-medium">
+                    {extraPickupFeeXaf.toLocaleString()} XAF
+                  </span>
+                </div>
+
+                <Dialog
+                  open={isLocationPickerOpen}
+                  onOpenChange={setIsLocationPickerOpen}
+                >
+                  <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {t("pickups.page.dialog.locationPicker.title")}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {t("pickups.page.dialog.locationPicker.description")}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-2">
+                      <LocationPicker
+                        latitude={pickupLatValue}
+                        longitude={pickupLngValue}
+                        onLocationChange={(lat, lng) => {
+                          setPickupLatitude(String(lat));
+                          setPickupLongitude(String(lng));
+                        }}
+                        onClose={() => setIsLocationPickerOpen(false)}
+                        allowManualInput={false}
+                        allowSearch={true}
+                        restrictToCameroon={true}
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
             <DialogFooter>
