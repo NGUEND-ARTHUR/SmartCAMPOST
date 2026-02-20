@@ -4,6 +4,8 @@
  * and full platform integration capability
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   MessageCircle,
   Send,
@@ -29,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 import { useAIChat } from "@/hooks/ai/useAI";
 import { useAuthStore } from "@/store/authStore"; // Use auth store for user role
 
@@ -305,12 +308,166 @@ export default function AIChatbot({
   onClose,
   userPhone,
 }: AIChatbotProps) {
+  const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const aiMutation = useAIChat();
   const { user } = useAuthStore(); // Get authenticated user and role
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+
+  const roleUpper = (user?.role ?? "CLIENT").toUpperCase();
+  const language: "en" | "fr" =
+    (i18n.resolvedLanguage || i18n.language || "en").toLowerCase() === "fr"
+      ? "fr"
+      : "en";
+
+  const roleBasePath = useCallback((): string | null => {
+    switch (roleUpper) {
+      case "CLIENT":
+        return "/client";
+      case "COURIER":
+        return "/courier";
+      case "AGENT":
+        return "/agent";
+      case "STAFF":
+        return "/staff";
+      case "ADMIN":
+        return "/admin";
+      case "FINANCE":
+        return "/finance";
+      case "RISK":
+        return "/risk";
+      default:
+        return null;
+    }
+  }, [roleUpper]);
+
+  const allowedActionTypes = useCallback((): Array<
+    "NAVIGATE" | "TRACK" | "CONTACT" | "CREATE_TICKET"
+  > => {
+    // Keep this intentionally conservative; expand later if needed.
+    if (!user) return ["TRACK", "CONTACT"];
+    if (roleUpper === "CLIENT") return ["NAVIGATE", "TRACK", "CREATE_TICKET"];
+    if (roleUpper === "COURIER" || roleUpper === "AGENT")
+      return ["NAVIGATE", "TRACK", "CONTACT"];
+    if (roleUpper === "STAFF" || roleUpper === "ADMIN")
+      return ["NAVIGATE", "TRACK", "CONTACT", "CREATE_TICKET"];
+    if (roleUpper === "FINANCE" || roleUpper === "RISK")
+      return ["NAVIGATE", "TRACK", "CONTACT"];
+    return ["TRACK", "CONTACT"];
+  }, [roleUpper, user]);
+
+  const buildAiContext = useCallback(
+    (query: string, recentMessages: Message[]): string => {
+      const base = roleBasePath();
+      const allowed = allowedActionTypes();
+
+      const history = recentMessages
+        .slice(-8)
+        .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+        .join("\n");
+
+      return [
+        "You are SmartBot, an AI assistant for the SmartCAMPOST logistics platform.",
+        `Answer in ${language === "fr" ? "French" : "English"}.`,
+        `User role: ${roleUpper}.`,
+        base ? `User base path: ${base}.` : "User is not authenticated.",
+        `Allowed actions: ${allowed.join(", ")}.`,
+        "When proposing actions, ONLY propose allowed actions.",
+        "If you need a tracking reference, ask for it.",
+        user?.name ? `User name: ${user.name}.` : undefined,
+        userPhone ? `User phone: ${userPhone}.` : undefined,
+        user?.email ? `User identifier/email: ${user.email}.` : undefined,
+        "Recent conversation:",
+        history || "(none)",
+        "User message:",
+        query,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    },
+    [
+      allowedActionTypes,
+      language,
+      roleBasePath,
+      roleUpper,
+      user?.email,
+      user?.name,
+      userPhone,
+    ],
+  );
+
+  const safeNavigate = useCallback(
+    (path: string) => {
+      if (!path || typeof path !== "string") return;
+      if (!path.startsWith("/")) return;
+
+      // Allow public tracking always
+      if (path.startsWith("/tracking")) {
+        navigate(path);
+        return;
+      }
+
+      const base = roleBasePath();
+      if (base && path.startsWith(base)) {
+        navigate(path);
+      }
+    },
+    [navigate, roleBasePath],
+  );
+
+  const executeAiAction = useCallback(
+    (action?: { type: string; payload: string }) => {
+      if (!action) return;
+      const allowed = allowedActionTypes();
+      if (!allowed.includes(action.type as any)) {
+        toast.error(
+          language === "fr"
+            ? "Action non autorisée pour votre rôle."
+            : "That action is not allowed for your role.",
+        );
+        return;
+      }
+
+      switch (action.type) {
+        case "NAVIGATE": {
+          safeNavigate(action.payload);
+          return;
+        }
+        case "TRACK": {
+          const ref = action.payload?.trim();
+          if (!ref) return;
+          const base = roleBasePath();
+          // Prefer role tracking page when available
+          if (base) safeNavigate(`${base}/tracking?ref=${encodeURIComponent(ref)}`);
+          else safeNavigate(`/tracking?ref=${encodeURIComponent(ref)}`);
+          return;
+        }
+        case "CREATE_TICKET": {
+          const base = roleBasePath();
+          if (base) safeNavigate(`${base}/support`);
+          return;
+        }
+        case "CONTACT": {
+          const base = roleBasePath();
+          if (base) safeNavigate(`${base}/support`);
+          else safeNavigate("/tracking");
+          return;
+        }
+        default:
+          return;
+      }
+    },
+    [
+      allowedActionTypes,
+      language,
+      roleBasePath,
+      safeNavigate,
+    ],
+  );
 
   // Generate role-specific welcome message and actions
   const getWelcomeContent = () => {
@@ -455,11 +612,15 @@ What can I help you with?`,
       setInputValue("");
       setIsTyping(true);
 
+      const recentForContext = [...messages, userMessage];
+      const aiContext = buildAiContext(query, recentForContext);
+
       // Try streaming endpoint first (progressive renderer)
       const payload = {
         message: query,
-        language: "en",
-        context: userPhone || user?.email || undefined,
+        sessionId,
+        language,
+        context: aiContext,
         // Pass user role for AI context awareness
         userRole: user?.role,
       };
@@ -524,9 +685,12 @@ What can I help you with?`,
 
         const aiResp = await aiMutation.mutateAsync({
           message: query,
-          language: "en",
-          context: userPhone || user?.email || undefined,
+          sessionId,
+          language,
+          context: aiContext,
         });
+
+        if (aiResp?.sessionId) setSessionId(aiResp.sessionId);
 
         const assistantMessage: Message = {
           id: `assistant-${Date.now()}`,
@@ -539,6 +703,11 @@ What can I help you with?`,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
+
+        // Execute action only if allowed for current role
+        if (aiResp?.action) {
+          executeAiAction(aiResp.action as any);
+        }
       } catch (err) {
         const assistantMessage: Message = {
           id: `assistant-${Date.now()}`,
@@ -554,7 +723,17 @@ What can I help you with?`,
         setIsTyping(false);
       }
     },
-    [inputValue, aiMutation, userPhone, user?.email, user?.role],
+    [
+      aiMutation,
+      buildAiContext,
+      executeAiAction,
+      inputValue,
+      language,
+      messages,
+      sessionId,
+      user?.role,
+      userPhone,
+    ],
   );
 
   const handleFeedback = (

@@ -4,8 +4,6 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import {
-  MapContainer,
-  TileLayer,
   Marker,
   Popup,
   Polyline,
@@ -19,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/theme/theme";
+import { CameroonMap } from "@/components/maps/core/CameroonMap";
+import { SmoothMarker } from "@/components/maps/core/SmoothMarker";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
@@ -45,17 +45,16 @@ const createIcon = (color: string, emoji: string) =>
       align-items: center;
       justify-content: center;
       font-size: 18px;
-      border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 2px solid hsl(var(--background));
     ">${emoji}</div>`,
     iconSize: [36, 36],
     iconAnchor: [18, 18],
   });
 
-const originIcon = createIcon("#22c55e", "📍");
-const destinationIcon = createIcon("#ef4444", "🏁");
-const parcelIcon = createIcon("#3b82f6", "📦");
-const transitIcon = createIcon("#f59e0b", "🚚");
+const originIcon = createIcon("hsl(var(--secondary))", "📍");
+const destinationIcon = createIcon("hsl(var(--destructive))", "🏁");
+const parcelIcon = createIcon("hsl(var(--primary))", "📦");
+const transitIcon = createIcon("hsl(var(--accent))", "🚚");
 
 interface ScanEvent {
   id: string;
@@ -90,61 +89,19 @@ function AnimatedView({
 }
 
 // Animated parcel marker that moves along the route
-function AnimatedParcelMarker({
-  positions,
-  isAnimating,
-  labels,
+function FollowPosition({
+  position,
+  enabled,
 }: {
-  positions: [number, number][];
-  isAnimating: boolean;
-  labels: {
-    yourParcel: string;
-    inTransit: string;
-  };
+  position: [number, number] | null;
+  enabled: boolean;
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const map = useMap();
-
   useEffect(() => {
-    if (!isAnimating || positions.length < 2) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => {
-        const next = prev + 1;
-        if (next >= positions.length) {
-          return 0; // Loop back
-        }
-        return next;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [isAnimating, positions.length]);
-
-  useEffect(() => {
-    if (positions[currentIndex]) {
-      map.panTo(positions[currentIndex], { animate: true, duration: 1 });
-    }
-  }, [currentIndex, positions, map]);
-
-  if (positions.length === 0) return null;
-
-  return (
-    <Marker
-      position={positions[currentIndex] || positions[0]}
-      icon={parcelIcon}
-    >
-      <Popup>
-        <div className="text-center">
-          <strong>📦 {labels.yourParcel}</strong>
-          <br />
-          <span className="text-sm text-muted-foreground">
-            {labels.inTransit}
-          </span>
-        </div>
-      </Popup>
-    </Marker>
-  );
+    if (!enabled || !position) return;
+    map.panTo(position, { animate: true, duration: 0.9 });
+  }, [enabled, map, position]);
+  return null;
 }
 
 export default function TrackingMap({
@@ -157,20 +114,8 @@ export default function TrackingMap({
   const { t } = useTranslation();
   const { resolvedTheme } = useTheme();
 
-  const tileConfig = useMemo(() => {
-    if (resolvedTheme === "dark") {
-      return {
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      };
-    }
-    return {
-      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    };
-  }, [resolvedTheme]);
+  // Keep resolvedTheme referenced (map tiles are handled in CameroonMap)
+  void resolvedTheme;
 
   // Convert scan events to positions
   const eventPositions: [number, number][] = useMemo(() => {
@@ -259,24 +204,22 @@ export default function TrackingMap({
       </CardHeader>
       <CardContent className="p-0">
         <div className="h-100 relative">
-          <MapContainer
+          <CameroonMap
             center={mapCenter}
             zoom={mapZoom}
-            className="h-full w-full z-0"
-            scrollWheelZoom={true}
+            height="100%"
+            showControls
+            showSearch={false}
+            className="rounded-none border-0"
           >
-            <TileLayer
-              attribution={tileConfig.attribution}
-              url={tileConfig.url}
-            />
-
             <AnimatedView center={mapCenter} zoom={mapZoom} />
+            <FollowPosition position={currentPosition} enabled={isAnimating} />
 
             {/* Route line */}
             {fullRoute.length >= 2 && (
               <Polyline
                 positions={fullRoute}
-                color="#3b82f6"
+                color="hsl(var(--primary))"
                 weight={4}
                 opacity={0.7}
                 dashArray="10, 10"
@@ -340,21 +283,14 @@ export default function TrackingMap({
                 </Marker>
               ))}
 
-            {/* Animated parcel marker */}
-            {isAnimating && fullRoute.length >= 2 && (
-              <AnimatedParcelMarker
-                positions={fullRoute}
-                isAnimating={isAnimating}
-                labels={{
-                  yourParcel: t("trackingMap.yourParcel"),
-                  inTransit: t("trackingMap.inTransit"),
-                }}
-              />
-            )}
-
-            {/* Current parcel position (when not animating) */}
-            {!isAnimating && currentPosition && (
-              <Marker position={currentPosition} icon={parcelIcon}>
+            {/* Smooth current parcel position (real-time) */}
+            {currentPosition && (
+              <SmoothMarker
+                position={currentPosition}
+                icon={parcelIcon}
+                enabled={isAnimating}
+                durationMs={900}
+              >
                 <Popup>
                   <div className="text-center">
                     <strong>📦 {t("trackingMap.currentLocation")}</strong>
@@ -362,9 +298,9 @@ export default function TrackingMap({
                     <Badge>{currentStatus}</Badge>
                   </div>
                 </Popup>
-              </Marker>
+              </SmoothMarker>
             )}
-          </MapContainer>
+          </CameroonMap>
 
           {/* Legend */}
           <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-1000 text-xs border border-border">

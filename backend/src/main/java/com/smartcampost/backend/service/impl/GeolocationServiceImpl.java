@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartcampost.backend.dto.geo.GeocodeRequest;
 import com.smartcampost.backend.dto.geo.GeocodeResponse;
+import com.smartcampost.backend.dto.geo.GeoSearchRequest;
+import com.smartcampost.backend.dto.geo.GeoSearchResult;
 import com.smartcampost.backend.dto.geo.RouteEtaRequest;
 import com.smartcampost.backend.dto.geo.RouteEtaResponse;
 import com.smartcampost.backend.exception.ConflictException;
@@ -96,6 +98,96 @@ public class GeolocationServiceImpl implements GeolocationService {
                     "Failed to geocode address",
                     ErrorCode.GEOLOCATION_ERROR
             );
+        }
+    }
+
+    @Override
+    public java.util.List<GeoSearchResult> search(GeoSearchRequest request) {
+        try {
+            if (request == null || request.getQuery() == null || request.getQuery().trim().isEmpty()) {
+                throw new ConflictException("Invalid or empty query", ErrorCode.GEOLOCATION_ERROR);
+            }
+
+            final int limit = request.getLimit() != null ? Math.min(10, Math.max(1, request.getLimit())) : 5;
+            final String encoded = URLEncoder.encode(request.getQuery().trim(), StandardCharsets.UTF_8);
+
+            // Cameroon bounding box (approx): SW(1.65, 8.4) NE(13.1, 16.3)
+            // Nominatim expects viewbox=left,top,right,bottom where left/right are longitudes and top/bottom are latitudes.
+            final String viewbox = "8.4,13.1,16.3,1.65";
+
+            final String url = nominatimUrl
+                    + "?q=" + encoded
+                    + "&format=jsonv2"
+                    + "&addressdetails=1"
+                    + "&limit=" + limit
+                    + "&countrycodes=cm"
+                    + "&bounded=1"
+                    + "&viewbox=" + viewbox;
+
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .header("User-Agent", "SmartCAMPOST/1.0 (support@smartcampost.cm)")
+                    .GET()
+                    .timeout(Duration.ofSeconds(15))
+                    .build();
+
+            HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new ConflictException("Geocoding provider unavailable", ErrorCode.GEOLOCATION_ERROR);
+            }
+
+            JsonNode root = objectMapper.readTree(response.body());
+            if (!root.isArray() || root.isEmpty()) {
+                return java.util.List.of();
+            }
+
+            java.util.List<GeoSearchResult> results = new java.util.ArrayList<>();
+            for (JsonNode node : root) {
+                double lat = node.path("lat").asDouble(Double.NaN);
+                double lng = node.path("lon").asDouble(Double.NaN);
+                if (Double.isNaN(lat) || Double.isNaN(lng)) continue;
+
+                String displayName = node.path("display_name").asText(null);
+                String category = node.path("category").asText(null);
+                if (category == null || category.isBlank()) {
+                    category = node.path("class").asText(null);
+                }
+                String type = node.path("type").asText(null);
+
+                JsonNode address = node.path("address");
+                String city = null;
+                String state = null;
+                String country = null;
+                if (address != null && address.isObject()) {
+                    city = address.path("city").asText(null);
+                    if (city == null || city.isBlank()) city = address.path("town").asText(null);
+                    if (city == null || city.isBlank()) city = address.path("village").asText(null);
+                    state = address.path("state").asText(null);
+                    country = address.path("country").asText(null);
+                }
+
+                results.add(GeoSearchResult.builder()
+                        .latitude(lat)
+                        .longitude(lng)
+                        .displayName(displayName)
+                        .category(category)
+                        .type(type)
+                        .city(city)
+                        .state(state)
+                        .country(country)
+                        .build());
+            }
+            return results;
+
+        } catch (ConflictException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new ConflictException("Failed to search places", ErrorCode.GEOLOCATION_ERROR);
         }
     }
 

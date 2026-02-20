@@ -91,3 +91,35 @@ test("open register page and submit (mocked)", async ({ page }) => {
   // Check that form is still visible (registration form should still be shown after mock)
   await expect(page.locator("input[id=fullName]")).toBeVisible();
 });
+
+test("map viewer search shows Cameroon-only results (mocked)", async ({ page }) => {
+  await page.route("**/api/geo/search", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          latitude: 4.0511,
+          longitude: 9.7679,
+          displayName: "Douala, Littoral, Cameroon",
+          type: "city",
+          category: "place",
+          city: "Douala",
+          state: "Littoral",
+          country: "Cameroon",
+        },
+      ]),
+    });
+  });
+
+  await page.goto("/maps/viewer");
+  const input = page.locator('[data-testid="map-search-input"]');
+  await expect(input).toBeVisible({ timeout: 5000 });
+
+  await input.fill("Douala");
+  const firstResult = page.locator('[data-testid="map-search-result"]').first();
+  await expect(firstResult).toBeVisible({ timeout: 5000 });
+  await firstResult.click();
+
+  await expect(input).toHaveValue(/Douala/i);
+});

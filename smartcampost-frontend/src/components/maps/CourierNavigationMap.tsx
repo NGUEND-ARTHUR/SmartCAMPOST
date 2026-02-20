@@ -5,8 +5,6 @@
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  MapContainer,
-  TileLayer,
   Marker,
   Popup,
   Polyline,
@@ -31,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/theme/theme";
+import { CameroonMap } from "@/components/maps/core/CameroonMap";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
@@ -49,8 +48,7 @@ const createIcon = (color: string, emoji: string) =>
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      border: 3px solid white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: 2px solid hsl(var(--background));
       animation: pulse 2s infinite;
     ">${emoji}</div>
     <style>
@@ -63,10 +61,10 @@ const createIcon = (color: string, emoji: string) =>
     iconAnchor: [20, 20],
   });
 
-const courierIcon = createIcon("#3b82f6", "🚴");
-const pickupIcon = createIcon("#22c55e", "📦");
-const deliveryIcon = createIcon("#ef4444", "🏠");
-const waypointIcon = createIcon("#f59e0b", "📍");
+const courierIcon = createIcon("hsl(var(--primary))", "🚴");
+const pickupIcon = createIcon("hsl(var(--secondary))", "📦");
+const deliveryIcon = createIcon("hsl(var(--destructive))", "🏠");
+const waypointIcon = createIcon("hsl(var(--accent))", "📍");
 
 interface Location {
   lat: number;
@@ -288,6 +286,9 @@ export default function CourierNavigationMap({
     };
   }, [resolvedTheme]);
 
+  // Tiles are handled by CameroonMap; keep tileConfig referenced to avoid unused work warnings.
+  void tileConfig;
+
   const stopTypeLabel = useCallback(
     (type: Stop["type"]) =>
       type === "PICKUP"
@@ -399,16 +400,14 @@ export default function CourierNavigationMap({
         </CardHeader>
         <CardContent className="p-0">
           <div className="h-125 relative">
-            <MapContainer
+            <CameroonMap
               center={mapCenter}
               zoom={mapZoom}
-              className="h-full w-full z-0"
-              scrollWheelZoom={true}
+              height="100%"
+              showControls
+              showSearch={false}
+              className="rounded-none border-0"
             >
-              <TileLayer
-                attribution={tileConfig.attribution}
-                url={tileConfig.url}
-              />
 
               {currentLocation && (
                 <CenterOnCourier
@@ -420,7 +419,11 @@ export default function CourierNavigationMap({
               {routePositions.length >= 2 && (
                 <Polyline
                   positions={routePositions}
-                  color={showOptimizedRoute ? "#22c55e" : "#3b82f6"}
+                  color={
+                    showOptimizedRoute
+                      ? "hsl(var(--secondary))"
+                      : "hsl(var(--primary))"
+                  }
                   weight={4}
                   opacity={0.8}
                 />
@@ -432,8 +435,8 @@ export default function CourierNavigationMap({
                   <Circle
                     center={[currentLocation.lat, currentLocation.lng]}
                     radius={100}
-                    color="#3b82f6"
-                    fillColor="#3b82f6"
+                    color="hsl(var(--primary))"
+                    fillColor="hsl(var(--primary))"
                     fillOpacity={0.2}
                   />
                   <Marker
@@ -514,7 +517,7 @@ export default function CourierNavigationMap({
                   </Marker>
                 ),
               )}
-            </MapContainer>
+            </CameroonMap>
           </div>
         </CardContent>
       </Card>

@@ -371,7 +371,7 @@ export default function RoleMapDashboard() {
               <Badge variant="secondary">{markers.length} markers</Badge>
             </CardHeader>
             <CardContent className="space-y-3">
-              <LeafletMap markers={markers} height="62vh" />
+              <LeafletMap markers={markers} height="62vh" showSearch />
               {markers.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center">
                   No GPS map data available yet. Scan events and geolocation

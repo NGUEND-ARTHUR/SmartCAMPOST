@@ -18,7 +18,7 @@ export default function MapViewer() {
       <p className="text-sm text-muted-foreground mb-4">
         OpenStreetMap powered map. Use it for pickup, tracking, and location.
       </p>
-      <LeafletMap markers={markers} height="600px" />
+      <LeafletMap markers={markers} height="600px" showSearch />
     </div>
   );
 }
