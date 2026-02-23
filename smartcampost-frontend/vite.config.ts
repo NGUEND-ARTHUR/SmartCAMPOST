@@ -18,14 +18,36 @@ export default defineConfig({
   },
   build: {
     // Increase warning threshold and split large vendor chunks
-    chunkSizeWarningLimit: 1200, // in KB
+    chunkSizeWarningLimit: 2200, // in KB
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          leaflet: ["leaflet", "@react-leaflet/core"],
-          charts: ["recharts"],
-          ui: ["lucide-react", "sonner", "clsx"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (
+            id.includes("/leaflet/") ||
+            id.includes("react-leaflet") ||
+            id.includes("@react-leaflet")
+          ) {
+            return "maps";
+          }
+
+          if (id.includes("recharts")) {
+            return "charts";
+          }
+
+          if (
+            id.includes("lucide-react") ||
+            id.includes("sonner") ||
+            id.includes("clsx") ||
+            id.includes("class-variance-authority") ||
+            id.includes("tailwind-merge") ||
+            id.includes("@radix-ui")
+          ) {
+            return "ui";
+          }
+
+          return "vendor";
         },
       },
     },

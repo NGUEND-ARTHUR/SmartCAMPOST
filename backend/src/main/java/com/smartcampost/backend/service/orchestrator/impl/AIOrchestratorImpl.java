@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class AIOrchestratorImpl implements AIOrchestrator {
 
     private final AIService aiService;
+    private final com.smartcampost.backend.service.ai.agents.RiskDetectionAgent riskDetectionAgent;
 
     @Override
     public ChatResponse handleChat(ChatRequest request) {
@@ -34,11 +35,6 @@ public class AIOrchestratorImpl implements AIOrchestrator {
 
     @Override
     public ShipmentRiskResponse detectRisk(ShipmentRiskRequest request) {
-        // Basic risk detection heuristic: if parcel status not DELIVERED and expectedDelivery < now -> HIGH
-        ShipmentRiskResponse resp = new ShipmentRiskResponse();
-        resp.setRiskLevel(ShipmentRiskResponse.RiskLevel.LOW);
-        resp.setReasonCodes(java.util.Collections.singletonList("NO_DETAILED_CHECKS_IMPLEMENTED"));
-        resp.setRecommendedAction("Notify operations team to investigate and consider reroute.");
-        return resp;
+        return riskDetectionAgent.detect(request);
     }
 }
