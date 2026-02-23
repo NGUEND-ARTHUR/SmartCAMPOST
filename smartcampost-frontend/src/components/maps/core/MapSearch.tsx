@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search } from "lucide-react";
-import { geolocationService, GeoSearchResult } from "@/services/common/geolocation.api";
+import { GeoSearchResult } from "@/services/common/geolocation.api";
 import { toast } from "sonner";
 import { CAMEROON_BOUNDS } from "./cameroon";
 import L from "leaflet";
+import { aiAgents } from "@/ai";
 
 type LatLngTuple = [number, number];
 
@@ -48,7 +49,10 @@ export function MapSearch({
 
       setIsLoading(true);
       try {
-        const res = await geolocationService.search({ query: trimmed, limit: 6 });
+        const res = await aiAgents.mapIntelligence.search(trimmed, {
+          limit: 6,
+          restrictToCameroon: true,
+        });
         setResults(res);
         setOpen(true);
       } catch {

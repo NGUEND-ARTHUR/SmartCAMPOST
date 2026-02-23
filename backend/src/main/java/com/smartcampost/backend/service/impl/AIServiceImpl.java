@@ -24,6 +24,10 @@ public class AIServiceImpl implements AIService {
     private final com.smartcampost.backend.repository.ParcelRepository parcelRepository;
     private final com.smartcampost.backend.repository.AiAgentRecommendationRepository aiAgentRecommendationRepository;
 
+    private final com.smartcampost.backend.service.ai.agents.RouteOptimizationAgent routeOptimizationAgent;
+    private final com.smartcampost.backend.service.ai.agents.TrackingPredictionAgent trackingPredictionAgent;
+    private final com.smartcampost.backend.service.ai.agents.MonitoringAgent monitoringAgent;
+
     // Knowledge base fallback for local responses when AI key not configured
     private static final Map<String, KnowledgeEntry> KNOWLEDGE_BASE = new HashMap<>();
 
@@ -126,87 +130,7 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public RouteOptimizationResponse optimizeRoute(RouteOptimizationRequest request) {
-        log.info("Optimizing route for {} stops", request.getStops().size());
-
-        List<RouteOptimizationRequest.Stop> stops = request.getStops();
-        if (stops == null || stops.isEmpty()) {
-            return RouteOptimizationResponse.builder()
-                    .optimizedRoute(Collections.emptyList())
-                    .totalDistanceKm(0.0)
-                    .estimatedDurationMinutes(0L)
-                    .fuelSavingsPercent(0.0)
-                    .optimizationStrategy(request.getOptimizationStrategy())
-                    .build();
-        }
-
-        // existing route optimization code unchanged (omitted for brevity in patch)
-        // fallback to existing algorithm already present in file
-        
-        // For brevity reuse previous implementation by calling existing helper methods
-        double currentLat = request.getCourierLat() != null ? request.getCourierLat() :
-            stops.stream().findFirst().map(s -> s.getLatitude())
-                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
-        double currentLng = request.getCourierLng() != null ? request.getCourierLng() :
-            stops.stream().findFirst().map(s -> s.getLongitude())
-                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
-
-        List<RouteOptimizationResponse.OptimizedStop> optimizedRoute = new ArrayList<>();
-        List<RouteOptimizationRequest.Stop> remaining = new ArrayList<>(stops);
-        double totalDistance = 0;
-        long totalMinutes = 0;
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        int order = 1;
-        while (!remaining.isEmpty()) {
-            int nearestIndex = 0;
-            double nearestScore = Double.MAX_VALUE;
-            for (int i = 0; i < remaining.size(); i++) {
-                RouteOptimizationRequest.Stop stop = remaining.get(i);
-                double distance = calculateDistance(currentLat, currentLng, stop.getLatitude(), stop.getLongitude());
-                double score = distance;
-                if ("BALANCED".equals(request.getOptimizationStrategy()) && stop.getPriority() != null) {
-                    score = distance / (1 + stop.getPriority() * 0.2);
-                }
-                if (score < nearestScore) {
-                    nearestScore = score;
-                    nearestIndex = i;
-                }
-            }
-
-            RouteOptimizationRequest.Stop nearest = remaining.remove(nearestIndex);
-            double distance = calculateDistance(currentLat, currentLng, nearest.getLatitude(), nearest.getLongitude());
-            long etaMinutes = (long) ((distance / 30.0) * 60);
-
-            currentTime = currentTime.plusMinutes(etaMinutes);
-            totalDistance += distance;
-            totalMinutes += etaMinutes;
-
-            optimizedRoute.add(RouteOptimizationResponse.OptimizedStop.builder()
-                    .id(nearest.getId())
-                    .order(order++)
-                    .type(nearest.getType())
-                    .latitude(nearest.getLatitude())
-                    .longitude(nearest.getLongitude())
-                    .address(nearest.getAddress())
-                    .distanceFromPrevious(Math.round(distance * 100.0) / 100.0)
-                    .etaMinutes(etaMinutes)
-                    .arrivalTime(currentTime.format(DateTimeFormatter.ofPattern("HH:mm")))
-                    .build());
-
-            currentLat = nearest.getLatitude();
-            currentLng = nearest.getLongitude();
-        }
-
-        double originalDistance = calculateOriginalRouteDistance(request.getCourierLat(), request.getCourierLng(), stops);
-        double savings = originalDistance > 0 ? ((originalDistance - totalDistance) / originalDistance) * 100 : 0;
-
-        return RouteOptimizationResponse.builder()
-                .optimizedRoute(optimizedRoute)
-                .totalDistanceKm(Math.round(totalDistance * 100.0) / 100.0)
-                .estimatedDurationMinutes(totalMinutes)
-                .fuelSavingsPercent(Math.max(0, Math.round(savings * 10.0) / 10.0))
-                .optimizationStrategy(request.getOptimizationStrategy() != null ? request.getOptimizationStrategy() : "SHORTEST")
-                .build();
+        return routeOptimizationAgent.optimize(request);
     }
 
     @Override
@@ -415,198 +339,12 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public DeliveryPredictionResponse predictDeliveryTime(DeliveryPredictionRequest request) {
-        // Calculate base prediction based on distance and service type
-        double distance = calculateDistance(
-                request.getOriginLat(), request.getOriginLng(),
-                request.getDestinationLat(), request.getDestinationLng()
-        );
-
-        // Base hours = distance / 50 km/h average for logistics
-        double baseHours = distance / 50;
-        
-        // Adjust for service type
-        String serviceType = request.getServiceType() != null ? request.getServiceType() : "STANDARD";
-        double multiplier = "EXPRESS".equals(serviceType) ? 0.5 : 1.0;
-        
-        // Add handling time (2-4 hours for processing)
-        double totalHours = (baseHours * multiplier) + 3;
-        
-        // Convert to days for display (8-hour work days)
-        int estimatedDays = (int) Math.ceil(totalHours / 8);
-        
-        // Confidence decreases with distance
-        double confidence = Math.max(0.6, 1.0 - (distance / 1000) * 0.1);
-
-        LocalDateTime estimatedDelivery = LocalDateTime.now().plusDays(estimatedDays);
-
-        return DeliveryPredictionResponse.builder()
-                .estimatedDeliveryDate(estimatedDelivery.toLocalDate().toString())
-                .estimatedDeliveryTime(estimatedDelivery.format(DateTimeFormatter.ofPattern("HH:mm")))
-                .confidenceScore(Math.round(confidence * 100) / 100.0)
-                .factors(Arrays.asList(
-                        "Distance: " + Math.round(distance) + " km",
-                        "Service: " + serviceType,
-                        "Current load: Normal"
-                ))
-                .build();
-    }
-
-    // Haversine distance calculation - using Double wrapper to allow null checks
-    private double calculateDistance(Double lat1, Double lng1, Double lat2, Double lng2) {
-        if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) {
-            return 0;
-        }
-        
-        final double R = 6371; // Earth's radius in km
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLng = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                   Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
-    private double calculateOriginalRouteDistance(Double startLat, Double startLng, List<RouteOptimizationRequest.Stop> stops) {
-        if (stops == null || stops.isEmpty()) return 0;
-        
-        double total = 0;
-        double currentLat = startLat != null ? startLat :
-            stops.stream().findFirst().map(s -> s.getLatitude())
-                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
-        double currentLng = startLng != null ? startLng :
-            stops.stream().findFirst().map(s -> s.getLongitude())
-                .orElseThrow(() -> new IllegalStateException("stops cannot be empty"));
-        
-        for (RouteOptimizationRequest.Stop stop : stops) {
-            total += calculateDistance(currentLat, currentLng, stop.getLatitude(), stop.getLongitude());
-            currentLat = stop.getLatitude();
-            currentLng = stop.getLongitude();
-        }
-        
-        return total;
+        return trackingPredictionAgent.predict(request);
     }
 
     @Override
     public AgentStatusResponse getAgentStatus() {
-        log.info("Fetching agent status for authenticated user");
-
-        try {
-            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null || !auth.isAuthenticated()) {
-                return AgentStatusResponse.builder()
-                        .role("GUEST")
-                        .agentHealth("OFFLINE")
-                        .summary("No authenticated user")
-                        .recommendations(Collections.emptyList())
-                        .build();
-            }
-
-            String subject = auth.getName();
-            UUID userId;
-            try {
-                userId = UUID.fromString(subject);
-            } catch (IllegalArgumentException ex) {
-                return AgentStatusResponse.builder()
-                        .role("GUEST")
-                        .agentHealth("OFFLINE")
-                        .summary("Invalid user ID")
-                        .recommendations(Collections.emptyList())
-                        .build();
-            }
-
-            var userOpt = userAccountRepository.findById(userId);
-            if (userOpt.isEmpty()) {
-                return AgentStatusResponse.builder()
-                        .role("GUEST")
-                        .agentHealth("OFFLINE")
-                        .summary("User not found")
-                        .recommendations(Collections.emptyList())
-                        .build();
-            }
-
-            var user = userOpt.get();
-            UserRole userRole = user.getRole();
-            List<AgentStatusResponse.RecommendationItem> recommendations = new ArrayList<>();
-                Optional<com.smartcampost.backend.model.AiAgentRecommendation> recommendationOpt = Optional.empty();
-
-                UUID entityId = user.getEntityId();
-                if (userRole == UserRole.COURIER && entityId != null) {
-                recommendationOpt = aiAgentRecommendationRepository
-                    .findTopByModuleTypeAndSubjectTypeAndSubjectIdOrderByCreatedAtDesc(
-                        com.smartcampost.backend.model.enums.AiModuleType.COURIER,
-                        com.smartcampost.backend.model.enums.AiSubjectType.COURIER,
-                        entityId
-                    );
-                } else if (userRole == UserRole.CLIENT && entityId != null) {
-                recommendationOpt = aiAgentRecommendationRepository
-                    .findTopBySubjectTypeAndSubjectIdOrderByCreatedAtDesc(
-                        com.smartcampost.backend.model.enums.AiSubjectType.CLIENT,
-                        entityId
-                    );
-                } else if ((userRole == UserRole.AGENT || userRole == UserRole.STAFF || userRole == UserRole.ADMIN)
-                    && entityId != null) {
-                recommendationOpt = aiAgentRecommendationRepository
-                    .findTopBySubjectTypeAndSubjectIdOrderByCreatedAtDesc(
-                        com.smartcampost.backend.model.enums.AiSubjectType.AGENCY,
-                        entityId
-                    );
-                if (recommendationOpt.isEmpty()) {
-                    recommendationOpt = aiAgentRecommendationRepository
-                        .findTopByModuleTypeOrderByCreatedAtDesc(
-                            com.smartcampost.backend.model.enums.AiModuleType.AGENCY
-                        );
-                }
-                } else if (userRole == UserRole.RISK) {
-                recommendationOpt = aiAgentRecommendationRepository
-                    .findTopByModuleTypeOrderByCreatedAtDesc(
-                        com.smartcampost.backend.model.enums.AiModuleType.RISK
-                    );
-                } else if (userRole == UserRole.FINANCE) {
-                recommendationOpt = aiAgentRecommendationRepository
-                    .findTopByModuleTypeOrderByCreatedAtDesc(
-                        com.smartcampost.backend.model.enums.AiModuleType.PREDICTIVE
-                    );
-                }
-
-                recommendationOpt.ifPresent(rec -> recommendations.add(
-                    AgentStatusResponse.RecommendationItem.builder()
-                        .title(rec.getModuleType() + " Recommendation")
-                        .description(rec.getSummary() != null ? rec.getSummary() : "Autonomous agent recommendation available")
-                        .priority("MEDIUM")
-                        .actionType(rec.getModuleType() != null ? rec.getModuleType().name() : "INFO")
-                        .payload(rec.getPayloadJson())
-                        .createdAt(rec.getCreatedAt() != null ? rec.getCreatedAt().toEpochMilli() : System.currentTimeMillis())
-                        .build()
-                ));
-
-                if (recommendations.isEmpty()) {
-                recommendations.add(AgentStatusResponse.RecommendationItem.builder()
-                    .title("AI Agents Active")
-                    .description("Autonomous agents are running. New recommendations will appear as events are recorded.")
-                    .priority("LOW")
-                    .actionType("INFO")
-                    .createdAt(System.currentTimeMillis())
-                    .build());
-                }
-
-            return AgentStatusResponse.builder()
-                    .role(userRole.toString())
-                    .agentHealth("HEALTHY")
-                    .summary("AI agents are operational with " + recommendations.size() + " recommendation(s)")
-                    .recommendations(recommendations)
-                    .lastActivityAt(System.currentTimeMillis())
-                    .build();
-
-        } catch (Exception ex) {
-            log.error("Error getting agent status: {}", ex.getMessage());
-            return AgentStatusResponse.builder()
-                    .role("UNKNOWN")
-                    .agentHealth("DEGRADED")
-                    .summary("Error retrieving agent status: " + ex.getMessage())
-                    .recommendations(Collections.emptyList())
-                    .build();
-        }
+        return monitoringAgent.getStatus();
     }
 
     // Inner class for knowledge base entries

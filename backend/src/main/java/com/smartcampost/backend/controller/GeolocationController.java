@@ -1,5 +1,6 @@
 package com.smartcampost.backend.controller;
 import com.smartcampost.backend.dto.geo.*;
+import com.smartcampost.backend.service.ai.agents.MapIntelligenceAgent;
 import com.smartcampost.backend.service.GeolocationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.List;
 public class GeolocationController {
 
     private final GeolocationService geolocationService;
+    private final MapIntelligenceAgent mapIntelligenceAgent;
 
     @PostMapping("/geocode")
     public ResponseEntity<GeocodeResponse> geocode(
@@ -26,7 +28,7 @@ public class GeolocationController {
     public ResponseEntity<List<GeoSearchResult>> search(
             @Valid @RequestBody GeoSearchRequest request
     ) {
-        return ResponseEntity.ok(geolocationService.search(request));
+        return ResponseEntity.ok(mapIntelligenceAgent.search(request));
     }
 
     @PostMapping("/route-eta")

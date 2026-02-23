@@ -13,10 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
-import {
-  geolocationService,
-  type GeoSearchResult,
-} from "@/services/common/geolocation.api";
+import { type GeoSearchResult } from "@/services/common/geolocation.api";
+import { aiAgents } from "@/ai";
 import { toast } from "sonner";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -234,12 +232,10 @@ export default function LocationPicker({
 
     setIsSearching(true);
     try {
-      const results = await geolocationService.search({ query, limit: 6 });
-      const filtered = restrictToCameroon
-        ? results.filter((r) =>
-            cameroonBounds.contains(L.latLng(r.latitude, r.longitude)),
-          )
-        : results;
+      const filtered = await aiAgents.mapIntelligence.search(query, {
+        limit: 6,
+        restrictToCameroon,
+      });
 
       setSearchResults(filtered);
       setIsResultsOpen(true);
@@ -282,12 +278,10 @@ export default function LocationPicker({
 
     const id = window.setTimeout(async () => {
       try {
-        const results = await geolocationService.search({ query: q, limit: 6 });
-        const filtered = restrictToCameroon
-          ? results.filter((r) =>
-              cameroonBounds.contains(L.latLng(r.latitude, r.longitude)),
-            )
-          : results;
+        const filtered = await aiAgents.mapIntelligence.search(q, {
+          limit: 6,
+          restrictToCameroon,
+        });
         setSearchResults(filtered);
         setIsResultsOpen(true);
       } catch {
