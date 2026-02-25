@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -22,9 +22,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useCreateParcel, useMyAddresses } from "@/hooks";
+import LocationPicker from "@/components/maps/LocationPicker";
+import { addressService } from "@/services/addressService";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ParcelFormData {
   senderAddress: string;
@@ -46,6 +57,7 @@ interface ParcelFormData {
 export function CreateParcel() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
   const [isFragile, setIsFragile] = useState(false);
   const [serviceType, setServiceType] = useState<"STANDARD" | "EXPRESS">(
@@ -66,6 +78,22 @@ export function CreateParcel() {
   } = useMyAddresses();
   const [senderAddressId, setSenderAddressId] = useState<string>("");
   const [recipientAddressId, setRecipientAddressId] = useState<string>("");
+
+  const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
+  const [addAddressTarget, setAddAddressTarget] = useState<
+    "sender" | "recipient"
+  >("sender");
+  const [showMapTab, setShowMapTab] = useState(false);
+  const [selectedLat, setSelectedLat] = useState<number | null>(null);
+  const [selectedLng, setSelectedLng] = useState<number | null>(null);
+  const [addressForm, setAddressForm] = useState({
+    label: "",
+    street: "",
+    city: "",
+    region: "",
+    country: "Cameroon",
+  });
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
   const {
     register,
     handleSubmit,
@@ -112,6 +140,65 @@ export function CreateParcel() {
     );
   };
 
+  const canSaveAddress = useMemo(() => {
+    return Boolean(
+      addressForm.label.trim() &&
+      addressForm.city.trim() &&
+      addressForm.region.trim() &&
+      addressForm.country.trim(),
+    );
+  }, [addressForm]);
+
+  const openAddAddress = (target: "sender" | "recipient") => {
+    setAddAddressTarget(target);
+    setShowMapTab(false);
+    setSelectedLat(null);
+    setSelectedLng(null);
+    setAddressForm({
+      label: "",
+      street: "",
+      city: "",
+      region: "",
+      country: "Cameroon",
+    });
+    setIsAddAddressOpen(true);
+  };
+
+  const handleCreateAddress = async () => {
+    if (!canSaveAddress) {
+      toast.error("Please fill in label, city and region");
+      return;
+    }
+
+    setIsSavingAddress(true);
+    try {
+      const created = await addressService.createAddress({
+        label: addressForm.label.trim(),
+        street: addressForm.street.trim() || undefined,
+        city: addressForm.city.trim(),
+        region: addressForm.region.trim(),
+        country: addressForm.country.trim(),
+        latitude: selectedLat ?? undefined,
+        longitude: selectedLng ?? undefined,
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ["myAddresses"] });
+
+      if (addAddressTarget === "sender") {
+        setSenderAddressId(created.id);
+      } else {
+        setRecipientAddressId(created.id);
+      }
+
+      toast.success("Address added");
+      setIsAddAddressOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add address");
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <Button
@@ -129,6 +216,147 @@ export function CreateParcel() {
           <CardDescription>{t("parcels.create.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
+          <Dialog open={isAddAddressOpen} onOpenChange={setIsAddAddressOpen}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {addAddressTarget === "sender"
+                    ? "Add sender address"
+                    : "Add recipient address"}
+                </DialogTitle>
+                <DialogDescription>
+                  Add an address manually or pick it on the map.
+                </DialogDescription>
+              </DialogHeader>
+
+              <Tabs
+                value={showMapTab ? "map" : "form"}
+                onValueChange={(value) => setShowMapTab(value === "map")}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="form">Manual</TabsTrigger>
+                  <TabsTrigger value="map">Map</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="form" className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newAddrLabel">Label</Label>
+                    <Input
+                      id="newAddrLabel"
+                      value={addressForm.label}
+                      onChange={(e) =>
+                        setAddressForm({
+                          ...addressForm,
+                          label: e.target.value,
+                        })
+                      }
+                      placeholder="Home / Office / Shop"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newAddrStreet">Street</Label>
+                    <Input
+                      id="newAddrStreet"
+                      value={addressForm.street}
+                      onChange={(e) =>
+                        setAddressForm({
+                          ...addressForm,
+                          street: e.target.value,
+                        })
+                      }
+                      placeholder="Street / Landmark"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newAddrCity">City</Label>
+                      <Input
+                        id="newAddrCity"
+                        value={addressForm.city}
+                        onChange={(e) =>
+                          setAddressForm({
+                            ...addressForm,
+                            city: e.target.value,
+                          })
+                        }
+                        placeholder="Douala"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="newAddrRegion">Region</Label>
+                      <Input
+                        id="newAddrRegion"
+                        value={addressForm.region}
+                        onChange={(e) =>
+                          setAddressForm({
+                            ...addressForm,
+                            region: e.target.value,
+                          })
+                        }
+                        placeholder="Littoral"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newAddrCountry">Country</Label>
+                    <Input
+                      id="newAddrCountry"
+                      value={addressForm.country}
+                      disabled
+                      onChange={(e) =>
+                        setAddressForm({
+                          ...addressForm,
+                          country: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  {selectedLat != null && selectedLng != null && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm font-medium">Location selected</p>
+                      <p className="text-xs text-muted-foreground">
+                        Lat: {selectedLat.toFixed(6)} | Lng:{" "}
+                        {selectedLng.toFixed(6)}
+                      </p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="map" className="py-4">
+                  <LocationPicker
+                    latitude={selectedLat}
+                    longitude={selectedLng}
+                    onLocationChange={(lat, lng) => {
+                      setSelectedLat(lat);
+                      setSelectedLng(lng);
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddAddressOpen(false)}
+                  disabled={isSavingAddress}
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  onClick={handleCreateAddress}
+                  disabled={isSavingAddress || !canSaveAddress}
+                >
+                  {isSavingAddress ? "Saving..." : "Save address"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           {Boolean(addressesError) && (
             <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg dark:bg-red-900/30 dark:text-red-400">
               <p className="font-semibold">Error loading addresses</p>
@@ -211,13 +439,18 @@ export function CreateParcel() {
                     <SelectContent>
                       {addresses.map((addr) => (
                         <SelectItem key={addr.id} value={addr.id}>
-                          {addr.label || addr.addressLine}, {addr.city},{" "}
-                          {addr.country}
+                          {addr.label}, {addr.street ? `${addr.street}, ` : ""}
+                          {addr.city}, {addr.country}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="link" className="p-0 h-auto">
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto"
+                    type="button"
+                    onClick={() => openAddAddress("sender")}
+                  >
                     + Add new address
                   </Button>
                 </div>
@@ -241,13 +474,18 @@ export function CreateParcel() {
                     <SelectContent>
                       {addresses.map((addr) => (
                         <SelectItem key={addr.id} value={addr.id}>
-                          {addr.label || addr.addressLine}, {addr.city},{" "}
-                          {addr.country}
+                          {addr.label}, {addr.street ? `${addr.street}, ` : ""}
+                          {addr.city}, {addr.country}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="link" className="p-0 h-auto">
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto"
+                    type="button"
+                    onClick={() => openAddAddress("recipient")}
+                  >
                     + Add new address
                   </Button>
                 </div>

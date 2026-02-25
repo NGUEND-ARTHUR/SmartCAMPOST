@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
  
 
@@ -22,7 +20,6 @@ public class AIServiceImpl implements AIService {
     private final com.smartcampost.backend.service.impl.client.OpenAIClient openAIClient;
     private final com.smartcampost.backend.repository.UserAccountRepository userAccountRepository;
     private final com.smartcampost.backend.repository.ParcelRepository parcelRepository;
-    private final com.smartcampost.backend.repository.AiAgentRecommendationRepository aiAgentRecommendationRepository;
 
     private final com.smartcampost.backend.service.ai.agents.RouteOptimizationAgent routeOptimizationAgent;
     private final com.smartcampost.backend.service.ai.agents.TrackingPredictionAgent trackingPredictionAgent;
