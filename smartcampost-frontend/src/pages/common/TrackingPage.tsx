@@ -129,11 +129,10 @@ export default function TrackingPage() {
           <CardTitle>{t("trackingPage.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger
                 value="number"
-                onClick={() => setActiveTab("number")}
                 className={
                   activeTab === "number"
                     ? "bg-blue-50 text-blue-700"
@@ -144,7 +143,6 @@ export default function TrackingPage() {
               </TabsTrigger>
               <TabsTrigger
                 value="qr"
-                onClick={() => setActiveTab("qr")}
                 className={
                   activeTab === "qr" ? "bg-blue-50 text-blue-700" : undefined
                 }
@@ -153,43 +151,37 @@ export default function TrackingPage() {
               </TabsTrigger>
             </TabsList>
 
-            {activeTab === "number" && (
-              <TabsContent value="number" className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    value={number}
-                    onChange={(e) => setNumber(e.target.value)}
-                    placeholder={t("trackingPage.numberPlaceholder")}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && lookupByNumber(number)
-                    }
-                  />
-                  <Button
-                    onClick={() => lookupByNumber(number)}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Lookup"
-                    )}
-                  </Button>
-                </div>
-              </TabsContent>
-            )}
-
-            {activeTab === "qr" && (
-              <TabsContent value="qr" className="space-y-3">
-                <QRCodeScanner
-                  continuous={false}
-                  onScan={(res) => {
-                    if (!res?.success) return;
-                    lookupByQrContent(res.rawText);
-                  }}
-                  onError={(err) => toast.error(err)}
+            <TabsContent value="number" className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  value={number}
+                  onChange={(e) => setNumber(e.target.value)}
+                  placeholder={t("trackingPage.numberPlaceholder")}
+                  onKeyDown={(e) => e.key === "Enter" && lookupByNumber(number)}
                 />
-              </TabsContent>
-            )}
+                <Button
+                  onClick={() => lookupByNumber(number)}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Lookup"
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="qr" className="space-y-3">
+              <QRCodeScanner
+                continuous={false}
+                onScan={(res) => {
+                  if (!res?.success) return;
+                  lookupByQrContent(res.rawText);
+                }}
+                onError={(err) => toast.error(err)}
+              />
+            </TabsContent>
           </Tabs>
 
           {result && (

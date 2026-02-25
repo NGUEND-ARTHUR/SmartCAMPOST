@@ -100,11 +100,7 @@ export function MapSearch({
           />
         </div>
         <Button type="button" variant="secondary" disabled>
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Search"
-          )}
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
         </Button>
       </div>
 
@@ -120,15 +116,12 @@ export function MapSearch({
                 className="w-full text-left px-3 py-2 hover:bg-muted transition-colors"
               >
                 <div className="text-sm font-medium">
-                  {r.displayName || `${r.city ?? ""} ${r.state ?? ""}`.trim() || "Result"}
+                  {r.displayName ||
+                    `${r.city ?? ""} ${r.state ?? ""}`.trim() ||
+                    "Result"}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {[
-                    r.type,
-                    r.city,
-                    r.state,
-                    r.country,
-                  ]
+                  {[r.type, r.city, r.state, r.country]
                     .filter(Boolean)
                     .join(" • ")}
                 </div>

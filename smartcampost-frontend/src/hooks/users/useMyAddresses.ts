@@ -3,13 +3,13 @@ import { httpClient } from "@/services/apiClient";
 
 export interface AddressDto {
   id: string;
-  label?: string;
-  fullName: string;
-  phone: string;
-  addressLine: string;
+  label: string;
+  street?: string | null;
   city: string;
-  region?: string;
+  region: string;
   country: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export function useMyAddresses() {

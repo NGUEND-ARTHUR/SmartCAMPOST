@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { MapContainer, Polygon, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { cn } from "@/lib/utils";
@@ -17,13 +17,11 @@ type LatLngTuple = [number, number];
 
 function CameroonBoundsEnforcer() {
   const map = useMap();
-  const [computedMinZoom, setComputedMinZoom] = useState<number | null>(null);
 
   useEffect(() => {
     const z = map.getBoundsZoom(CAMEROON_BOUNDS, true);
     const nextMin = Math.max(CAMEROON_MIN_ZOOM, z);
     map.setMinZoom(nextMin);
-    setComputedMinZoom(nextMin);
 
     const onMoveEnd = () => {
       const center = map.getCenter();
@@ -32,25 +30,20 @@ function CameroonBoundsEnforcer() {
       }
     };
 
-    map.on("moveend", onMoveEnd);
-    return () => {
-      map.off("moveend", onMoveEnd);
-    };
-  }, [map]);
-
-  useEffect(() => {
-    if (computedMinZoom == null) return;
     const onZoomEnd = () => {
-      const z = map.getZoom();
-      if (z < computedMinZoom) {
-        map.setZoom(computedMinZoom, { animate: false });
+      const currentZoom = map.getZoom();
+      if (currentZoom < nextMin) {
+        map.setZoom(nextMin, { animate: false });
       }
     };
+
+    map.on("moveend", onMoveEnd);
     map.on("zoomend", onZoomEnd);
     return () => {
+      map.off("moveend", onMoveEnd);
       map.off("zoomend", onZoomEnd);
     };
-  }, [computedMinZoom, map]);
+  }, [map]);
 
   return null;
 }
