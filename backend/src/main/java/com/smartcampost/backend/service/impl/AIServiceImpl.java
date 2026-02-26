@@ -7,6 +7,7 @@ import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.service.AIService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -24,6 +25,9 @@ public class AIServiceImpl implements AIService {
     private final com.smartcampost.backend.service.ai.agents.RouteOptimizationAgent routeOptimizationAgent;
     private final com.smartcampost.backend.service.ai.agents.TrackingPredictionAgent trackingPredictionAgent;
     private final com.smartcampost.backend.service.ai.agents.MonitoringAgent monitoringAgent;
+
+    @Value("${OPENAI_API_KEY:}")
+    private String openAiApiKey;
 
     // Knowledge base fallback for local responses when AI key not configured
     private static final Map<String, KnowledgeEntry> KNOWLEDGE_BASE = new HashMap<>();
@@ -205,24 +209,53 @@ public class AIServiceImpl implements AIService {
         rag.append("INSTRUCTIONS: Tailor responses specifically for ").append(userRole != null ? userRole.name() : "GUEST").append(" role.\n");
 
         // If OpenAI key not configured, fallback to local KB with role awareness
-        try {
-            String apiKey = System.getenv("OPENAI_API_KEY");
-            if (apiKey == null || apiKey.isBlank()) {
-                return fallbackLocalResponse(request, sessionId, userRole, userPhone);
-            }
-        } catch (Exception ignored) {
+        if (openAiApiKey == null || openAiApiKey.isBlank()) {
             return fallbackLocalResponse(request, sessionId, userRole, userPhone);
         }
 
         // Build messages for OpenAI
         java.util.ArrayList<Map<String, String>> messages = new java.util.ArrayList<>();
-        // System prompt from environment or application property
+        // Expanded system prompt with project knowledge and universal expert instructions
         String systemPrompt = System.getenv("SMARTCAMPOST_AI_SYSTEM_PROMPT");
         if (systemPrompt == null || systemPrompt.isBlank()) {
-            systemPrompt = "You are SmartCAMPOST AI, the intelligent assistant of Cameroon Postal Services. "
-                    + "Be concise, accurate, friendly, and professional. Provide personalized help based on user role. "
-                    + "If data is missing, ask clarifying questions. Never hallucinate parcel statuses. "
-                    + (userRole != null ? "The user is a " + userRole.name() + ". Customize your advice accordingly." : "");
+            systemPrompt = (
+                "You are SmartCAMPOST AI, the universal expert and autonomous assistant for the SmartCAMPOST logistics platform (Cameroon Postal Services). " +
+                "You have full knowledge of all platform features, business rules, user roles, and technical documentation. " +
+                "You can answer any question about SmartCAMPOST, including parcels, tracking, payments, agencies, user accounts, technical issues, and operational procedures. " +
+                "You are also able to perform actions and trigger tasks for the user, based on their role and permissions.\n" +
+                "\n" +
+                "Your capabilities include:\n" +
+                "- Answering all user, staff, courier, agency, and admin questions about the system\n" +
+                "- Providing step-by-step help for any feature\n" +
+                "- Suggesting and triggering actions (e.g., navigation, ticket creation, tracking, route optimization)\n" +
+                "- Explaining business logic, technical flows, and operational policies\n" +
+                "- Never hallucinating parcel statuses or making up data\n" +
+                "- Always tailoring your answers and actions to the user's role: " + (userRole != null ? userRole.name() : "GUEST") + "\n" +
+                "\n" +
+                "Project summary:\n" +
+                "SmartCAMPOST is a digital logistics and parcel management platform for Cameroon Postal Services. It supports parcel creation, tracking, delivery, agency/courier management, payments, support, and analytics.\n" +
+                "Key features:\n" +
+                "- Parcel creation, tracking, and delivery\n" +
+                "- Address and agency management\n" +
+                "- Real-time courier route optimization\n" +
+                "- Delivery time prediction\n" +
+                "- User roles: CLIENT, COURIER, AGENT, ADMIN, STAFF, FINANCE, RISK\n" +
+                "- Support ticketing and helpdesk\n" +
+                "- Payment integration (Mobile Money, bank, cash)\n" +
+                "- Analytics and reporting\n" +
+                "- Security and compliance\n" +
+                "\n" +
+                "Instructions:\n" +
+                "- Always answer as a SmartCAMPOST expert.\n" +
+                "- If the user asks for help, provide clear, actionable steps.\n" +
+                "- If the user requests an action (e.g., track parcel, optimize route, create ticket), return a structured action in your response.\n" +
+                "- If you need more information (e.g., tracking code), ask for it.\n" +
+                "- If the user is not authenticated, answer as a public support agent.\n" +
+                "- If the user is a CLIENT, focus on parcel, address, payment, and support features.\n" +
+                "- If the user is a COURIER, focus on assignments, route optimization, and delivery status.\n" +
+                "- If the user is an AGENT or ADMIN, focus on analytics, staff, agency, and compliance.\n" +
+                "- If you do not know the answer, say so and suggest contacting support.\n"
+            );
         }
 
         Map<String, String> sys = new HashMap<>();
@@ -230,9 +263,22 @@ public class AIServiceImpl implements AIService {
         sys.put("content", systemPrompt);
         messages.add(sys);
 
+        // Add a summary of available endpoints/features to the context for richer answers
+        StringBuilder featureContext = new StringBuilder();
+        featureContext.append("Available features and endpoints:\n");
+        featureContext.append("- /api/ai/chat: AI assistant chat (all roles)\n");
+        featureContext.append("- /api/ai/optimize-route: Route optimization (courier)\n");
+        featureContext.append("- /api/ai/predict-delivery: Delivery time prediction (all)\n");
+        featureContext.append("- /api/ai/agent/status: Agent status and recommendations (staff/admin)\n");
+        featureContext.append("- /api/ai/recommendations: AI recommendations (courier/agency)\n");
+        featureContext.append("- /api/parcels, /api/addresses, /api/users, /api/support, /api/payments, /api/analytics: Core business endpoints\n");
+        featureContext.append("- User role: ").append(userRole != null ? userRole.name() : "GUEST").append("\n");
+        featureContext.append("- User phone: ").append(userPhone != null ? userPhone : "N/A").append("\n");
+        featureContext.append("- Context: ").append(rag.toString()).append("\n");
+
         Map<String, String> ctxMsg = new HashMap<>();
         ctxMsg.put("role", "system");
-        ctxMsg.put("content", "CONTEXT:\n" + rag.toString());
+        ctxMsg.put("content", featureContext.toString());
         messages.add(ctxMsg);
 
         Map<String, String> userMsg = new HashMap<>();
