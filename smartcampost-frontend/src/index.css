@@ -95,6 +95,27 @@
   height: 100%;
 }
 
+/* CameroonMap height presets (avoid inline styles) */
+.cameroon-map-h-full {
+  height: 100%;
+}
+
+.cameroon-map-h-400 {
+  height: 400px;
+}
+
+.cameroon-map-h-600 {
+  height: 600px;
+}
+
+.cameroon-map-h-60vh {
+  height: 60vh;
+}
+
+.cameroon-map-h-62vh {
+  height: 62vh;
+}
+
 /* QR preview image size */
 .qr-image {
   width: 120px;

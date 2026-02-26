@@ -15,6 +15,22 @@ import { MapSearch } from "./MapSearch";
 
 type LatLngTuple = [number, number];
 
+function heightToClassName(height: string | undefined): string {
+  switch (height) {
+    case "100%":
+      return "cameroon-map-h-full";
+    case "600px":
+      return "cameroon-map-h-600";
+    case "62vh":
+      return "cameroon-map-h-62vh";
+    case "60vh":
+      return "cameroon-map-h-60vh";
+    case "400px":
+    default:
+      return "cameroon-map-h-400";
+  }
+}
+
 function CameroonBoundsEnforcer() {
   const map = useMap();
 
@@ -102,6 +118,7 @@ export function CameroonMap({
   showSearch?: boolean;
 }) {
   const { resolvedTheme } = useTheme();
+  const heightClassName = heightToClassName(height);
 
   const tile =
     resolvedTheme === "dark"
@@ -120,9 +137,9 @@ export function CameroonMap({
     <div
       className={cn(
         "relative w-full overflow-hidden rounded-lg border border-border bg-card",
+        heightClassName,
         className,
       )}
-      style={{ height }}
     >
       <MapContainer
         center={center}
