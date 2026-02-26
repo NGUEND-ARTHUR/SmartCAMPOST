@@ -3,73 +3,27 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import apiClient from "@/lib/api";
-
-interface QrLabelData {
-  parcelId: string;
-  trackingRef: string;
-  barcode: string;
-  qrCodeImage: string;
-  qrContent: string;
-  companyName: string;
-  companyLogo: string;
-  labelTitle: string;
-  senderName: string;
-  senderCity: string;
-  senderPhone: string;
-  recipientName: string;
-  recipientCity: string;
-  recipientPhone: string;
-  recipientAddress: string;
-  totalAmount: number;
-  paymentStatus: string;
-  currency: string;
-  printedAt: string;
-  labelSize: string;
-  copiesCount: number;
-}
+import { QRCodeDisplay } from "@/components/qrcode";
+import { useParcel, usePricingQuote } from "@/hooks";
 
 export default function PrintLabelPage() {
   const { t } = useTranslation();
   const { parcelId } = useParams<{ parcelId: string }>();
-  const [label, setLabel] = useState<QrLabelData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [qrLoaded, setQrLoaded] = useState(false);
+  const [readyToPrint, setReadyToPrint] = useState(false);
   const hasPrintedRef = useRef(false);
 
-  useEffect(() => {
-    if (!parcelId) return;
-    let mounted = true;
+  const parcelQuery = useParcel(parcelId || "");
+  const quoteQuery = usePricingQuote(parcelId || "");
 
-    setQrLoaded(false);
+  useEffect(() => {
     hasPrintedRef.current = false;
-    setLabel(null);
-
-    const fetchLabel = async () => {
-      try {
-        setLoading(true);
-        const data = await apiClient.get<QrLabelData>(
-          `/api/qr/label/${parcelId}`,
-        );
-        if (!mounted) return;
-        setLabel(data);
-      } catch (err) {
-        if (mounted) toast.error(t("label.print.error"));
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    fetchLabel();
-    return () => {
-      mounted = false;
-    };
-  }, [parcelId, t]);
+    setReadyToPrint(false);
+  }, [parcelId]);
 
   useEffect(() => {
-    if (!label) return;
-    if (!qrLoaded) return;
+    const parcel = parcelQuery.data;
+    if (!parcel) return;
+    if (!readyToPrint) return;
     if (hasPrintedRef.current) return;
     hasPrintedRef.current = true;
 
@@ -82,9 +36,17 @@ export default function PrintLabelPage() {
     }, 300);
 
     return () => window.clearTimeout(id);
-  }, [label, qrLoaded]);
+  }, [parcelQuery.data, readyToPrint]);
 
-  if (loading) {
+  useEffect(() => {
+    if (parcelQuery.data) {
+      // QRCodeSVG renders synchronously; allow one paint before printing.
+      const id = window.setTimeout(() => setReadyToPrint(true), 50);
+      return () => window.clearTimeout(id);
+    }
+  }, [parcelQuery.data]);
+
+  if (parcelQuery.isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin mb-4" />
@@ -93,13 +55,19 @@ export default function PrintLabelPage() {
     );
   }
 
-  if (!label) {
+  if (parcelQuery.error || !parcelQuery.data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <span>{t("label.print.notFound")}</span>
       </div>
     );
   }
+
+  const parcel = parcelQuery.data;
+  const quote = quoteQuery.data;
+  const amountText = quote
+    ? `${quote.amount?.toLocaleString?.() ?? quote.amount} ${quote.currency || "XAF"}`
+    : "—";
 
   return (
     <div className="max-w-lg mx-auto py-10">
@@ -112,38 +80,30 @@ export default function PrintLabelPage() {
             {t("label.print.instructions")}
           </div>
           <div className="border rounded p-4 bg-white">
-            <img
-              src={`data:image/png;base64,${label.qrCodeImage}`}
-              alt="QR Code"
-              className="mx-auto mb-2 w-37.5 h-37.5"
-              onLoad={() => setQrLoaded(true)}
-            />
+            <div className="flex justify-center mb-2">
+              <QRCodeDisplay
+                trackingRef={parcel.trackingRef}
+                parcelId={parcel.id}
+                size="medium"
+                showActions={false}
+                showLabel={false}
+              />
+            </div>
             <div className="text-center font-mono text-sm font-bold mb-2">
-              {label.trackingRef}
-            </div>
-            <div className="text-xs text-muted-foreground mb-1">
-              {label.labelTitle}
+              {parcel.trackingRef}
             </div>
             <div className="text-xs mb-1">
-              {t("label.print.sender")}: {label.senderName} ({label.senderCity})
+              {t("label.print.sender")}: {parcel.senderCity || "—"}
             </div>
             <div className="text-xs mb-1">
-              {t("label.print.recipient")}: {label.recipientName} (
-              {label.recipientCity})
+              {t("label.print.recipient")}: {parcel.recipientCity || "—"}
             </div>
             <div className="text-xs mb-1">
-              {t("label.print.amount")}: {label.totalAmount} {label.currency} (
-              {label.paymentStatus})
-            </div>
-            <div className="text-xs mb-1">
-              {t("label.print.size")}: {label.labelSize}
-            </div>
-            <div className="text-xs mb-1">
-              {t("label.print.copies")}: {label.copiesCount}
+              {t("label.print.amount")}: {amountText}
             </div>
             <div className="text-xs text-muted-foreground mt-2">
               {t("label.print.printedAt", {
-                date: new Date(label.printedAt).toLocaleString(),
+                date: new Date().toLocaleString(),
               })}
             </div>
           </div>

@@ -1,7 +1,7 @@
-# Multi-stage Dockerfile for SmartCAMPOST backend (Java 17)
+# Multi-stage Dockerfile for SmartCAMPOST backend (Java 21)
 
 # Build stage using Maven
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+FROM maven:3.9.4-eclipse-temurin-21 AS build
 WORKDIR /build
 
 # Copy only what is needed for a fast build cache
@@ -13,7 +13,7 @@ COPY src src
 RUN chmod +x mvnw && ./mvnw -B -DskipTests package
 
 # Run stage using a slim JRE
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # Copy the packaged jar from the build stage

@@ -9,6 +9,7 @@ import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.*;
 import com.smartcampost.backend.model.enums.DeliveryOption;
 import com.smartcampost.backend.model.enums.ParcelStatus;
+import com.smartcampost.backend.model.enums.PaymentOption;
 import com.smartcampost.backend.model.enums.ScanEventType;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.*;
@@ -148,6 +149,22 @@ public class ParcelServiceImpl implements ParcelService {
         @SuppressWarnings("null")
         Parcel savedParcel = parcelRepository.save(parcel);
         parcel = savedParcel;
+
+        // Persist initial pricing snapshot (weight + matching tariff)
+        try {
+            pricingService.confirmPrice(parcel.getId());
+        } catch (Exception ignored) {
+            // Pricing confirmation should not block parcel creation
+        }
+
+        // If COD, register a pending COD payment entry (amount comes from server-side pricing)
+        if (parcel.getPaymentOption() == PaymentOption.COD) {
+            try {
+                paymentService.createCodPendingPayment(parcel.getId());
+            } catch (Exception ignored) {
+                // Payment init should not block parcel creation
+            }
+        }
 
         return toResponse(parcel);
     }

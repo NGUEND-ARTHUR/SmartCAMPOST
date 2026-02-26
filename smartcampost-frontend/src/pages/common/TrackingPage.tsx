@@ -129,7 +129,10 @@ export default function TrackingPage() {
           <CardTitle>{t("trackingPage.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v === "qr" ? "qr" : "number")}
+          >
             <TabsList>
               <TabsTrigger
                 value="number"

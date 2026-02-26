@@ -50,4 +50,8 @@ export const paymentService = {
   listAll(page = 0, size = 20): Promise<PaginatedResponse<PaymentResponse>> {
     return httpClient.get(`/payments?page=${page}&size=${size}`);
   },
+
+  markCodAsPaid(parcelId: string): Promise<PaymentResponse> {
+    return httpClient.post(`/payments/cod/${parcelId}/mark-paid`, {});
+  },
 };
