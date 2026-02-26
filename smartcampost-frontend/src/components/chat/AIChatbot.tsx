@@ -34,6 +34,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useAIChat } from "@/hooks/ai/useAI";
 import { useAuthStore } from "@/store/authStore"; // Use auth store for user role
+import axiosInstance from "@/lib/axiosClient";
 
 interface Message {
   id: string;
@@ -315,7 +316,7 @@ export default function AIChatbot({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const aiMutation = useAIChat();
-  const { user } = useAuthStore(); // Get authenticated user and role
+  const { user, token } = useAuthStore(); // Get authenticated user and role
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
 
   const roleUpper = (user?.role ?? "CLIENT").toUpperCase();
@@ -621,14 +622,22 @@ What can I help you with?`,
         sessionId,
         language,
         context: aiContext,
-        // Pass user role for AI context awareness
-        userRole: user?.role,
       };
       try {
         setIsTyping(true);
-        const res = await fetch(`/api/ai/chat/stream`, {
+        const apiBase = String(
+          axiosInstance.defaults.baseURL || "http://localhost:8080/api",
+        ).replace(/\/+$/, "");
+        const streamUrl = `${apiBase}/ai/chat/stream`;
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(streamUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload),
         });
 
@@ -731,6 +740,7 @@ What can I help you with?`,
       language,
       messages,
       sessionId,
+      token,
       user?.role,
       userPhone,
     ],
