@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CreditCard, Receipt, TrendingUp, Wallet, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,6 +33,7 @@ const statusColors: Record<PaymentStatusLocal, string> = {
 };
 
 export default function FinanceDashboard() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = usePayments(page, 50);
   const payments = useMemo(() => data?.content ?? [], [data]);
@@ -52,29 +54,29 @@ export default function FinanceDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Finance Dashboard</h1>
+        <h1 className="text-3xl font-bold">{t("financeDashboard.title")}</h1>
         <p className="text-muted-foreground">
-          Revenue, payment performance and reconciliation snapshot
+          {t("financeDashboard.overview")}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("financeDashboard.totalRevenue")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {totals.totalRevenue.toLocaleString()} XAF
             </div>
-            <p className="text-xs text-muted-foreground">Successful payments</p>
+            <p className="text-xs text-muted-foreground">{t("financeDashboard.totalRevenueDesc")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pending Amount
+              {t("financeDashboard.pendingPayments")}
             </CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -83,35 +85,35 @@ export default function FinanceDashboard() {
               {totals.pending.toLocaleString()} XAF
             </div>
             <p className="text-xs text-muted-foreground">
-              Awaiting confirmation
+              {t("financeDashboard.pendingPaymentsDesc")}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("financeDashboard.completedTransactions")}</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.successCount}</div>
-            <p className="text-xs text-muted-foreground">Transactions</p>
+            <p className="text-xs text-muted-foreground">{t("financeDashboard.completedTransactionsDesc")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("common.failed")}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.failedCount}</div>
-            <p className="text-xs text-muted-foreground">Needs follow-up</p>
+            <p className="text-xs text-muted-foreground">{t("financeDashboard.averageValueDesc")}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>{t("financeDashboard.recentTransactions")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -121,28 +123,28 @@ export default function FinanceDashboard() {
           ) : error ? (
             <EmptyState
               icon={CreditCard}
-              title="Error loading payments"
+              title={t("common.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : payments.length === 0 ? (
             <EmptyState
               icon={CreditCard}
-              title="No transactions"
-              description="Payment transactions will appear here"
+              title={t("financeDashboard.recentTransactions")}
+              description={t("financeDashboard.completedTransactionsDesc")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Parcel</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>{t("financeDashboard.transactionId")}</TableHead>
+                    <TableHead>{t("common.parcel")}</TableHead>
+                    <TableHead>{t("financeDashboard.amount")}</TableHead>
+                    <TableHead>{t("financeDashboard.type")}</TableHead>
+                    <TableHead>{t("financeDashboard.status")}</TableHead>
+                    <TableHead>{t("financeDashboard.date")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -188,10 +190,10 @@ export default function FinanceDashboard() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -199,7 +201,7 @@ export default function FinanceDashboard() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

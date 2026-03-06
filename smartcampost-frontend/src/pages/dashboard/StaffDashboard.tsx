@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Filter, Shield, User, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,7 @@ const statusBadge: Record<StaffStatus, string> = {
 };
 
 export default function StaffDashboard() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"ALL" | StaffRole>("ALL");
@@ -72,41 +74,41 @@ export default function StaffDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Staff Dashboard</h1>
+        <h1 className="text-3xl font-bold">{t("staffDashboard.welcome")}</h1>
         <p className="text-muted-foreground">
-          Operations staffing, roles and workload overview
+          {t("staffDashboard.overview")}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("staffDashboard.totalParcels")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.total}</div>
-            <p className="text-xs text-muted-foreground">All departments</p>
+            <p className="text-xs text-muted-foreground">{t("staffDashboard.totalParcelsDesc")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("common.active")}</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.active}</div>
-            <p className="text-xs text-muted-foreground">Currently on duty</p>
+            <p className="text-xs text-muted-foreground">{t("staffDashboard.inTransitDesc")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agents</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("roles.agent")}</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.agents}</div>
-            <p className="text-xs text-muted-foreground">Field operations</p>
+            <p className="text-xs text-muted-foreground">{t("staffDashboard.deliveredDesc")}</p>
           </CardContent>
         </Card>
       </div>
@@ -116,7 +118,7 @@ export default function StaffDashboard() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1">
               <Input
-                placeholder="Search staff by name or ID…"
+                placeholder={t("staffDashboard.recentActivity")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -133,15 +135,15 @@ export default function StaffDashboard() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Roles</SelectItem>
-                  <SelectItem value="AGENT">Agent</SelectItem>
-                  <SelectItem value="SUPPORT">Support</SelectItem>
-                  <SelectItem value="FINANCE">Finance</SelectItem>
-                  <SelectItem value="RISK">Risk</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="ALL">{t("staffManagement.filter.allRoles")}</SelectItem>
+                  <SelectItem value="AGENT">{t("roles.agent")}</SelectItem>
+                  <SelectItem value="SUPPORT">{t("roles.support")}</SelectItem>
+                  <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
+                  <SelectItem value="RISK">{t("roles.risk")}</SelectItem>
+                  <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline">Export</Button>
+              <Button variant="outline">{t("common.export")}</Button>
             </div>
           </div>
         </CardHeader>
@@ -153,19 +155,19 @@ export default function StaffDashboard() {
           ) : error ? (
             <EmptyState
               icon={Users}
-              title="Error loading staff"
+              title={t("common.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="No staff found"
+              title={t("staffDashboard.noActivity")}
               description={
                 searchQuery || roleFilter !== "ALL"
-                  ? "Try adjusting your filters"
-                  : "Staff will appear here"
+                  ? t("staffManagement.list.emptyFiltered")
+                  : t("staffManagement.list.emptyDefault")
               }
             />
           ) : (
@@ -173,11 +175,11 @@ export default function StaffDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Staff</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t("staffDashboard.user")}</TableHead>
+                    <TableHead>{t("staffDashboard.action")}</TableHead>
+                    <TableHead>{t("agentDashboard.status")}</TableHead>
+                    <TableHead>{t("staffManagement.email")}</TableHead>
+                    <TableHead>{t("common.action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -214,7 +216,7 @@ export default function StaffDashboard() {
                       <TableCell className="text-sm">{s.email}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost">
-                          Manage
+                          {t("common.manage")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -229,10 +231,10 @@ export default function StaffDashboard() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -240,7 +242,7 @@ export default function StaffDashboard() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

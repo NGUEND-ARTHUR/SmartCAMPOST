@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { financeService } from "@/services/financeService";
 
 interface FinanceForm {
@@ -7,6 +8,7 @@ interface FinanceForm {
   initialBalance: number | "";
 }
 export default function CreateFinancePage() {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FinanceForm>({
     name: "",
     description: "",
@@ -35,7 +37,7 @@ export default function CreateFinancePage() {
       form.initialBalance === "" ||
       isNaN(Number(form.initialBalance))
     ) {
-      setError("All fields are required and initial balance must be a number.");
+      setError(t("createFinancePage.subtitle"));
       return;
     }
 
@@ -51,7 +53,7 @@ export default function CreateFinancePage() {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to create finance record",
+        err instanceof Error ? err.message : t("createFinancePage.cancel"),
       );
     } finally {
       setIsLoading(false);
@@ -60,14 +62,14 @@ export default function CreateFinancePage() {
 
   return (
     <div className="max-w-lg mx-auto mt-10 bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">Create Finance</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("createFinancePage.title")}</h1>
       {success && (
         <div
           className="mb-4 p-2 bg-green-100 text-green-800 rounded"
           role="status"
           aria-live="polite"
         >
-          Finance created successfully!
+          {t("createFinancePage.submit")}
         </div>
       )}
       {error && (
@@ -78,7 +80,7 @@ export default function CreateFinancePage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="mb-4">
           <label className="block mb-1 font-medium" htmlFor="finance-name">
-            Name
+            {t("createFinancePage.transactionType")}
           </label>
           <input
             id="finance-name"
@@ -88,7 +90,7 @@ export default function CreateFinancePage() {
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
             required
-            placeholder="Enter name"
+            placeholder={t("createFinancePage.selectType")}
             title="Finance name"
             aria-required="true"
             aria-invalid="false"
@@ -99,7 +101,7 @@ export default function CreateFinancePage() {
             className="block mb-1 font-medium"
             htmlFor="finance-description"
           >
-            Description
+            {t("createFinancePage.description")}
           </label>
           <textarea
             id="finance-description"
@@ -108,7 +110,7 @@ export default function CreateFinancePage() {
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
             required
-            placeholder="Enter description"
+            placeholder={t("createFinancePage.descriptionPlaceholder")}
             title="Finance description"
             aria-required="true"
             aria-invalid="false"
@@ -119,7 +121,7 @@ export default function CreateFinancePage() {
             className="block mb-1 font-medium"
             htmlFor="finance-initial-balance"
           >
-            Initial Balance
+            {t("createFinancePage.amount")}
           </label>
           <input
             id="finance-initial-balance"
@@ -129,7 +131,7 @@ export default function CreateFinancePage() {
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
             required
-            placeholder="Enter initial balance"
+            placeholder={t("createFinancePage.amountPlaceholder")}
             title="Initial balance"
             min="0"
             step="0.01"
@@ -142,7 +144,7 @@ export default function CreateFinancePage() {
           disabled={isLoading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Creating..." : "Create Finance"}
+          {isLoading ? t("common.loading") : t("createFinancePage.submit")}
         </button>
       </form>
     </div>

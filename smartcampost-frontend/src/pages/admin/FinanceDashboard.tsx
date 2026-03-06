@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   DollarSign,
   TrendingUp,
@@ -98,6 +99,7 @@ const toTransaction = (refund: RefundRecord): Transaction => ({
 });
 
 export default function FinanceDashboard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<FinanceStats>({
     totalRevenue: 0,
     pendingPayments: 0,
@@ -168,9 +170,9 @@ export default function FinanceDashboard() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="mb-2">Finance Dashboard</h1>
+            <h1 className="mb-2">{t("adminFinanceDashboard.title")}</h1>
             <p className="text-muted-foreground">
-              Monitor payments, revenue, and refunds
+              {t("adminFinanceDashboard.overview")}
             </p>
           </div>
           <button
@@ -179,7 +181,7 @@ export default function FinanceDashboard() {
             disabled={isLoading}
           >
             <Download className="w-4 h-4 mr-2" />
-            {isLoading ? "Loading..." : "Refresh"}
+            {isLoading ? t("common.loading") : t("adminFinanceDashboard.generateReport")}
           </button>
         </div>
 
@@ -191,7 +193,7 @@ export default function FinanceDashboard() {
 
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading dashboard data...</p>
+            <p className="text-muted-foreground">{t("common.loading")}</p>
           </div>
         ) : (
           <>
@@ -201,7 +203,7 @@ export default function FinanceDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
-                      Total Revenue
+                      {t("adminFinanceDashboard.totalRevenue")}
                     </p>
                     <p className="text-3xl font-semibold text-foreground">
                       ${stats.totalRevenue.toLocaleString()}
@@ -217,7 +219,7 @@ export default function FinanceDashboard() {
                     {stats.revenueGrowth}%
                   </span>
                   <span className="text-muted-foreground ml-1">
-                    vs last month
+                    {t("adminFinanceDashboard.monthlyGrowthDesc")}
                   </span>
                 </div>
               </div>
@@ -226,7 +228,7 @@ export default function FinanceDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
-                      Pending Payments
+                      {t("adminFinanceDashboard.outstandingPayments")}
                     </p>
                     <p className="text-3xl font-semibold text-foreground">
                       ${stats.pendingPayments.toLocaleString()}
@@ -237,7 +239,7 @@ export default function FinanceDashboard() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Awaiting processing
+                  {t("adminFinanceDashboard.outstandingPaymentsDesc")}
                 </p>
               </div>
 
@@ -245,7 +247,7 @@ export default function FinanceDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
-                      Completed Payments
+                      {t("adminFinanceDashboard.profitMargin")}
                     </p>
                     <p className="text-3xl font-semibold text-foreground">
                       ${stats.completedPayments.toLocaleString()}
@@ -256,7 +258,7 @@ export default function FinanceDashboard() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Successfully processed
+                  {t("adminFinanceDashboard.profitMarginDesc")}
                 </p>
               </div>
 
@@ -264,7 +266,7 @@ export default function FinanceDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
-                      Pending Refunds
+                      {t("adminFinanceDashboard.agencyRevenue")}
                     </p>
                     <p className="text-3xl font-semibold text-foreground">
                       ${stats.refundsPending.toLocaleString()}
@@ -275,7 +277,7 @@ export default function FinanceDashboard() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Awaiting approval
+                  {t("adminFinanceDashboard.revenueByService")}
                 </p>
               </div>
             </div>
@@ -284,7 +286,7 @@ export default function FinanceDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Revenue Trend */}
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="mb-6">Revenue Trend</h2>
+                <h2 className="mb-6">{t("adminFinanceDashboard.financialReports")}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -305,7 +307,7 @@ export default function FinanceDashboard() {
 
               {/* Payment Methods */}
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="mb-6">Payment Methods</h2>
+                <h2 className="mb-6">{t("adminFinanceDashboard.paymentMethods")}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={paymentData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -323,26 +325,26 @@ export default function FinanceDashboard() {
             {/* Recent Transactions */}
             <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-border">
-                <h2 className="font-semibold">Recent Transactions</h2>
+                <h2 className="font-semibold">{t("financeDashboard.recentTransactions")}</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Type
+                        {t("financeDashboard.type")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Customer
+                        {t("common.customer")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Amount
+                        {t("financeDashboard.amount")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Status
+                        {t("financeDashboard.status")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Date
+                        {t("financeDashboard.date")}
                       </th>
                     </tr>
                   </thead>

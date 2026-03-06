@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { BadgeCheck, MapPin, Package, Scan, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,7 @@ const statusStyles: Record<TaskStatus, string> = {
 };
 
 export default function AgentDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,15 +73,15 @@ export default function AgentDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Agent Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t("agentDashboard.welcome")}</h1>
           <p className="text-muted-foreground">
-            Your pickups, deliveries and scanning tasks
+            {t("agentDashboard.overview")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate("/admin/scan")}>
             <Scan className="mr-2 h-4 w-4" />
-            Open Scan Console
+            {t("agentDashboard.scanParcel")}
           </Button>
         </div>
       </div>
@@ -90,63 +92,63 @@ export default function AgentDashboard() {
 
       {isLoading ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading your tasks...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("agentDashboard.pendingTasks")}</CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.pending}</div>
                 <p className="text-xs text-muted-foreground">
-                  Tasks awaiting start
+                  {t("agentDashboard.pendingTasksDesc")}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  In Progress
+                  {t("common.inProgress")}
                 </CardTitle>
                 <Truck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.inProgress}</div>
-                <p className="text-xs text-muted-foreground">Active jobs</p>
+                <p className="text-xs text-muted-foreground">{t("agentDashboard.avgDeliveryTimeDesc")}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Completed Today
+                  {t("agentDashboard.deliveryRate")}
                 </CardTitle>
                 <BadgeCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.done}</div>
-                <p className="text-xs text-muted-foreground">Done tasks</p>
+                <p className="text-xs text-muted-foreground">{t("agentDashboard.deliveryRateDesc")}</p>
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Today’s Task Queue</CardTitle>
+              <CardTitle>{t("agentDashboard.recentAssignments")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Task</TableHead>
-                    <TableHead>Parcel</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Scheduled</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>{t("agentDashboard.parcelId")}</TableHead>
+                    <TableHead>{t("common.parcel")}</TableHead>
+                    <TableHead>{t("agentDashboard.destination")}</TableHead>
+                    <TableHead>{t("agentDashboard.assignedDate")}</TableHead>
+                    <TableHead>{t("agentDashboard.status")}</TableHead>
+                    <TableHead>{t("common.action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -176,7 +178,7 @@ export default function AgentDashboard() {
                             navigate(`/client/parcels/${t.parcelId}`)
                           }
                         >
-                          View Parcel
+                          {t("agentDashboard.viewAll")}
                         </Button>
                       </TableCell>
                     </TableRow>

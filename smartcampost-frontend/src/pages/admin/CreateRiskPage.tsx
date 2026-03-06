@@ -1,7 +1,9 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { riskService } from "@/services/riskService";
 
 export default function CreateRiskPage() {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     type: "",
     severity: "",
@@ -27,7 +29,7 @@ export default function CreateRiskPage() {
       !form.severity.trim() ||
       !form.description.trim()
     ) {
-      setError("All fields are required");
+      setError(t("createRiskPage.subtitle"));
       return;
     }
 
@@ -43,7 +45,7 @@ export default function CreateRiskPage() {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to create risk alert",
+        err instanceof Error ? err.message : t("createRiskPage.cancel"),
       );
     } finally {
       setIsLoading(false);
@@ -52,10 +54,10 @@ export default function CreateRiskPage() {
 
   return (
     <div className="max-w-lg mx-auto mt-10 bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">Create Risk Alert</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("createRiskPage.title")}</h1>
       {success && (
         <div className="mb-4 p-2 bg-green-100 text-green-800 rounded">
-          Risk alert created successfully!
+          {t("createRiskPage.submit")}
         </div>
       )}
       {error && (
@@ -64,7 +66,7 @@ export default function CreateRiskPage() {
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="risk-type" className="block mb-1 font-medium">
-            Type
+            {t("createRiskPage.riskType")}
           </label>
           <input
             id="risk-type"
@@ -73,14 +75,14 @@ export default function CreateRiskPage() {
             value={form.type}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
-            placeholder="e.g. Theft, Delay, Damage"
+            placeholder={t("createRiskPage.selectType")}
             title="Risk type"
             required
           />
         </div>
         <div className="mb-4">
           <label htmlFor="risk-severity" className="block mb-1 font-medium">
-            Severity
+            {t("createRiskPage.severity")}
           </label>
           <input
             id="risk-severity"
@@ -89,14 +91,14 @@ export default function CreateRiskPage() {
             value={form.severity}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
-            placeholder="e.g. Low, Medium, High"
+            placeholder={t("createRiskPage.selectSeverity")}
             title="Risk severity"
             required
           />
         </div>
         <div className="mb-6">
           <label htmlFor="risk-description" className="block mb-1 font-medium">
-            Description
+            {t("createRiskPage.description")}
           </label>
           <textarea
             id="risk-description"
@@ -104,7 +106,7 @@ export default function CreateRiskPage() {
             value={form.description}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
-            placeholder="Describe the risk in detail"
+            placeholder={t("createRiskPage.descriptionPlaceholder")}
             title="Risk description"
             required
           />
@@ -114,7 +116,7 @@ export default function CreateRiskPage() {
           disabled={isLoading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Creating..." : "Create Risk Alert"}
+          {isLoading ? t("common.loading") : t("createRiskPage.submit")}
         </button>
       </form>
     </div>

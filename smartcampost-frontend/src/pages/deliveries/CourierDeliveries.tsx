@@ -1,15 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Package, Loader2, Map, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// Tabs not used in this view
 import { EmptyState } from "@/components/EmptyState";
 import { CourierNavigationMap } from "@/components/maps";
 import { useMyParcels } from "@/hooks";
+import { useStartDelivery } from "@/hooks";
 import { toast } from "sonner";
+import { deliveryService } from "@/services";
 
 const statusColors: Record<string, string> = {
   OUT_FOR_DELIVERY: "bg-yellow-100 text-yellow-800",
@@ -23,9 +24,10 @@ export default function CourierDeliveries() {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "map">("map");
-  // Note: Ideally there would be a dedicated courier deliveries endpoint
-  // Using myParcels as a placeholder - backend should provide courier-specific endpoint
-  const { data, isLoading, error } = useMyParcels(page, 20);
+  const [completingId, setCompletingId] = useState<string | null>(null);
+
+  // Fetch parcels assigned to the current user (courier view)
+  const { data, isLoading, error, refetch } = useMyParcels(page, 20);
 
   const parcels = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -35,52 +37,73 @@ export default function CourierDeliveries() {
     (p) => p.status === "OUT_FOR_DELIVERY" || p.status === "IN_TRANSIT",
   );
 
-  // Convert deliveries to map stops format (memoized to avoid impure calls on every render)
-  // Stable pseudo-random generator based on id to avoid Math.random() during render
-  const stableRandom = (s: string) => {
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < s.length; i++) {
-      h ^= s.charCodeAt(i);
-      h = Math.imul(h, 16777619) >>> 0;
-    }
-    return (h % 1000) / 1000;
-  };
-
+  // Convert deliveries to map stops using real data from API response
   const mapStops = useMemo(
     () =>
-      deliveries.map((d, index) => {
-        const r = stableRandom(d.id + String(index));
-        return {
-          id: d.id,
-          type: "DELIVERY" as const,
-          location: {
-            lat: 4.0511 + r * 0.1,
-            lng: 9.7679 + r * 0.1,
-            address: t("deliveries.courier.deliveryLocation", {
-              index: index + 1,
-            }),
-          },
-          parcelId: d.id,
-          trackingCode: d.trackingRef || d.id.slice(0, 10),
-          clientName: "Customer",
-          clientPhone: "+237 XXX XXX XXX",
-          priority: 1,
-        };
-      }),
+      deliveries.map((d, index) => ({
+        id: d.id,
+        type: "DELIVERY" as const,
+        location: {
+          lat: d.recipientLatitude ?? 4.0511,
+          lng: d.recipientLongitude ?? 9.7679,
+          address: [d.recipientCity, d.recipientRegion].filter(Boolean).join(", ") ||
+            t("deliveries.courier.deliveryLocation", { index: index + 1 }),
+        },
+        parcelId: d.id,
+        trackingCode: d.trackingRef || d.id.slice(0, 10),
+        clientName: d.clientName || t("deliveries.courier.recipient"),
+        clientPhone: d.clientPhone || "",
+        priority: 1,
+      })),
     [deliveries, t],
   );
 
-  const handleStopComplete = (stopId: string) => {
-    toast.success(
-      t("deliveries.courier.toasts.markedComplete", {
-        id: stopId.slice(0, 8),
-      }),
-    );
-    // Would call API to update delivery status
-  };
+  // Handle marking a stop as complete — call the real backend delivery API
+  const handleStopComplete = useCallback(
+    async (stopId: string) => {
+      setCompletingId(stopId);
+      try {
+        // Get current GPS position
+        const position = await new Promise<GeolocationPosition>(
+          (resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+            }),
+        ).catch(() => null);
+
+        const lat = position?.coords.latitude ?? 0;
+        const lng = position?.coords.longitude ?? 0;
+
+        await deliveryService.completeDelivery({
+          parcelId: stopId,
+          latitude: lat,
+          longitude: lng,
+          notes: "Completed via courier map view",
+        });
+
+        toast.success(
+          t("deliveries.courier.toasts.markedComplete", {
+            id: stopId.slice(0, 8),
+          }),
+        );
+        // Refresh the list after completion
+        refetch();
+      } catch (err) {
+        toast.error(
+          t("deliveries.courier.toasts.completeFailed") || "Failed to complete delivery",
+          {
+            description: err instanceof Error ? err.message : "Unknown error",
+          },
+        );
+      } finally {
+        setCompletingId(null);
+      }
+    },
+    [t, refetch],
+  );
 
   const handleNavigate = (stop: { location: { lat: number; lng: number } }) => {
-    // Open Google Maps or native navigation
     const url = `https://www.google.com/maps/dir/?api=1&destination=${stop.location.lat},${stop.location.lng}`;
     window.open(url, "_blank");
   };
@@ -157,7 +180,7 @@ export default function CourierDeliveries() {
                       {d.trackingRef || d.id.slice(0, 10)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Recipient • Unknown city
+                      {d.recipientCity || d.recipientRegion || t("deliveries.courier.unknownDestination") || "Unknown destination"}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

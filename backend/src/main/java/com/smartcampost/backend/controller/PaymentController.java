@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -106,5 +107,15 @@ public class PaymentController {
             @PathVariable UUID parcelId
     ) {
         return ResponseEntity.ok(paymentService.getPaymentSummary(parcelId));
+    }
+
+    /**
+     * COD settlement: agent/courier validates that the COD amount was paid.
+     * Marks the pending COD payment as SUCCESS and issues the PDF invoice/receipt.
+     */
+    @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
+    @PostMapping("/cod/{parcelId}/mark-paid")
+    public ResponseEntity<PaymentResponse> markCodAsPaid(@PathVariable UUID parcelId) {
+        return ResponseEntity.ok(paymentService.markCodAsPaid(parcelId));
     }
 }
