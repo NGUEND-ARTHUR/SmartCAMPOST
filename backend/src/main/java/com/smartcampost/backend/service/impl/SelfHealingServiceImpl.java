@@ -127,14 +127,105 @@ public class SelfHealingServiceImpl implements SelfHealingService {
                     ErrorCode.VALIDATION_ERROR
             );
         }
-        
-        // Mark as executed
+
+        if ("REDISTRIBUTE".equals(action.getActionType()) && action.getSourceAgencyId() != null) {
+            executeRedistribution(action);
+        }
+
         action.setStatus("EXECUTED");
-        
-        // Log the action for audit
-        // In a real implementation, this would trigger actual parcel movements
-        
         return action;
+    }
+
+    /**
+     * Redistributes parcels from a congested agency to nearby agencies with capacity.
+     */
+    private void executeRedistribution(SelfHealingAction action) {
+        UUID sourceId = action.getSourceAgencyId();
+
+        // 1. Find parcels waiting at the congested agency
+        List<Parcel> waitingParcels = parcelRepository.findByDestinationAgency_IdAndStatusIn(
+                sourceId,
+                List.of(ParcelStatus.ARRIVED_DEST_AGENCY, ParcelStatus.ARRIVED_HUB)
+        );
+
+        if (waitingParcels.isEmpty()) {
+            action.setDescription(action.getDescription() + " — No parcels to redistribute");
+            return;
+        }
+
+        // 2. Find all other agencies and pick those under threshold
+        List<Agency> allAgencies = agencyRepository.findAll();
+        List<Agency> candidates = allAgencies.stream()
+                .filter(a -> !a.getId().equals(sourceId))
+                .filter(a -> {
+                    long count = parcelRepository.countByDestinationAgency_IdAndStatusIn(
+                            a.getId(),
+                            List.of(ParcelStatus.ARRIVED_DEST_AGENCY, ParcelStatus.ARRIVED_HUB)
+                    );
+                    return count < congestionThreshold * 0.5; // agencies under 50% capacity
+                })
+                .collect(Collectors.toList());
+
+        if (candidates.isEmpty()) {
+            action.setDescription(action.getDescription() + " — No available target agencies with capacity");
+            return;
+        }
+
+        // 3. Redistribute excess parcels (those above threshold) round-robin to candidates
+        int excess = waitingParcels.size() - congestionThreshold;
+        if (excess <= 0) excess = (int) Math.ceil(waitingParcels.size() * 0.2); // redistribute at least 20%
+
+        List<UUID> movedParcelIds = new ArrayList<>();
+        int targetIdx = 0;
+        for (int i = 0; i < Math.min(excess, waitingParcels.size()); i++) {
+            Parcel parcel = waitingParcels.get(i);
+            Agency target = candidates.get(targetIdx % candidates.size());
+            targetIdx++;
+
+            parcel.setDestinationAgency(target);
+            parcel.setStatus(ParcelStatus.IN_TRANSIT);
+            parcelRepository.save(parcel);
+            movedParcelIds.add(parcel.getId());
+        }
+
+        // 4. Update the action with results
+        action.setAffectedParcels(movedParcelIds);
+        if (!candidates.isEmpty()) {
+            action.setTargetAgencyId(candidates.get(0).getId());
+        }
+        action.setDescription(action.getDescription()
+                + " — Redistributed " + movedParcelIds.size() + " parcels to "
+                + Math.min(candidates.size(), movedParcelIds.size()) + " agencies");
+
+        // 5. Notify affected clients
+        for (UUID parcelId : movedParcelIds) {
+            try {
+                Parcel p = parcelRepository.findById(parcelId).orElse(null);
+                if (p == null || p.getClient() == null) continue;
+                var client = p.getClient();
+
+                var req = new com.smartcampost.backend.dto.notification.TriggerNotificationRequest();
+                req.setType(com.smartcampost.backend.model.enums.NotificationType.MANUAL);
+                req.setParcelId(parcelId);
+                req.setSubject("Delivery Route Update");
+                req.setMessage("Your parcel " + p.getTrackingRef()
+                        + " has been rerouted to " + p.getDestinationAgency().getAgencyName()
+                        + " for faster processing.");
+
+                if (client.getPhone() != null && !client.getPhone().isBlank()) {
+                    req.setChannel(com.smartcampost.backend.model.enums.NotificationChannel.SMS);
+                    req.setRecipientPhone(client.getPhone());
+                } else if (client.getEmail() != null && !client.getEmail().isBlank()) {
+                    req.setChannel(com.smartcampost.backend.model.enums.NotificationChannel.EMAIL);
+                    req.setRecipientEmail(client.getEmail());
+                } else {
+                    continue;
+                }
+                notificationService.triggerNotification(req);
+            } catch (Exception ignored) {
+                // Continue with next parcel
+            }
+        }
     }
 
     @Override

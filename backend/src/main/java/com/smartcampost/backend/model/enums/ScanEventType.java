@@ -26,5 +26,6 @@ public enum ScanEventType {
     // Verification events
     OTP_SENT,                   // OTP sent for delivery verification
     OTP_VERIFIED,               // OTP verified successfully
-    PROOF_CAPTURED              // Photo/signature proof captured
+    PROOF_CAPTURED,             // Photo/signature proof captured
+    PAYMENT_CONFIRMED           // Payment collected/confirmed at delivery
 }

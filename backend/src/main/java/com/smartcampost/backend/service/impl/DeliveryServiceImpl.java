@@ -286,11 +286,35 @@ public class DeliveryServiceImpl implements DeliveryService {
             try {
                 PaymentMethod method = request.getPaymentMethod() != null ?
                         PaymentMethod.valueOf(request.getPaymentMethod()) : PaymentMethod.CASH;
-                // Payment would be created here
-                log.info("COD payment collected: {} XAF via {}",
-                        request.getAmountCollected(), method);
+
+                // Create and persist the COD payment record
+                Payment codPayment = Payment.builder()
+                        .parcel(parcel)
+                        .amount(request.getAmountCollected())
+                        .currency("XAF")
+                        .method(method)
+                        .status(PaymentStatus.SUCCESS)
+                        .externalRef("COD-" + parcel.getTrackingRef() + "-" + Instant.now().toEpochMilli())
+                        .build();
+                codPayment = paymentRepository.save(codPayment);
+                paymentId = codPayment.getId();
+
+                log.info("COD payment recorded: id={}, amount={} XAF via {}, parcel={}",
+                        paymentId, request.getAmountCollected(), method, parcel.getTrackingRef());
+
+                // Record a scan event for the payment collection
+                recordOperationalEvent(
+                        parcel.getId(),
+                        ScanEventType.PAYMENT_CONFIRMED,
+                        request.getLatitude(),
+                        request.getLongitude(),
+                        "COD payment collected: " + request.getAmountCollected() + " XAF via " + method,
+                        "PAYMENT_COLLECTED",
+                        null
+                );
             } catch (Exception e) {
-                log.warn("Failed to record COD payment: {}", e.getMessage());
+                log.warn("Failed to record COD payment for parcel {}: {}",
+                        parcel.getTrackingRef(), e.getMessage());
             }
         }
 

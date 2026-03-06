@@ -272,7 +272,7 @@ public class ScanEventServiceImpl implements ScanEventService {
             case CANCELLED -> ParcelStatus.CANCELLED;
 
             // Operational / audit events do not auto-change parcel status
-            case DELIVERY_FAILED, RESCHEDULED, OTP_SENT, OTP_VERIFIED, PROOF_CAPTURED -> null;
+            case DELIVERY_FAILED, RESCHEDULED, OTP_SENT, OTP_VERIFIED, PROOF_CAPTURED, PAYMENT_CONFIRMED -> null;
         };
     }
 

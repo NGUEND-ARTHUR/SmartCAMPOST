@@ -6,7 +6,6 @@ import {
   Circle,
 } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
 
@@ -160,7 +159,7 @@ function FitBounds({ markers }: { markers?: MapProps["markers"] }) {
   return null;
 }
 
-export default function LeafletMap({
+function LeafletMapInner({
   center = [3.848, 11.5021],
   zoom = 12,
   height = "400px",
@@ -185,3 +184,6 @@ export default function LeafletMap({
     </CameroonMap>
   );
 }
+
+const LeafletMap = React.memo(LeafletMapInner);
+export default LeafletMap;
