@@ -1,11 +1,14 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import CreateFinancePage from "./pages/admin/CreateFinancePage";
 import CreateRiskPage from "./pages/admin/CreateRiskPage";
 import ApiCoverage from "./pages/debug/ApiCoverage";
-import MapViewer from "./pages/maps/MapViewer";
-import PickupMap from "./pages/maps/PickupMap";
-import TrackingMap from "./pages/maps/TrackingMap";
-import RoleMapDashboard from "./pages/maps/RoleMapDashboard";
+
+// Lazy-load heavy map pages so the leaflet bundle only ships when needed
+const MapViewer = lazy(() => import("./pages/maps/MapViewer"));
+const PickupMap = lazy(() => import("./pages/maps/PickupMap"));
+const TrackingMap = lazy(() => import("./pages/maps/TrackingMap"));
+const RoleMapDashboard = lazy(() => import("./pages/maps/RoleMapDashboard"));
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -73,6 +76,13 @@ import MtnTest from "./pages/payments/MtnTest";
 function App() {
   return (
     <Router>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-screen">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        }
+      >
       <Routes>
         <Route path="/" element={<Landing />} />
 
@@ -254,6 +264,7 @@ function App() {
         <Route path="/maps/tracking" element={<TrackingMap />} />
         <Route path="/mtn-test" element={<MtnTest />} />
       </Routes>
+      </Suspense>
       {/* AI Chatbot - Available on all pages */}
       <AIChatbot />
     </Router>

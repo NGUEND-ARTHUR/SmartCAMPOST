@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
 import "./i18n"; // Initialize i18n
-import "leaflet/dist/leaflet.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { ThemedToaster } from "./components/ThemedToaster";

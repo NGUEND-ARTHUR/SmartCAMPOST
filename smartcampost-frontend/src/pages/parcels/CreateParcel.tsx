@@ -1,8 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Package, MapPin, Truck, CreditCard } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  MapPin,
+  Truck,
+  CreditCard,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,6 +42,7 @@ import { toast } from "sonner";
 import { useCreateParcel, useMyAddresses } from "@/hooks";
 import LocationPicker from "@/components/maps/LocationPicker";
 import { addressService } from "@/services/addressService";
+import { tariffService, TariffQuoteResponse } from "@/services/dashboard/tariffs.api";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ParcelFormData {
@@ -94,6 +102,10 @@ export function CreateParcel() {
     country: "Cameroon",
   });
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [priceQuote, setPriceQuote] = useState<TariffQuoteResponse | null>(
+    null,
+  );
+  const [priceLoading, setPriceLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -148,6 +160,39 @@ export function CreateParcel() {
       addressForm.country.trim(),
     );
   }, [addressForm]);
+
+  // ── Dynamic pricing: fetch server-side quote when inputs change ──
+  const senderAddr = addresses.find((a) => a.id === senderAddressId);
+  const recipientAddr = addresses.find((a) => a.id === recipientAddressId);
+
+  useEffect(() => {
+    const weight = getValues("weight");
+    if (!weight || weight <= 0) {
+      setPriceQuote(null);
+      return;
+    }
+    const controller = new AbortController();
+    setPriceLoading(true);
+    tariffService
+      .quote({
+        serviceType,
+        weight: Number(weight),
+        originCity: senderAddr?.city ?? undefined,
+        destinationCity: recipientAddr?.city ?? undefined,
+      })
+      .then((q) => {
+        if (!controller.signal.aborted) setPriceQuote(q);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setPriceQuote(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPriceLoading(false);
+      });
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serviceType, senderAddressId, recipientAddressId, currentStep]);
+  // Refetch when user enters step 2 (service) or step 3 (payment)
 
   const openAddAddress = (target: "sender" | "recipient") => {
     setAddAddressTarget(target);
@@ -620,20 +665,66 @@ export function CreateParcel() {
                   <CardHeader>
                     <CardTitle className="text-lg">Delivery rates</CardTitle>
                     <CardDescription>
-                      Agency pickup is free. Home delivery has an extra fee.
+                      Pricing is calculated by the system based on weight,
+                      distance, and service type.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Agency pickup</span>
-                        <span>0 XAF</span>
+                    {priceLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Calculating price…
                       </div>
-                      <div className="flex justify-between">
-                        <span>Home delivery</span>
-                        <span>+ 500 XAF</span>
+                    ) : priceQuote ? (
+                      <div className="space-y-2 text-sm">
+                        {priceQuote.breakdown && (
+                          <>
+                            <div className="flex justify-between">
+                              <span>Base price</span>
+                              <span>
+                                {priceQuote.breakdown.basePrice.toLocaleString()}{" "}
+                                {priceQuote.currency}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Weight charge</span>
+                              <span>
+                                {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
+                                {priceQuote.currency}
+                              </span>
+                            </div>
+                            {(priceQuote.breakdown.extras ?? 0) > 0 && (
+                              <div className="flex justify-between">
+                                <span>Extras</span>
+                                <span>
+                                  +{" "}
+                                  {priceQuote.breakdown.extras!.toLocaleString()}{" "}
+                                  {priceQuote.currency}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {deliveryOption === "HOME" && (
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>Home delivery surcharge</span>
+                            <span>Calculated at delivery</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-semibold text-base pt-2 border-t">
+                          <span>Estimated total</span>
+                          <span>
+                            {priceQuote.estimatedPrice.toLocaleString()}{" "}
+                            {priceQuote.currency}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Enter parcel weight and select addresses to get a price
+                        estimate.
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -671,33 +762,67 @@ export function CreateParcel() {
                     <CardTitle className="text-lg">Estimated Cost</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Base shipping</span>
-                        <span>2,500 XAF</span>
+                    {priceLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Calculating…
                       </div>
-                      {serviceType === "EXPRESS" && (
-                        <div className="flex justify-between">
-                          <span>Express service</span>
-                          <span>+ 1,000 XAF</span>
+                    ) : priceQuote ? (
+                      <div className="space-y-2 text-sm">
+                        {priceQuote.breakdown && (
+                          <>
+                            <div className="flex justify-between">
+                              <span>Base shipping</span>
+                              <span>
+                                {priceQuote.breakdown.basePrice.toLocaleString()}{" "}
+                                {priceQuote.currency}
+                              </span>
+                            </div>
+                            {priceQuote.breakdown.weightCharge > 0 && (
+                              <div className="flex justify-between">
+                                <span>Weight charge</span>
+                                <span>
+                                  +{" "}
+                                  {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
+                                  {priceQuote.currency}
+                                </span>
+                              </div>
+                            )}
+                            {(priceQuote.breakdown.extras ?? 0) > 0 && (
+                              <div className="flex justify-between">
+                                <span>
+                                  {serviceType === "EXPRESS"
+                                    ? "Express service"
+                                    : "Extras"}
+                                </span>
+                                <span>
+                                  +{" "}
+                                  {priceQuote.breakdown.extras!.toLocaleString()}{" "}
+                                  {priceQuote.currency}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {deliveryOption === "HOME" && (
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>Home delivery surcharge</span>
+                            <span>Added at delivery</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-semibold text-base pt-2 border-t">
+                          <span>Total</span>
+                          <span>
+                            {priceQuote.estimatedPrice.toLocaleString()}{" "}
+                            {priceQuote.currency}
+                          </span>
                         </div>
-                      )}
-                      {deliveryOption === "HOME" && (
-                        <div className="flex justify-between">
-                          <span>Home delivery</span>
-                          <span>+ 500 XAF</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between font-semibold text-base pt-2 border-t">
-                        <span>Total</span>
-                        <span>
-                          {2500 +
-                            (serviceType === "EXPRESS" ? 1000 : 0) +
-                            (deliveryOption === "HOME" ? 500 : 0)}{" "}
-                          XAF
-                        </span>
                       </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Price unavailable — please verify parcel details.
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>

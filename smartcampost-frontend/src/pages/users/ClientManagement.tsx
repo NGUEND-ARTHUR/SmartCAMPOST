@@ -63,7 +63,7 @@ export default function ClientManagement() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>All Clients</CardTitle>
+            <CardTitle>{t("clientManagement.list.title")}</CardTitle>
             <div className="flex items-center space-x-2">
               <Input
                 placeholder={t("clientManagement.searchPlaceholder")}
@@ -84,7 +84,7 @@ export default function ClientManagement() {
               icon={Users}
               title={t("clientManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : filteredClients.length === 0 ? (
@@ -102,12 +102,12 @@ export default function ClientManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Language</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("clientManagement.list.client")}</TableHead>
+                    <TableHead>{t("clientManagement.list.phone")}</TableHead>
+                    <TableHead>{t("clientManagement.list.email")}</TableHead>
+                    <TableHead>{t("clientManagement.list.language")}</TableHead>
+                    <TableHead>{t("clientManagement.list.joined")}</TableHead>
+                    <TableHead>{t("clientManagement.list.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -150,7 +150,7 @@ export default function ClientManagement() {
                           onClick={() => handleViewDetails(client.id)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          View
+                          {t("clientManagement.list.view")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -165,10 +165,10 @@ export default function ClientManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -176,7 +176,7 @@ export default function ClientManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}
@@ -202,40 +202,40 @@ export default function ClientManagement() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.fullName")}</p>
                     <p className="font-medium">{clientDetail.fullName}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.phone")}</p>
                     <p className="font-medium">{clientDetail.phone}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.email")}</p>
                     <p className="font-medium">{clientDetail.email || "—"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Preferred Language
+                      {t("clientManagement.detail.preferredLanguage")}
                     </p>
                     <p className="font-medium">
                       {clientDetail.preferredLanguage || "fr"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Client ID</p>
+                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.clientId")}</p>
                     <p className="font-medium font-mono text-xs">
                       {clientDetail.id}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">User ID</p>
+                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.userId")}</p>
                     <p className="font-medium font-mono text-xs">
                       {clientDetail.userId}
                     </p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">Registered on</p>
+                  <p className="text-sm text-muted-foreground">{t("clientManagement.detail.registeredOn")}</p>
                   <p className="font-medium">
                     {new Date(clientDetail.createdAt).toLocaleString()}
                   </p>
@@ -243,7 +243,7 @@ export default function ClientManagement() {
               </div>
             ) : (
               <p className="text-center text-muted-foreground">
-                Client not found
+                {t("clientManagement.clientNotFound")}
               </p>
             )}
           </div>

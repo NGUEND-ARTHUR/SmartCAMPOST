@@ -123,14 +123,14 @@ export function CameroonMap({
   const tile =
     resolvedTheme === "dark"
       ? {
-          url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+          url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         }
       : {
-          url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
           attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         };
 
   return (
@@ -141,6 +141,12 @@ export function CameroonMap({
         className,
       )}
     >
+      {/* Lean map styles — avoid broad will-change to save GPU memory */}
+      <style>{`
+        .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
+        .leaflet-control-zoom a { border-radius: 8px !important; }
+        .leaflet-tile-pane { transition: opacity 0.2s; }
+      `}</style>
       <MapContainer
         center={center}
         zoom={zoom}
@@ -150,14 +156,21 @@ export function CameroonMap({
         maxBoundsViscosity={1.0}
         preferCanvas
         zoomControl={false}
+        zoomAnimation
+        fadeAnimation
+        markerZoomAnimation
         className="h-full w-full"
       >
         <TileLayer
           url={tile.url}
           attribution={tile.attribution}
+          subdomains="abcd"
           bounds={CAMEROON_BOUNDS}
           noWrap
           maxNativeZoom={19}
+          keepBuffer={4}
+          updateWhenIdle
+          updateWhenZooming={false}
         />
         <CameroonBoundsEnforcer />
         <CameroonMask />

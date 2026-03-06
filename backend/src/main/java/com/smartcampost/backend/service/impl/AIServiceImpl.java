@@ -96,10 +96,43 @@ public class AIServiceImpl implements AIService {
                 Arrays.asList("Current parcel count?", "How to set alerts?", "Export reports?")
         ));
 
+        // ========== FINANCE ROLE ==========
+        KNOWLEDGE_BASE.put("revenue", new KnowledgeEntry(
+                "FINANCE_HELP",
+                "📊 **Finance Dashboard**:\n- View revenue analytics and trends\n- Manage tariffs and pricing rules\n- Oversee invoices and reconciliation\n- Export financial reports (PDF/CSV)\n\nWhat do you need?",
+                Arrays.asList("Revenue trends", "Manage tariffs", "Export report")
+        ));
+
+        KNOWLEDGE_BASE.put("tariff", new KnowledgeEntry(
+                "TARIFF_MANAGEMENT",
+                "💰 **Tariff Management**:\n- Create/edit pricing rules by weight, distance, and service type\n- Set seasonal adjustments and bulk discounts\n- Preview price impact before applying changes\n- View tariff history and audit trail",
+                Arrays.asList("Configure pricing", "View current tariffs", "Bulk discounts")
+        ));
+
+        // ========== RISK ROLE ==========
+        KNOWLEDGE_BASE.put("risk", new KnowledgeEntry(
+                "RISK_HELP",
+                "🛡️ **Risk Dashboard**:\n- Monitor active fraud alerts\n- View risk scores and anomaly detection\n- Generate compliance reports\n- Review flagged accounts\n\nAlerts are prioritized: Critical > High > Medium > Low",
+                Arrays.asList("Active alerts", "Compliance report", "Flagged accounts")
+        ));
+
+        KNOWLEDGE_BASE.put("fraud", new KnowledgeEntry(
+                "FRAUD_DETECTION",
+                "🔍 **Fraud Detection**:\nOur AI monitors for suspicious patterns:\n- Unusual transaction volumes\n- Multiple failed payment attempts\n- Suspicious address changes\n- High-value shipments from new accounts\n- Geographic anomalies\n\nAll alerts trigger automatic risk scoring.",
+                Arrays.asList("View fraud alerts", "Risk scoring rules", "Investigation process")
+        ));
+
+        // ========== INSURANCE ==========
+        KNOWLEDGE_BASE.put("insurance", new KnowledgeEntry(
+                "INSURANCE",
+                "🛡️ **Insurance Options**:\n- Basic (free): Up to 50,000 XAF coverage\n- Standard (2%): Up to 500,000 XAF\n- Premium (3.5%): Full declared value\n\nAdd insurance when creating your parcel. Claims processed within 5-10 business days.",
+                Arrays.asList("How to file a claim?", "Insurance pricing", "Coverage details")
+        ));
+
         // ========== UNIVERSAL ==========
         KNOWLEDGE_BASE.put("help", new KnowledgeEntry(
                 "SUPPORT",
-                "ℹ️ I can assist you with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery information\n- 📍 Agency locations\n- 🛣️ Route optimization\n- 📋 Account management\n\nWhat do you need?",
+                "ℹ️ I can assist you with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery information\n- 📍 Agency locations\n- 🛣️ Route optimization\n- 📋 Account management\n- 🛡️ Insurance & claims\n- 📊 Analytics & reports\n\nWhat do you need?",
                 Arrays.asList("Track my parcel", "Find an agency", "I have a problem")
         ));
 
@@ -117,7 +150,7 @@ public class AIServiceImpl implements AIService {
 
         KNOWLEDGE_BASE.put("contact", new KnowledgeEntry(
                 "CONTACT",
-                "📞 **Contact Us**:\n- **Phone**: +237 6XX XXX XXX\n- **Email**: support@smartcampost.cm\n- **WhatsApp**: +237 6XX XXX XXX\n- **Agencies**: Find locations in map view\n- **In-app**: File tickets in dashboard\n\nResponse time: 2-4 hours",
+                "📞 **Contact Us**:\n- **Phone**: +237 222 23 15 05\n- **Email**: support@smartcampost.cm\n- **WhatsApp**: +237 653 72 00 00\n- **Agencies**: Find locations in map view\n- **In-app**: File tickets in dashboard\n\nResponse time: 2-4 hours",
                 Arrays.asList("Find nearest agency", "Email support", "File a complaint")
         ));
 
@@ -286,10 +319,10 @@ public class AIServiceImpl implements AIService {
         userMsg.put("content", request.getMessage());
         messages.add(userMsg);
 
-        // Call OpenAI client (model and params tuned for cost control)
+        // Call OpenAI client (model and params tuned for quality)
         String model = System.getenv().getOrDefault("SMARTCAMPOST_AI_MODEL", "gpt-4o-mini");
-        int maxTokens = 300;
-        double temperature = 0.2;
+        int maxTokens = 600;
+        double temperature = 0.25;
 
         try {
             var responseMono = openAIClient.createChatCompletion(model, messages, maxTokens, temperature);
@@ -355,19 +388,50 @@ public class AIServiceImpl implements AIService {
             suggestions.addAll(Arrays.asList(
                     "Track my parcel",
                     "Create new shipment",
-                    "View my addresses"
+                    "Check delivery rates",
+                    "View my invoices"
             ));
         } else if (role == UserRole.COURIER) {
             suggestions.addAll(Arrays.asList(
                     "Show my assignments",
                     "Optimize my route",
-                    "Update delivery status"
+                    "Update delivery status",
+                    "Payment collection tips"
             ));
-        } else if (role == UserRole.AGENT || role == UserRole.ADMIN || role == UserRole.STAFF) {
+        } else if (role == UserRole.AGENT) {
             suggestions.addAll(Arrays.asList(
                     "Parcel inventory",
                     "Staff management",
-                    "Generate reports"
+                    "Generate agency report",
+                    "View congestion alerts"
+            ));
+        } else if (role == UserRole.ADMIN) {
+            suggestions.addAll(Arrays.asList(
+                    "System analytics",
+                    "Manage user accounts",
+                    "Configure tariffs",
+                    "System health check"
+            ));
+        } else if (role == UserRole.STAFF) {
+            suggestions.addAll(Arrays.asList(
+                    "Process parcels",
+                    "View deliveries",
+                    "Open support tickets",
+                    "Performance analytics"
+            ));
+        } else if (role == UserRole.FINANCE) {
+            suggestions.addAll(Arrays.asList(
+                    "Revenue trends",
+                    "Manage tariffs",
+                    "View invoices",
+                    "Export financial report"
+            ));
+        } else if (role == UserRole.RISK) {
+            suggestions.addAll(Arrays.asList(
+                    "Active alerts",
+                    "Fraud detection report",
+                    "Compliance audit",
+                    "Flagged accounts"
             ));
         } else {
             suggestions.addAll(Arrays.asList(

@@ -305,7 +305,7 @@ export default function ParcelDetail() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Addresses</CardTitle>
+            <CardTitle>{t("parcels.detail.addresses")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -313,13 +313,12 @@ export default function ParcelDetail() {
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-blue-600" />
                 </div>
-                <p className="font-medium">Sender</p>
+                <p className="font-medium">{t("parcels.detail.sender")}</p>
               </div>
               <div className="ml-10 text-sm text-muted-foreground">
-                <p>John Doe</p>
-                <p>123 Main Street</p>
-                <p>Douala, Littoral</p>
-                <p>Cameroon</p>
+                <p>{parcel.senderLabel || parcel.clientName || "—"}</p>
+                <p>{parcel.senderCity}{parcel.senderRegion ? `, ${parcel.senderRegion}` : ""}</p>
+                <p>{parcel.senderCountry || ""}</p>
               </div>
             </div>
             <Separator />
@@ -328,13 +327,12 @@ export default function ParcelDetail() {
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="font-medium">Recipient</p>
+                <p className="font-medium">{t("parcels.detail.recipient")}</p>
               </div>
               <div className="ml-10 text-sm text-muted-foreground">
-                <p>Jane Smith</p>
-                <p>456 Avenue de l'Indépendance</p>
-                <p>Yaoundé, Centre</p>
-                <p>Cameroon</p>
+                <p>{parcel.recipientLabel || "—"}</p>
+                <p>{parcel.recipientCity}{parcel.recipientRegion ? `, ${parcel.recipientRegion}` : ""}</p>
+                <p>{parcel.recipientCountry || ""}</p>
               </div>
             </div>
           </CardContent>
