@@ -45,6 +45,16 @@ mtn:
   token-url: ${MTN_TOKEN_URL:http://localhost:9200/token}
   init-url: ${MTN_INIT_URL:http://localhost:9200/init}
 
+# Payment gateway selection (mtn | orange | mock)
+payment:
+  gateway: ${PAYMENT_GATEWAY:mtn}
+
+# Orange Money gateway (optional)
+orange:
+  api-key: ${ORANGE_API_KEY:}
+  init-url: ${ORANGE_INIT_URL:}
+  verify-url: ${ORANGE_VERIFY_URL:}
+
 # SmartCAMPOST Security Configuration
 smartcampost:
   # JWT Configuration - MUST be set in production
@@ -93,6 +103,12 @@ smartcampost:
   gps:
     mandatory: true
     max-accuracy-meters: 100
+
+  pricing:
+    home-delivery:
+      enabled: ${HOME_DELIVERY_SURCHARGE_ENABLED:true}
+      # XAF per km. Set to 0 to disable surcharge.
+      per-km-fee-xaf: ${HOME_DELIVERY_PER_KM_FEE_XAF:0}
 
   offline:
     max-queue-size: 100

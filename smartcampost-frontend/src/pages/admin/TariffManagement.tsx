@@ -183,9 +183,9 @@ export default function TariffManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Tariff Management</h1>
+          <h1 className="text-3xl font-bold">{t("tariffManagement.title")}</h1>
           <p className="text-muted-foreground">
-            Configure pricing tariffs for parcel services
+            {t("tariffManagement.subtitle")}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -197,29 +197,29 @@ export default function TariffManagement() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Tariff
+              {t("tariffManagement.addTariff")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Tariff</DialogTitle>
+              <DialogTitle>{t("tariffManagement.createTitle")}</DialogTitle>
               <DialogDescription>
-                Define a new pricing tariff for parcel services
+                {t("tariffManagement.createDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Tariff Name *</Label>
+                <Label htmlFor="name">{t("tariffManagement.tariffName")} *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={handleInputChange("name")}
-                  placeholder="e.g., Standard Domestic"
+                  placeholder={t("tariffManagement.namePlaceholder")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="serviceType">Service Type *</Label>
+                  <Label htmlFor="serviceType">{t("tariffManagement.serviceType")} *</Label>
                   <Select
                     value={formData.serviceType}
                     onValueChange={(v: string) =>
@@ -230,13 +230,13 @@ export default function TariffManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="STANDARD">Standard</SelectItem>
-                      <SelectItem value="EXPRESS">Express</SelectItem>
+                      <SelectItem value="STANDARD">{t("tariffManagement.standard")}</SelectItem>
+                      <SelectItem value="EXPRESS">{t("tariffManagement.express")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency">{t("tariffManagement.currency")}</Label>
                   <Input
                     id="currency"
                     value={formData.currency}
@@ -247,26 +247,26 @@ export default function TariffManagement() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="originZone">Origin Zone *</Label>
+                  <Label htmlFor="originZone">{t("tariffManagement.originZone")} *</Label>
                   <Input
                     id="originZone"
                     value={formData.originZone}
                     onChange={handleInputChange("originZone")}
-                    placeholder="e.g., YAOUNDE"
+                    placeholder={t("tariffManagement.originPlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="destinationZone">Destination Zone *</Label>
+                  <Label htmlFor="destinationZone">{t("tariffManagement.destinationZone")} *</Label>
                   <Input
                     id="destinationZone"
                     value={formData.destinationZone}
                     onChange={handleInputChange("destinationZone")}
-                    placeholder="e.g., DOUALA"
+                    placeholder={t("tariffManagement.destinationPlaceholder")}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="weightBracket">Weight Bracket</Label>
+                <Label htmlFor="weightBracket">{t("tariffManagement.weightBracket")}</Label>
                 <Select
                   value={formData.weightBracket}
                   onValueChange={(v: string) =>
@@ -277,17 +277,17 @@ export default function TariffManagement() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0-5kg">0-5 kg</SelectItem>
-                    <SelectItem value="5-10kg">5-10 kg</SelectItem>
-                    <SelectItem value="10-20kg">10-20 kg</SelectItem>
-                    <SelectItem value="20-50kg">20-50 kg</SelectItem>
-                    <SelectItem value="50+kg">50+ kg</SelectItem>
+                    <SelectItem value="0-5kg">{t("tariffManagement.weight0_5")}</SelectItem>
+                    <SelectItem value="5-10kg">{t("tariffManagement.weight5_10")}</SelectItem>
+                    <SelectItem value="10-20kg">{t("tariffManagement.weight10_20")}</SelectItem>
+                    <SelectItem value="20-50kg">{t("tariffManagement.weight20_50")}</SelectItem>
+                    <SelectItem value="50+kg">{t("tariffManagement.weight50plus")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="basePrice">Base Price *</Label>
+                  <Label htmlFor="basePrice">{t("tariffManagement.basePrice")} *</Label>
                   <Input
                     id="basePrice"
                     type="number"
@@ -297,7 +297,7 @@ export default function TariffManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pricePerKg">Price per Kg</Label>
+                  <Label htmlFor="pricePerKg">{t("tariffManagement.pricePerKg")}</Label>
                   <Input
                     id="pricePerKg"
                     type="number"
@@ -310,13 +310,13 @@ export default function TariffManagement() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={createTariff.isPending}>
                 {createTariff.isPending && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                Create Tariff
+                {t("tariffManagement.createTariff")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -326,7 +326,7 @@ export default function TariffManagement() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>All Tariffs</CardTitle>
+            <CardTitle>{t("tariffManagement.allTariffs")}</CardTitle>
             <Select
               value={serviceTypeFilter}
               onValueChange={setServiceTypeFilter}
@@ -335,9 +335,9 @@ export default function TariffManagement() {
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="STANDARD">Standard</SelectItem>
-                <SelectItem value="EXPRESS">Express</SelectItem>
+                <SelectItem value="ALL">{t("tariffManagement.allTypes")}</SelectItem>
+                <SelectItem value="STANDARD">{t("tariffManagement.standard")}</SelectItem>
+                <SelectItem value="EXPRESS">{t("tariffManagement.express")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -350,7 +350,7 @@ export default function TariffManagement() {
           ) : error ? (
             <EmptyState
               icon={DollarSign}
-              title="Error loading tariffs"
+              title={t("tariffManagement.errorLoading")}
               description={
                 error instanceof Error ? error.message : "An error occurred"
               }
@@ -358,20 +358,20 @@ export default function TariffManagement() {
           ) : tariffs.length === 0 ? (
             <EmptyState
               icon={DollarSign}
-              title="No tariffs found"
-              description="Create your first tariff to get started"
+              title={t("tariffManagement.noTariffs")}
+              description={t("tariffManagement.noTariffsDescription")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Service Type</TableHead>
-                    <TableHead>Origin Zone</TableHead>
-                    <TableHead>Destination Zone</TableHead>
-                    <TableHead>Weight Bracket</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("tariffManagement.serviceType")}</TableHead>
+                    <TableHead>{t("tariffManagement.originZone")}</TableHead>
+                    <TableHead>{t("tariffManagement.destinationZone")}</TableHead>
+                    <TableHead>{t("tariffManagement.weightBracket")}</TableHead>
+                    <TableHead>{t("tariffManagement.price")}</TableHead>
+                    <TableHead>{t("tariffManagement.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -427,10 +427,10 @@ export default function TariffManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("tariffManagement.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("tariffManagement.pageOf", { current: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -438,7 +438,7 @@ export default function TariffManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("tariffManagement.next")}
                   </Button>
                 </div>
               )}
@@ -451,33 +451,33 @@ export default function TariffManagement() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Tariff</DialogTitle>
-            <DialogDescription>Update tariff price</DialogDescription>
+            <DialogTitle>{t("tariffManagement.editTitle")}</DialogTitle>
+            <DialogDescription>{t("tariffManagement.editDescription")}</DialogDescription>
           </DialogHeader>
           {editingTariff && (
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Service Type</Label>
+                  <Label>{t("tariffManagement.serviceType")}</Label>
                   <Input value={editingTariff.serviceType} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Weight Bracket</Label>
+                  <Label>{t("tariffManagement.weightBracket")}</Label>
                   <Input value={editingTariff.weightBracket} disabled />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Origin Zone</Label>
+                  <Label>{t("tariffManagement.originZone")}</Label>
                   <Input value={editingTariff.originZone} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Destination Zone</Label>
+                  <Label>{t("tariffManagement.destinationZone")}</Label>
                   <Input value={editingTariff.destinationZone} disabled />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Price (XAF)</Label>
+                <Label>{t("tariffManagement.priceXAF")}</Label>
                 <Input
                   type="number"
                   value={editingTariff.price}
@@ -493,13 +493,13 @@ export default function TariffManagement() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleUpdate} disabled={updateTariff.isPending}>
               {updateTariff.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Save Changes
+              {t("tariffManagement.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>

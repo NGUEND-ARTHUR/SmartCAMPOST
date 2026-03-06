@@ -10,7 +10,6 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Package, MapPin, Navigation, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,28 +31,32 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-// Custom icons
-const createIcon = (color: string, emoji: string) =>
+// Custom icons with shadow and smooth styling
+const createIcon = (color: string, emoji: string, pulse = false) =>
   L.divIcon({
     className: "custom-marker",
     html: `<div style="
       background: ${color};
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      border: 2px solid hsl(var(--background));
-    ">${emoji}</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+      font-size: 20px;
+      border: 3px solid hsl(var(--background));
+      box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+      ${pulse ? "animation: markerPulse 2s ease-in-out infinite;" : ""}
+    ">${emoji}</div>
+    ${pulse ? `<style>@keyframes markerPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.15);opacity:0.85} }</style>` : ""}`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
   });
 
 const originIcon = createIcon("hsl(var(--secondary))", "📍");
 const destinationIcon = createIcon("hsl(var(--destructive))", "🏁");
-const parcelIcon = createIcon("hsl(var(--primary))", "📦");
+const parcelIcon = createIcon("hsl(var(--primary))", "📦", true);
 const transitIcon = createIcon("hsl(var(--accent))", "🚚");
 
 interface ScanEvent {
@@ -215,15 +218,27 @@ export default function TrackingMap({
             <AnimatedView center={mapCenter} zoom={mapZoom} />
             <FollowPosition position={currentPosition} enabled={isAnimating} />
 
-            {/* Route line */}
+            {/* Route line — solid background + dashed overlay for depth */}
             {fullRoute.length >= 2 && (
-              <Polyline
-                positions={fullRoute}
-                color="hsl(var(--primary))"
-                weight={4}
-                opacity={0.7}
-                dashArray="10, 10"
-              />
+              <>
+                <Polyline
+                  positions={fullRoute}
+                  color="hsl(var(--primary))"
+                  weight={6}
+                  opacity={0.25}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+                <Polyline
+                  positions={fullRoute}
+                  color="hsl(var(--primary))"
+                  weight={3}
+                  opacity={0.85}
+                  dashArray="12, 8"
+                  lineCap="round"
+                  lineJoin="round"
+                />
+              </>
             )}
 
             {/* Origin marker */}

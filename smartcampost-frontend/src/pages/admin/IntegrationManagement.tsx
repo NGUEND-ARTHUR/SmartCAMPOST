@@ -174,9 +174,9 @@ export default function IntegrationManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Integration Management</h1>
+          <h1 className="text-3xl font-bold">{t("integrationManagement.title")}</h1>
           <p className="text-muted-foreground">
-            Configure external service integrations (SMS, Payments, Maps, etc.)
+            {t("integrationManagement.subtitle")}
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -188,19 +188,19 @@ export default function IntegrationManagement() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Integration
+              {t("integrationManagement.addIntegration")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Integration</DialogTitle>
+              <DialogTitle>{t("integrationManagement.createTitle")}</DialogTitle>
               <DialogDescription>
-                Add a new external service integration
+                {t("integrationManagement.createDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="configType">Config Type *</Label>
+                <Label htmlFor="configType">{t("integrationManagement.configType")} *</Label>
                 <Select
                   value={formData.configType}
                   onValueChange={(v: string) =>
@@ -220,29 +220,29 @@ export default function IntegrationManagement() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="provider">Provider Name *</Label>
+                <Label htmlFor="provider">{t("integrationManagement.providerName")} *</Label>
                 <Input
                   id="provider"
                   value={formData.provider}
                   onChange={(e) =>
                     setFormData({ ...formData, provider: e.target.value })
                   }
-                  placeholder="e.g., Orange Money, Twilio"
+                  placeholder={t("integrationManagement.providerPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="baseUrl">Base URL</Label>
+                <Label htmlFor="baseUrl">{t("integrationManagement.baseUrl")}</Label>
                 <Input
                   id="baseUrl"
                   value={formData.baseUrl}
                   onChange={(e) =>
                     setFormData({ ...formData, baseUrl: e.target.value })
                   }
-                  placeholder="https://api.provider.com"
+                  placeholder={t("integrationManagement.baseUrlPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="apiKey">API Key</Label>
+                <Label htmlFor="apiKey">{t("integrationManagement.apiKey")}</Label>
                 <Input
                   id="apiKey"
                   type="password"
@@ -250,7 +250,7 @@ export default function IntegrationManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, apiKey: e.target.value })
                   }
-                  placeholder="••••••••"
+                  placeholder={t("integrationManagement.apiKeyPlaceholder")}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -263,12 +263,12 @@ export default function IntegrationManagement() {
                     setFormData({ ...formData, active: e.target.checked })
                   }
                 />
-                <Label htmlFor="active">Active</Label>
+                <Label htmlFor="active">{t("integrationManagement.active")}</Label>
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 onClick={handleCreate}
@@ -277,7 +277,7 @@ export default function IntegrationManagement() {
                 {createIntegration.isPending && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                Create Integration
+                {t("integrationManagement.createIntegration")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -286,7 +286,7 @@ export default function IntegrationManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Integrations</CardTitle>
+          <CardTitle>{t("integrationManagement.allIntegrations")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -296,7 +296,7 @@ export default function IntegrationManagement() {
           ) : error ? (
             <EmptyState
               icon={Settings}
-              title="Error loading integrations"
+              title={t("integrationManagement.errorLoading")}
               description={
                 error instanceof Error ? error.message : "An error occurred"
               }
@@ -304,19 +304,19 @@ export default function IntegrationManagement() {
           ) : integrations.length === 0 ? (
             <EmptyState
               icon={Settings}
-              title="No integrations configured"
-              description="Add your first integration to connect external services"
+              title={t("integrationManagement.noIntegrations")}
+              description={t("integrationManagement.noIntegrationsDescription")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Base URL</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("integrationManagement.type")}</TableHead>
+                    <TableHead>{t("integrationManagement.provider")}</TableHead>
+                    <TableHead>{t("integrationManagement.baseUrl")}</TableHead>
+                    <TableHead>{t("integrationManagement.status")}</TableHead>
+                    <TableHead>{t("integrationManagement.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -337,12 +337,12 @@ export default function IntegrationManagement() {
                         {integration.active ? (
                           <Badge className="bg-green-100 text-green-800">
                             <CheckCircle className="w-3 h-3 mr-1" />
-                            Active
+                            {t("integrationManagement.active")}
                           </Badge>
                         ) : (
                           <Badge className="bg-muted text-muted-foreground">
                             <XCircle className="w-3 h-3 mr-1" />
-                            Inactive
+                            {t("integrationManagement.inactive")}
                           </Badge>
                         )}
                       </TableCell>
@@ -378,10 +378,10 @@ export default function IntegrationManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("integrationManagement.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("integrationManagement.pageOf", { current: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -389,7 +389,7 @@ export default function IntegrationManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("integrationManagement.next")}
                   </Button>
                 </div>
               )}
@@ -402,15 +402,15 @@ export default function IntegrationManagement() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Integration</DialogTitle>
+            <DialogTitle>{t("integrationManagement.editTitle")}</DialogTitle>
             <DialogDescription>
-              Update integration configuration
+              {t("integrationManagement.editDescription")}
             </DialogDescription>
           </DialogHeader>
           {editingIntegration && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Config Type</Label>
+                <Label>{t("integrationManagement.configType")}</Label>
                 <Select
                   value={editingIntegration.configType}
                   onValueChange={(v: string) =>
@@ -433,7 +433,7 @@ export default function IntegrationManagement() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Provider Name</Label>
+                <Label>{t("integrationManagement.providerName")}</Label>
                 <Input
                   value={editingIntegration.provider}
                   onChange={(e) =>
@@ -445,7 +445,7 @@ export default function IntegrationManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Base URL</Label>
+                <Label>{t("integrationManagement.baseUrl")}</Label>
                 <Input
                   value={editingIntegration.baseUrl}
                   onChange={(e) =>
@@ -457,7 +457,7 @@ export default function IntegrationManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>API Key</Label>
+                <Label>{t("integrationManagement.apiKey")}</Label>
                 <Input
                   type="password"
                   value={editingIntegration.apiKey}
@@ -482,13 +482,13 @@ export default function IntegrationManagement() {
                     })
                   }
                 />
-                <Label htmlFor="editActive">Active</Label>
+                <Label htmlFor="editActive">{t("integrationManagement.active")}</Label>
               </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleUpdate}
@@ -497,7 +497,7 @@ export default function IntegrationManagement() {
               {updateIntegration.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Save Changes
+              {t("integrationManagement.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>

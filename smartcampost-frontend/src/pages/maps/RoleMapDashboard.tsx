@@ -72,7 +72,7 @@ type TrackedParcelItem = {
 };
 
 const TRACKING_ROLES = new Set(["CLIENT", "COURIER", "AGENT"]);
-const REFRESH_INTERVAL_MS = 15000;
+const REFRESH_INTERVAL_MS = 60000;
 
 async function extractParcelMarker(
   parcelMap: ParcelMapResponse,
@@ -226,7 +226,7 @@ export default function RoleMapDashboard() {
             (r) =>
               typeof r.latitude === "number" && typeof r.longitude === "number",
           )
-          .slice(0, 250)
+          .slice(0, 150)
           .map((r) => ({
             id: `loc-${r.id}`,
             position: [r.latitude as number, r.longitude as number],
@@ -241,7 +241,7 @@ export default function RoleMapDashboard() {
               (typeof p.creationLatitude === "number" &&
                 typeof p.creationLongitude === "number"),
           )
-          .slice(0, 300)
+          .slice(0, 200)
           .map((p) => ({
             id: `parcel-${p.id}`,
             position:

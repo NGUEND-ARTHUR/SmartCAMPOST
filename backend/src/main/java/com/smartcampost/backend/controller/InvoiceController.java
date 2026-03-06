@@ -57,7 +57,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/{invoiceId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CLIENT')")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CLIENT') or hasRole('STAFF') or hasRole('AGENT') or hasRole('COURIER')")
     public ResponseEntity<?> getInvoice(
             @PathVariable String invoiceId,
             org.springframework.security.core.Authentication auth
@@ -73,7 +73,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/by-parcel/{parcelId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CLIENT')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CLIENT') or hasRole('STAFF') or hasRole('AGENT') or hasRole('COURIER')")
         public List<InvoiceResponse> byParcel(
             @PathVariable String parcelId,
             org.springframework.security.core.Authentication auth
@@ -97,7 +97,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/{invoiceId}/pdf")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CLIENT')")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CLIENT') or hasRole('STAFF') or hasRole('AGENT') or hasRole('COURIER')")
     public ResponseEntity<Resource> downloadPdf(
             @PathVariable String invoiceId,
             org.springframework.security.core.Authentication auth

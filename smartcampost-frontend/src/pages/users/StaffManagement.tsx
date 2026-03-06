@@ -307,14 +307,14 @@ export default function StaffManagement() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Staff
+              {t("staffManagement.addStaff")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Staff Member</DialogTitle>
+              <DialogTitle>{t("staffManagement.create.title")}</DialogTitle>
               <DialogDescription>
-                Add a new staff member or administrator to the system
+                {t("staffManagement.create.subtitle")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -328,23 +328,23 @@ export default function StaffManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })
                   }
-                  placeholder="John Doe"
+                  placeholder={t("staffManagement.fullNamePlaceholder")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
+                  <Label htmlFor="phone">{t("staffManagement.phone")} *</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder="+237 6XX XXX XXX"
+                    placeholder={t("staffManagement.phonePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("staffManagement.email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -352,12 +352,12 @@ export default function StaffManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="staff@campost.cm"
+                    placeholder={t("staffManagement.emailPlaceholder")}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">{t("staffManagement.password")} *</Label>
                 <Input
                   id="password"
                   type="password"
@@ -365,12 +365,12 @@ export default function StaffManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder={t("staffManagement.passwordPlaceholder")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role *</Label>
+                  <Label htmlFor="role">{t("staffManagement.role")} *</Label>
                   <Select
                     value={formData.role}
                     onValueChange={(value: string) =>
@@ -378,32 +378,32 @@ export default function StaffManagement() {
                     }
                   >
                     <SelectTrigger id="role">
-                      <SelectValue placeholder="Select a role" />
+                      <SelectValue placeholder={t("staffManagement.selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="STAFF">Staff</SelectItem>
-                      <SelectItem value="ADMIN">Administrator</SelectItem>
-                      <SelectItem value="FINANCE">Finance</SelectItem>
-                      <SelectItem value="RISK">Risk Management</SelectItem>
-                      <SelectItem value="COURIER">Courier</SelectItem>
+                      <SelectItem value="STAFF">{t("roles.staff")}</SelectItem>
+                      <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
+                      <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
+                      <SelectItem value="RISK">{t("roles.riskManager")}</SelectItem>
+                      <SelectItem value="COURIER">{t("roles.courier")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 {formData.role === "COURIER" ? (
                   <div className="space-y-2">
-                    <Label htmlFor="vehicleId">Vehicle ID (optional)</Label>
+                    <Label htmlFor="vehicleId">{t("staffManagement.vehicleId")}</Label>
                     <Input
                       id="vehicleId"
                       value={formData.vehicleId}
                       onChange={(e) =>
                         setFormData({ ...formData, vehicleId: e.target.value })
                       }
-                      placeholder="VH-XXXXX (auto-generated if empty)"
+                      placeholder={t("staffManagement.vehicleIdPlaceholder")}
                     />
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Label htmlFor="agencyId">Agency (optional)</Label>
+                    <Label htmlFor="agencyId">{t("staffManagement.agencyOptional")}</Label>
                     <Select
                       value={formData.agencyId}
                       onValueChange={(value: string) =>
@@ -411,7 +411,7 @@ export default function StaffManagement() {
                       }
                     >
                       <SelectTrigger id="agencyId">
-                        <SelectValue placeholder="Select agency" />
+                        <SelectValue placeholder={t("staffManagement.selectAgency")} />
                       </SelectTrigger>
                       <SelectContent>
                         {agencies.map((agency) => (
@@ -427,7 +427,7 @@ export default function StaffManagement() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 onClick={handleCreate}
@@ -437,8 +437,8 @@ export default function StaffManagement() {
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
                 {formData.role === "COURIER"
-                  ? "Create Courier"
-                  : "Create Staff"}
+                  ? t("staffManagement.create.actionCourier")
+                  : t("staffManagement.create.actionStaff")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -448,12 +448,12 @@ export default function StaffManagement() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>All Staff Members & Couriers</CardTitle>
+            <CardTitle>{t("staffManagement.list.title")}</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search..."
+                  placeholder={t("staffManagement.list.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-52"
@@ -462,27 +462,27 @@ export default function StaffManagement() {
               <Select value={roleFilter} onValueChange={setRoleFilter}>
                 <SelectTrigger className="w-36">
                   <ShieldCheck className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Role" />
+                  <SelectValue placeholder={t("staffManagement.role")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Roles</SelectItem>
-                  <SelectItem value="STAFF">Staff</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="FINANCE">Finance</SelectItem>
-                  <SelectItem value="RISK">Risk</SelectItem>
-                  <SelectItem value="COURIER">Courier</SelectItem>
+                  <SelectItem value="ALL">{t("staffManagement.filter.allRoles")}</SelectItem>
+                  <SelectItem value="STAFF">{t("roles.staff")}</SelectItem>
+                  <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
+                  <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
+                  <SelectItem value="RISK">{t("roles.riskManager")}</SelectItem>
+                  <SelectItem value="COURIER">{t("roles.courier")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-36">
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("common.status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  <SelectItem value="ALL">{t("staffManagement.filter.allStatus")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("common.active")}</SelectItem>
+                  <SelectItem value="INACTIVE">{t("common.inactive")}</SelectItem>
+                  <SelectItem value="SUSPENDED">{t("common.suspended")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -496,19 +496,19 @@ export default function StaffManagement() {
           ) : error ? (
             <EmptyState
               icon={Users}
-              title="Error loading staff"
+              title={t("staffManagement.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : filteredMembers.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="No staff or couriers found"
+              title={t("staffManagement.list.emptyTitle")}
               description={
                 searchQuery || statusFilter !== "ALL" || roleFilter !== "ALL"
-                  ? "Try adjusting your filters"
-                  : "Add your first staff member or courier to get started"
+                  ? t("staffManagement.list.emptyFiltered")
+                  : t("staffManagement.list.emptyDefault")
               }
             />
           ) : (
@@ -516,11 +516,11 @@ export default function StaffManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("staffManagement.list.member")}</TableHead>
+                    <TableHead>{t("staffManagement.list.contact")}</TableHead>
+                    <TableHead>{t("staffManagement.list.role")}</TableHead>
+                    <TableHead>{t("staffManagement.list.status")}</TableHead>
+                    <TableHead>{t("staffManagement.list.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -588,10 +588,10 @@ export default function StaffManagement() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ACTIVE">Active</SelectItem>
-                              <SelectItem value="INACTIVE">Inactive</SelectItem>
+                              <SelectItem value="ACTIVE">{t("common.active")}</SelectItem>
+                              <SelectItem value="INACTIVE">{t("common.inactive")}</SelectItem>
                               <SelectItem value="SUSPENDED">
-                                Suspended
+                                {t("common.suspended")}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -606,10 +606,10 @@ export default function StaffManagement() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="STAFF">Staff</SelectItem>
-                                <SelectItem value="ADMIN">Admin</SelectItem>
-                                <SelectItem value="FINANCE">Finance</SelectItem>
-                                <SelectItem value="RISK">Risk</SelectItem>
+                                <SelectItem value="STAFF">{t("roles.staff")}</SelectItem>
+                                <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
+                                <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
+                                <SelectItem value="RISK">{t("roles.riskManager")}</SelectItem>
                               </SelectContent>
                             </Select>
                           )}
@@ -627,10 +627,10 @@ export default function StaffManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -638,7 +638,7 @@ export default function StaffManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

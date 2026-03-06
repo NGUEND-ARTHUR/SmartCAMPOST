@@ -21,6 +21,7 @@ import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.InvoiceService;
 import com.smartcampost.backend.service.NotificationService;
+import com.smartcampost.backend.service.PaymentGatewayService;
 import com.smartcampost.backend.service.PricingService;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.ErrorCode;
@@ -33,19 +34,22 @@ public class PaymentServiceImpl implements PaymentService {
     private final InvoiceService invoiceService;
     private final PricingService pricingService;
     private final NotificationService notificationService;
+    private final PaymentGatewayService paymentGatewayService;
 
     public PaymentServiceImpl(
             PaymentRepository paymentRepository,
             ParcelRepository parcelRepository,
             InvoiceService invoiceService,
             PricingService pricingService,
-            NotificationService notificationService
+            NotificationService notificationService,
+            PaymentGatewayService paymentGatewayService
     ) {
         this.paymentRepository = paymentRepository;
         this.parcelRepository = parcelRepository;
         this.invoiceService = invoiceService;
         this.pricingService = pricingService;
         this.notificationService = notificationService;
+        this.paymentGatewayService = paymentGatewayService;
     }
 
     @Override
@@ -65,13 +69,30 @@ public class PaymentServiceImpl implements PaymentService {
             amount = 0.0;
         }
 
+        String currency = request.getCurrency() != null ? request.getCurrency() : "XAF";
+        String gatewayRef = null;
+
+        if (request.getMethod() == PaymentMethod.MOBILE_MONEY) {
+            String payerPhone = request.getPayerPhone();
+            if (payerPhone == null || payerPhone.isBlank()) {
+                throw new IllegalArgumentException("payerPhone is required for MOBILE_MONEY");
+            }
+            // Initiate the payment via configured gateway (MTN / ORANGE / MOCK)
+            gatewayRef = paymentGatewayService.initiatePayment(
+                    payerPhone,
+                    amount,
+                    currency,
+                    "PARCEL:" + parcel.getTrackingRef()
+            );
+        }
+
         Payment p = Payment.builder()
                 .parcel(parcel)
             .amount(amount)
-                .currency(request.getCurrency() != null ? request.getCurrency() : "XAF")
+                .currency(currency)
                 .method(request.getMethod())
                 .status(PaymentStatus.PENDING)
-                .externalRef(request.getPayerPhone())
+                .externalRef(gatewayRef)
                 .build();
 
         @SuppressWarnings("null")
@@ -151,9 +172,18 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse createCodPendingPayment(UUID parcelId) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        double amount = 0.0;
+        try {
+            var quote = pricingService.quotePrice(id);
+            if (quote != null) amount = quote.doubleValue();
+        } catch (Exception ignored) {
+            amount = 0.0;
+        }
+
         Payment p = Payment.builder()
                 .parcel(parcel)
-                .amount(0.0)
+                .amount(amount)
                 .currency("XAF")
                 .method(PaymentMethod.CASH)
                 .status(PaymentStatus.PENDING)
@@ -186,9 +216,18 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse createRegistrationPayment(UUID parcelId) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        double amount = 0.0;
+        try {
+            var quote = pricingService.quotePrice(id);
+            if (quote != null) amount = quote.doubleValue();
+        } catch (Exception ignored) {
+            amount = 0.0;
+        }
+
         Payment p = Payment.builder()
                 .parcel(parcel)
-                .amount(0.0)
+                .amount(amount)
                 .currency("XAF")
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
@@ -231,6 +270,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentSummary getPaymentSummary(UUID parcelId) {
         Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
         List<PaymentResponse> payments = getPaymentsForParcel(parcelId);
         double totalPaid = payments.stream().filter(p -> p.getStatus() == PaymentStatus.SUCCESS).mapToDouble(PaymentResponse::getAmount).sum();
         double totalDue = 0.0;
@@ -242,8 +283,9 @@ public class PaymentServiceImpl implements PaymentService {
         }
         double balance = totalDue - totalPaid;
         String status = totalPaid >= totalDue ? "PAID" : (totalPaid > 0 ? "PARTIAL" : "PENDING");
-        String paymentOption = "UNKNOWN";
-        return new PaymentSummary(parcelId, "", totalDue, totalPaid, balance, paymentOption, status, payments);
+        String paymentOption = parcel.getPaymentOption() != null ? parcel.getPaymentOption().name() : "UNKNOWN";
+        String trackingRef = parcel.getTrackingRef() != null ? parcel.getTrackingRef() : "";
+        return new PaymentSummary(parcelId, trackingRef, totalDue, totalPaid, balance, paymentOption, status, payments);
     }
 
     private PaymentResponse toDto(Payment p) {

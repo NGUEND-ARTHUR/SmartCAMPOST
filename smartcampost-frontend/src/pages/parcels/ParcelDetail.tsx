@@ -30,10 +30,13 @@ import { ScanEvent, Parcel } from "@/types";
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
 import { EmptyState } from "@/components/EmptyState";
+import { invoiceService } from "@/services";
 import {
   useParcel,
   useScanEventsForParcel,
   usePricingQuote,
+  usePaymentsForParcel,
+  useMarkCodAsPaid,
   useUpdateParcelStatus,
   useValidateAndAccept,
   useValidateAndLockParcel,
@@ -105,6 +108,8 @@ export default function ParcelDetail() {
   const { data: scanEvents = [], isLoading: eventsLoading } =
     useScanEventsForParcel(id || "");
   const quote = usePricingQuote(id || "");
+  const paymentsForParcel = usePaymentsForParcel(id || "");
+  const markCodPaid = useMarkCodAsPaid();
   // mutation hooks must be called unconditionally
 
   const isLoading = parcelLoading || eventsLoading;
@@ -142,6 +147,11 @@ export default function ParcelDetail() {
     { type: "PARCEL_SET_STATUS", to: "CANCELLED" },
   );
   const canCancel = cancelDecision.allowed;
+
+  const isCod = String(parcel.paymentOption || "").toUpperCase() === "COD";
+  const hasSuccessfulPayment = (paymentsForParcel.data || []).some(
+    (p) => String(p.status || "").toUpperCase() === "SUCCESS",
+  );
 
   return (
     <div className="space-y-6">
@@ -295,7 +305,7 @@ export default function ParcelDetail() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Addresses</CardTitle>
+            <CardTitle>{t("parcels.detail.addresses")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -303,13 +313,12 @@ export default function ParcelDetail() {
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-blue-600" />
                 </div>
-                <p className="font-medium">Sender</p>
+                <p className="font-medium">{t("parcels.detail.sender")}</p>
               </div>
               <div className="ml-10 text-sm text-muted-foreground">
-                <p>John Doe</p>
-                <p>123 Main Street</p>
-                <p>Douala, Littoral</p>
-                <p>Cameroon</p>
+                <p>{parcel.senderLabel || parcel.clientName || "—"}</p>
+                <p>{parcel.senderCity}{parcel.senderRegion ? `, ${parcel.senderRegion}` : ""}</p>
+                <p>{parcel.senderCountry || ""}</p>
               </div>
             </div>
             <Separator />
@@ -318,13 +327,12 @@ export default function ParcelDetail() {
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="font-medium">Recipient</p>
+                <p className="font-medium">{t("parcels.detail.recipient")}</p>
               </div>
               <div className="ml-10 text-sm text-muted-foreground">
-                <p>Jane Smith</p>
-                <p>456 Avenue de l'Indépendance</p>
-                <p>Yaoundé, Centre</p>
-                <p>Cameroon</p>
+                <p>{parcel.recipientLabel || "—"}</p>
+                <p>{parcel.recipientCity}{parcel.recipientRegion ? `, ${parcel.recipientRegion}` : ""}</p>
+                <p>{parcel.recipientCountry || ""}</p>
               </div>
             </div>
           </CardContent>
@@ -530,6 +538,58 @@ export default function ParcelDetail() {
           </div>
         </CardContent>
       </Card>
+
+        {canValidate && isCod && (
+          <Card>
+            <CardHeader>
+              <CardTitle>COD Payment</CardTitle>
+              <CardDescription>
+                Validate the cash payment and generate receipt
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Amount due</span>
+                <span className="font-medium">
+                  {quote.isLoading
+                    ? "—"
+                    : quote.data
+                      ? `${quote.data.amount.toLocaleString()} ${quote.data.currency || "XAF"}`
+                      : "—"}
+                </span>
+              </div>
+
+              <Button
+                className="w-full"
+                disabled={markCodPaid.isPending || hasSuccessfulPayment}
+                onClick={async () => {
+                  if (!parcel.id) return;
+                  try {
+                    await markCodPaid.mutateAsync(parcel.id);
+                    toast.success("COD marked as paid. Receipt generated.");
+
+                    // Fetch latest invoice for this parcel and open PDF
+                    const invoices = await invoiceService.listByParcel(parcel.id);
+                    const latest = Array.isArray(invoices) ? invoices[0] : undefined;
+                    if (latest?.id) {
+                      window.open(invoiceService.pdfUrl(latest.id), "_blank");
+                    }
+                  } catch (e: any) {
+                    toast.error(
+                      e?.message || "Failed to mark COD as paid.",
+                    );
+                  }
+                }}
+              >
+                {hasSuccessfulPayment
+                  ? "Already paid"
+                  : markCodPaid.isPending
+                    ? "Processing…"
+                    : "Mark COD as paid"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 }
