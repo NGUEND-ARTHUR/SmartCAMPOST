@@ -204,8 +204,10 @@ export default function Addresses() {
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="form">Address Details</TabsTrigger>
-                <TabsTrigger value="map">Location on Map</TabsTrigger>
+                <TabsTrigger value="form">
+                  {t("addresses.tabs.form")}
+                </TabsTrigger>
+                <TabsTrigger value="map">{t("addresses.tabs.map")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="form" className="space-y-4 py-4">
@@ -303,7 +305,11 @@ export default function Addresses() {
               </Button>
               <Button onClick={handleSubmit} disabled={isSaving}>
                 {isSaving ? (
-                  <>{editingAddress ? "Updating..." : "Adding..."}</>
+                  <>
+                    {editingAddress
+                      ? t("addresses.dialog.updating")
+                      : t("addresses.dialog.adding")}
+                  </>
                 ) : (
                   <>
                     {editingAddress
@@ -319,7 +325,7 @@ export default function Addresses() {
 
       {isLoading ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading addresses...</p>
+          <p className="text-muted-foreground">{t("addresses.loading")}</p>
         </div>
       ) : addresses.length === 0 ? (
         <EmptyState

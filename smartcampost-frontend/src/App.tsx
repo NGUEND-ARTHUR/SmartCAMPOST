@@ -3,7 +3,7 @@ import CreateFinancePage from "./pages/admin/CreateFinancePage";
 import CreateRiskPage from "./pages/admin/CreateRiskPage";
 import ApiCoverage from "./pages/debug/ApiCoverage";
 
-// Lazy-load heavy map pages so the leaflet bundle only ships when needed
+// Lazy-load heavy map pages so the MapLibre bundle only ships when needed
 const MapViewer = lazy(() => import("./pages/maps/MapViewer"));
 const PickupMap = lazy(() => import("./pages/maps/PickupMap"));
 const TrackingMap = lazy(() => import("./pages/maps/TrackingMap"));
@@ -27,6 +27,7 @@ import { Login, LoginOtp, ResetPassword, Register } from "./pages/auth";
 import { ClientDashboard } from "./pages/dashboard";
 import { ParcelList, CreateParcel, ParcelDetail } from "./pages/parcels";
 import PrintLabelPage from "./pages/parcels/PrintLabelPage";
+import QRCodePage from "./pages/parcels/QRCodePage";
 import { Pickups } from "./pages/pickups";
 import { Support } from "./pages/support";
 
@@ -83,187 +84,198 @@ function App() {
           </div>
         }
       >
-      <Routes>
-        <Route path="/" element={<Landing />} />
+        <Routes>
+          <Route path="/" element={<Landing />} />
 
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/login-otp" element={<LoginOtp />} />
-        <Route path="/auth/reset-password" element={<ResetPassword />} />
-        <Route path="/auth/register" element={<Register />} />
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/login-otp" element={<LoginOtp />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/register" element={<Register />} />
 
-        <Route
-          path="/client/parcels/:parcelId/print-label"
-          element={
-            <ProtectedWrapper allowedRoles={["CLIENT"]}>
-              <PrintLabelPage />
-            </ProtectedWrapper>
-          }
-        />
+          <Route
+            path="/client/parcels/:parcelId/print-label"
+            element={
+              <ProtectedWrapper allowedRoles={["CLIENT"]}>
+                <PrintLabelPage />
+              </ProtectedWrapper>
+            }
+          />
+          <Route
+            path="/client/parcels/:id/qr"
+            element={
+              <ProtectedWrapper allowedRoles={["CLIENT"]}>
+                <QRCodePage />
+              </ProtectedWrapper>
+            }
+          />
 
-        <Route
-          path="/client"
-          element={
-            <ProtectedWrapper allowedRoles={["CLIENT"]}>
-              <RoleLayout role="CLIENT" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<ClientDashboard />} />
-          <Route path="parcels" element={<ParcelList />} />
-          <Route path="parcels/create" element={<CreateParcel />} />
-          <Route path="parcels/:id" element={<ParcelDetail />} />
-          <Route path="pickups" element={<Pickups />} />
-          <Route path="payments" element={<ClientPayments />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="tracking" element={<TrackingPage />} />
-          <Route path="support" element={<Support />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          <Route
+            path="/client"
+            element={
+              <ProtectedWrapper allowedRoles={["CLIENT"]}>
+                <RoleLayout role="CLIENT" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<ClientDashboard />} />
+            <Route path="parcels" element={<ParcelList />} />
+            <Route path="parcels/create" element={<CreateParcel />} />
+            <Route path="parcels/:id" element={<ParcelDetail />} />
+            <Route path="parcels/:id/qr" element={<QRCodePage />} />
+            <Route path="pickups" element={<Pickups />} />
+            <Route path="payments" element={<ClientPayments />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="tracking" element={<TrackingPage />} />
+            <Route path="support" element={<Support />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        <Route
-          path="/courier"
-          element={
-            <ProtectedWrapper allowedRoles={["COURIER"]}>
-              <RoleLayout role="COURIER" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<CourierDashboard />} />
-          <Route path="pickups" element={<CourierPickups />} />
-          <Route path="pickups/:id" element={<PickupDetail />} />
-          <Route path="deliveries" element={<CourierDeliveries />} />
-          <Route path="deliveries/:id" element={<DeliveryDetail />} />
-          <Route path="deliveries/confirm" element={<ConfirmDelivery />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="scan" element={<ScanConsole />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          <Route
+            path="/courier"
+            element={
+              <ProtectedWrapper allowedRoles={["COURIER"]}>
+                <RoleLayout role="COURIER" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<CourierDashboard />} />
+            <Route path="pickups" element={<CourierPickups />} />
+            <Route path="pickups/:id" element={<PickupDetail />} />
+            <Route path="deliveries" element={<CourierDeliveries />} />
+            <Route path="deliveries/:id" element={<DeliveryDetail />} />
+            <Route path="deliveries/confirm" element={<ConfirmDelivery />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="scan" element={<ScanConsole />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        <Route
-          path="/agent"
-          element={
-            <ProtectedWrapper allowedRoles={["AGENT"]}>
-              <RoleLayout role="AGENT" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<AgentDashboard />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="scan" element={<ScanConsole />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          <Route
+            path="/agent"
+            element={
+              <ProtectedWrapper allowedRoles={["AGENT"]}>
+                <RoleLayout role="AGENT" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<AgentDashboard />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="scan" element={<ScanConsole />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        <Route
-          path="/staff"
-          element={
-            <ProtectedWrapper allowedRoles={["STAFF"]}>
-              <RoleLayout role="STAFF" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<StaffDashboard />} />
-          <Route path="pickups" element={<PickupsManagement />} />
-          <Route path="parcels" element={<ParcelManagement />} />
-          <Route path="parcels/:id" element={<ParcelDetail />} />
-          <Route path="tracking" element={<TrackingPage />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="scan" element={<ScanConsole />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="analytics" element={<Analytics />} />
-        </Route>
+          <Route
+            path="/staff"
+            element={
+              <ProtectedWrapper allowedRoles={["STAFF"]}>
+                <RoleLayout role="STAFF" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<StaffDashboard />} />
+            <Route path="pickups" element={<PickupsManagement />} />
+            <Route path="parcels" element={<ParcelManagement />} />
+            <Route path="parcels/:id" element={<ParcelDetail />} />
+            <Route path="parcels/:id/qr" element={<QRCodePage />} />
+            <Route path="tracking" element={<TrackingPage />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="scan" element={<ScanConsole />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="analytics" element={<Analytics />} />
+          </Route>
 
-        <Route
-          path="/admin"
-          element={
-            <ProtectedWrapper allowedRoles={["ADMIN"]}>
-              <RoleLayout role="ADMIN" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<AdminDashboard />} />
-          <Route path="api-coverage" element={<ApiCoverage />} />
-          <Route path="parcels" element={<ParcelManagement />} />
-          <Route path="parcels/:id" element={<ParcelDetail />} />
-          <Route path="tracking" element={<TrackingPage />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="scan" element={<ScanConsole />} />
-          <Route path="staff" element={<StaffDashboard />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="analytics" element={<Analytics />} />
-          {/* User Management Routes */}
-          <Route path="users/clients" element={<ClientManagement />} />
-          <Route path="users/agents" element={<AgentManagement />} />
-          <Route path="users/agencies" element={<AgencyManagement />} />
-          <Route path="users/staff" element={<StaffManagement />} />
-          <Route path="users/couriers" element={<CourierManagement />} />
-          {/* System Management Routes */}
-          <Route path="tariffs" element={<TariffManagement />} />
-          <Route path="integrations" element={<IntegrationManagement />} />
-          <Route path="accounts" element={<UserAccountManagement />} />
-          {/* Finance Management */}
-          <Route path="finance" element={<FinanceDashboard />} />
-          <Route path="finance/create" element={<CreateFinancePage />} />
-          {/* Risk Management */}
-          <Route path="risk" element={<RiskDashboard />} />
-          <Route path="risk/create" element={<CreateRiskPage />} />
-          {/* Self-Healing System (SPEC SECTION 15) */}
-          <Route path="self-healing" element={<SelfHealingDashboard />} />
-        </Route>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedWrapper allowedRoles={["ADMIN"]}>
+                <RoleLayout role="ADMIN" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="api-coverage" element={<ApiCoverage />} />
+            <Route path="parcels" element={<ParcelManagement />} />
+            <Route path="parcels/:id" element={<ParcelDetail />} />
+            <Route path="parcels/:id/qr" element={<QRCodePage />} />
+            <Route path="tracking" element={<TrackingPage />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="scan" element={<ScanConsole />} />
+            <Route path="staff" element={<StaffDashboard />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="analytics" element={<Analytics />} />
+            {/* User Management Routes */}
+            <Route path="users/clients" element={<ClientManagement />} />
+            <Route path="users/agents" element={<AgentManagement />} />
+            <Route path="users/agencies" element={<AgencyManagement />} />
+            <Route path="users/staff" element={<StaffManagement />} />
+            <Route path="users/couriers" element={<CourierManagement />} />
+            {/* System Management Routes */}
+            <Route path="tariffs" element={<TariffManagement />} />
+            <Route path="integrations" element={<IntegrationManagement />} />
+            <Route path="accounts" element={<UserAccountManagement />} />
+            {/* Finance Management */}
+            <Route path="finance" element={<FinanceDashboard />} />
+            <Route path="finance/create" element={<CreateFinancePage />} />
+            {/* Risk Management */}
+            <Route path="risk" element={<RiskDashboard />} />
+            <Route path="risk/create" element={<CreateRiskPage />} />
+            {/* Self-Healing System (SPEC SECTION 15) */}
+            <Route path="self-healing" element={<SelfHealingDashboard />} />
+          </Route>
 
-        <Route
-          path="/finance"
-          element={
-            <ProtectedWrapper allowedRoles={["FINANCE"]}>
-              <RoleLayout role="FINANCE" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<FinanceDashboard />} />
-          <Route path="payments" element={<Payments />} />
-          <Route path="refunds" element={<Refunds />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          <Route
+            path="/finance"
+            element={
+              <ProtectedWrapper allowedRoles={["FINANCE"]}>
+                <RoleLayout role="FINANCE" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<FinanceDashboard />} />
+            <Route path="payments" element={<Payments />} />
+            <Route path="refunds" element={<Refunds />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        <Route
-          path="/risk"
-          element={
-            <ProtectedWrapper allowedRoles={["RISK"]}>
-              <RoleLayout role="RISK" />
-            </ProtectedWrapper>
-          }
-        >
-          <Route index element={<RiskDashboard />} />
-          <Route path="alerts" element={<RiskAlerts />} />
-          <Route path="map" element={<RoleMapDashboard />} />
-          <Route path="compliance" element={<Compliance />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          <Route
+            path="/risk"
+            element={
+              <ProtectedWrapper allowedRoles={["RISK"]}>
+                <RoleLayout role="RISK" />
+              </ProtectedWrapper>
+            }
+          >
+            <Route index element={<RiskDashboard />} />
+            <Route path="alerts" element={<RiskAlerts />} />
+            <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="compliance" element={<Compliance />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        {/* Legacy/backward-compatible paths */}
-        <Route path="/courier/pickup/:id" element={<PickupDetail />} />
-        <Route path="/courier/delivery/:id" element={<DeliveryDetail />} />
-        <Route
-          path="/courier/agent"
-          element={<Navigate to="/agent" replace />}
-        />
-        <Route
-          path="/admin/finance"
-          element={<Navigate to="/finance" replace />}
-        />
-        <Route path="/admin/risk" element={<Navigate to="/risk" replace />} />
+          {/* Legacy/backward-compatible paths */}
+          <Route path="/courier/pickup/:id" element={<PickupDetail />} />
+          <Route path="/courier/delivery/:id" element={<DeliveryDetail />} />
+          <Route
+            path="/courier/agent"
+            element={<Navigate to="/agent" replace />}
+          />
+          <Route
+            path="/admin/finance"
+            element={<Navigate to="/finance" replace />}
+          />
+          <Route path="/admin/risk" element={<Navigate to="/risk" replace />} />
 
-        {/* Public tracking (number + QR) */}
-        <Route path="/tracking" element={<TrackingPage />} />
+          {/* Public tracking (number + QR) */}
+          <Route path="/tracking" element={<TrackingPage />} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/maps/viewer" element={<MapViewer />} />
-        <Route path="/maps/pickups" element={<PickupMap />} />
-        <Route path="/maps/tracking" element={<TrackingMap />} />
-        <Route path="/mtn-test" element={<MtnTest />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/maps/viewer" element={<MapViewer />} />
+          <Route path="/maps/pickups" element={<PickupMap />} />
+          <Route path="/maps/tracking" element={<TrackingMap />} />
+          <Route path="/mtn-test" element={<MtnTest />} />
+        </Routes>
       </Suspense>
       {/* AI Chatbot - Available on all pages */}
       <AIChatbot />

@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMap } from "react-leaflet";
+import { useMap } from "react-map-gl/maplibre";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search } from "lucide-react";
 import { GeoSearchResult } from "@/services/common/geolocation.api";
 import { toast } from "sonner";
-import { CAMEROON_BOUNDS } from "./cameroon";
-import L from "leaflet";
+import { isWithinCameroon } from "./cameroon";
 import { aiAgents } from "@/ai";
-
-type LatLngTuple = [number, number];
 
 export function MapSearch({
   placeholder = "City, neighborhood, region, landmark, building...",
@@ -19,7 +16,7 @@ export function MapSearch({
   placeholder?: string;
   onSelect?: (result: GeoSearchResult) => void;
 }) {
-  const map = useMap();
+  const { current: map } = useMap();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeoSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +27,7 @@ export function MapSearch({
 
   const containerClass = useMemo(
     () =>
-      "pointer-events-none absolute left-3 top-3 z-[500] w-[min(520px,calc(100%-1.5rem))]",
+      "pointer-events-none absolute left-3 top-3 z-[2] w-[min(520px,calc(100%-1.5rem))]",
     [],
   );
 
@@ -43,7 +40,6 @@ export function MapSearch({
 
     const id = window.setTimeout(async () => {
       const now = Date.now();
-      // avoid spamming (basic 1req/350ms)
       if (now - lastFetchRef.current < 350) return;
       lastFetchRef.current = now;
 
@@ -72,14 +68,16 @@ export function MapSearch({
     const lng = r.longitude;
     if (typeof lat !== "number" || typeof lng !== "number") return;
 
-    const within = CAMEROON_BOUNDS.contains(L.latLng(lat, lng));
-    if (!within) {
+    if (!isWithinCameroon(lat, lng)) {
       toast.error("Result is outside Cameroon");
       return;
     }
 
-    const next: LatLngTuple = [lat, lng];
-    map.flyTo(next, Math.max(map.getZoom(), 14), { duration: 0.9 });
+    map?.flyTo({
+      center: [lng, lat],
+      zoom: Math.max(map.getZoom?.() ?? 6, 14),
+      duration: 900,
+    });
     setQuery(r.displayName || trimmed);
     setOpen(false);
     onSelect?.(r);

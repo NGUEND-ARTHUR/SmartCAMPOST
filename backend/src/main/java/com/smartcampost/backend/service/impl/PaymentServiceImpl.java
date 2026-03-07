@@ -25,9 +25,13 @@ import com.smartcampost.backend.service.PaymentGatewayService;
 import com.smartcampost.backend.service.PricingService;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.exception.ErrorCode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @SuppressWarnings("null")
+@Transactional
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ParcelRepository parcelRepository;
@@ -61,13 +65,11 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
         // Server-side pricing: do not accept client-provided amounts
-        double amount = 0.0;
-        try {
-            var quote = pricingService.quotePrice(parcelId);
-            if (quote != null) amount = quote.doubleValue();
-        } catch (Exception ignored) {
-            amount = 0.0;
+        var quote = pricingService.quotePrice(parcelId);
+        if (quote == null || quote.doubleValue() <= 0) {
+            throw new IllegalStateException("Pricing unavailable for parcel " + parcelId);
         }
+        double amount = quote.doubleValue();
 
         String currency = request.getCurrency() != null ? request.getCurrency() : "XAF";
         String gatewayRef = null;
@@ -118,8 +120,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (request.getSuccess()) {
             try {
                 notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
-            } catch (Exception ignored) {
-                // Notification must never break payment confirmation
+            } catch (Exception ex) {
+                log.warn("Notification failed during payment confirmation", ex);
             }
             // Issue invoice synchronously
             invoiceService.issueInvoiceForPayment(p.getId());
@@ -161,8 +163,8 @@ public class PaymentServiceImpl implements PaymentService {
         p = saved2;
         try {
             notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
-        } catch (Exception ignored) {
-            // Notification must never break COD settlement
+        } catch (Exception ex) {
+            log.warn("Notification failed during COD settlement", ex);
         }
         invoiceService.issueInvoiceForPayment(p.getId());
         return toDto(p);
@@ -177,7 +179,8 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             var quote = pricingService.quotePrice(id);
             if (quote != null) amount = quote.doubleValue();
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.error("Pricing failed for COD parcel {}; defaulting amount to 0.0", id, ex);
             amount = 0.0;
         }
 
@@ -221,7 +224,8 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             var quote = pricingService.quotePrice(id);
             if (quote != null) amount = quote.doubleValue();
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.error("Pricing failed for registration parcel {}; defaulting amount to 0.0", id, ex);
             amount = 0.0;
         }
 
@@ -255,8 +259,8 @@ public class PaymentServiceImpl implements PaymentService {
         p = saved6;
         try {
             notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
-        } catch (Exception ignored) {
-            // Notification must never break pickup payment
+        } catch (Exception ex) {
+            log.warn("Notification failed during pickup payment", ex);
         }
         invoiceService.issueInvoiceForPayment(p.getId());
         return toDto(p);
@@ -278,7 +282,8 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             var quote = pricingService.quotePrice(parcelId);
             if (quote != null) totalDue = quote.doubleValue();
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.error("Pricing failed for payment summary parcel {}; defaulting totalDue to 0.0", parcelId, ex);
             totalDue = 0.0;
         }
         double balance = totalDue - totalPaid;
@@ -300,6 +305,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .status(p.getStatus())
                 .timestamp(p.getTimestamp())
                 .externalRef(p.getExternalRef())
+                .reversed(p.getReversed())
                 .build();
     }
 }

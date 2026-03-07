@@ -30,6 +30,14 @@ export interface RiskAlertUpdateRequest {
 
 // ---- Service ----
 export const riskService = {
+  createAlert(data: {
+    type: string;
+    severity: string;
+    description: string;
+  }): Promise<RiskAlertResponse> {
+    return httpClient.post("/risk", data);
+  },
+
   listAlerts(
     page = 0,
     size = 20,

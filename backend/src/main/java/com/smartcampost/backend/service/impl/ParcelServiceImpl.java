@@ -22,6 +22,7 @@ import com.smartcampost.backend.service.QrSecurityService;
 import com.smartcampost.backend.dto.qr.SecureQrPayload;
 import com.smartcampost.backend.model.QrVerificationToken;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -34,9 +35,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Objects;
 import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ParcelServiceImpl implements ParcelService {
 
     private final ParcelRepository parcelRepository;
@@ -153,16 +157,16 @@ public class ParcelServiceImpl implements ParcelService {
         // Persist initial pricing snapshot (weight + matching tariff)
         try {
             pricingService.confirmPrice(parcel.getId());
-        } catch (Exception ignored) {
-            // Pricing confirmation should not block parcel creation
+        } catch (Exception ex) {
+            log.warn("Pricing confirmation failed for parcel {}", parcel.getId(), ex);
         }
 
         // If COD, register a pending COD payment entry (amount comes from server-side pricing)
         if (parcel.getPaymentOption() == PaymentOption.COD) {
             try {
                 paymentService.createCodPendingPayment(parcel.getId());
-            } catch (Exception ignored) {
-                // Payment init should not block parcel creation
+            } catch (Exception ex) {
+                log.warn("COD payment init failed for parcel {}", parcel.getId(), ex);
             }
         }
 
@@ -620,7 +624,27 @@ public class ParcelServiceImpl implements ParcelService {
                 .destinationAgencyId(dest != null ? dest.getId() : null)
                 .destinationAgencyName(dest != null ? dest.getAgencyName() : null)
 
-                // 🔹 champs pricing (ajoutés dans ParcelDetailResponse)
+                // ---- PHOTO ----
+                .photoUrl(parcel.getPhotoUrl())
+
+                // ---- GPS / LOCATION ----
+                .creationLatitude(parcel.getCreationLatitude())
+                .creationLongitude(parcel.getCreationLongitude())
+                .currentLatitude(parcel.getCurrentLatitude())
+                .currentLongitude(parcel.getCurrentLongitude())
+                .locationUpdatedAt(parcel.getLocationUpdatedAt())
+                .locationMode(parcel.getLocationMode() != null ? parcel.getLocationMode().name() : null)
+
+                // ---- VALIDATION ----
+                .validatedWeight(parcel.getValidatedWeight())
+                .validatedDimensions(parcel.getValidatedDimensions())
+                .validationComment(parcel.getValidationComment())
+                .descriptionConfirmed(parcel.getDescriptionConfirmed())
+                .validatedAt(parcel.getValidatedAt())
+                .validatedByStaffId(parcel.getValidatedBy() != null ? parcel.getValidatedBy().getId() : null)
+                .validatedByStaffName(parcel.getValidatedBy() != null ? parcel.getValidatedBy().getFullName() : null)
+
+                // ---- PRICING ----
                 .lastAppliedPrice(lastPrice)
                 .pricingHistory(pricingHistory)
                 .build();
@@ -774,8 +798,8 @@ public class ParcelServiceImpl implements ParcelService {
             auditEvt.setDeviceTimestamp(Instant.now());
             auditEvt.setComment("FINAL_QR_VALIDATED_AND_LOCKED");
             scanEventService.recordScanEvent(auditEvt);
-        } catch (Exception ignored) {
-            // audit best-effort; lock must still succeed
+        } catch (Exception ex) {
+            log.warn("Audit scan event recording failed for parcel {}", id, ex);
         }
 
         // Notify client of successful validation

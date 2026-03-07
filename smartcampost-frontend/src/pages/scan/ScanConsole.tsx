@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
 import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
+import { useAuthStore } from "@/store/authStore";
 
 interface ScanEvent {
   id: string;
@@ -26,24 +27,92 @@ interface ScanEvent {
 
 export default function ScanConsole() {
   const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const userRole = user?.role?.toUpperCase() ?? "AGENT";
   const [barcode, setBarcode] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("CREATED");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [location, setLocation] = useState(t("scan.defaultLocation"));
 
-  const statusOptions = [
-    { value: "CREATED", label: t("scan.status.created") },
-    { value: "AT_ORIGIN_AGENCY", label: t("scan.status.atOriginAgency") },
-    { value: "IN_TRANSIT", label: t("scan.status.inTransit") },
-    { value: "ARRIVED_HUB", label: t("scan.status.arrivedHub") },
-    { value: "DEPARTED_HUB", label: t("scan.status.departedHub") },
-    {
-      value: "ARRIVED_DESTINATION",
-      label: t("scan.status.arrivedDestination"),
-    },
-    { value: "OUT_FOR_DELIVERY", label: t("scan.status.outForDelivery") },
-    { value: "DELIVERED", label: t("scan.status.delivered") },
-    { value: "RETURNED", label: t("scan.status.returned") },
-  ];
+  // All possible scan event types with labels
+  const allStatusOptions = useMemo(
+    () => [
+      { value: "AT_ORIGIN_AGENCY", label: t("scan.status.atOriginAgency") },
+      {
+        value: "TAKEN_IN_CHARGE",
+        label: t("scan.status.takenInCharge", {
+          defaultValue: "Taken In Charge (Pickup)",
+        }),
+      },
+      { value: "IN_TRANSIT", label: t("scan.status.inTransit") },
+      { value: "ARRIVED_HUB", label: t("scan.status.arrivedHub") },
+      { value: "DEPARTED_HUB", label: t("scan.status.departedHub") },
+      {
+        value: "ARRIVED_DESTINATION",
+        label: t("scan.status.arrivedDestination"),
+      },
+      { value: "OUT_FOR_DELIVERY", label: t("scan.status.outForDelivery") },
+      { value: "DELIVERED", label: t("scan.status.delivered") },
+      {
+        value: "PICKED_UP_AT_AGENCY",
+        label: t("scan.status.pickedUpAtAgency", {
+          defaultValue: "Picked Up At Agency",
+        }),
+      },
+      { value: "RETURNED", label: t("scan.status.returned") },
+      {
+        value: "DELIVERY_FAILED",
+        label: t("scan.status.deliveryFailed", {
+          defaultValue: "Delivery Failed",
+        }),
+      },
+    ],
+    [t],
+  );
+
+  // Role-aware: show relevant options first based on user role
+  const statusOptions = useMemo(() => {
+    // Agent at agency: sees agency-relevant events first
+    if (userRole === "AGENT" || userRole === "STAFF") {
+      const agentPriority = [
+        "AT_ORIGIN_AGENCY", // Client drops off parcel
+        "ARRIVED_HUB", // Parcel arrives at this hub
+        "DEPARTED_HUB", // Parcel leaves this hub
+        "ARRIVED_DESTINATION", // Parcel arrives at destination agency
+        "PICKED_UP_AT_AGENCY", // Recipient picks up
+      ];
+      return [
+        ...allStatusOptions.filter((o) => agentPriority.includes(o.value)),
+        ...allStatusOptions.filter((o) => !agentPriority.includes(o.value)),
+      ];
+    }
+    // Courier: sees transit/delivery events first
+    if (userRole === "COURIER") {
+      const courierPriority = [
+        "TAKEN_IN_CHARGE", // Courier picked up from client (HOME)
+        "IN_TRANSIT", // Moving between locations
+        "OUT_FOR_DELIVERY", // En route to recipient
+        "DELIVERED", // Successfully delivered
+        "DELIVERY_FAILED", // Delivery attempt failed
+      ];
+      return [
+        ...allStatusOptions.filter((o) => courierPriority.includes(o.value)),
+        ...allStatusOptions.filter((o) => !courierPriority.includes(o.value)),
+      ];
+    }
+    // Admin/other: show all
+    return allStatusOptions;
+  }, [userRole, allStatusOptions]);
+
+  // Set default status based on role – use timeout to avoid synchronous setState in effect
+  useEffect(() => {
+    if (!selectedStatus && statusOptions.length > 0) {
+      const id = window.setTimeout(
+        () => setSelectedStatus(statusOptions[0].value),
+        0,
+      );
+      return () => window.clearTimeout(id);
+    }
+  }, [statusOptions, selectedStatus]);
   const [scanHistory, setScanHistory] = useState<ScanEvent[]>([]);
   const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -129,7 +198,7 @@ export default function ScanConsole() {
     );
   };
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       void handleScan();
     }
@@ -341,7 +410,7 @@ export default function ScanConsole() {
                         type="text"
                         value={barcode}
                         onChange={(e) => setBarcode(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={handleKeyDown}
                         placeholder={t("scan.trackingNumber.placeholder")}
                         className="w-full border-2 border-input bg-background text-foreground rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
@@ -440,7 +509,11 @@ export default function ScanConsole() {
                     <p className="text-sm text-muted-foreground mb-1">
                       {t("scan.successRate")}
                     </p>
-                    <p className="text-2xl font-bold text-foreground">100%</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {scanHistory.length === 0
+                        ? "—"
+                        : `${Math.round((scanHistory.filter((s) => s.success).length / scanHistory.length) * 100)}%`}
+                    </p>
                   </div>
                   <Package className="w-8 h-8 text-primary" />
                 </div>

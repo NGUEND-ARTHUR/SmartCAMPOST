@@ -28,6 +28,7 @@ import { useAuthStore } from "@/store/authStore";
 
 type AdminParcelStatus =
   | "CREATED"
+  | "ACCEPTED"
   | "IN_TRANSIT"
   | "OUT_FOR_DELIVERY"
   | "DELIVERED"
@@ -36,6 +37,7 @@ type AdminParcelStatus =
 
 const statusBadge: Record<AdminParcelStatus, string> = {
   CREATED: "bg-muted text-muted-foreground",
+  ACCEPTED: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
   IN_TRANSIT:
     "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   OUT_FOR_DELIVERY:
@@ -362,12 +364,18 @@ export default function ParcelManagement() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() =>
+                              onClick={() => {
+                                const base =
+                                  normalizedRole === "ADMIN"
+                                    ? "/admin"
+                                    : normalizedRole === "STAFF"
+                                      ? "/staff"
+                                      : "/client";
                                 window.open(
-                                  `/dashboard/parcels/${p.id}#tracking`,
+                                  `${base}/parcels/${p.id}#tracking`,
                                   "_blank",
-                                )
-                              }
+                                );
+                              }}
                             >
                               {t("parcelManagement.actions.track")}
                             </Button>
@@ -375,9 +383,8 @@ export default function ParcelManagement() {
                               size="sm"
                               variant="ghost"
                               onClick={() =>
-                                window.open(
-                                  `/dashboard/parcels/${p.id}?print=label`,
-                                  "_blank",
+                                navigate(
+                                  `/${normalizedRole === "ADMIN" ? "admin" : normalizedRole === "STAFF" ? "staff" : "client"}/parcels/${p.id}/print-label`,
                                 )
                               }
                             >
@@ -398,10 +405,13 @@ export default function ParcelManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", {
+                      current: page + 1,
+                      total: totalPages,
+                    })}
                   </span>
                   <Button
                     variant="outline"
@@ -409,7 +419,7 @@ export default function ParcelManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

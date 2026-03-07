@@ -20,15 +20,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { financeService, type RefundRecord } from "@/services/financeService";
+import { financeService, type FinanceStats } from "@/services";
+import type { RefundResponse } from "@/services";
 
-interface FinanceStats {
-  totalRevenue: number;
-  pendingPayments: number;
-  completedPayments: number;
-  refundsPending: number;
-  revenueGrowth: number;
-}
+type RefundRecord = RefundResponse;
 
 interface Transaction {
   id: string;
@@ -125,9 +120,9 @@ export default function FinanceDashboard() {
       setIsLoading(true);
       setError(null);
 
-      const [statsData, refunds] = await Promise.all([
+      const [statsData, refundsPage] = await Promise.all([
         financeService.getStats(),
-        financeService.getRefunds(),
+        financeService.listRefunds(),
       ]);
 
       if (statsData) {
@@ -135,7 +130,8 @@ export default function FinanceDashboard() {
         setPaymentData(buildPaymentBreakdown(statsData));
       }
 
-      if (refunds) {
+      const refunds = refundsPage?.content || [];
+      if (refunds.length) {
         setRecentTransactions(refunds.slice(0, 5).map(toTransaction));
         setRevenueData(buildRevenueData(statsData, refunds));
       }
@@ -181,7 +177,9 @@ export default function FinanceDashboard() {
             disabled={isLoading}
           >
             <Download className="w-4 h-4 mr-2" />
-            {isLoading ? t("common.loading") : t("adminFinanceDashboard.generateReport")}
+            {isLoading
+              ? t("common.loading")
+              : t("adminFinanceDashboard.generateReport")}
           </button>
         </div>
 
@@ -199,7 +197,7 @@ export default function FinanceDashboard() {
           <>
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
@@ -224,7 +222,7 @@ export default function FinanceDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
@@ -243,7 +241,7 @@ export default function FinanceDashboard() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
@@ -262,7 +260,7 @@ export default function FinanceDashboard() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">
@@ -285,8 +283,10 @@ export default function FinanceDashboard() {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Revenue Trend */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="mb-6">{t("adminFinanceDashboard.financialReports")}</h2>
+              <div className="bg-card rounded-lg shadow p-6">
+                <h2 className="mb-6">
+                  {t("adminFinanceDashboard.financialReports")}
+                </h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -306,8 +306,10 @@ export default function FinanceDashboard() {
               </div>
 
               {/* Payment Methods */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="mb-6">{t("adminFinanceDashboard.paymentMethods")}</h2>
+              <div className="bg-card rounded-lg shadow p-6">
+                <h2 className="mb-6">
+                  {t("adminFinanceDashboard.paymentMethods")}
+                </h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={paymentData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -323,9 +325,11 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-card rounded-lg shadow">
               <div className="p-6 border-b border-border">
-                <h2 className="font-semibold">{t("financeDashboard.recentTransactions")}</h2>
+                <h2 className="font-semibold">
+                  {t("financeDashboard.recentTransactions")}
+                </h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -348,7 +352,7 @@ export default function FinanceDashboard() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-border">
+                  <tbody className="bg-card divide-y divide-border">
                     {recentTransactions.map((transaction) => (
                       <tr key={transaction.id} className="hover:bg-accent">
                         <td className="px-6 py-4 whitespace-nowrap">

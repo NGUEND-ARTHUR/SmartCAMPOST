@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,30 +21,10 @@ public class FinanceController {
 
     private final FinanceService financeService;
 
-    // ✅ Create a new finance record
-    @PostMapping
-    public ResponseEntity<Map<String, Object>> createFinance(
-            @Valid @RequestBody CreateFinanceRequest request
-    ) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", UUID.randomUUID().toString());
-        response.put("name", request.getName());
-        response.put("description", request.getDescription());
-        response.put("initialBalance", request.getInitialBalance());
-        response.put("createdAt", System.currentTimeMillis());
-        return ResponseEntity.ok(response);
-    }
-
-    // ✅ Get finance statistics
+    // ✅ Get finance statistics (real data from payments/refunds)
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalRevenue", 245680);
-        stats.put("pendingPayments", 15420);
-        stats.put("completedPayments", 230260);
-        stats.put("refundsPending", 4850);
-        stats.put("revenueGrowth", 12.5);
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(financeService.getStats());
     }
 
     // ✅ Refund list (for finance dashboard)
@@ -64,22 +43,6 @@ public class FinanceController {
             @Valid @RequestBody UpdateRefundStatusRequest request
     ) {
         return ResponseEntity.ok(financeService.updateRefundStatus(refundId, request.getStatus()));
-    }
-
-    // Inner DTO class for creating finance records
-    public static class CreateFinanceRequest {
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-        
-        public Double getInitialBalance() { return initialBalance; }
-        public void setInitialBalance(Double initialBalance) { this.initialBalance = initialBalance; }
-
-        private String name;
-        private String description;
-        private Double initialBalance;
     }
 }
 

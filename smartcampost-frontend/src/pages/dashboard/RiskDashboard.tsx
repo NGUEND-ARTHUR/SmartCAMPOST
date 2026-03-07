@@ -57,50 +57,64 @@ export default function RiskDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{t("riskDashboard.title")}</h1>
-        <p className="text-muted-foreground">
-          {t("riskDashboard.overview")}
-        </p>
+        <p className="text-muted-foreground">{t("riskDashboard.overview")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("riskDashboard.activeAlerts")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.activeAlerts")}
+            </CardTitle>
             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.open}</div>
-            <p className="text-xs text-muted-foreground">{t("riskDashboard.activeAlertsDesc")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.activeAlertsDesc")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("riskDashboard.suspiciousActivities")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.suspiciousActivities")}
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.investigating}</div>
-            <p className="text-xs text-muted-foreground">{t("riskDashboard.suspiciousActivitiesDesc")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.suspiciousActivitiesDesc")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("riskDashboard.critical")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.critical")}
+            </CardTitle>
             <Siren className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.critical}</div>
-            <p className="text-xs text-muted-foreground">{t("riskDashboard.high")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.high")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("riskDashboard.noAlerts")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.noAlerts")}
+            </CardTitle>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.resolved}</div>
-            <p className="text-xs text-muted-foreground">{t("riskDashboard.flaggedParcelsDesc")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.flaggedParcelsDesc")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -119,7 +133,9 @@ export default function RiskDashboard() {
               icon={ShieldAlert}
               title={t("common.errorLoading")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : alerts.length === 0 ? (

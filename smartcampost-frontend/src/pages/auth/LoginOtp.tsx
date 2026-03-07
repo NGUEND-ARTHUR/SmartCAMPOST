@@ -86,6 +86,7 @@ export default function LoginOtp() {
         otp: otp.trim(),
       });
       setAuth(res.user, res.token);
+      toast.success(t("messages.loginSuccess"));
       navigate(routeByRole(res.user.role), { replace: true });
     } catch (e: unknown) {
       const msg =
@@ -112,58 +113,68 @@ export default function LoginOtp() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="phone">{t("common.phone")}</Label>
-            <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+237 6XX XXX XXX"
-              autoComplete="tel"
-            />
-          </div>
-
-          {step === "confirm" && (
+        <CardContent>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (step === "request") requestOtp();
+              else confirmOtp();
+            }}
+          >
             <div className="space-y-2">
-              <Label htmlFor="otp">{t("auth.otp")}</Label>
+              <Label htmlFor="phone">{t("common.phone")}</Label>
               <Input
-                id="otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                placeholder={t("auth.otpPlaceholder")}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="one-time-code"
-                name="otp"
-                maxLength={6}
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+237 6XX XXX XXX"
+                autoComplete="tel"
+                disabled={step === "confirm"}
               />
             </div>
-          )}
 
-          {step === "request" ? (
-            <Button
-              className="w-full"
-              onClick={requestOtp}
-              disabled={busy || !canRequest}
-            >
-              {busy ? t("auth.sending") : t("auth.sendOtp")}
-            </Button>
-          ) : (
-            <Button
-              className="w-full"
-              onClick={confirmOtp}
-              disabled={busy || !canConfirm}
-            >
-              {busy ? t("auth.verifying") : t("auth.verifyAndLogin")}
-            </Button>
-          )}
+            {step === "confirm" && (
+              <div className="space-y-2">
+                <Label htmlFor="otp">{t("auth.otp")}</Label>
+                <Input
+                  id="otp"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  placeholder={t("auth.otpPlaceholder")}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  name="otp"
+                  maxLength={6}
+                />
+              </div>
+            )}
 
-          <div className="text-sm text-center text-muted-foreground">
-            <Link to="/auth/login" className="text-primary hover:underline">
-              {t("auth.backToPasswordLogin")}
-            </Link>
-          </div>
+            {step === "request" ? (
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={busy || !canRequest}
+              >
+                {busy ? t("auth.sending") : t("auth.sendOtp")}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={busy || !canConfirm}
+              >
+                {busy ? t("auth.verifying") : t("auth.verifyAndLogin")}
+              </Button>
+            )}
+
+            <div className="text-sm text-center text-muted-foreground">
+              <Link to="/auth/login" className="text-primary hover:underline">
+                {t("auth.backToPasswordLogin")}
+              </Link>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -394,7 +394,9 @@ export default function Support() {
                               </Badge>
                               <Badge variant="outline">
                                 {ticket.category
-                                  ? categoryLabels[ticket.category as TicketCategory]
+                                  ? categoryLabels[
+                                      ticket.category as TicketCategory
+                                    ]
                                   : ""}
                               </Badge>
                             </div>

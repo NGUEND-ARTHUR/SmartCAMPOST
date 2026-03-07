@@ -23,9 +23,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/invoices")
+@Transactional(readOnly = true)
 public class InvoiceController {
 
     private final InvoiceRepository invoiceRepository;
@@ -118,18 +120,6 @@ public class InvoiceController {
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + invoiceId + ".pdf")
             .contentType(Objects.requireNonNull(MediaType.APPLICATION_PDF))
             .body(res);
-    }
-
-    @SuppressWarnings("unused")
-    private boolean hasRole(org.springframework.security.core.Authentication auth, String role) {
-        if (auth == null || auth.getAuthorities() == null) return false;
-        return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(role));
-    }
-
-    @SuppressWarnings("unused")
-    private Long parseUserId(java.security.Principal principal) {
-        if (principal == null) return null;
-        try { return Long.parseLong(principal.getName()); } catch (Exception e) { return null; }
     }
 
     private UUID parseUuid(String raw) {

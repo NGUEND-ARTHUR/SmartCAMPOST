@@ -24,7 +24,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public List<Location> getRecentForUser(Long userId) {
+    public List<Location> getRecentForUser(String userId) {
         return locationRepository.findTop100ByUserIdOrderByTimestampDesc(userId);
     }
 

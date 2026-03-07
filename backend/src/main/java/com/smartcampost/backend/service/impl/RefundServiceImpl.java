@@ -22,6 +22,7 @@ import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.RefundService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -34,8 +35,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 @SuppressWarnings("unused") // Some repositories reserved for future functionality
 public class RefundServiceImpl implements RefundService {
 
@@ -102,8 +107,8 @@ public class RefundServiceImpl implements RefundService {
 
                 try {
                         notificationService.notifyRefundRequested(parcel, refund.getAmount(), payment.getCurrency() != null ? payment.getCurrency() : "XAF");
-                } catch (Exception ignored) {
-                        // Notification must never break refund request
+                } catch (Exception ex) {
+                        log.warn("Notification failed during refund request", ex);
                 }
 
         return toResponse(refund);
@@ -155,8 +160,8 @@ public class RefundServiceImpl implements RefundService {
                                 String currency = refund.getPayment() != null && refund.getPayment().getCurrency() != null ? refund.getPayment().getCurrency() : "XAF";
                                 notificationService.notifyRefundStatusUpdated(parcel, refund.getStatus() != null ? refund.getStatus().name() : null, refund.getAmount(), currency);
                         }
-                } catch (Exception ignored) {
-                        // Notification must never break refund status update
+                } catch (Exception ex) {
+                        log.warn("Notification failed during refund status update", ex);
                 }
 
         return toResponse(refund);

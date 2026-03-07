@@ -357,7 +357,9 @@ export default function StaffManagement() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">{t("staffManagement.password")} *</Label>
+                <Label htmlFor="password">
+                  {t("staffManagement.password")} *
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -378,20 +380,30 @@ export default function StaffManagement() {
                     }
                   >
                     <SelectTrigger id="role">
-                      <SelectValue placeholder={t("staffManagement.selectRole")} />
+                      <SelectValue
+                        placeholder={t("staffManagement.selectRole")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="STAFF">{t("roles.staff")}</SelectItem>
                       <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
-                      <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
-                      <SelectItem value="RISK">{t("roles.riskManager")}</SelectItem>
-                      <SelectItem value="COURIER">{t("roles.courier")}</SelectItem>
+                      <SelectItem value="FINANCE">
+                        {t("roles.finance")}
+                      </SelectItem>
+                      <SelectItem value="RISK">
+                        {t("roles.riskManager")}
+                      </SelectItem>
+                      <SelectItem value="COURIER">
+                        {t("roles.courier")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 {formData.role === "COURIER" ? (
                   <div className="space-y-2">
-                    <Label htmlFor="vehicleId">{t("staffManagement.vehicleId")}</Label>
+                    <Label htmlFor="vehicleId">
+                      {t("staffManagement.vehicleId")}
+                    </Label>
                     <Input
                       id="vehicleId"
                       value={formData.vehicleId}
@@ -403,7 +415,9 @@ export default function StaffManagement() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Label htmlFor="agencyId">{t("staffManagement.agencyOptional")}</Label>
+                    <Label htmlFor="agencyId">
+                      {t("staffManagement.agencyOptional")}
+                    </Label>
                     <Select
                       value={formData.agencyId}
                       onValueChange={(value: string) =>
@@ -411,7 +425,9 @@ export default function StaffManagement() {
                       }
                     >
                       <SelectTrigger id="agencyId">
-                        <SelectValue placeholder={t("staffManagement.selectAgency")} />
+                        <SelectValue
+                          placeholder={t("staffManagement.selectAgency")}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {agencies.map((agency) => (
@@ -465,7 +481,9 @@ export default function StaffManagement() {
                   <SelectValue placeholder={t("staffManagement.role")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("staffManagement.filter.allRoles")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("staffManagement.filter.allRoles")}
+                  </SelectItem>
                   <SelectItem value="STAFF">{t("roles.staff")}</SelectItem>
                   <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
                   <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
@@ -479,10 +497,16 @@ export default function StaffManagement() {
                   <SelectValue placeholder={t("common.status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("staffManagement.filter.allStatus")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("staffManagement.filter.allStatus")}
+                  </SelectItem>
                   <SelectItem value="ACTIVE">{t("common.active")}</SelectItem>
-                  <SelectItem value="INACTIVE">{t("common.inactive")}</SelectItem>
-                  <SelectItem value="SUSPENDED">{t("common.suspended")}</SelectItem>
+                  <SelectItem value="INACTIVE">
+                    {t("common.inactive")}
+                  </SelectItem>
+                  <SelectItem value="SUSPENDED">
+                    {t("common.suspended")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -498,7 +522,9 @@ export default function StaffManagement() {
               icon={Users}
               title={t("staffManagement.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredMembers.length === 0 ? (
@@ -588,8 +614,12 @@ export default function StaffManagement() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ACTIVE">{t("common.active")}</SelectItem>
-                              <SelectItem value="INACTIVE">{t("common.inactive")}</SelectItem>
+                              <SelectItem value="ACTIVE">
+                                {t("common.active")}
+                              </SelectItem>
+                              <SelectItem value="INACTIVE">
+                                {t("common.inactive")}
+                              </SelectItem>
                               <SelectItem value="SUSPENDED">
                                 {t("common.suspended")}
                               </SelectItem>
@@ -606,10 +636,18 @@ export default function StaffManagement() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="STAFF">{t("roles.staff")}</SelectItem>
-                                <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
-                                <SelectItem value="FINANCE">{t("roles.finance")}</SelectItem>
-                                <SelectItem value="RISK">{t("roles.riskManager")}</SelectItem>
+                                <SelectItem value="STAFF">
+                                  {t("roles.staff")}
+                                </SelectItem>
+                                <SelectItem value="ADMIN">
+                                  {t("roles.admin")}
+                                </SelectItem>
+                                <SelectItem value="FINANCE">
+                                  {t("roles.finance")}
+                                </SelectItem>
+                                <SelectItem value="RISK">
+                                  {t("roles.riskManager")}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           )}

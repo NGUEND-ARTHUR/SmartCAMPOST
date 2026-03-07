@@ -19,6 +19,9 @@ public interface NotificationService {
 
     com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listNotifications(int page, int size);
 
+    // Client lists their own notifications
+    com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listMyNotifications(int page, int size);
+
     NotificationResponse retryNotification(UUID id);
 
     List<NotificationResponse> listForParcel(UUID parcelId);

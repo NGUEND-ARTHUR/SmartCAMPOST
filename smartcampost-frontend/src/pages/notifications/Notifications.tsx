@@ -8,21 +8,19 @@ export default function Notifications() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Notifications</h1>
-        <p className="text-muted-foreground">
-          Logs and templates (UI scaffold)
-        </p>
+        <h1 className="text-3xl font-bold">{t("notifications.title")}</h1>
+        <p className="text-muted-foreground">{t("notifications.subtitle")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Logs</CardTitle>
+          <CardTitle>{t("notifications.logs")}</CardTitle>
         </CardHeader>
         <CardContent>
           <EmptyState
             icon={Bell}
-            title="No logs loaded"
-            description="Wire to /api/notifications/** when available"
+            title={t("notifications.noLogs")}
+            description={t("notifications.noLogsDescription")}
           />
         </CardContent>
       </Card>

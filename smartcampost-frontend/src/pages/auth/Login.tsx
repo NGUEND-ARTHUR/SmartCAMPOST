@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { routeByRole } from "@/lib/routeByRole";
 import { API_ERROR_CODES, ApiError } from "@/lib/api";
 
-interface LoginRequest {
+interface LoginFormValues {
   phoneOrEmail: string;
   password: string;
 }
@@ -34,7 +34,7 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginRequest>();
+  } = useForm<LoginFormValues>();
 
   const getErrorMessage = (err: unknown): string => {
     // Check if it's an ApiError with a code
@@ -57,7 +57,7 @@ export default function Login() {
     return t("errors.loginFailed");
   };
 
-  const onSubmit = async (data: LoginRequest) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
       const res = await login({
@@ -119,6 +119,7 @@ export default function Login() {
                 id="password"
                 type="password"
                 placeholder={t("common.password")}
+                autoComplete="current-password"
                 {...register("password", { required: t("errors.required") })}
               />
               {errors.password && (
