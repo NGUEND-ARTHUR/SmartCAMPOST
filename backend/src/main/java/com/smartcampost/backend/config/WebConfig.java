@@ -33,8 +33,6 @@ public class WebConfig implements WebMvcConfigurer {
             "http://localhost:5175",
             "http://localhost:5176"
         );
-        // Allow deployed previews / Vercel domains when env isn't set.
-        mapping.allowedOriginPatterns("*");
     }
     }
 }

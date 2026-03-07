@@ -21,7 +21,7 @@ public interface AuthService {
     void changePassword(ChangePasswordRequest request);
 
     // =================== RESET PASSWORD (OTP) ===================
-    void requestPasswordReset(String phone);
+    String requestPasswordReset(String phone);
     void resetPassword(ResetPasswordRequest request);
 
     // =================== LOGIN PAR OTP ===================

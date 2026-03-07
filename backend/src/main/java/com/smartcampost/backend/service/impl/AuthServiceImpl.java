@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // 2) Vérifier OTP
+        // 2) Verify OTP and consume atomically
         boolean validOtp = otpService.validateOtp(
             request.getPhone(),
             request.getOtp(),
@@ -71,6 +71,8 @@ public class AuthServiceImpl implements AuthService {
         if (!validOtp) {
             throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
+        // Immediately consume so it cannot be replayed
+        otpService.consumeOtp(request.getPhone(), request.getOtp(), OtpPurpose.REGISTER);
 
         // 3) Encoder mot de passe
         String encodedPassword = encoder.encode(request.getPassword());
@@ -101,9 +103,6 @@ public class AuthServiceImpl implements AuthService {
         @SuppressWarnings("null")
         UserAccount savedAccount = userAccountRepository.save(account);
         account = savedAccount;
-
-        // 6) Mark OTP as used only after successful registration
-        otpService.consumeOtp(request.getPhone(), request.getOtp(), OtpPurpose.REGISTER);
 
         // 6) JWT Token
         String token = jwtService.generateToken(account);
@@ -210,8 +209,8 @@ public class AuthServiceImpl implements AuthService {
     // ============================================================
     @Override
     public SendOtpResponse sendOtp(String phone) {
-        String otp = otpService.generateOtp(phone, OtpPurpose.REGISTER);
-        return SendOtpResponse.builder().otp(otp).build();
+        String code = otpService.generateOtp(phone, OtpPurpose.REGISTER);
+        return SendOtpResponse.builder().otp(code).build();
     }
 
     @Override
@@ -228,6 +227,13 @@ public class AuthServiceImpl implements AuthService {
         Objects.requireNonNull(request, "request is required");
 
         UUID uid = Objects.requireNonNull(request.getUserId(), "userId is required");
+
+        // Ownership check: caller must be the same user
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !uid.toString().equals(auth.getName())) {
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Not authorized to change this password");
+        }
+
         UserAccount user = userAccountRepository.findById(uid)
             .orElseThrow(() ->
                 new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
@@ -244,14 +250,14 @@ public class AuthServiceImpl implements AuthService {
     // RESET PASSWORD VIA OTP
     // ============================================================
     @Override
-    public void requestPasswordReset(String phone) {
+    public String requestPasswordReset(String phone) {
 
         Objects.requireNonNull(phone, "phone is required");
         userAccountRepository.findByPhone(phone)
                 .orElseThrow(() ->
                         new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "No account with this phone"));
 
-        otpService.generateOtp(phone, OtpPurpose.RESET_PASSWORD);
+        return otpService.generateOtp(phone, OtpPurpose.RESET_PASSWORD);
     }
 
     @Override

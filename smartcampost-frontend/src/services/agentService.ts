@@ -12,7 +12,7 @@ export interface AgentTask {
   status: "PENDING" | "IN_PROGRESS" | "DONE" | "BLOCKED";
 }
 
-export const agentService = {
+export const agentTaskService = {
   /**
    * Get agent's tasks for today
    */

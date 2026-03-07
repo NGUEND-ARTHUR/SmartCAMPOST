@@ -257,13 +257,13 @@ export default function RoleMapDashboard() {
         setSelectedParcelMap(null);
         setSelectedParcelId("");
         setLastUpdatedAt(new Date());
-      } catch (e: any) {
-        setError(e?.message ?? "Failed to load map data");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : t("roleMap.loadFailed"));
       } finally {
         if (!silent) setLoading(false);
       }
     },
-    [role, selectedParcelId],
+    [role, selectedParcelId, t],
   );
 
   useEffect(() => {
@@ -278,11 +278,11 @@ export default function RoleMapDashboard() {
   }, [loadMapData]);
 
   const title = useMemo(() => {
-    if (role === "COURIER") return "Courier Live Map";
-    if (role === "AGENT") return "Agent Parcel Tracking";
-    if (role === "CLIENT") return "My Parcel Locations";
-    return "Operations Map Overview";
-  }, [role]);
+    if (role === "COURIER") return t("roleMap.title.courier");
+    if (role === "AGENT") return t("roleMap.title.agent");
+    if (role === "CLIENT") return t("roleMap.title.client");
+    return t("roleMap.title.admin");
+  }, [role, t]);
 
   const canTrackParcels = TRACKING_ROLES.has(role);
 
@@ -293,12 +293,12 @@ export default function RoleMapDashboard() {
           <h1 className="text-2xl font-bold">{title}</h1>
           <p className="text-sm text-muted-foreground">
             {role === "CLIENT"
-              ? "Track your parcel locations from real scan GPS events."
+              ? t("roleMap.subtitle.client")
               : role === "COURIER"
-                ? "View active delivery parcel positions and tracking events."
+                ? t("roleMap.subtitle.courier")
                 : role === "AGENT"
-                  ? "Track accepted and in-transit parcels from live GPS scan updates."
-                  : "Monitor fleet and parcel location activity across the platform."}
+                  ? t("roleMap.subtitle.agent")
+                  : t("roleMap.subtitle.admin")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -308,7 +308,7 @@ export default function RoleMapDashboard() {
             className="gap-2"
           >
             <RefreshCw className="h-4 w-4" />
-            Refresh
+            {t("common.refresh")}
           </Button>
           {role === "CLIENT" && (
             <Button
@@ -322,7 +322,9 @@ export default function RoleMapDashboard() {
       </div>
 
       <div className="text-xs text-muted-foreground">
-        Live updates every {Math.round(REFRESH_INTERVAL_MS / 1000)}s
+        {t("roleMap.liveUpdates", {
+          seconds: Math.round(REFRESH_INTERVAL_MS / 1000),
+        })}
         {lastUpdatedAt
           ? ` • Last refresh ${lastUpdatedAt.toLocaleTimeString()}`
           : ""}
@@ -331,11 +333,15 @@ export default function RoleMapDashboard() {
       {canTrackParcels && trackedParcels.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Tracked Parcels</CardTitle>
+            <CardTitle className="text-base">
+              {t("roleMap.trackedParcels")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <label className="flex flex-col gap-2 text-sm">
-              <span className="text-muted-foreground">Select parcel</span>
+              <span className="text-muted-foreground">
+                {t("roleMap.selectParcel")}
+              </span>
               <select
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                 value={selectedParcelId}
@@ -366,7 +372,7 @@ export default function RoleMapDashboard() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Location Map
+                {t("roleMap.locationMap")}
               </CardTitle>
               <Badge variant="secondary">{markers.length} markers</Badge>
             </CardHeader>
@@ -374,8 +380,7 @@ export default function RoleMapDashboard() {
               <LeafletMap markers={markers} height="62vh" showSearch />
               {markers.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center">
-                  No GPS map data available yet. Scan events and geolocation
-                  updates will appear here.
+                  {t("roleMap.noGpsData")}
                 </div>
               )}
             </CardContent>
@@ -386,7 +391,7 @@ export default function RoleMapDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Navigation className="h-5 w-5" />
-                  Detailed Tracking Route
+                  {t("roleMap.detailedRoute")}
                 </CardTitle>
               </CardHeader>
               <CardContent>

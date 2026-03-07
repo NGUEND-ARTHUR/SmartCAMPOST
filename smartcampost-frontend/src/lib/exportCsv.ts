@@ -30,7 +30,10 @@ export function exportToCsv(filename: string, rows: Record<string, unknown>[]) {
 
 export function exportToJson(filename: string, rows: unknown) {
   const json = JSON.stringify(rows ?? null, null, 2);
-  downloadBlob(filename, new Blob([json], { type: "application/json;charset=utf-8;" }));
+  downloadBlob(
+    filename,
+    new Blob([json], { type: "application/json;charset=utf-8;" }),
+  );
 }
 
 export async function exportToXlsx(

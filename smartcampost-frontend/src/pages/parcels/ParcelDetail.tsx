@@ -10,6 +10,10 @@ import {
   AlertCircle,
   Camera,
   Loader2,
+  User,
+  Globe,
+  ImageIcon,
+  MessageSquare,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { ParcelStatus as TransitionParcelStatus } from "@/lib/transitions";
@@ -26,7 +30,6 @@ import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TrackingMap } from "@/components/maps";
 import { QRCodeDisplay } from "@/components/qrcode";
-import { ScanEvent, Parcel } from "@/types";
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
 import { EmptyState } from "@/components/EmptyState";
@@ -175,9 +178,9 @@ export default function ParcelDetail() {
       {/* Tracking Map - Moved to top for better visibility */}
       <Card>
         <CardHeader>
-          <CardTitle>Tracking Map</CardTitle>
+          <CardTitle>{t("parcels.detail.trackingMap")}</CardTitle>
           <CardDescription>
-            Visual representation of your parcel&apos;s journey
+            {t("parcels.detail.trackingMapDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -317,7 +320,10 @@ export default function ParcelDetail() {
               </div>
               <div className="ml-10 text-sm text-muted-foreground">
                 <p>{parcel.senderLabel || parcel.clientName || "—"}</p>
-                <p>{parcel.senderCity}{parcel.senderRegion ? `, ${parcel.senderRegion}` : ""}</p>
+                <p>
+                  {parcel.senderCity}
+                  {parcel.senderRegion ? `, ${parcel.senderRegion}` : ""}
+                </p>
                 <p>{parcel.senderCountry || ""}</p>
               </div>
             </div>
@@ -331,7 +337,10 @@ export default function ParcelDetail() {
               </div>
               <div className="ml-10 text-sm text-muted-foreground">
                 <p>{parcel.recipientLabel || "—"}</p>
-                <p>{parcel.recipientCity}{parcel.recipientRegion ? `, ${parcel.recipientRegion}` : ""}</p>
+                <p>
+                  {parcel.recipientCity}
+                  {parcel.recipientRegion ? `, ${parcel.recipientRegion}` : ""}
+                </p>
                 <p>{parcel.recipientCountry || ""}</p>
               </div>
             </div>
@@ -343,8 +352,8 @@ export default function ParcelDetail() {
           trackingRef={parcel.trackingRef}
           parcelId={parcel.id}
           qrContent={
-            (parcel as any).locked && (parcel as any).qrStatus === "FINAL"
-              ? ((parcel as any).finalQrCode as string | undefined)
+            parcel.locked && parcel.qrStatus === "FINAL"
+              ? (parcel.finalQrCode as string | undefined)
               : undefined
           }
           senderCity={parcel.senderCity}
@@ -359,9 +368,9 @@ export default function ParcelDetail() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tracking Timeline</CardTitle>
+          <CardTitle>{t("parcels.detail.trackingTimeline")}</CardTitle>
           <CardDescription>
-            Complete history of your parcel's journey
+            {t("parcels.detail.trackingTimelineDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -369,6 +378,7 @@ export default function ParcelDetail() {
             {scanEvents.map((event, index) => {
               const Icon = eventIcons[event.eventType] || Package;
               const isLast = index === scanEvents.length - 1;
+              const ts = new Date(event.timestamp);
               return (
                 <div key={event.id} className="relative pb-8">
                   {!isLast && (
@@ -376,24 +386,97 @@ export default function ParcelDetail() {
                   )}
                   <div className="flex gap-4">
                     <div
-                      className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? "bg-blue-600 text-white" : "bg-muted text-muted-foreground"}`}
+                      className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${index === 0 ? "bg-blue-600 text-white" : "bg-muted text-muted-foreground"}`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>
-                    <div className="flex-1 pt-0.5">
-                      <div className="flex items-start justify-between mb-1">
-                        <div>
-                          <p className="font-medium">{event.eventType}</p>
-                          {event.locationNote && (
-                            <p className="text-sm text-muted-foreground">
-                              {event.locationNote}
-                            </p>
-                          )}
-                        </div>
-                        <time className="text-sm text-muted-foreground">
-                          {new Date(event.timestamp).toLocaleDateString()}
+                    <div className="flex-1 pt-0.5 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <p className="font-medium">
+                          {t(`scan.status.${event.eventType}`, event.eventType)}
+                        </p>
+                        <time className="text-xs text-muted-foreground whitespace-nowrap">
+                          {ts.toLocaleDateString()}{" "}
+                          {ts.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </time>
                       </div>
+
+                      {/* WHO scanned */}
+                      {(event.agentName || event.actorRole) && (
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-0.5">
+                          <User className="w-3.5 h-3.5 shrink-0" />
+                          <span>
+                            {event.agentName ||
+                              t("parcels.detail.timeline.unknownAgent")}
+                          </span>
+                          {event.actorRole && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 leading-4"
+                            >
+                              {event.actorRole}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
+                      {/* WHERE — agency + GPS */}
+                      {(event.agencyName ||
+                        event.locationNote ||
+                        (event.latitude != null &&
+                          event.longitude != null)) && (
+                        <div className="flex items-start gap-1.5 text-sm text-muted-foreground mb-0.5">
+                          <Globe className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            {event.agencyName && (
+                              <span className="font-medium text-foreground">
+                                {event.agencyName}
+                              </span>
+                            )}
+                            {event.agencyName && event.locationNote && (
+                              <span> — </span>
+                            )}
+                            {event.locationNote && (
+                              <span>{event.locationNote}</span>
+                            )}
+                            {event.latitude != null &&
+                              event.longitude != null && (
+                                <p className="text-xs text-muted-foreground/70">
+                                  GPS: {event.latitude.toFixed(5)},{" "}
+                                  {event.longitude.toFixed(5)}
+                                  {event.locationSource &&
+                                    ` (${event.locationSource})`}
+                                </p>
+                              )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Proof photo */}
+                      {event.proofUrl && (
+                        <div className="flex items-center gap-1.5 text-sm mb-0.5">
+                          <ImageIcon className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                          <a
+                            href={event.proofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline truncate"
+                          >
+                            {t("parcels.detail.timeline.viewProof")}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Comment */}
+                      {event.comment && (
+                        <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                          <MessageSquare className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <p className="italic">{event.comment}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -406,14 +489,45 @@ export default function ParcelDetail() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (parcel.proofUrl) {
+                  window.open(String(parcel.proofUrl), "_blank");
+                } else {
+                  toast.info(t("parcels.detail.actions.noPhotoAvailable"));
+                }
+              }}
+            >
               <Camera className="w-4 h-4 mr-2" />
               {t("parcels.detail.actions.viewPhoto")}
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const invoices = await invoiceService.listByParcel(parcel.id);
+                  const latest = Array.isArray(invoices)
+                    ? invoices[0]
+                    : undefined;
+                  if (latest?.id) {
+                    window.open(invoiceService.pdfUrl(latest.id), "_blank");
+                  } else {
+                    toast.info(t("parcels.detail.actions.noReceiptAvailable"));
+                  }
+                } catch {
+                  toast.error(
+                    t("parcels.detail.actions.receiptDownloadFailed"),
+                  );
+                }
+              }}
+            >
               {t("parcels.detail.actions.downloadReceipt")}
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/client/support?parcelId=${parcel.id}`)}
+            >
               {t("parcels.detail.actions.reportIssue")}
             </Button>
 
@@ -478,9 +592,9 @@ export default function ParcelDetail() {
                 <Button
                   variant="default"
                   disabled={
-                    (parcel as any).locked ||
+                    parcel.locked ||
                     parcel.status !== "ACCEPTED" ||
-                    (useValidateAndLock as any).isLoading
+                    useValidateAndLock.isPending
                   }
                   onClick={async () => {
                     try {
@@ -502,7 +616,7 @@ export default function ParcelDetail() {
             )}
             <ActionButton
               variant="destructive"
-              disabled={!canCancel || (updateStatus as any).isLoading}
+              disabled={!canCancel || updateStatus.isPending}
               tooltip={
                 !canCancel && "reason" in cancelDecision
                   ? cancelDecision.reason
@@ -539,57 +653,63 @@ export default function ParcelDetail() {
         </CardContent>
       </Card>
 
-        {canValidate && isCod && (
-          <Card>
-            <CardHeader>
-              <CardTitle>COD Payment</CardTitle>
-              <CardDescription>
-                Validate the cash payment and generate receipt
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Amount due</span>
-                <span className="font-medium">
-                  {quote.isLoading
-                    ? "—"
-                    : quote.data
-                      ? `${quote.data.amount.toLocaleString()} ${quote.data.currency || "XAF"}`
-                      : "—"}
-                </span>
-              </div>
+      {canValidate && isCod && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("parcels.detail.codPayment")}</CardTitle>
+            <CardDescription>
+              {t("parcels.detail.codPaymentDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                {t("parcels.detail.amountDue")}
+              </span>
+              <span className="font-medium">
+                {quote.isLoading
+                  ? "—"
+                  : quote.data
+                    ? `${quote.data.amount.toLocaleString()} ${quote.data.currency || "XAF"}`
+                    : "—"}
+              </span>
+            </div>
 
-              <Button
-                className="w-full"
-                disabled={markCodPaid.isPending || hasSuccessfulPayment}
-                onClick={async () => {
-                  if (!parcel.id) return;
-                  try {
-                    await markCodPaid.mutateAsync(parcel.id);
-                    toast.success("COD marked as paid. Receipt generated.");
+            <Button
+              className="w-full"
+              disabled={markCodPaid.isPending || hasSuccessfulPayment}
+              onClick={async () => {
+                if (!parcel.id) return;
+                try {
+                  await markCodPaid.mutateAsync(parcel.id);
+                  toast.success(t("parcels.toasts.codMarkedPaid"));
 
-                    // Fetch latest invoice for this parcel and open PDF
-                    const invoices = await invoiceService.listByParcel(parcel.id);
-                    const latest = Array.isArray(invoices) ? invoices[0] : undefined;
-                    if (latest?.id) {
-                      window.open(invoiceService.pdfUrl(latest.id), "_blank");
-                    }
-                  } catch (e: any) {
-                    toast.error(
-                      e?.message || "Failed to mark COD as paid.",
-                    );
+                  // Fetch latest invoice for this parcel and open PDF
+                  const invoices = await invoiceService.listByParcel(parcel.id);
+                  const latest = Array.isArray(invoices)
+                    ? invoices[0]
+                    : undefined;
+                  if (latest?.id) {
+                    window.open(invoiceService.pdfUrl(latest.id), "_blank");
                   }
-                }}
-              >
-                {hasSuccessfulPayment
-                  ? "Already paid"
-                  : markCodPaid.isPending
-                    ? "Processing…"
-                    : "Mark COD as paid"}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                } catch (e) {
+                  toast.error(
+                    e instanceof Error
+                      ? e.message
+                      : t("parcels.toasts.codPaymentFailed"),
+                  );
+                }
+              }}
+            >
+              {hasSuccessfulPayment
+                ? t("parcels.detail.alreadyPaid")
+                : markCodPaid.isPending
+                  ? t("common.processing")
+                  : t("parcels.detail.markCodAsPaid")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

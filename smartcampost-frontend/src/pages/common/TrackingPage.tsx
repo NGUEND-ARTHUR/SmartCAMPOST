@@ -11,6 +11,7 @@ import QRCodeScanner from "@/components/qrcode/QRCodeScanner";
 import TrackingMap from "@/components/maps/TrackingMap";
 import AuditTrail from "@/components/delivery/AuditTrail";
 import { useAuthStore } from "@/store/authStore";
+import axiosInstance from "@/lib/axiosClient";
 
 type ScanEventResponse = {
   id: string;
@@ -73,14 +74,13 @@ export default function TrackingPage() {
       if (!trimmed) return;
       setLoading(true);
       try {
-        const res = await fetch(
-          `/api/track/parcel/${encodeURIComponent(trimmed)}`,
+        const res = await axiosInstance.get<TrackingResponse>(
+          `/track/parcel/${encodeURIComponent(trimmed)}`,
         );
-        if (res.ok) setResult(await res.json());
-        else {
-          setResult(null);
-          toast.error(t("trackingPage.toasts.notFound"));
-        }
+        setResult(res.data);
+      } catch {
+        setResult(null);
+        toast.error(t("trackingPage.toasts.notFound"));
       } finally {
         setLoading(false);
       }
@@ -94,17 +94,13 @@ export default function TrackingPage() {
       if (!trimmed) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/track/qr`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: trimmed }),
+        const res = await axiosInstance.post<TrackingResponse>(`/track/qr`, {
+          code: trimmed,
         });
-        if (res.ok) {
-          setResult(await res.json());
-        } else {
-          setResult(null);
-          toast.error(t("trackingPage.toasts.invalidQr"));
-        }
+        setResult(res.data);
+      } catch {
+        setResult(null);
+        toast.error(t("trackingPage.toasts.invalidQr"));
       } finally {
         setLoading(false);
       }
@@ -169,7 +165,7 @@ export default function TrackingPage() {
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    "Lookup"
+                    t("trackingPage.lookup")
                   )}
                 </Button>
               </div>
@@ -191,21 +187,29 @@ export default function TrackingPage() {
             <div className="space-y-3">
               <div className="text-sm">
                 <div>
-                  <span className="font-semibold">Tracking:</span>{" "}
+                  <span className="font-semibold">
+                    {t("trackingPage.tracking")}:
+                  </span>{" "}
                   {(result.trackingRef || result.trackingNumber) ?? "—"}
                 </div>
                 <div>
-                  <span className="font-semibold">Status:</span>{" "}
+                  <span className="font-semibold">
+                    {t("trackingPage.status")}:
+                  </span>{" "}
                   {result.status ?? "—"}
                 </div>
                 <div>
-                  <span className="font-semibold">Last note:</span>{" "}
+                  <span className="font-semibold">
+                    {t("trackingPage.lastNote")}:
+                  </span>{" "}
                   {result.lastLocationNote ?? "—"}
                 </div>
               </div>
 
               <div>
-                <div className="font-semibold mb-2">Timeline</div>
+                <div className="font-semibold mb-2">
+                  {t("trackingPage.timeline")}
+                </div>
                 <ul className="text-sm space-y-1">
                   {(result.timeline ?? []).map((e, i) => (
                     <li key={e.id || i} className="border rounded p-2">
@@ -220,7 +224,9 @@ export default function TrackingPage() {
               </div>
 
               <div>
-                <div className="font-semibold mb-2">Map</div>
+                <div className="font-semibold mb-2">
+                  {t("trackingPage.map")}
+                </div>
                 <TrackingMap
                   trackingId={
                     (result.trackingRef || result.trackingNumber) ?? undefined
@@ -233,7 +239,9 @@ export default function TrackingPage() {
 
               {canSeeAudit && result.parcelId && (
                 <div>
-                  <div className="font-semibold mb-2">Audit</div>
+                  <div className="font-semibold mb-2">
+                    {t("trackingPage.audit")}
+                  </div>
                   <AuditTrail parcelId={result.parcelId} showFull={true} />
                 </div>
               )}

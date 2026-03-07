@@ -41,7 +41,7 @@ public class ScanController {
         try { evt.setParcelId(java.util.UUID.fromString(parcelId)); } catch (Exception ignored) {}
         // Resolve authentication from SecurityContext so tests work whether filters are active
         org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        try { if (auth != null) evt.setScannedBy(Long.parseLong(auth.getName())); } catch (Exception ignored) {}
+        try { if (auth != null) evt.setScannedBy(auth.getName()); } catch (Exception ignored) {}
 
         // Derive role from authentication authorities; prefer first matching role
         String role = "CLIENT";

@@ -32,8 +32,8 @@ export default function MoMoPaymentPage() {
       setMessage(
         `Payment initiated. ID: ${payment.id} | Amount: ${payment.amount} ${payment.currency}`,
       );
-    } catch (e: any) {
-      setMessage("Error: " + e.message);
+    } catch (e) {
+      setMessage("Error: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setLoading(false);
     }

@@ -25,6 +25,7 @@ import {
   Truck,
   TrendingUp,
   AlertCircle,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,51 @@ import { toast } from "sonner";
 import { useAIChat } from "@/hooks/ai/useAI";
 import { useAuthStore } from "@/store/authStore"; // Use auth store for user role
 import axiosInstance from "@/lib/axiosClient";
+import { aiService } from "@/services/ai/ai.api";
+import { findResponse } from "./knowledgeBase";
+
+/** Minimal markdown → JSX for chatbot messages */
+function renderMarkdown(text: string): React.ReactNode {
+  // Split by double newline into paragraphs, then process inline formatting
+  return text.split("\n").map((line, i) => {
+    // Process inline: **bold**, `code`, *italic*
+    const parts: React.ReactNode[] = [];
+    let remaining = line;
+    let key = 0;
+    const inlineRe = /(\*\*(.+?)\*\*|`(.+?)`|\*(.+?)\*)/;
+    while (remaining) {
+      const match = inlineRe.exec(remaining);
+      if (!match) {
+        parts.push(remaining);
+        break;
+      }
+      if (match.index > 0) {
+        parts.push(remaining.slice(0, match.index));
+      }
+      if (match[2]) {
+        parts.push(<strong key={key++}>{match[2]}</strong>);
+      } else if (match[3]) {
+        parts.push(
+          <code
+            key={key++}
+            className="px-1 py-0.5 bg-black/10 rounded text-[0.85em]"
+          >
+            {match[3]}
+          </code>,
+        );
+      } else if (match[4]) {
+        parts.push(<em key={key++}>{match[4]}</em>);
+      }
+      remaining = remaining.slice(match.index + match[0].length);
+    }
+    return (
+      <React.Fragment key={i}>
+        {parts}
+        {i < text.split("\n").length - 1 && <br />}
+      </React.Fragment>
+    );
+  });
+}
 
 interface Message {
   id: string;
@@ -51,744 +97,6 @@ interface QuickAction {
   query: string;
 }
 
-// --------------- Enhanced Knowledge Base ---------------
-// Each entry uses an array of keywords for scoring-based matching.
-interface KBEntry {
-  keywords: string[];
-  response: string;
-  suggestions: string[];
-}
-
-const knowledgeEntries: KBEntry[] = [
-  // ===== Tracking =====
-  {
-    keywords: ["track", "tracking", "where", "status", "locate", "find parcel", "my parcel"],
-    response: `📦 **Tracking Your Parcel**
-
-To track your parcel you can:
-1. Go to **My Parcels** in your dashboard and click any parcel to see its live status
-2. Use the **live map** to follow your parcel in real-time
-3. Enter your tracking code on the **home page** for instant lookup
-
-Each parcel goes through these statuses:
-\`CREATED\` → \`PICKED_UP\` → \`IN_TRANSIT\` → \`AT_AGENCY\` → \`OUT_FOR_DELIVERY\` → \`DELIVERED\`
-
-You will also receive SMS notifications at every major status change.`,
-    suggestions: ["What if my parcel is delayed?", "Can I change the delivery address?", "Show me the tracking map"],
-  },
-
-  // ===== Pricing / Cost =====
-  {
-    keywords: ["price", "pricing", "cost", "rate", "tariff", "how much", "quote", "estimate", "fee", "charge"],
-    response: `💰 **Pricing Information**
-
-Our dynamic pricing is calculated from:
-- **Weight** — charged per kilogram
-- **Distance** — based on origin and destination cities
-- **Service type** — Standard (3-5 days) or Express (1-2 days)
-- **Insurance** — optional add-on based on declared value
-
-To get an instant quote:
-1. Start creating a new parcel in your dashboard
-2. Enter the origin, destination, weight, and service type
-3. The system shows the calculated price before you confirm
-
-Volume discounts are available for businesses shipping 50+ parcels/month. Contact your account manager or our support team for custom pricing.`,
-    suggestions: ["Do you offer bulk discounts?", "Is insurance included?", "What about fragile items?"],
-  },
-
-  // ===== Delivery Time =====
-  {
-    keywords: ["delivery", "deliver", "time", "long", "when", "arrive", "duration", "speed", "fast", "express", "standard"],
-    response: `🚚 **Delivery Times**
-
-Delivery times depend on the service you choose:
-- **Standard**: 3-5 business days
-- **Express**: 1-2 business days
-
-Factors that can affect delivery:
-- Distance between origin and destination
-- Weather conditions and road accessibility
-- Peak season (December, holidays)
-
-You can track your parcel on our **real-time map** to see exactly where it is. Our AI predicts arrival times with high accuracy based on current conditions.`,
-    suggestions: ["Can I schedule a delivery time?", "Do you deliver on weekends?", "What if I'm not home?"],
-  },
-
-  // ===== Payment =====
-  {
-    keywords: ["payment", "pay", "mobile money", "orange money", "mtn", "bank", "cash", "receipt", "invoice", "transaction"],
-    response: `💳 **Payment Methods**
-
-We accept multiple payment options:
-- **Mobile Money**: Orange Money, MTN Mobile Money — instant confirmation
-- **Bank Transfer**: All major Cameroonian banks
-- **Cash**: Pay at any of our agency locations
-
-Payment flow:
-1. Create your parcel and review the quote
-2. Choose your payment method
-3. Complete payment — you'll receive an SMS receipt
-4. A PDF invoice is generated automatically
-
-Invoices are available in your **Payments** section. You can download or email them at any time.`,
-    suggestions: ["Can I pay on delivery?", "How do I get a receipt?", "Where are my invoices?"],
-  },
-
-  // ===== Pickup / Collection =====
-  {
-    keywords: ["pickup", "pick up", "collect", "schedule", "come get", "courier pickup"],
-    response: `📍 **Pickup Scheduling**
-
-To schedule a pickup:
-1. Create your parcel with the **origin address**
-2. Choose a **pickup date and time slot**
-3. Our courier will arrive to collect your package
-
-What to prepare:
-- Make sure the parcel is properly packaged and labeled
-- Have your booking reference ready
-- Someone must be present at the pickup address
-
-You'll receive SMS notifications when the courier is on their way and when pickup is confirmed.`,
-    suggestions: ["What if I miss the pickup?", "Can someone else hand over the parcel?", "How should I package my parcel?"],
-  },
-
-  // ===== Lost / Damaged =====
-  {
-    keywords: ["lost", "damage", "damaged", "missing", "broken", "complaint", "claim", "compensation"],
-    response: `⚠️ **Lost or Damaged Parcels**
-
-If your parcel is lost or damaged:
-1. Go to **Support** in your dashboard
-2. File a complaint with your **tracking number**
-3. Attach any photos of damage if applicable
-4. Our team will investigate within **24-48 hours**
-
-Compensation policy:
-- Parcels with insurance: up to **100% of declared value**
-- Parcels without insurance: up to **50,000 XAF** standard coverage
-- Claims must be filed within **7 days** of expected delivery
-
-You'll receive status updates via SMS and email throughout the investigation.`,
-    suggestions: ["How long does investigation take?", "How much compensation can I get?", "How do I add insurance?"],
-  },
-
-  // ===== Refund =====
-  {
-    keywords: ["refund", "money back", "return money", "cancel payment", "reimburse"],
-    response: `💸 **Refund Policy**
-
-For refund requests:
-1. Contact support with your **payment receipt** or tracking number
-2. Refunds are processed within **5-7 business days**
-3. Amount is credited back to the **original payment method**
-
-Eligibility:
-- ✅ Unshipped parcels — full refund
-- ✅ Service failures (lost, significantly delayed) — full or partial refund
-- ❌ Successfully delivered parcels — not eligible
-- ❌ Parcels already in transit — not eligible (rerouting possible instead)`,
-    suggestions: ["How long for refund to arrive?", "Can I cancel a parcel in transit?", "Track my refund status"],
-  },
-
-  // ===== Agency Locations =====
-  {
-    keywords: ["agency", "agencies", "location", "branch", "office", "find agency", "nearest", "close to me"],
-    response: `🏢 **Agency Locations**
-
-Our agencies across Cameroon:
-- **Douala**: Akwa, Bonaberi, Bonamoussadi
-- **Yaoundé**: Mvog-Mbi, Bastos, Mvan
-- **Bafoussam**: City Center
-- **Garoua**: Main Avenue
-- **Bamenda**: Commercial Avenue
-- **Kribi**: Town Center
-- **Bertoua**: Central Market Area
-
-Services at agencies:
-- Drop off and pick up parcels
-- Cash payments
-- Customer support
-- Package weighing and labeling
-
-Use our **interactive map** in the app to find the nearest agency with real-time availability.`,
-    suggestions: ["What are the opening hours?", "Can I drop off parcels at any agency?", "Show me the map"],
-  },
-
-  // ===== Operating Hours =====
-  {
-    keywords: ["hours", "open", "close", "schedule", "working hours", "opening", "when open"],
-    response: `🕐 **Operating Hours**
-
-- **Agencies**: Monday–Saturday, 8:00 AM – 6:00 PM
-- **Customer Support**: Monday–Friday, 8:00 AM – 8:00 PM
-- **Pickup/Delivery**: Monday–Saturday, 7:00 AM – 7:00 PM
-- **Online Services**: Available 24/7
-
-We're closed on **Sundays and public holidays**.
-
-During peak seasons (December, Easter), some agencies extend hours. Check the app for real-time agency status.`,
-    suggestions: ["Are you open on holidays?", "Weekend delivery available?", "Find an agency near me"],
-  },
-
-  // ===== Contact / Support =====
-  {
-    keywords: ["contact", "support", "call", "phone", "email", "whatsapp", "reach", "talk to", "customer service", "ticket"],
-    response: `📞 **Contact & Support**
-
-Reach us through:
-- **Phone**: +237 222 23 15 05
-- **Email**: support@smartcampost.cm
-- **WhatsApp**: +237 653 72 00 00
-- **In-app**: File a support ticket from your dashboard
-
-Response times:
-- **Phone/WhatsApp**: Immediate during business hours
-- **Email**: Within 2-4 hours
-- **Support Tickets**: Within 24 hours (priority for urgent issues)
-
-For urgent matters (lost parcels, payment issues), call or WhatsApp for fastest response.`,
-    suggestions: ["File a support ticket", "Report a problem", "Check ticket status"],
-  },
-
-  // ===== Account Management =====
-  {
-    keywords: ["account", "profile", "password", "settings", "update", "edit profile", "notification", "preferences", "delete account"],
-    response: `🔒 **Account Management**
-
-Manage your account:
-- **Profile**: Update name, phone, email in Settings > Profile
-- **Password**: Change in Settings > Security
-- **Notifications**: Customize SMS, email, and push preferences
-- **Addresses**: Save frequently used addresses for faster booking
-- **Language**: Switch between English and French
-
-For account deletion, contact support — we'll process it within 48 hours and export your data if requested.`,
-    suggestions: ["How to change my password?", "Update my phone number", "Manage my addresses"],
-  },
-
-  // ===== Insurance =====
-  {
-    keywords: ["insurance", "insure", "coverage", "protect", "declare value", "declared value"],
-    response: `🛡️ **Parcel Insurance**
-
-Protect your shipment with our insurance options:
-- **Basic coverage** (included free): Up to 50,000 XAF
-- **Standard insurance**: Coverage up to 500,000 XAF (2% of declared value)
-- **Premium insurance**: Full declared value coverage (3.5% of declared value)
-
-How to add insurance:
-1. When creating a parcel, enter the **declared value**
-2. Select your insurance tier
-3. Insurance fee is added to the shipping cost
-
-Claims are processed within 5-10 business days after investigation.`,
-    suggestions: ["How to file an insurance claim?", "What items can't be insured?", "Insurance for fragile items"],
-  },
-
-  // ===== Packaging =====
-  {
-    keywords: ["package", "packaging", "pack", "wrap", "box", "fragile", "bubble wrap", "label"],
-    response: `📦 **Packaging Guidelines**
-
-For safe delivery, follow these packaging tips:
-- Use a **sturdy box** appropriate for the item size
-- Wrap fragile items with **bubble wrap** or newspaper
-- Fill empty spaces with **packing material**
-- Seal with **strong tape** on all seams
-- Label clearly with **sender and recipient information**
-
-For fragile items:
-- Mark the box with "FRAGILE" on all sides
-- Use double boxing for extra protection
-- Declare the item as fragile when creating the parcel
-
-Our agencies can provide packaging materials and help you pack at a small fee.`,
-    suggestions: ["Where to buy packaging materials?", "Can the agency pack my parcel?", "Weight limits for parcels"],
-  },
-
-  // ===== Prohibited Items =====
-  {
-    keywords: ["prohibited", "forbidden", "restricted", "cannot ship", "not allowed", "illegal", "dangerous", "banned"],
-    response: `🚫 **Prohibited Items**
-
-The following items **cannot** be shipped:
-- **Explosives**: Fireworks, ammunition, flammable materials
-- **Drugs**: Illegal substances, controlled medications without prescription
-- **Weapons**: Firearms, knives, pepper spray
-- **Perishables**: Raw food, live animals (unless special arrangement)
-- **Hazardous chemicals**: Acids, batteries (lithium), toxic substances
-- **Valuables**: Cash, precious metals, jewelry above 1,000,000 XAF
-
-Restricted items (require declaration):
-- Electronics over 500,000 XAF
-- Documents and legal papers
-- Medications (with valid prescription)
-
-Shipping prohibited items may result in parcel seizure and account suspension.`,
-    suggestions: ["Can I ship electronics?", "What about medicine?", "Declare high-value items"],
-  },
-
-  // ===== Weight / Size Limits =====
-  {
-    keywords: ["weight", "size", "limit", "maximum", "heavy", "large", "dimension", "kg", "kilogram"],
-    response: `⚖️ **Weight & Size Limits**
-
-Standard shipment limits:
-- **Maximum weight**: 30 kg per parcel
-- **Maximum dimensions**: 120 × 80 × 80 cm (L × W × H)
-- **Minimum weight**: 0.1 kg
-
-For oversized or heavy items:
-- Parcels over 30 kg require **special arrangement** — contact support
-- Oversized items may incur additional handling fees
-- Bulk shipments can be arranged for businesses
-
-Each parcel is weighed at the **agency or during pickup** to verify the declared weight. A small variance (±0.5 kg) is tolerated.`,
-    suggestions: ["How much does it cost per kg?", "Ship heavy items?", "Bulk shipment options"],
-  },
-
-  // ===== QR Code / Scanning =====
-  {
-    keywords: ["qr", "qr code", "scan", "scanner", "barcode", "label"],
-    response: `📱 **QR Code & Scanning**
-
-Every parcel gets a unique **QR code** containing:
-- Tracking reference number
-- Origin and destination
-- Service type and weight
-
-How QR scanning works:
-1. **At pickup**: Courier scans to confirm collection
-2. **At agency**: Staff scans for check-in/check-out
-3. **During transit**: Sorting centers scan for routing
-4. **At delivery**: Courier scans to confirm delivery
-
-You can also scan QR codes from the app to quickly look up parcel details. Agents and couriers use the built-in scanner in their dashboard.`,
-    suggestions: ["How to use the scanner?", "My QR code doesn't work", "Print a new label"],
-  },
-
-  // ===== Map / Real-time Tracking =====
-  {
-    keywords: ["map", "real-time", "realtime", "gps", "live tracking", "follow", "journey"],
-    response: `🗺️ **Real-Time Map Tracking**
-
-Our interactive map shows:
-- **Live parcel location** updated in real-time
-- **Agency locations** with status indicators
-- **Delivery routes** for couriers
-- **Estimated arrival times** powered by AI
-
-How to use the map:
-1. Open any parcel from your dashboard
-2. Click **"Track on Map"** to see the live view
-3. Zoom in/out and follow the delivery route
-
-The map uses high-quality **CARTO Voyager** tiles for clear visualization. Couriers can see optimized routes with traffic considerations.`,
-    suggestions: ["Show my parcel on map", "Find nearest agency on map", "How accurate is GPS tracking?"],
-  },
-
-  // ===== SMS Notifications =====
-  {
-    keywords: ["sms", "notification", "notify", "alert", "message", "text message", "updates"],
-    response: `📲 **SMS Notifications**
-
-You receive automatic SMS updates for:
-- ✅ Parcel creation confirmation
-- ✅ Pickup scheduled / completed
-- ✅ Parcel arrived at sorting center
-- ✅ Parcel out for delivery
-- ✅ Delivery completed
-- ✅ Payment confirmation
-- ✅ Delay or issue alerts
-
-Customize notifications in **Settings > Notifications**. You can enable/disable specific notification types and choose between SMS, email, or both.
-
-SMS is sent to the phone number on your account. Make sure it's up to date!`,
-    suggestions: ["Update my phone number", "Turn off notifications", "I didn't receive my SMS"],
-  },
-
-  // ===== Invoices / Receipts =====
-  {
-    keywords: ["invoice", "receipt", "bill", "pdf", "download", "print"],
-    response: `🧾 **Invoices & Receipts**
-
-Every transaction generates:
-- **PDF Invoice**: Automatically created with full details
-- **SMS Receipt**: Sent immediately after payment
-- **Email Receipt**: If email is on your account
-
-To access your invoices:
-1. Go to **Payments** in your dashboard
-2. Find the transaction
-3. Click **Download Invoice** for the PDF
-
-Invoices include: tracking number, service details, weight, origin/destination, payment method, amount, and tax breakdown. You can also email invoices directly from the app.`,
-    suggestions: ["Download my latest invoice", "Email an invoice", "View payment history"],
-  },
-
-  // ===== Courier Operations =====
-  {
-    keywords: ["courier", "driver", "assignment", "delivery route", "route optimization", "cash collection", "cod"],
-    response: `🚚 **Courier Operations**
-
-As a courier, you can:
-- **View assignments**: See all parcels assigned to you for the day
-- **Optimize routes**: Use AI-powered route optimization for efficient delivery
-- **Update status**: Scan QR codes to update parcel status in real-time
-- **Collect cash**: Handle COD (Cash on Delivery) with digital confirmation
-- **Navigate**: Get turn-by-turn directions to each delivery point
-
-Tips for efficient delivery:
-1. Review all assignments before starting your route
-2. Use the **Optimize Route** feature — it considers traffic and priorities
-3. Scan QR codes at every stop for accurate tracking
-4. Confirm cash collection through the app immediately`,
-    suggestions: ["Show my assignments", "Optimize my route", "Report a delivery issue"],
-  },
-
-  // ===== Bulk / Corporate Shipping =====
-  {
-    keywords: ["bulk", "corporate", "business", "company", "enterprise", "volume", "contract", "wholesale"],
-    response: `🏢 **Bulk & Corporate Shipping**
-
-For businesses shipping regularly:
-- **Volume discounts**: Available for 50+ parcels/month
-- **Dedicated account manager**: Personalized support
-- **Custom tariffs**: Negotiated pricing based on volume
-- **API integration**: Connect your system directly to SmartCAMPOST
-- **Monthly invoicing**: Consolidated billing
-
-To set up a corporate account:
-1. Contact our sales team at business@smartcampost.cm
-2. Discuss your shipping volume and requirements
-3. Receive a custom pricing proposal
-4. Sign the service agreement and start shipping
-
-Current corporate partners enjoy up to **30% discount** on standard rates.`,
-    suggestions: ["Request a corporate account", "API integration docs", "Volume pricing info"],
-  },
-
-  // ===== Returns / Rerouting =====
-  {
-    keywords: ["return", "reroute", "redirect", "change address", "cancel shipment", "send back"],
-    response: `🔄 **Returns & Rerouting**
-
-To return or reroute a parcel:
-- **Before pickup**: Cancel freely from your dashboard at no cost
-- **After pickup, before transit**: Rerouting available for a small fee
-- **In transit**: Contact support — rerouting may be possible depending on location
-- **After delivery**: Arrange a return shipment (standard shipping charges apply)
-
-To request a reroute:
-1. Go to your parcel details
-2. Click **"Request Change"**
-3. Enter the new destination
-4. Pay any additional charges
-
-Note: Rerouting availability depends on the parcel's current location and the new destination.`,
-    suggestions: ["Cancel my shipment", "Change delivery address", "Return a parcel"],
-  },
-
-  // ===== Registration / Sign Up =====
-  {
-    keywords: ["register", "sign up", "signup", "create account", "new account", "join"],
-    response: `📝 **Create an Account**
-
-To register on SmartCAMPOST:
-1. Go to the **Sign Up** page
-2. Enter your **phone number** (required)
-3. Verify via **OTP** sent by SMS
-4. Complete your profile (name, email, city)
-5. Start shipping!
-
-Account types:
-- **Client**: Ship and receive parcels
-- **Business**: Corporate account with volume pricing
-
-Your phone number is your unique identifier. You can add an email for additional notifications and invoice delivery.`,
-    suggestions: ["I can't receive the OTP", "Forgot my password", "Link email to my account"],
-  },
-
-  // ===== Language Support =====
-  {
-    keywords: ["language", "french", "english", "translate", "langue", "francais", "anglais"],
-    response: `🌍 **Language Support**
-
-SmartCAMPOST supports:
-- **English** 🇬🇧
-- **French** 🇫🇷
-
-You can switch languages anytime:
-1. Click the **language toggle** in the navigation bar
-2. Or go to **Settings > Preferences > Language**
-
-All notifications (SMS, email) will be sent in your preferred language. The AI assistant also responds in your chosen language.`,
-    suggestions: ["Switch to French", "Switch to English", "Update my preferences"],
-  },
-
-  // ===== Finance / Revenue =====
-  {
-    keywords: ["revenue", "finance", "financial", "income", "earnings", "profit", "reconciliation", "audit"],
-    response: `📊 **Financial Management**
-
-As a Finance user, you can:
-- **Revenue Dashboard**: View total revenue, trends, and breakdowns
-- **Tariff Management**: Configure and adjust pricing rules
-- **Invoice Oversight**: Monitor all transactions and payments
-- **Payment Reconciliation**: Match payments with shipments
-- **Financial Reports**: Generate and export detailed reports
-
-Key metrics tracked:
-- Daily/weekly/monthly revenue
-- Payment method distribution
-- Pending vs. completed payments
-- Refund rates and amounts
-
-Export reports in PDF or CSV for accounting purposes.`,
-    suggestions: ["Show revenue trends", "Export financial report", "View pending payments"],
-  },
-
-  // ===== Risk / Security =====
-  {
-    keywords: ["risk", "fraud", "security", "anomaly", "suspicious", "compliance", "alert", "threat"],
-    response: `🛡️ **Risk & Security**
-
-As a Risk analyst, you can:
-- **Risk Dashboard**: Monitor active alerts and risk scores
-- **Fraud Detection**: AI-powered anomaly detection on transactions
-- **Compliance Audits**: Generate compliance reports
-- **Flagged Accounts**: Review suspicious user activity
-- **Incident Management**: Track and resolve security incidents
-
-Risk scoring monitors:
-- Unusual transaction patterns
-- Multiple failed payment attempts
-- Suspicious address changes
-- High-value shipments from new accounts
-- Geographic anomalies
-
-All alerts are prioritized by severity: Critical, High, Medium, Low.`,
-    suggestions: ["View active alerts", "Generate compliance report", "Review flagged accounts"],
-  },
-
-  // ===== Staff Operations =====
-  {
-    keywords: ["staff", "employee", "operations", "process", "workflow", "team", "manage staff"],
-    response: `👥 **Staff Operations**
-
-Staff members handle day-to-day operations:
-- **Parcel Processing**: Receive, sort, and dispatch parcels
-- **Customer Support**: Handle inquiries and complaints
-- **Delivery Coordination**: Assign couriers and monitor deliveries
-- **Inventory Management**: Track parcel inventory at the agency
-- **Analytics**: View performance metrics and reports
-
-Key workflows:
-1. **Parcel intake**: Scan, weigh, label, and register incoming parcels
-2. **Dispatch**: Assign parcels to couriers based on destination
-3. **Support**: Handle customer inquiries via the ticketing system
-4. **Reporting**: Generate daily/weekly performance reports`,
-    suggestions: ["View all parcels", "Assign deliveries", "Generate report"],
-  },
-
-  // ===== Admin / System =====
-  {
-    keywords: ["admin", "administrator", "system", "configure", "manage users", "manage agencies"],
-    response: `⚙️ **System Administration**
-
-As an administrator, you have full access to:
-- **User Management**: Create, edit, deactivate user accounts across all roles
-- **Agency Management**: Add/edit agencies, assign staff and managers
-- **Tariff Configuration**: Set pricing rules, discounts, and service types
-- **System Analytics**: Monitor platform-wide KPIs and performance
-- **Compliance**: Generate audit trails and compliance reports
-- **System Health**: Monitor API status, database health, and background jobs
-
-Access key areas:
-- Users → /admin/users
-- Agencies → /admin/agencies
-- Tariffs → /admin/tariffs
-- Analytics → /admin/analytics`,
-    suggestions: ["Manage users", "Configure tariffs", "System health check"],
-  },
-
-  // ===== Greeting =====
-  {
-    keywords: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "bonjour", "salut", "bonsoir"],
-    response: `Hello! 👋 Welcome to SmartCAMPOST support!
-
-I'm your AI assistant and I can help you with:
-- 📦 Tracking your parcels
-- 💰 Pricing and quotes
-- 🚚 Delivery times and options
-- 💳 Payment methods
-- 🏢 Agency locations
-- 🛡️ Insurance and claims
-- ❓ Any other questions
-
-What can I help you with today?`,
-    suggestions: ["Track my parcel", "Shipping rates", "Find an agency"],
-  },
-
-  // ===== Help =====
-  {
-    keywords: ["help", "assist", "what can you do", "features", "capabilities"],
-    response: `I can assist you with everything on SmartCAMPOST:
-
-📦 **Tracking** — "Where is my parcel?"
-💰 **Pricing** — "How much does shipping cost?"
-🚚 **Delivery** — "How long will it take?"
-💳 **Payment** — "What payment methods do you accept?"
-📍 **Locations** — "Where are your agencies?"
-🛡️ **Insurance** — "How do I protect my shipment?"
-📱 **QR Codes** — "How does scanning work?"
-🗺️ **Maps** — "Track on the live map"
-🔒 **Account** — "How do I update my profile?"
-📊 **Analytics** — "Show me reports" (staff/admin)
-🚚 **Courier** — "Optimize my delivery route" (couriers)
-
-Just type your question and I'll do my best to help!`,
-    suggestions: ["Track my parcel", "Pricing info", "Contact support"],
-  },
-
-  // ===== Addresses =====
-  {
-    keywords: ["address", "addresses", "saved address", "add address", "my addresses", "destination"],
-    response: `📍 **Address Management**
-
-You can save frequently used addresses:
-1. Go to **Settings > My Addresses**
-2. Click **Add Address**
-3. Enter the full address details (street, city, region)
-4. Mark as Home, Work, or Custom label
-
-Saved addresses auto-fill when creating parcels, saving you time. You can have up to **10 saved addresses**.
-
-Addresses are also used for:
-- Pickup scheduling
-- Delivery preferences
-- Agency recommendations near your location`,
-    suggestions: ["Add a new address", "Edit my addresses", "Set default address"],
-  },
-
-  // ===== Delay / Late =====
-  {
-    keywords: ["delay", "late", "delayed", "slow", "overdue", "not arrived", "still waiting"],
-    response: `⏰ **Parcel Delays**
-
-If your parcel is delayed:
-1. Check the **live tracking** for the latest status
-2. Delays can occur due to:
-   - High volume during peak seasons
-   - Weather conditions or road closures
-   - Customs/security checks
-   - Incorrect or incomplete addresses
-3. If delayed more than **2 days past estimate**, file a support ticket
-
-Our AI system automatically flags delayed parcels and alerts our operations team. You'll receive an SMS if there's a significant delay with an updated estimated delivery time.`,
-    suggestions: ["Track my parcel now", "File a complaint", "Contact support"],
-  },
-
-  // ===== Weekend / Holiday =====
-  {
-    keywords: ["weekend", "saturday", "sunday", "holiday", "public holiday"],
-    response: `📅 **Weekend & Holiday Service**
-
-- **Saturday**: Normal operations (8 AM – 6 PM for agencies, 7 AM – 7 PM for deliveries)
-- **Sunday**: Closed (no pickup or delivery)
-- **Public Holidays**: Closed (parcels in transit continue to next business day)
-
-Express shipments created on Friday may be delivered Saturday. Standard shipments resume Monday.
-
-During holiday periods (Christmas, New Year), plan your shipments in advance to avoid delays.`,
-    suggestions: ["Check delivery times", "Express shipping options", "Find open agencies"],
-  },
-];
-
-// Default quick action suggestions (used for unauthenticated users)
-const defaultQuickActions: QuickAction[] = [
-  {
-    icon: <Package className="w-4 h-4" />,
-    label: "Track Parcel",
-    query: "How do I track my parcel?",
-  },
-  {
-    icon: <CreditCard className="w-4 h-4" />,
-    label: "Pricing",
-    query: "What are your prices?",
-  },
-  {
-    icon: <Clock className="w-4 h-4" />,
-    label: "Delivery Time",
-    query: "How long does delivery take?",
-  },
-  {
-    icon: <MapPin className="w-4 h-4" />,
-    label: "Agencies",
-    query: "Where are your agencies?",
-  },
-];
-
-// ----------- Scoring-Based Response Finder -----------
-// Instead of matching on the first keyword, score every knowledge entry
-// against the user's query and return the best match.
-function findResponse(query: string): {
-  response: string;
-  suggestions: string[];
-} {
-  const lowerQuery = query.toLowerCase();
-  const words = lowerQuery.split(/\s+/);
-
-  let bestScore = 0;
-  let bestEntry: KBEntry | null = null;
-
-  for (const entry of knowledgeEntries) {
-    let score = 0;
-    for (const kw of entry.keywords) {
-      // Exact substring match in the query
-      if (lowerQuery.includes(kw)) {
-        // Longer keywords get a higher score boost
-        score += 1 + kw.length * 0.1;
-      }
-      // Also check if any individual word matches the keyword
-      for (const w of words) {
-        if (kw.includes(w) && w.length >= 3) {
-          score += 0.4;
-        }
-      }
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      bestEntry = entry;
-    }
-  }
-
-  if (bestEntry && bestScore >= 0.8) {
-    return {
-      response: bestEntry.response,
-      suggestions: bestEntry.suggestions,
-    };
-  }
-
-  // Default response
-  return {
-    response: `I'm not sure I fully understand your question. Here are some things I can help with:
-
-📦 **Tracking** — "Where is my parcel?"
-💰 **Pricing** — "How much does shipping cost?"
-🚚 **Delivery** — "How long will it take?"
-💳 **Payment** — "What payment methods do you accept?"
-📍 **Agencies** — "Where are your agencies?"
-🛡️ **Insurance** — "Protect my shipment"
-🔒 **Account** — "Update my profile"
-
-Try rephrasing your question or use one of the quick actions below! 🤖`,
-    suggestions: ["Track my parcel", "Pricing info", "Contact support", "Help"],
-  };
-}
-
 interface AIChatbotProps {
   isOpen?: boolean;
   onClose?: () => void;
@@ -801,11 +109,12 @@ export default function AIChatbot({
   userPhone,
 }: AIChatbotProps) {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const aiMutation = useAIChat();
   const { user, token } = useAuthStore(); // Get authenticated user and role
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
@@ -837,7 +146,7 @@ export default function AIChatbot({
     }
   }, [roleUpper]);
 
-  const allowedActionTypes = useCallback((): Array<
+  type ActionType =
     | "NAVIGATE"
     | "TRACK"
     | "CONTACT"
@@ -851,37 +160,120 @@ export default function AIChatbot({
     | "VIEW_RISK"
     | "VIEW_REPORTS"
     | "SYSTEM_STATUS"
-  > => {
+    | "OPTIMIZE_ROUTE"
+    | "SCAN_QR"
+    | "SCHEDULE_PICKUP"
+    | "VIEW_ADDRESSES"
+    | "MANAGE_AGENCIES"
+    | "VIEW_COMPLIANCE"
+    | "MANAGE_INCIDENTS"
+    | "EXPORT_REPORT"
+    | "VIEW_NOTIFICATIONS"
+    | "VIEW_PICKUPS"
+    | "VIEW_SUPPORT";
+
+  const allowedActionTypes = useCallback((): ActionType[] => {
     if (!user) return ["TRACK", "CONTACT"];
     if (roleUpper === "CLIENT")
-      return ["NAVIGATE", "TRACK", "CREATE_TICKET", "CREATE_PARCEL", "VIEW_INVOICES"];
+      return [
+        "NAVIGATE",
+        "TRACK",
+        "CREATE_TICKET",
+        "CREATE_PARCEL",
+        "VIEW_INVOICES",
+        "SCHEDULE_PICKUP",
+        "VIEW_ADDRESSES",
+        "CONTACT",
+        "VIEW_NOTIFICATIONS",
+        "VIEW_SUPPORT",
+      ];
     if (roleUpper === "COURIER")
-      return ["NAVIGATE", "TRACK", "CONTACT", "VIEW_DELIVERIES"];
+      return [
+        "NAVIGATE",
+        "TRACK",
+        "CONTACT",
+        "VIEW_DELIVERIES",
+        "OPTIMIZE_ROUTE",
+        "SCAN_QR",
+        "VIEW_ANALYTICS",
+        "VIEW_NOTIFICATIONS",
+        "VIEW_PICKUPS",
+      ];
     if (roleUpper === "AGENT" || roleUpper === "AGENCY_ADMIN")
       return [
-        "NAVIGATE", "TRACK", "CONTACT", "CREATE_TICKET",
-        "VIEW_ANALYTICS", "VIEW_DELIVERIES", "VIEW_REPORTS",
+        "NAVIGATE",
+        "TRACK",
+        "CONTACT",
+        "CREATE_TICKET",
+        "VIEW_ANALYTICS",
+        "VIEW_DELIVERIES",
+        "VIEW_REPORTS",
+        "MANAGE_USERS",
+        "SCAN_QR",
+        "VIEW_PICKUPS",
+        "VIEW_NOTIFICATIONS",
+        "EXPORT_REPORT",
       ];
     if (roleUpper === "STAFF")
       return [
-        "NAVIGATE", "TRACK", "CONTACT", "CREATE_TICKET",
-        "VIEW_ANALYTICS", "VIEW_DELIVERIES", "VIEW_REPORTS", "VIEW_INVOICES",
+        "NAVIGATE",
+        "TRACK",
+        "CONTACT",
+        "CREATE_TICKET",
+        "VIEW_ANALYTICS",
+        "VIEW_DELIVERIES",
+        "VIEW_REPORTS",
+        "VIEW_INVOICES",
+        "SCAN_QR",
+        "VIEW_PICKUPS",
+        "VIEW_NOTIFICATIONS",
+        "VIEW_SUPPORT",
+        "EXPORT_REPORT",
       ];
     if (roleUpper === "ADMIN")
       return [
-        "NAVIGATE", "TRACK", "CONTACT", "CREATE_TICKET",
-        "VIEW_ANALYTICS", "MANAGE_TARIFFS", "VIEW_INVOICES",
-        "MANAGE_USERS", "VIEW_REPORTS", "SYSTEM_STATUS",
+        "NAVIGATE",
+        "TRACK",
+        "CONTACT",
+        "CREATE_TICKET",
+        "VIEW_ANALYTICS",
+        "MANAGE_TARIFFS",
+        "VIEW_INVOICES",
+        "MANAGE_USERS",
+        "VIEW_REPORTS",
+        "SYSTEM_STATUS",
+        "MANAGE_AGENCIES",
+        "VIEW_COMPLIANCE",
+        "MANAGE_INCIDENTS",
+        "EXPORT_REPORT",
+        "VIEW_NOTIFICATIONS",
+        "VIEW_SUPPORT",
       ];
     if (roleUpper === "FINANCE")
       return [
-        "NAVIGATE", "TRACK", "CONTACT",
-        "VIEW_ANALYTICS", "MANAGE_TARIFFS", "VIEW_INVOICES", "VIEW_REPORTS",
+        "NAVIGATE",
+        "TRACK",
+        "CONTACT",
+        "VIEW_ANALYTICS",
+        "MANAGE_TARIFFS",
+        "VIEW_INVOICES",
+        "VIEW_REPORTS",
+        "EXPORT_REPORT",
+        "VIEW_NOTIFICATIONS",
       ];
     if (roleUpper === "RISK")
       return [
-        "NAVIGATE", "TRACK", "CONTACT",
-        "VIEW_ANALYTICS", "VIEW_RISK", "VIEW_REPORTS", "SYSTEM_STATUS",
+        "NAVIGATE",
+        "TRACK",
+        "CONTACT",
+        "VIEW_ANALYTICS",
+        "VIEW_RISK",
+        "VIEW_REPORTS",
+        "SYSTEM_STATUS",
+        "VIEW_COMPLIANCE",
+        "MANAGE_INCIDENTS",
+        "EXPORT_REPORT",
+        "VIEW_NOTIFICATIONS",
       ];
     return ["TRACK", "CONTACT"];
   }, [roleUpper, user]);
@@ -967,6 +359,70 @@ export default function AIChatbot({
         "If you need specific information (tracking code, parcel reference, etc.), ask for it clearly.",
         roleInstructions,
         "",
+        "=== GENERAL KNOWLEDGE CAPABILITY ===",
+        "You are a versatile AI assistant. While your primary expertise is SmartCAMPOST and logistics, you CAN and SHOULD answer general knowledge questions too.",
+        "If the user asks about anything — technology, geography, math, science, culture, business, etc. — answer helpfully.",
+        "Always try to relate general answers back to how they might apply to SmartCAMPOST or logistics when relevant, but don't force it.",
+        "For system-specific questions, provide detailed step-by-step guidance with navigation paths.",
+        "",
+        "=== ROLE-SPECIFIC CAPABILITIES ===",
+        roleUpper === "CLIENT"
+          ? [
+              "As a CLIENT, proactively suggest: creating parcels, scheduling pickups, checking invoices, managing addresses, tracking deliveries, filing support tickets.",
+              "Offer to navigate them directly: 'Would you like me to take you to the parcel creation page?'",
+              "If they ask about pricing, offer to calculate a quote or navigate to the parcel creator.",
+              "Suggest scheduling a pickup when they mention sending something.",
+            ].join(" ")
+          : "",
+        roleUpper === "COURIER"
+          ? [
+              "As a COURIER, proactively suggest: viewing assignments, optimizing routes, scanning QR codes, checking analytics, updating delivery statuses.",
+              "Offer to optimize their route: 'Want me to open the route optimizer for today's deliveries?'",
+              "Remind them about scanning QR at every stop and depositing cash collections promptly.",
+              "If they mention being lost or confused about an address, suggest the map view.",
+            ].join(" ")
+          : "",
+        roleUpper === "AGENT" || roleUpper === "AGENCY_ADMIN"
+          ? [
+              "As an AGENCY manager, proactively suggest: checking parcel inventory, managing staff, viewing analytics, generating reports, monitoring alerts.",
+              "Offer courier workload redistribution when they mention being busy.",
+              "Suggest scanning parcels for intake/dispatch workflows.",
+              "Provide agency performance tips based on common patterns.",
+            ].join(" ")
+          : "",
+        roleUpper === "STAFF"
+          ? [
+              "As STAFF, proactively suggest: processing parcels, managing support tickets, coordinating deliveries, checking analytics, handling invoices.",
+              "Offer to open the QR scanner for parcel intake workflows.",
+              "When they mention customer issues, suggest creating a support ticket.",
+              "Provide workflow tips for efficient parcel processing.",
+            ].join(" ")
+          : "",
+        roleUpper === "ADMIN"
+          ? [
+              "As an ADMIN, you have FULL system access. Proactively suggest: system analytics, user management, agency management, tariff config, compliance reports, system health.",
+              "When they mention issues, offer diagnostic paths: system health, error logs, user audit trails.",
+              "Suggest compliance reports if they mention audits or regulations.",
+              "Offer to navigate directly to any management page.",
+            ].join(" ")
+          : "",
+        roleUpper === "FINANCE"
+          ? [
+              "As FINANCE, proactively suggest: revenue dashboards, tariff adjustments, invoice reconciliation, financial reports, payment tracking.",
+              "Offer export options (PDF/CSV) when they mention reports.",
+              "Suggest comparing revenue periods for trend analysis.",
+              "When they mention pricing, offer to open tariff management.",
+            ].join(" ")
+          : "",
+        roleUpper === "RISK"
+          ? [
+              "As RISK, proactively suggest: risk dashboard, fraud alerts, compliance audits, flagged accounts, incident management, security assessments.",
+              "When they mention suspicious activity, offer to check the anomaly detection dashboard.",
+              "Suggest compliance report generation for regulatory requirements.",
+              "Offer to review flagged accounts or active incidents.",
+            ].join(" ")
+          : "",
+        "",
         "=== PLATFORM KNOWLEDGE ===",
         "SmartCAMPOST features: parcel creation & tracking, real-time GPS map tracking (CARTO Voyager tiles), dynamic pricing (weight × distance × service type), AI route optimization for couriers, QR code scanning at every checkpoint, SMS/email notifications, PDF invoice generation, multi-role dashboards, support ticketing system, insurance options, agency management, and 9 autonomous AI agents.",
         "Service types: STANDARD (3-5 business days), EXPRESS (1-2 business days).",
@@ -985,6 +441,9 @@ export default function AIChatbot({
         "If the user seems frustrated, acknowledge their concern and suggest concrete next steps.",
         "For complex issues, suggest filing a support ticket or contacting support directly.",
         "When suggesting navigation, provide the full path (e.g., 'Go to Dashboard > My Parcels').",
+        "If the user asks something outside SmartCAMPOST scope (general knowledge, math, culture, tech, etc.), answer it normally — you are a general-purpose assistant too.",
+        "Proactively suggest relevant actions after answering a question (e.g., after explaining tracking, offer to navigate to the tracking page).",
+        "When the user asks 'what can you do', list ALL capabilities available for their specific role.",
         "",
         user?.name ? `User name: ${user.name}.` : undefined,
         userPhone ? `User phone: ${userPhone}.` : undefined,
@@ -1031,7 +490,7 @@ export default function AIChatbot({
     (action?: { type: string; payload: string }) => {
       if (!action) return;
       const allowed = allowedActionTypes();
-      if (!allowed.includes(action.type as any)) {
+      if (!allowed.includes(action.type as ActionType)) {
         toast.error(
           language === "fr"
             ? "Action non autorisée pour votre rôle."
@@ -1050,17 +509,17 @@ export default function AIChatbot({
         case "TRACK": {
           const ref = action.payload?.trim();
           if (!ref) return;
-          if (base) safeNavigate(`${base}/tracking?ref=${encodeURIComponent(ref)}`);
+          if (base)
+            safeNavigate(`${base}/tracking?ref=${encodeURIComponent(ref)}`);
           else safeNavigate(`/tracking?ref=${encodeURIComponent(ref)}`);
           return;
         }
         case "CREATE_TICKET": {
-          if (base) safeNavigate(`${base}/support`);
+          safeNavigate("/client/support");
           return;
         }
         case "CONTACT": {
-          if (base) safeNavigate(`${base}/support`);
-          else safeNavigate("/tracking");
+          safeNavigate("/client/support");
           return;
         }
         case "CREATE_PARCEL": {
@@ -1072,17 +531,15 @@ export default function AIChatbot({
           return;
         }
         case "MANAGE_TARIFFS": {
-          if (roleUpper === "ADMIN") safeNavigate("/admin/tariffs");
-          else if (roleUpper === "FINANCE") safeNavigate("/finance/tariffs");
+          safeNavigate("/admin/tariffs");
           return;
         }
         case "VIEW_INVOICES": {
-          if (base) safeNavigate(`${base}/invoices`);
-          else safeNavigate("/client/invoices");
+          safeNavigate("/client/payments");
           return;
         }
         case "MANAGE_USERS": {
-          safeNavigate("/admin/users");
+          safeNavigate("/admin/users/clients");
           return;
         }
         case "VIEW_DELIVERIES": {
@@ -1091,173 +548,159 @@ export default function AIChatbot({
           return;
         }
         case "VIEW_RISK": {
-          safeNavigate("/risk/dashboard");
+          safeNavigate("/risk");
           return;
         }
         case "VIEW_REPORTS": {
-          if (base) safeNavigate(`${base}/reports`);
+          if (base) safeNavigate(`${base}/analytics`);
           return;
         }
         case "SYSTEM_STATUS": {
-          if (base) safeNavigate(`${base}/system`);
+          safeNavigate("/admin/self-healing");
+          return;
+        }
+        case "OPTIMIZE_ROUTE": {
+          if (roleUpper === "COURIER") safeNavigate("/courier/map");
+          return;
+        }
+        case "SCAN_QR": {
+          if (base) safeNavigate(`${base}/scan`);
+          return;
+        }
+        case "SCHEDULE_PICKUP": {
+          if (roleUpper === "CLIENT") safeNavigate("/client/pickups");
+          else if (base) safeNavigate(`${base}/pickups`);
+          return;
+        }
+        case "VIEW_ADDRESSES": {
+          safeNavigate("/client/parcels/create");
+          return;
+        }
+        case "MANAGE_AGENCIES": {
+          safeNavigate("/admin/users/agencies");
+          return;
+        }
+        case "VIEW_COMPLIANCE": {
+          if (roleUpper === "RISK") safeNavigate("/risk/compliance");
+          else safeNavigate("/risk/compliance");
+          return;
+        }
+        case "MANAGE_INCIDENTS": {
+          if (roleUpper === "RISK") safeNavigate("/risk/alerts");
+          else safeNavigate("/risk/alerts");
+          return;
+        }
+        case "EXPORT_REPORT": {
+          if (base) safeNavigate(`${base}/analytics`);
+          return;
+        }
+        case "VIEW_NOTIFICATIONS": {
+          if (base) safeNavigate(`${base}/notifications`);
+          return;
+        }
+        case "VIEW_PICKUPS": {
+          if (base) safeNavigate(`${base}/pickups`);
+          return;
+        }
+        case "VIEW_SUPPORT": {
+          safeNavigate("/client/support");
           return;
         }
         default:
           return;
       }
     },
-    [
-      allowedActionTypes,
-      language,
-      roleBasePath,
-      roleUpper,
-      safeNavigate,
-    ],
+    [allowedActionTypes, language, roleBasePath, roleUpper, safeNavigate],
   );
 
   // Generate role-specific welcome message and actions
   const getWelcomeContent = () => {
+    const name = user?.name || "";
+    const role = user?.role?.toUpperCase() || "CLIENT";
+
     if (!user) {
       return {
-        message: `Hello! 👋 I'm SmartBot, your AI assistant.
-
-I can help you with:
-- 📦 Tracking parcels
-- 💰 Pricing & payments
-- 🚚 Delivery information
-- 📍 Agency locations
-
-How can I assist you today?`,
+        message: t("chatbot.welcome.guest"),
         suggestions: [
-          "Track my parcel",
-          "What are your prices?",
-          "Find an agency",
+          t("chatbot.suggestions.trackParcel"),
+          t("chatbot.suggestions.pricing"),
+          t("chatbot.suggestions.findAgency"),
         ],
       };
     }
 
-    const role = user.role?.toUpperCase() || "CLIENT";
+    const roleKeyMap: Record<string, string> = {
+      CLIENT: "client",
+      COURIER: "courier",
+      AGENCY_ADMIN: "agencyAdmin",
+      AGENT: "agencyAdmin",
+      ADMIN: "admin",
+      STAFF: "staff",
+      FINANCE: "finance",
+      RISK: "risk",
+    };
 
-    if (role === "CLIENT") {
-      return {
-        message: `Hello ${user.name || "there"}! 👋 Welcome to SmartCAMPOST.
+    const welcomeKey = roleKeyMap[role] || "default";
+    const message = t(`chatbot.welcome.${welcomeKey}`, { name });
 
-I can help you with:
-- 📦 Track your parcels in real-time
-- 💰 Get instant shipping quotes
-- 🚚 Schedule pickups and deliveries
-- 📍 Find our agency locations
+    const roleSuggestions: Record<string, string[]> = {
+      CLIENT: [
+        "trackParcel",
+        "createShipment",
+        "checkRates",
+        "schedulePickup",
+        "manageAddresses",
+      ],
+      COURIER: [
+        "showAssignments",
+        "optimizeRoute",
+        "updateStatus",
+        "scanQR",
+        "courierAnalytics",
+      ],
+      AGENCY_ADMIN: [
+        "parcelStats",
+        "staffMgmt",
+        "generateReports",
+        "agencyAlerts",
+        "agencyDeliveries",
+      ],
+      AGENT: ["parcelStats", "staffMgmt", "generateReports", "agencyAlerts"],
+      ADMIN: [
+        "systemAnalytics",
+        "manageUsers",
+        "configureTariffs",
+        "viewAgencies",
+        "systemHealth",
+        "complianceReport",
+      ],
+      STAFF: [
+        "viewParcels",
+        "checkAnalytics",
+        "createTicket",
+        "scanParcel",
+        "viewDeliveries",
+      ],
+      FINANCE: [
+        "revenueReports",
+        "manageTariffs",
+        "viewInvoices",
+        "exportReport",
+        "pendingPayments",
+      ],
+      RISK: [
+        "riskDashboard",
+        "viewAlerts",
+        "complianceReport",
+        "flaggedAccounts",
+        "manageIncidents",
+      ],
+    };
 
-What do you need help with today?`,
-        suggestions: [
-          "Track my parcel",
-          "Create new shipment",
-          "Check delivery rates",
-        ],
-      };
-    } else if (role === "COURIER") {
-      return {
-        message: `Welcome back, ${user.name || "Courier"}! 🚚
-
-I'm here to help you with:
-- 📍 Optimize your delivery route
-- 📦 View your assigned parcels
-- 💰 Cash collection support
-- 📊 Performance analytics
-
-What do you need?`,
-        suggestions: [
-          "Show my assignments",
-          "Optimize my route",
-          "Update delivery status",
-        ],
-      };
-    } else if (role === "AGENCY_ADMIN") {
-      return {
-        message: `Welcome, Agency Manager 🏢
-
-I can assist you with:
-- 📦 Parcel inventory management
-- 👥 Staff and courier management
-- 📊 Performance analytics & reports
-- ⚠️ Alert management
-
-What do you need today?`,
-        suggestions: [
-          "Parcel statistics",
-          "Staff management",
-          "Generate reports",
-        ],
-      };
-    } else if (role === "ADMIN") {
-      return {
-        message: `Welcome, System Administrator ⚙️
-
-I can help you with:
-- 🌐 System-wide analytics & monitoring
-- 👥 User account management
-- 🏢 Agency management
-- 💰 Tariff & pricing configuration
-- 📋 Compliance & risk reports
-- 🔧 System status & health checks
-
-What do you need?`,
-        suggestions: ["System analytics", "Manage users", "Configure tariffs", "View all agencies"],
-      };
-    } else if (role === "STAFF") {
-      return {
-        message: `Welcome, ${user.name || "Staff"}! 🏢
-
-I can help you with:
-- 📦 Parcel processing & management
-- 🚚 Delivery coordination
-- 📊 Performance analytics
-- 💳 Invoice & payment oversight
-- 🎫 Support ticket management
-
-What do you need today?`,
-        suggestions: ["View parcels", "Check analytics", "Create support ticket"],
-      };
-    } else if (role === "FINANCE") {
-      return {
-        message: `Welcome, Finance Manager 💰
-
-I can help you with:
-- 📊 Revenue analytics & trends
-- 💰 Tariff & pricing management
-- 🧾 Invoice oversight & reconciliation
-- 📋 Financial reports & exports
-- 💳 Payment tracking
-
-What can I help you with?`,
-        suggestions: ["Revenue reports", "Manage tariffs", "View invoices"],
-      };
-    } else if (role === "RISK") {
-      return {
-        message: `Welcome, Risk Analyst 🛡️
-
-I can help you with:
-- ⚠️ Fraud detection & alerts
-- 📊 Risk scoring & analytics
-- 🔍 Anomaly monitoring
-- 📋 Compliance audits
-- 🔒 Security assessments
-
-What do you need?`,
-        suggestions: ["Risk dashboard", "View alerts", "Compliance report"],
-      };
-    }
-
+    const sugKeys = roleSuggestions[role] || ["trackParcel", "contactSupport"];
     return {
-      message: `Hello! 👋 I'm SmartBot, your AI assistant.
-
-I can help you with:
-- 📦 Tracking parcels
-- 💰 Pricing & payments
-- 🚚 Delivery information
-
-What can I help you with?`,
-      suggestions: ["Track my parcel", "Contact support"],
+      message,
+      suggestions: sugKeys.map((k) => t(`chatbot.suggestions.${k}`)),
     };
   };
 
@@ -1285,6 +728,13 @@ What can I help you with?`,
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, isMinimized]);
+
+  // Abort in-flight stream on unmount
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const handleSend = useCallback(
     async (text?: string) => {
@@ -1324,10 +774,15 @@ What can I help you with?`,
         };
         if (token) headers.Authorization = `Bearer ${token}`;
 
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         const res = await fetch(streamUrl, {
           method: "POST",
           headers,
           body: JSON.stringify(payload),
+          signal: controller.signal,
         });
 
         if (!res.ok) throw new Error("Stream failed");
@@ -1364,6 +819,9 @@ What can I help you with?`,
               );
             }
           }
+          // Extract sessionId from response header if available
+          const streamSessionId = res.headers.get("X-Session-Id");
+          if (streamSessionId) setSessionId(streamSessionId);
           setIsTyping(false);
           return;
         }
@@ -1431,8 +889,6 @@ What can I help you with?`,
       messages,
       sessionId,
       token,
-      user?.role,
-      userPhone,
     ],
   );
 
@@ -1443,6 +899,17 @@ What can I help you with?`,
     setMessages((prev) =>
       prev.map((msg) => (msg.id === messageId ? { ...msg, feedback } : msg)),
     );
+    // Persist feedback to backend (fire-and-forget)
+    const msg = messages.find((m) => m.id === messageId);
+    if (msg) {
+      aiService
+        .submitFeedback({
+          sessionId: sessionId ?? "",
+          messageContent: msg.content,
+          feedback,
+        })
+        .catch(() => {});
+    }
   };
 
   const handleClose = () => {
@@ -1452,192 +919,274 @@ What can I help you with?`,
 
   // Generate role-based quick actions
   const getQuickActions = (): QuickAction[] => {
+    const role = user?.role?.toUpperCase() || "";
+
+    const qa = (
+      icon: React.ReactNode,
+      labelKey: string,
+      query: string,
+    ): QuickAction => ({
+      icon,
+      label: t(`chatbot.quickActions.${labelKey}`),
+      query,
+    });
+
     if (!user) {
       return [
-        {
-          icon: <Package className="w-4 h-4" />,
-          label: "Track Parcel",
-          query: "How do I track my parcel?",
-        },
-        {
-          icon: <CreditCard className="w-4 h-4" />,
-          label: "Pricing",
-          query: "What are your prices?",
-        },
-        {
-          icon: <MapPin className="w-4 h-4" />,
-          label: "Agencies",
-          query: "Where are your agencies?",
-        },
+        qa(
+          <Package className="w-4 h-4" />,
+          "trackParcel",
+          "How do I track my parcel?",
+        ),
+        qa(
+          <CreditCard className="w-4 h-4" />,
+          "pricing",
+          "What are your prices?",
+        ),
+        qa(
+          <MapPin className="w-4 h-4" />,
+          "agencies",
+          "Where are your agencies?",
+        ),
+        qa(
+          <Clock className="w-4 h-4" />,
+          "deliveryTime",
+          "How long does delivery take?",
+        ),
       ];
     }
 
-    const role = user.role?.toUpperCase() || "CLIENT";
-
-    if (role === "CLIENT") {
-      return [
-        {
-          icon: <Package className="w-4 h-4" />,
-          label: "Track Parcel",
-          query: "How do I track my parcel?",
-        },
-        {
-          icon: <Package className="w-4 h-4" />,
-          label: "Create Shipment",
-          query: "How do I create a new shipment?",
-        },
-        {
-          icon: <CreditCard className="w-4 h-4" />,
-          label: "Get Quote",
-          query: "Can you give me a shipping quote?",
-        },
-        {
-          icon: <Clock className="w-4 h-4" />,
-          label: "Delivery Time",
-          query: "How long does delivery take?",
-        },
-      ];
-    } else if (role === "COURIER") {
-      return [
-        {
-          icon: <Truck className="w-4 h-4" />,
-          label: "My Assignments",
-          query: "Show me my delivery assignments",
-        },
-        {
-          icon: <TrendingUp className="w-4 h-4" />,
-          label: "Optimize Route",
-          query: "Can you optimize my delivery route?",
-        },
-        {
-          icon: <Package className="w-4 h-4" />,
-          label: "Update Status",
-          query: "How do I update delivery status?",
-        },
-        {
-          icon: <CreditCard className="w-4 h-4" />,
-          label: "Payment Tips",
-          query: "Tips for collecting payments safely",
-        },
-      ];
-    } else if (role === "AGENCY_ADMIN") {
-      return [
-        {
-          icon: <BarChart3 className="w-4 h-4" />,
-          label: "Parcel Stats",
-          query: "Show me parcel inventory statistics",
-        },
-        {
-          icon: <Users className="w-4 h-4" />,
-          label: "Staff Mgmt",
-          query: "How do I manage agency staff?",
-        },
-        {
-          icon: <TrendingUp className="w-4 h-4" />,
-          label: "Reports",
-          query: "Generate agency performance report",
-        },
-        {
-          icon: <AlertCircle className="w-4 h-4" />,
-          label: "Alerts",
-          query: "Show me active parcel alerts",
-        },
-      ];
-    } else if (role === "ADMIN") {
-      return [
-        {
-          icon: <BarChart3 className="w-4 h-4" />,
-          label: "System Analytics",
-          query: "Show system-wide analytics and KPIs",
-        },
-        {
-          icon: <Users className="w-4 h-4" />,
-          label: "User Management",
-          query: "Show user accounts dashboard",
-        },
-        {
-          icon: <CreditCard className="w-4 h-4" />,
-          label: "Tariffs",
-          query: "Open tariff management to configure pricing",
-        },
-        {
-          icon: <TrendingUp className="w-4 h-4" />,
-          label: "Reports",
-          query: "Generate compliance report",
-        },
-      ];
-    } else if (role === "STAFF") {
-      return [
-        {
-          icon: <Package className="w-4 h-4" />,
-          label: "Parcels",
-          query: "Show me all parcels to process",
-        },
-        {
-          icon: <BarChart3 className="w-4 h-4" />,
-          label: "Analytics",
-          query: "Show my performance analytics",
-        },
-        {
-          icon: <Truck className="w-4 h-4" />,
-          label: "Deliveries",
-          query: "Show current delivery status",
-        },
-        {
-          icon: <AlertCircle className="w-4 h-4" />,
-          label: "Support",
-          query: "Show open support tickets",
-        },
-      ];
-    } else if (role === "FINANCE") {
-      return [
-        {
-          icon: <TrendingUp className="w-4 h-4" />,
-          label: "Revenue",
-          query: "Show revenue analytics and trends",
-        },
-        {
-          icon: <CreditCard className="w-4 h-4" />,
-          label: "Tariffs",
-          query: "Open tariff management to adjust pricing",
-        },
-        {
-          icon: <Package className="w-4 h-4" />,
-          label: "Invoices",
-          query: "Show recent invoices and payment status",
-        },
-        {
-          icon: <BarChart3 className="w-4 h-4" />,
-          label: "Reports",
-          query: "Generate financial report",
-        },
-      ];
-    } else if (role === "RISK") {
-      return [
-        {
-          icon: <AlertCircle className="w-4 h-4" />,
-          label: "Risk Dashboard",
-          query: "Show risk dashboard with current alerts",
-        },
-        {
-          icon: <BarChart3 className="w-4 h-4" />,
-          label: "Anomalies",
-          query: "Show detected anomalies and fraud alerts",
-        },
-        {
-          icon: <TrendingUp className="w-4 h-4" />,
-          label: "Compliance",
-          query: "Generate compliance audit report",
-        },
-        {
-          icon: <Users className="w-4 h-4" />,
-          label: "Flagged Users",
-          query: "Show flagged user accounts for review",
-        },
-      ];
+    switch (role) {
+      case "CLIENT":
+        return [
+          qa(
+            <Package className="w-4 h-4" />,
+            "trackParcel",
+            "How do I track my parcel?",
+          ),
+          qa(
+            <Package className="w-4 h-4" />,
+            "createShipment",
+            "How do I create a new shipment?",
+          ),
+          qa(
+            <CreditCard className="w-4 h-4" />,
+            "getQuote",
+            "Can you give me a shipping quote?",
+          ),
+          qa(
+            <Clock className="w-4 h-4" />,
+            "deliveryTime",
+            "How long does delivery take?",
+          ),
+          qa(
+            <MapPin className="w-4 h-4" />,
+            "schedulePickup",
+            "Schedule a pickup for my parcel",
+          ),
+          qa(
+            <Share2 className="w-4 h-4" />,
+            "myAddresses",
+            "Manage my saved addresses",
+          ),
+        ];
+      case "COURIER":
+        return [
+          qa(
+            <Truck className="w-4 h-4" />,
+            "myAssignments",
+            "Show me my delivery assignments",
+          ),
+          qa(
+            <TrendingUp className="w-4 h-4" />,
+            "optimizeRoute",
+            "Can you optimize my delivery route?",
+          ),
+          qa(
+            <Package className="w-4 h-4" />,
+            "updateStatus",
+            "How do I update delivery status?",
+          ),
+          qa(
+            <CreditCard className="w-4 h-4" />,
+            "paymentTips",
+            "Tips for collecting payments safely",
+          ),
+          qa(<MapPin className="w-4 h-4" />, "scanQR", "Open QR code scanner"),
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "courierAnalytics",
+            "Show my performance analytics",
+          ),
+        ];
+      case "AGENCY_ADMIN":
+        return [
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "parcelStats",
+            "Show me parcel inventory statistics",
+          ),
+          qa(
+            <Users className="w-4 h-4" />,
+            "staffMgmt",
+            "How do I manage agency staff?",
+          ),
+          qa(
+            <TrendingUp className="w-4 h-4" />,
+            "reports",
+            "Generate agency performance report",
+          ),
+          qa(
+            <AlertCircle className="w-4 h-4" />,
+            "alerts",
+            "Show me active parcel alerts",
+          ),
+          qa(
+            <Package className="w-4 h-4" />,
+            "scanQR",
+            "Open QR scanner for parcel intake",
+          ),
+          qa(
+            <Truck className="w-4 h-4" />,
+            "agencyDeliveries",
+            "View agency delivery status",
+          ),
+        ];
+      case "ADMIN":
+        return [
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "systemAnalytics",
+            "Show system-wide analytics and KPIs",
+          ),
+          qa(
+            <Users className="w-4 h-4" />,
+            "userMgmt",
+            "Show user accounts dashboard",
+          ),
+          qa(
+            <CreditCard className="w-4 h-4" />,
+            "tariffs",
+            "Open tariff management to configure pricing",
+          ),
+          qa(
+            <TrendingUp className="w-4 h-4" />,
+            "reports",
+            "Generate compliance report",
+          ),
+          qa(
+            <MapPin className="w-4 h-4" />,
+            "manageAgencies",
+            "Manage agency locations and staff",
+          ),
+          qa(
+            <AlertCircle className="w-4 h-4" />,
+            "systemHealth",
+            "Check system health and status",
+          ),
+        ];
+      case "STAFF":
+        return [
+          qa(
+            <Package className="w-4 h-4" />,
+            "parcels",
+            "Show me all parcels to process",
+          ),
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "analytics",
+            "Show my performance analytics",
+          ),
+          qa(
+            <Truck className="w-4 h-4" />,
+            "deliveries",
+            "Show current delivery status",
+          ),
+          qa(
+            <AlertCircle className="w-4 h-4" />,
+            "support",
+            "Show open support tickets",
+          ),
+          qa(
+            <Package className="w-4 h-4" />,
+            "scanQR",
+            "Open QR scanner for parcel processing",
+          ),
+          qa(
+            <CreditCard className="w-4 h-4" />,
+            "staffInvoices",
+            "View and manage invoices",
+          ),
+        ];
+      case "FINANCE":
+        return [
+          qa(
+            <TrendingUp className="w-4 h-4" />,
+            "revenue",
+            "Show revenue analytics and trends",
+          ),
+          qa(
+            <CreditCard className="w-4 h-4" />,
+            "tariffs",
+            "Open tariff management to adjust pricing",
+          ),
+          qa(
+            <Package className="w-4 h-4" />,
+            "invoices",
+            "Show recent invoices and payment status",
+          ),
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "reports",
+            "Generate financial report",
+          ),
+          qa(
+            <TrendingUp className="w-4 h-4" />,
+            "exportReport",
+            "Export financial data as PDF/CSV",
+          ),
+          qa(
+            <AlertCircle className="w-4 h-4" />,
+            "pendingPayments",
+            "Show pending payment reconciliation",
+          ),
+        ];
+      case "RISK":
+        return [
+          qa(
+            <AlertCircle className="w-4 h-4" />,
+            "riskDashboard",
+            "Show risk dashboard with current alerts",
+          ),
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "anomalies",
+            "Show detected anomalies and fraud alerts",
+          ),
+          qa(
+            <TrendingUp className="w-4 h-4" />,
+            "compliance",
+            "Generate compliance audit report",
+          ),
+          qa(
+            <Users className="w-4 h-4" />,
+            "flaggedUsers",
+            "Show flagged user accounts for review",
+          ),
+          qa(
+            <AlertCircle className="w-4 h-4" />,
+            "incidents",
+            "View and manage security incidents",
+          ),
+          qa(
+            <BarChart3 className="w-4 h-4" />,
+            "riskExport",
+            "Export risk assessment report",
+          ),
+        ];
+      default:
+        return [];
     }
-
-    return [];
   };
 
   const quickActions = getQuickActions();
@@ -1660,7 +1209,7 @@ What can I help you with?`,
         onClick={() => setIsMinimized(false)}
       >
         <Bot className="w-5 h-5" />
-        <span>SmartBot</span>
+        <span>{t("chatbot.title")}</span>
         <Badge variant="secondary" className="bg-white/20">
           {messages.length}
         </Badge>
@@ -1677,8 +1226,10 @@ What can I help you with?`,
             <Bot className="w-6 h-6" />
           </div>
           <div>
-            <CardTitle className="text-base text-white">SmartBot</CardTitle>
-            <p className="text-xs text-white/80">AI Assistant • Online</p>
+            <CardTitle className="text-base text-white">
+              {t("chatbot.title")}
+            </CardTitle>
+            <p className="text-xs text-white/80">{t("chatbot.subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -1721,8 +1272,8 @@ What can I help you with?`,
                     <Bot className="w-4 h-4 mt-1 text-blue-600 shrink-0" />
                   )}
                   <div className="flex-1">
-                    <div className="text-sm whitespace-pre-wrap">
-                      {message.content}
+                    <div className="text-sm">
+                      {renderMarkdown(message.content)}
                     </div>
 
                     {/* Suggestions */}
@@ -1836,7 +1387,7 @@ What can I help you with?`,
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
+            placeholder={t("chatbot.inputPlaceholder")}
             className="flex-1"
             disabled={isTyping}
           />
@@ -1849,7 +1400,7 @@ What can I help you with?`,
           </Button>
         </form>
         <p className="text-[10px] text-muted-foreground text-center mt-2">
-          Powered by SmartCAMPOST AI • Responses may not always be accurate
+          {t("chatbot.disclaimer")}
         </p>
       </CardContent>
     </Card>
