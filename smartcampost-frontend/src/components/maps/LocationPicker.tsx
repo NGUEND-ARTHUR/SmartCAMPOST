@@ -1,7 +1,11 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
+import { Marker, Popup, useMap } from "react-map-gl/maplibre";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,18 +20,9 @@ import { MapPin, Loader2 } from "lucide-react";
 import { type GeoSearchResult } from "@/services/common/geolocation.api";
 import { aiAgents } from "@/ai";
 import { toast } from "sonner";
-
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-// Initialize marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+import { useTranslation } from "react-i18next";
+import { CameroonMap } from "@/components/maps/core/CameroonMap";
+import { isWithinCameroon } from "@/components/maps/core/cameroon";
 
 interface LocationPickerProps {
   latitude: number | null;
@@ -39,29 +34,7 @@ interface LocationPickerProps {
   restrictToCameroon?: boolean;
 }
 
-// Component to handle map clicks
-function MapClickHandler({
-  onLocationClick,
-}: {
-  onLocationClick: (lat: number, lng: number) => void;
-}) {
-  const map = useMap();
-
-  React.useEffect(() => {
-    const handleMapClick = (e: any) => {
-      onLocationClick(e.latlng.lat, e.latlng.lng);
-    };
-
-    map.on("click", handleMapClick);
-    return () => {
-      map.off("click", handleMapClick);
-    };
-  }, [map, onLocationClick]);
-
-  return null;
-}
-
-// Component to center map on marker
+// Component to center map on marker position
 function SetViewOnMarker({
   center,
   zoom = 13,
@@ -69,10 +42,10 @@ function SetViewOnMarker({
   center: [number, number];
   zoom?: number;
 }) {
-  const map = useMap();
+  const { current: map } = useMap();
 
   React.useEffect(() => {
-    map.setView(center, zoom, { animate: true });
+    map?.flyTo({ center: [center[1], center[0]], zoom, duration: 900 });
   }, [center, zoom, map]);
 
   return null;
@@ -87,6 +60,7 @@ export default function LocationPicker({
   allowSearch = true,
   restrictToCameroon = true,
 }: LocationPickerProps) {
+  const { t } = useTranslation();
   const [isLocating, setIsLocating] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const hasWarnedOutsideRef = useRef(false);
@@ -98,7 +72,9 @@ export default function LocationPicker({
   const [manualLng, setManualLng] = useState(longitude?.toString() || "");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResultLabel, setSearchResultLabel] = useState<string | null>(null);
+  const [searchResultLabel, setSearchResultLabel] = useState<string | null>(
+    null,
+  );
   const [searchResults, setSearchResults] = useState<GeoSearchResult[]>([]);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
 
@@ -110,13 +86,6 @@ export default function LocationPicker({
     // Default to Douala, Cameroon (major delivery hub)
     return [4.0511, 9.7679];
   }, [latitude, longitude]);
-
-  const cameroonBounds = useMemo(() => {
-    // Approx Cameroon bounding box
-    const southWest = L.latLng(1.65, 8.4);
-    const northEast = L.latLng(13.1, 16.3);
-    return L.latLngBounds(southWest, northEast);
-  }, []);
 
   const stopFollowingUser = useCallback(() => {
     if (watchIdRef.current != null && typeof navigator !== "undefined") {
@@ -137,7 +106,7 @@ export default function LocationPicker({
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
-        if (restrictToCameroon && !cameroonBounds.contains(L.latLng(lat, lng))) {
+        if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
           if (!hasWarnedOutsideRef.current) {
             hasWarnedOutsideRef.current = true;
             toast.error("Your current location appears outside Cameroon");
@@ -163,7 +132,6 @@ export default function LocationPicker({
       stopFollowingUser();
     };
   }, [
-    cameroonBounds,
     isFollowingUser,
     onLocationChange,
     restrictToCameroon,
@@ -186,7 +154,7 @@ export default function LocationPicker({
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
-        if (restrictToCameroon && !cameroonBounds.contains(L.latLng(lat, lng))) {
+        if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
           toast.error("Your current location appears outside Cameroon");
           setIsFollowingUser(false);
           stopFollowingUser();
@@ -207,14 +175,14 @@ export default function LocationPicker({
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
-  }, [cameroonBounds, onLocationChange, restrictToCameroon, stopFollowingUser]);
+  }, [onLocationChange, restrictToCameroon, stopFollowingUser]);
 
   // Handle map click
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
       setIsFollowingUser(false);
       stopFollowingUser();
-      if (restrictToCameroon && !cameroonBounds.contains(L.latLng(lat, lng))) {
+      if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
         toast.error("Please select a location within Cameroon");
         return;
       }
@@ -223,7 +191,7 @@ export default function LocationPicker({
       setManualLng(lng.toString());
       setSearchResultLabel(null);
     },
-    [cameroonBounds, onLocationChange, restrictToCameroon, stopFollowingUser],
+    [onLocationChange, restrictToCameroon, stopFollowingUser],
   );
 
   const handleSearch = useCallback(async () => {
@@ -258,13 +226,7 @@ export default function LocationPicker({
     } finally {
       setIsSearching(false);
     }
-  }, [
-    cameroonBounds,
-    onLocationChange,
-    restrictToCameroon,
-    searchQuery,
-    stopFollowingUser,
-  ]);
+  }, [onLocationChange, restrictToCameroon, searchQuery, stopFollowingUser]);
 
   // Debounced search suggestions
   useEffect(() => {
@@ -290,14 +252,11 @@ export default function LocationPicker({
     }, 350);
 
     return () => window.clearTimeout(id);
-  }, [allowSearch, cameroonBounds, restrictToCameroon, searchQuery]);
+  }, [allowSearch, restrictToCameroon, searchQuery]);
 
   const selectSearchResult = useCallback(
     (r: GeoSearchResult) => {
-      if (
-        restrictToCameroon &&
-        !cameroonBounds.contains(L.latLng(r.latitude, r.longitude))
-      ) {
+      if (restrictToCameroon && !isWithinCameroon(r.latitude, r.longitude)) {
         toast.error("Please select a location within Cameroon");
         return;
       }
@@ -309,12 +268,7 @@ export default function LocationPicker({
       setSearchResultLabel(r.displayName || null);
       setIsResultsOpen(false);
     },
-    [
-      cameroonBounds,
-      onLocationChange,
-      restrictToCameroon,
-      stopFollowingUser,
-    ],
+    [onLocationChange, restrictToCameroon, stopFollowingUser],
   );
 
   // Handle manual coordinate input
@@ -323,17 +277,17 @@ export default function LocationPicker({
     const lng = parseFloat(manualLng);
 
     if (isNaN(lat) || isNaN(lng)) {
-      alert("Please enter valid coordinates");
+      toast.error(t("locationPicker.invalidCoordinates"));
       return;
     }
 
     if (lat < -90 || lat > 90) {
-      alert("Latitude must be between -90 and 90");
+      toast.error(t("locationPicker.latitudeOutOfRange"));
       return;
     }
 
     if (lng < -180 || lng > 180) {
-      alert("Longitude must be between -180 and 180");
+      toast.error(t("locationPicker.longitudeOutOfRange"));
       return;
     }
 
@@ -416,9 +370,7 @@ export default function LocationPicker({
                               "Result"}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {[r.type, r.category]
-                              .filter(Boolean)
-                              .join(" • ")}
+                            {[r.type, r.category].filter(Boolean).join(" • ")}
                           </div>
                         </button>
                       ))}
@@ -436,34 +388,56 @@ export default function LocationPicker({
 
           {/* Map */}
           <div className="rounded-lg overflow-hidden border border-border">
-            <MapContainer
+            <CameroonMap
               center={currentPosition}
               zoom={13}
-              maxBounds={restrictToCameroon ? cameroonBounds : undefined}
-              maxBoundsViscosity={restrictToCameroon ? 1.0 : undefined}
-              style={{ height: "400px", width: "100%" }}
+              height="400px"
+              showControls
+              showSearch={false}
               className="rounded-lg"
+              onClick={(e) => handleMapClick(e.lngLat.lat, e.lngLat.lng)}
+              cursor="crosshair"
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              />
               {latitude != null && longitude != null && (
                 <>
-                  <Marker position={[latitude, longitude]}>
-                    <Popup>
+                  <Marker
+                    longitude={longitude}
+                    latitude={latitude}
+                    anchor="bottom"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="30"
+                      height="42"
+                      viewBox="0 0 30 42"
+                      className="cursor-pointer"
+                    >
+                      <path
+                        d="M15 0C6.72 0 0 6.72 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.72 23.28 0 15 0z"
+                        fill="#3b82f6"
+                      />
+                      <circle cx="15" cy="14" r="6" fill="white" />
+                    </svg>
+                  </Marker>
+                  <Popup
+                    longitude={longitude}
+                    latitude={latitude}
+                    anchor="bottom"
+                    offset={[0, -42] as [number, number]}
+                    closeButton={false}
+                  >
+                    <div className="text-sm">
                       Selected Location
                       <br />
                       Lat: {latitude.toFixed(6)}
                       <br />
                       Lng: {longitude.toFixed(6)}
-                    </Popup>
-                  </Marker>
+                    </div>
+                  </Popup>
                 </>
               )}
-              <MapClickHandler onLocationClick={handleMapClick} />
               <SetViewOnMarker center={currentPosition} zoom={13} />
-            </MapContainer>
+            </CameroonMap>
           </div>
 
           {/* GPS and Instructions */}

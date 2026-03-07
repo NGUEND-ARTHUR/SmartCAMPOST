@@ -24,6 +24,7 @@ public class GlobalExceptionHandler {
             case AUTH_PHONE_EXISTS        -> HttpStatus.CONFLICT;
             case AUTH_USER_NOT_FOUND      -> HttpStatus.NOT_FOUND;
             case AUTH_ACCOUNT_LOCKED      -> HttpStatus.LOCKED;  // 423 Locked
+            case AUTH_FORBIDDEN           -> HttpStatus.FORBIDDEN; // 403
             default -> HttpStatus.BAD_REQUEST;
         };
 
@@ -89,6 +90,20 @@ public class GlobalExceptionHandler {
                 ErrorCode.VALIDATION_ERROR,
                 request,
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    // ================== NO HANDLER FOUND (404) ==================
+    @ExceptionHandler(org.springframework.web.servlet.NoHandlerFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoHandlerFound(
+            org.springframework.web.servlet.NoHandlerFoundException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "Endpoint not found: " + request.getMethod() + " " + request.getRequestURI(),
+                ErrorCode.BUSINESS_ERROR,
+                request,
+                HttpStatus.NOT_FOUND
         );
     }
 

@@ -42,7 +42,10 @@ import { toast } from "sonner";
 import { useCreateParcel, useMyAddresses } from "@/hooks";
 import LocationPicker from "@/components/maps/LocationPicker";
 import { addressService } from "@/services/addressService";
-import { tariffService, TariffQuoteResponse } from "@/services/dashboard/tariffs.api";
+import {
+  tariffService,
+  TariffQuoteResponse,
+} from "@/services/dashboard/tariffs.api";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ParcelFormData {
@@ -476,8 +479,11 @@ export function CreateParcel() {
                       <SelectValue
                         placeholder={
                           addressesLoading
-                            ? "Loading..."
-                            : "Select sender address"
+                            ? t("common.loading")
+                            : t(
+                                "parcels.selectSenderAddress",
+                                "Select sender address",
+                              )
                         }
                       />
                     </SelectTrigger>
@@ -511,8 +517,11 @@ export function CreateParcel() {
                       <SelectValue
                         placeholder={
                           addressesLoading
-                            ? "Loading..."
-                            : "Select recipient address"
+                            ? t("common.loading")
+                            : t(
+                                "parcels.selectRecipientAddress",
+                                "Select recipient address",
+                              )
                         }
                       />
                     </SelectTrigger>

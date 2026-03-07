@@ -15,4 +15,5 @@ public class AgencyResponse {
     private String agencyCode;
     private String city;
     private String region;
+    private String country;
 }

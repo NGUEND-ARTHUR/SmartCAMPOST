@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import useGeolocation from "../../hooks/useGeolocation";
+import axiosInstance from "@/lib/axiosClient";
 
 export default function ScanPage() {
+  const { t } = useTranslation();
   const [parcelId, setParcelId] = useState("");
   const [address, setAddress] = useState("");
   const [scanType, setScanType] = useState("IN_TRANSIT");
@@ -12,11 +15,11 @@ export default function ScanPage() {
   async function doScan() {
     setMessage(null);
     if (!parcelId) {
-      setMessage("Enter parcel id or tracking number");
+      setMessage(t("scanPage.enterParcelId"));
       return;
     }
     setLoading(true);
-    let payload: any = { scanType };
+    const payload: Record<string, string | number> = { scanType };
     try {
       const pos = await getCurrent().catch(() => null);
       if (pos) {
@@ -27,25 +30,22 @@ export default function ScanPage() {
         payload.address = address;
         payload.source = "MANUAL";
       } else {
-        setMessage("GPS unavailable: enter address");
+        setMessage(t("scanPage.gpsUnavailable"));
         setLoading(false);
         return;
       }
 
       const id = encodeURIComponent(parcelId);
-      const res = await fetch(`/api/parcels/${id}/scan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json().catch(() => null);
-      if (res.ok)
-        setMessage(
-          "Scan recorded. Status: " + (json?.parcelStatus || "unknown"),
-        );
-      else setMessage("Scan failed: " + (json?.error || res.statusText));
-    } catch (e: any) {
-      setMessage("Error: " + e?.message);
+      const res = await axiosInstance.post(`/parcels/${id}/scan`, payload);
+      setMessage(
+        t("scanPage.scanRecorded") +
+          (res.data?.parcelStatus || t("common.unknown")),
+      );
+    } catch (e) {
+      setMessage(
+        t("scanPage.error") +
+          (e instanceof Error ? e.message : t("common.unknown")),
+      );
     } finally {
       setLoading(false);
     }
@@ -53,10 +53,10 @@ export default function ScanPage() {
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-bold">Scan Parcel</h2>
+      <h2 className="text-lg font-bold">{t("scanPage.title")}</h2>
       <div className="mt-3">
         <input
-          placeholder="Parcel ID or tracking"
+          placeholder={t("scanPage.parcelPlaceholder")}
           value={parcelId}
           onChange={(e) => setParcelId(e.target.value)}
           className="border p-2"
@@ -82,7 +82,7 @@ export default function ScanPage() {
       </div>
       <div className="mt-3">
         <input
-          placeholder="Manual address (if GPS denied)"
+          placeholder={t("scanPage.addressPlaceholder")}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className="border p-2 w-full"
@@ -90,7 +90,7 @@ export default function ScanPage() {
       </div>
       <div className="mt-3">
         <button className="btn" onClick={doScan} disabled={loading}>
-          {loading ? "Scanning..." : "Scan"}
+          {loading ? t("scanPage.scanning") : t("scanPage.scan")}
         </button>
       </div>
       {message && <div className="mt-3">{message}</div>}

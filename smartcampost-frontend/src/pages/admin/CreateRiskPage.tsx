@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { riskService } from "@/services/riskService";
+import { riskService } from "@/services";
 
 export default function CreateRiskPage() {
   const { t } = useTranslation();
@@ -29,13 +29,13 @@ export default function CreateRiskPage() {
       !form.severity.trim() ||
       !form.description.trim()
     ) {
-      setError(t("createRiskPage.subtitle"));
+      setError(t("createRiskPage.requiredFields"));
       return;
     }
 
     try {
       setIsLoading(true);
-      await riskService.createRisk({
+      await riskService.createAlert({
         type: form.type,
         severity: form.severity,
         description: form.description,
@@ -45,7 +45,7 @@ export default function CreateRiskPage() {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t("createRiskPage.cancel"),
+        err instanceof Error ? err.message : t("createRiskPage.createFailed"),
       );
     } finally {
       setIsLoading(false);

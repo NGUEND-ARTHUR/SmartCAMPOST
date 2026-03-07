@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { CourierNavigationMap } from "@/components/maps";
 import { useMyParcels } from "@/hooks";
-import { useStartDelivery } from "@/hooks";
 import { toast } from "sonner";
 import { deliveryService } from "@/services";
 
@@ -46,7 +45,8 @@ export default function CourierDeliveries() {
         location: {
           lat: d.recipientLatitude ?? 4.0511,
           lng: d.recipientLongitude ?? 9.7679,
-          address: [d.recipientCity, d.recipientRegion].filter(Boolean).join(", ") ||
+          address:
+            [d.recipientCity, d.recipientRegion].filter(Boolean).join(", ") ||
             t("deliveries.courier.deliveryLocation", { index: index + 1 }),
         },
         parcelId: d.id,
@@ -91,7 +91,8 @@ export default function CourierDeliveries() {
         refetch();
       } catch (err) {
         toast.error(
-          t("deliveries.courier.toasts.completeFailed") || "Failed to complete delivery",
+          t("deliveries.courier.toasts.completeFailed") ||
+            "Failed to complete delivery",
           {
             description: err instanceof Error ? err.message : "Unknown error",
           },
@@ -154,8 +155,8 @@ export default function CourierDeliveries() {
       ) : deliveries.length === 0 ? (
         <EmptyState
           icon={Package}
-          title="No deliveries"
-          description="Deliveries assigned to you will appear here"
+          title={t("deliveries.courier.noDeliveries")}
+          description={t("deliveries.courier.noDeliveriesDescription")}
         />
       ) : viewMode === "map" ? (
         <CourierNavigationMap
@@ -166,21 +167,24 @@ export default function CourierDeliveries() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Deliveries</CardTitle>
+            <CardTitle>{t("deliveries.courier.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {deliveries.map((d) => (
                 <div
                   key={d.id}
-                  className="flex items-center justify-between border rounded-lg p-3 bg-white"
+                  className="flex items-center justify-between border rounded-lg p-3 bg-card"
                 >
                   <div>
                     <div className="font-medium">
                       {d.trackingRef || d.id.slice(0, 10)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {d.recipientCity || d.recipientRegion || t("deliveries.courier.unknownDestination") || "Unknown destination"}
+                      {d.recipientCity ||
+                        d.recipientRegion ||
+                        t("deliveries.courier.unknownDestination") ||
+                        "Unknown destination"}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

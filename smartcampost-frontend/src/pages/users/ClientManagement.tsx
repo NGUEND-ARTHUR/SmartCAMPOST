@@ -84,7 +84,9 @@ export default function ClientManagement() {
               icon={Users}
               title={t("clientManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredClients.length === 0 ? (
@@ -202,15 +204,21 @@ export default function ClientManagement() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.fullName")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("clientManagement.detail.fullName")}
+                    </p>
                     <p className="font-medium">{clientDetail.fullName}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.phone")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("clientManagement.detail.phone")}
+                    </p>
                     <p className="font-medium">{clientDetail.phone}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.email")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("clientManagement.detail.email")}
+                    </p>
                     <p className="font-medium">{clientDetail.email || "—"}</p>
                   </div>
                   <div>
@@ -222,20 +230,26 @@ export default function ClientManagement() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.clientId")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("clientManagement.detail.clientId")}
+                    </p>
                     <p className="font-medium font-mono text-xs">
                       {clientDetail.id}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("clientManagement.detail.userId")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("clientManagement.detail.userId")}
+                    </p>
                     <p className="font-medium font-mono text-xs">
                       {clientDetail.userId}
                     </p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">{t("clientManagement.detail.registeredOn")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("clientManagement.detail.registeredOn")}
+                  </p>
                   <p className="font-medium">
                     {new Date(clientDetail.createdAt).toLocaleString()}
                   </p>

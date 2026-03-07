@@ -18,4 +18,13 @@ public class CourierResponse {
     private String vehicleId;
     private CourierStatus status;
     private Instant createdAt;
+
+    // ---- AGENCY ----
+    private UUID agencyId;
+    private String agencyName;
+
+    // ---- LOCATION ----
+    private Double currentLatitude;
+    private Double currentLongitude;
+    private Instant lastLocationAt;
 }

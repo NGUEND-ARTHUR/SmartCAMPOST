@@ -149,6 +149,8 @@ public class SecurityConfig {
                         // ===================================================
                         //                 NOTIFICATION MODULE
                         // ===================================================
+                        .requestMatchers("/api/notifications/me")
+                        .authenticated()
                         .requestMatchers("/api/notifications/**")
                         .hasAnyRole("ADMIN", "STAFF")
 
@@ -170,7 +172,7 @@ public class SecurityConfig {
 
                         // --- Analytics / AI ---
                         .requestMatchers("/api/analytics/**")
-                        .hasAnyRole("ADMIN", "STAFF")
+                        .authenticated()
 
                         // --- Geolocation Routing ---
                         .requestMatchers("/api/geolocation/**")

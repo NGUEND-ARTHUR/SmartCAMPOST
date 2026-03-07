@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class PricingServiceImpl implements PricingService {
@@ -40,6 +42,7 @@ public class PricingServiceImpl implements PricingService {
         private double homeDeliveryPerKmFeeXaf;
 
     @Override
+    @Transactional(readOnly = true)
     public BigDecimal quotePrice(UUID parcelId) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)

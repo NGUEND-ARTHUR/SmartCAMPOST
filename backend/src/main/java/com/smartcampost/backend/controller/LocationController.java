@@ -18,21 +18,19 @@ public class LocationController {
     public LocationController(LocationService locationService) { this.locationService = locationService; }
 
     @PostMapping("/update")
-    @PreAuthorize("hasAnyRole('COURIER','AGENT')")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','CLIENT')")
     public ResponseEntity<Location> updateLocation(@RequestBody Location loc, Principal principal) {
-        // Try to attach user id from principal
-        try { loc.setUserId(Long.parseLong(principal.getName())); } catch (Exception ignored) {}
+        loc.setUserId(principal.getName());
         if (loc.getSource() == null) loc.setSource(loc.getLatitude() != null ? "GPS" : "MANUAL");
         Location saved = locationService.saveLocation(loc);
         return ResponseEntity.ok(saved);
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('COURIER','AGENT')")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','CLIENT')")
     public ResponseEntity<List<Location>> myRecent(Principal principal) {
-        Long uid = null;
-        try { uid = Long.parseLong(principal.getName()); } catch (Exception ignored) {}
-        if (uid == null) return ResponseEntity.badRequest().build();
+        String uid = principal.getName();
+        if (uid == null || uid.isBlank()) return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(locationService.getRecentForUser(uid));
     }
 

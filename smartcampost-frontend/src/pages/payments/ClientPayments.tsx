@@ -15,6 +15,16 @@ import {
 } from "@/components/ui/table";
 import { receiptService } from "@/services/payments/receipts.api";
 import { usePayments } from "@/hooks";
+import { toast } from "sonner";
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 const statusColors: Record<string, string> = {
   INIT: "bg-muted text-muted-foreground",
@@ -34,7 +44,10 @@ export default function ClientPayments() {
     error: queryError,
   } = usePayments(0, 1000);
 
-  const payments = paymentsResponse?.content ?? [];
+  const payments = useMemo(
+    () => paymentsResponse?.content ?? [],
+    [paymentsResponse],
+  );
   const error = queryError
     ? queryError instanceof Error
       ? queryError.message
@@ -135,35 +148,71 @@ export default function ClientPayments() {
                               size="sm"
                               onClick={async () => {
                                 try {
-                                  if (!p.parcelId)
-                                    return alert("Parcel ID missing");
+                                  if (!p.parcelId) {
+                                    toast.error("Parcel ID missing");
+                                    return;
+                                  }
                                   const receipt =
                                     await receiptService.getByParcel(
-                                      p.parcelId!,
+                                      p.parcelId,
                                     );
                                   const w = window.open("", "_blank");
-                                  if (!w)
-                                    return alert("Unable to open print window");
-                                  const currency = p.currency || "XAF";
+                                  if (!w) {
+                                    toast.error("Unable to open print window");
+                                    return;
+                                  }
+                                  const currency = escapeHtml(
+                                    p.currency || "XAF",
+                                  );
                                   const amount =
                                     receipt.totalAmount ?? p.amount ?? 0;
+                                  const receiptNum = escapeHtml(
+                                    String(receipt.receiptNumber ?? ""),
+                                  );
+                                  const trackingRef = escapeHtml(
+                                    String(
+                                      receipt.trackingRef ||
+                                        receipt.parcelId ||
+                                        "",
+                                    ),
+                                  );
+                                  const deliveredAt = escapeHtml(
+                                    String(receipt.deliveredAt || ""),
+                                  );
+                                  const receiverName = escapeHtml(
+                                    String(receipt.receiverName || ""),
+                                  );
+                                  const courierName = escapeHtml(
+                                    String(receipt.courierName || ""),
+                                  );
+                                  const paymentMethod = escapeHtml(
+                                    String(receipt.paymentMethod || ""),
+                                  );
+                                  const generatedAt = escapeHtml(
+                                    String(receipt.generatedAt || ""),
+                                  );
+                                  const pdfUrl =
+                                    receipt.pdfUrl &&
+                                    /^https?:\/\//i.test(receipt.pdfUrl)
+                                      ? escapeHtml(receipt.pdfUrl)
+                                      : null;
                                   const html = `
                                 <html>
                                 <head>
-                                  <title>Receipt ${receipt.receiptNumber}</title>
+                                  <title>Receipt ${receiptNum}</title>
                                   <style>body{font-family:Arial,Helvetica,sans-serif;padding:24px}</style>
                                 </head>
                                 <body>
-                                  <h2>Receipt ${receipt.receiptNumber}</h2>
-                                  <p><strong>Parcel:</strong> ${receipt.trackingRef || receipt.parcelId}</p>
-                                  <p><strong>Delivered At:</strong> ${receipt.deliveredAt || ""}</p>
-                                  <p><strong>Receiver:</strong> ${receipt.receiverName || ""}</p>
-                                  <p><strong>Courier:</strong> ${receipt.courierName || ""}</p>
+                                  <h2>Receipt ${receiptNum}</h2>
+                                  <p><strong>Parcel:</strong> ${trackingRef}</p>
+                                  <p><strong>Delivered At:</strong> ${deliveredAt}</p>
+                                  <p><strong>Receiver:</strong> ${receiverName}</p>
+                                  <p><strong>Courier:</strong> ${courierName}</p>
                                   <p><strong>Amount:</strong> ${amount} ${currency}</p>
-                                  <p><strong>Payment method:</strong> ${receipt.paymentMethod || ""}</p>
+                                  <p><strong>Payment method:</strong> ${paymentMethod}</p>
                                   <hr />
-                                  <p>Generated: ${receipt.generatedAt || ""}</p>
-                                  ${receipt.pdfUrl ? `<p><a href="${receipt.pdfUrl}" target="_blank" rel="noopener noreferrer">Open PDF</a></p>` : ""}
+                                  <p>Generated: ${generatedAt}</p>
+                                  ${pdfUrl ? `<p><a href="${pdfUrl}" target="_blank" rel="noopener noreferrer">Open PDF</a></p>` : ""}
                                 </body>
                                 </html>
                               `;
@@ -171,7 +220,6 @@ export default function ClientPayments() {
                                   w.document.write(html);
                                   w.document.close();
                                   w.focus();
-                                  // Small delay helps avoid blank printouts in some browsers.
                                   setTimeout(() => {
                                     try {
                                       w.print();
@@ -179,12 +227,12 @@ export default function ClientPayments() {
                                       // ignore
                                     }
                                   }, 250);
-                                } catch (err: unknown) {
-                                  const msg =
-                                    (err as { message?: string } | undefined)
-                                      ?.message ??
-                                    String(err ?? "Failed to load receipt");
-                                  alert(msg);
+                                } catch (err) {
+                                  toast.error(
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Failed to load receipt",
+                                  );
                                 }
                               }}
                             >

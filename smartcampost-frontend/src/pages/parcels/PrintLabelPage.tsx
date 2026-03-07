@@ -17,7 +17,9 @@ export default function PrintLabelPage() {
 
   useEffect(() => {
     hasPrintedRef.current = false;
-    setReadyToPrint(false);
+    // Schedule state update asynchronously to avoid synchronous setState in effect
+    const id = window.setTimeout(() => setReadyToPrint(false), 0);
+    return () => window.clearTimeout(id);
   }, [parcelId]);
 
   useEffect(() => {

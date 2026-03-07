@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { agentService } from "@/services/agentService";
+import { agentTaskService } from "@/services/agentService";
 
 type TaskType = "PICKUP" | "DELIVERY" | "SCAN";
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "DONE" | "BLOCKED";
@@ -49,7 +49,7 @@ export default function AgentDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await agentService.getAgentTasks();
+      const data = await agentTaskService.getAgentTasks();
       setTasks(data || []);
     } catch (err) {
       const errorMsg =
@@ -63,9 +63,11 @@ export default function AgentDashboard() {
   };
 
   const metrics = useMemo(() => {
-    const pending = tasks.filter((t) => t.status === "PENDING").length;
-    const inProgress = tasks.filter((t) => t.status === "IN_PROGRESS").length;
-    const done = tasks.filter((t) => t.status === "DONE").length;
+    const pending = tasks.filter((task) => task.status === "PENDING").length;
+    const inProgress = tasks.filter(
+      (task) => task.status === "IN_PROGRESS",
+    ).length;
+    const done = tasks.filter((task) => task.status === "DONE").length;
     return { pending, inProgress, done };
   }, [tasks]);
 
@@ -79,7 +81,7 @@ export default function AgentDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/admin/scan")}>
+          <Button variant="outline" onClick={() => navigate("/agent/scan")}>
             <Scan className="mr-2 h-4 w-4" />
             {t("agentDashboard.scanParcel")}
           </Button>
@@ -99,7 +101,9 @@ export default function AgentDashboard() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("agentDashboard.pendingTasks")}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("agentDashboard.pendingTasks")}
+                </CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -118,7 +122,9 @@ export default function AgentDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.inProgress}</div>
-                <p className="text-xs text-muted-foreground">{t("agentDashboard.avgDeliveryTimeDesc")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("agentDashboard.avgDeliveryTimeDesc")}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -130,7 +136,9 @@ export default function AgentDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.done}</div>
-                <p className="text-xs text-muted-foreground">{t("agentDashboard.deliveryRateDesc")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("agentDashboard.deliveryRateDesc")}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -152,22 +160,22 @@ export default function AgentDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tasks.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="font-medium">{t.type}</TableCell>
-                      <TableCell>{t.parcelId}</TableCell>
+                  {tasks.map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell className="font-medium">{task.type}</TableCell>
+                      <TableCell>{task.parcelId}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{t.location}</span>
+                          <span>{task.location}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {new Date(t.scheduledAt).toLocaleString()}
+                        {new Date(task.scheduledAt).toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusStyles[t.status]}>
-                          {t.status.toString().replace(/_/g, " ")}
+                        <Badge className={statusStyles[task.status]}>
+                          {task.status.toString().replace(/_/g, " ")}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -175,7 +183,7 @@ export default function AgentDashboard() {
                           size="sm"
                           variant="ghost"
                           onClick={() =>
-                            navigate(`/client/parcels/${t.parcelId}`)
+                            navigate(`/staff/parcels/${task.parcelId}`)
                           }
                         >
                           {t("agentDashboard.viewAll")}

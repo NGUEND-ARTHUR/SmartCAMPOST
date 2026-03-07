@@ -56,18 +56,14 @@ export default function RiskAlerts() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Risk Alerts</h1>
-        <p className="text-muted-foreground">
-          Review suspicious activity and operational risk signals.
-        </p>
+        <h1 className="text-2xl font-bold">{t("riskAlerts.title")}</h1>
+        <p className="text-muted-foreground">{t("riskAlerts.subtitle")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Alerts</CardTitle>
-          <CardDescription>
-            New and escalated alerts appear here.
-          </CardDescription>
+          <CardTitle>{t("riskAlerts.alertsTitle")}</CardTitle>
+          <CardDescription>{t("riskAlerts.alertsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -77,29 +73,29 @@ export default function RiskAlerts() {
           ) : error ? (
             <EmptyState
               icon={ShieldAlert}
-              title="Error loading alerts"
+              title={t("riskAlerts.states.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.error")
               }
             />
           ) : alerts.length === 0 ? (
             <EmptyState
               icon={ShieldAlert}
-              title="No alerts yet"
-              description="Risk alerts will appear here when detected."
+              title={t("riskAlerts.states.emptyTitle")}
+              description={t("riskAlerts.states.emptyDescription")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Parcel</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("riskAlerts.table.severity")}</TableHead>
+                    <TableHead>{t("riskAlerts.table.description")}</TableHead>
+                    <TableHead>{t("riskAlerts.table.user")}</TableHead>
+                    <TableHead>{t("riskAlerts.table.parcel")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("riskAlerts.table.created")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -131,7 +127,9 @@ export default function RiskAlerts() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {alert.resolved ? "RESOLVED" : "OPEN"}
+                          {alert.resolved
+                            ? t("riskAlerts.status.resolved")
+                            : t("riskAlerts.status.open")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
@@ -146,7 +144,7 @@ export default function RiskAlerts() {
                             disabled={freezeUser.isPending}
                           >
                             <User className="w-3 h-3 mr-1" />
-                            Freeze
+                            {t("riskAlerts.actions.freeze")}
                           </Button>
                         )}
                       </TableCell>
@@ -162,10 +160,10 @@ export default function RiskAlerts() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -173,7 +171,7 @@ export default function RiskAlerts() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

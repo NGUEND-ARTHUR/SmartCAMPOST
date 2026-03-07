@@ -23,4 +23,8 @@ public class StaffResponse {
     private StaffStatus status;
     private LocalDate hiredAt;
     private LocalDate terminatedAt;
+
+    // ---- AGENCY ----
+    private UUID agencyId;
+    private String agencyName;
 }

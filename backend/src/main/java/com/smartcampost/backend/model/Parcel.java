@@ -67,6 +67,19 @@ public class Parcel {
     private LocationMode locationMode = LocationMode.GPS_DEFAULT;
     // --------------------------------------------------
 
+    // --------------------------------------------------
+    //  🔥 Current Location (updated from last scan event GPS)
+    // --------------------------------------------------
+    @Column(name = "current_latitude", columnDefinition = "DECIMAL(10,8)")
+    private Double currentLatitude;
+
+    @Column(name = "current_longitude", columnDefinition = "DECIMAL(11,8)")
+    private Double currentLongitude;
+
+    @Column(name = "location_updated_at")
+    private Instant locationUpdatedAt;
+    // --------------------------------------------------
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "client_id",

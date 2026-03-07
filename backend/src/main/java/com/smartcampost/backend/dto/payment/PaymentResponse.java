@@ -30,4 +30,6 @@ public class PaymentResponse {
     private Instant timestamp;
 
     private String externalRef;
+
+    private Boolean reversed;
 }

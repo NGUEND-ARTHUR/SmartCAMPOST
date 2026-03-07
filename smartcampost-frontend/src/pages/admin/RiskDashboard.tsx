@@ -146,7 +146,7 @@ export default function RiskDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
@@ -162,7 +162,7 @@ export default function RiskDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
@@ -178,7 +178,7 @@ export default function RiskDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
@@ -194,7 +194,7 @@ export default function RiskDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
@@ -214,8 +214,10 @@ export default function RiskDashboard() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Weekly Alerts */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="mb-6">{t("adminRiskDashboard.incidentManagement")}</h2>
+          <div className="bg-card rounded-lg shadow p-6">
+            <h2 className="mb-6">
+              {t("adminRiskDashboard.incidentManagement")}
+            </h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={weeklyAlerts}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -228,7 +230,7 @@ export default function RiskDashboard() {
           </div>
 
           {/* Alerts by Type */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <h2 className="mb-6">{t("adminRiskDashboard.riskPolicies")}</h2>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -259,7 +261,7 @@ export default function RiskDashboard() {
         </div>
 
         {/* Recent Alerts */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           <div className="p-6 border-b border-border flex items-center justify-between">
             <h2 className="font-semibold">{t("riskDashboard.recentAlerts")}</h2>
             <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -297,7 +299,9 @@ export default function RiskDashboard() {
                         {alert.description}
                       </p>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>{t("adminRiskDashboard.auditLog")}: {alert.tracking}</span>
+                        <span>
+                          {t("adminRiskDashboard.auditLog")}: {alert.tracking}
+                        </span>
                         <span>•</span>
                         <span>{alert.time}</span>
                       </div>

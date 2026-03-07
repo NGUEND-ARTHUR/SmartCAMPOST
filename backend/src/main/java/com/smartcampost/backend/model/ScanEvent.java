@@ -137,7 +137,7 @@ public class ScanEvent {
     public java.util.UUID getEventId() { return this.id; }
     public java.util.UUID getParcelId() { return this.parcel != null ? this.parcel.getId() : null; }
     public void setParcelId(java.util.UUID pid) { if (this.parcel == null) { this.parcel = new Parcel(); } this.parcel.setId(pid); }
-    public void setScannedBy(long who) { this.scannedBy = String.valueOf(who); }
+    public void setScannedBy(String who) { this.scannedBy = who; }
 
     @PrePersist
     void onCreate() {

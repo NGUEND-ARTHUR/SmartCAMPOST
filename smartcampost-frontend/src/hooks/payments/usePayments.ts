@@ -73,8 +73,12 @@ export function useMarkCodAsPaid() {
     onSuccess: (resp) => {
       const parcelId = resp.parcelId;
       if (parcelId) {
-        queryClient.invalidateQueries({ queryKey: paymentKeys.forParcel(parcelId) });
-        queryClient.invalidateQueries({ queryKey: parcelKeys.detail(parcelId) });
+        queryClient.invalidateQueries({
+          queryKey: paymentKeys.forParcel(parcelId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: parcelKeys.detail(parcelId),
+        });
       }
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
     },

@@ -174,7 +174,9 @@ export default function IntegrationManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{t("integrationManagement.title")}</h1>
+          <h1 className="text-3xl font-bold">
+            {t("integrationManagement.title")}
+          </h1>
           <p className="text-muted-foreground">
             {t("integrationManagement.subtitle")}
           </p>
@@ -193,14 +195,18 @@ export default function IntegrationManagement() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("integrationManagement.createTitle")}</DialogTitle>
+              <DialogTitle>
+                {t("integrationManagement.createTitle")}
+              </DialogTitle>
               <DialogDescription>
                 {t("integrationManagement.createDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="configType">{t("integrationManagement.configType")} *</Label>
+                <Label htmlFor="configType">
+                  {t("integrationManagement.configType")} *
+                </Label>
                 <Select
                   value={formData.configType}
                   onValueChange={(v: string) =>
@@ -220,7 +226,9 @@ export default function IntegrationManagement() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="provider">{t("integrationManagement.providerName")} *</Label>
+                <Label htmlFor="provider">
+                  {t("integrationManagement.providerName")} *
+                </Label>
                 <Input
                   id="provider"
                   value={formData.provider}
@@ -231,7 +239,9 @@ export default function IntegrationManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="baseUrl">{t("integrationManagement.baseUrl")}</Label>
+                <Label htmlFor="baseUrl">
+                  {t("integrationManagement.baseUrl")}
+                </Label>
                 <Input
                   id="baseUrl"
                   value={formData.baseUrl}
@@ -242,7 +252,9 @@ export default function IntegrationManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="apiKey">{t("integrationManagement.apiKey")}</Label>
+                <Label htmlFor="apiKey">
+                  {t("integrationManagement.apiKey")}
+                </Label>
                 <Input
                   id="apiKey"
                   type="password"
@@ -263,7 +275,9 @@ export default function IntegrationManagement() {
                     setFormData({ ...formData, active: e.target.checked })
                   }
                 />
-                <Label htmlFor="active">{t("integrationManagement.active")}</Label>
+                <Label htmlFor="active">
+                  {t("integrationManagement.active")}
+                </Label>
               </div>
             </div>
             <DialogFooter>
@@ -298,7 +312,9 @@ export default function IntegrationManagement() {
               icon={Settings}
               title={t("integrationManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : integrations.length === 0 ? (
@@ -381,7 +397,10 @@ export default function IntegrationManagement() {
                     {t("integrationManagement.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    {t("integrationManagement.pageOf", { current: page + 1, total: totalPages })}
+                    {t("integrationManagement.pageOf", {
+                      current: page + 1,
+                      total: totalPages,
+                    })}
                   </span>
                   <Button
                     variant="outline"
@@ -482,7 +501,9 @@ export default function IntegrationManagement() {
                     })
                   }
                 />
-                <Label htmlFor="editActive">{t("integrationManagement.active")}</Label>
+                <Label htmlFor="editActive">
+                  {t("integrationManagement.active")}
+                </Label>
               </div>
             </div>
           )}

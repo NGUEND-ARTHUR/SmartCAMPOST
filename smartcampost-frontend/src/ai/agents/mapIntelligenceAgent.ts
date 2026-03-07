@@ -1,6 +1,8 @@
-import { geolocationService, GeoSearchResult } from "@/services/common/geolocation.api";
-import { CAMEROON_BOUNDS } from "@/components/maps/core/cameroon";
-import L from "leaflet";
+import {
+  geolocationService,
+  GeoSearchResult,
+} from "@/services/common/geolocation.api";
+import { isWithinCameroon } from "@/components/maps/core/cameroon";
 import { rankFuzzy } from "../core/fuzzy";
 import { DataOptimizationAgent } from "./dataOptimizationAgent";
 
@@ -12,7 +14,10 @@ export type MapSearchOptions = {
 export class MapIntelligenceAgent {
   constructor(private readonly dataAgent: DataOptimizationAgent) {}
 
-  async search(query: string, opts?: MapSearchOptions): Promise<GeoSearchResult[]> {
+  async search(
+    query: string,
+    opts?: MapSearchOptions,
+  ): Promise<GeoSearchResult[]> {
     const q = query.trim();
     if (q.length < 2) return [];
 
@@ -31,7 +36,7 @@ export class MapIntelligenceAgent {
           return (
             typeof lat === "number" &&
             typeof lng === "number" &&
-            CAMEROON_BOUNDS.contains(L.latLng(lat, lng))
+            isWithinCameroon(lat, lng)
           );
         })
       : results;

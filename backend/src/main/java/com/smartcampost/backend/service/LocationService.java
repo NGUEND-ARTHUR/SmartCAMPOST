@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface LocationService {
     Location saveLocation(Location loc);
-    List<Location> getRecentForUser(Long userId);
+    List<Location> getRecentForUser(String userId);
     List<Location> getRecentAll();
 }

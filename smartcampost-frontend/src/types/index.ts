@@ -59,7 +59,53 @@ export type ParcelStatus = "created" | "in_transit" | "delivered" | "returned";
 export interface Parcel {
   id: string;
   trackingNumber?: string;
+  trackingRef?: string;
   status?: string;
+  locked?: boolean;
+  qrStatus?: QrStatus;
+  finalQrCode?: string;
+  partialQrCode?: string;
+  weight?: number;
+  dimensions?: string;
+  declaredValue?: number;
+  fragile?: boolean;
+  serviceType?: string;
+  deliveryOption?: string;
+  paymentOption?: string;
+  descriptionComment?: string;
+  expectedDeliveryAt?: string;
+  createdAt?: string;
+  senderAddressId?: string;
+  senderLabel?: string;
+  senderCity?: string;
+  senderRegion?: string;
+  senderCountry?: string;
+  recipientAddressId?: string;
+  recipientLabel?: string;
+  recipientCity?: string;
+  recipientRegion?: string;
+  recipientCountry?: string;
+  clientName?: string;
+  clientId?: string;
+  originAgencyId?: string;
+  originAgencyName?: string;
+  destinationAgencyId?: string;
+  destinationAgencyName?: string;
+  photoUrl?: string;
+  creationLatitude?: number;
+  creationLongitude?: number;
+  currentLatitude?: number;
+  currentLongitude?: number;
+  locationUpdatedAt?: string;
+  locationMode?: string;
+  validatedWeight?: number;
+  validatedDimensions?: string;
+  validationComment?: string;
+  descriptionConfirmed?: boolean;
+  validatedAt?: string;
+  validatedByStaffId?: string;
+  validatedByStaffName?: string;
+  lastAppliedPrice?: number;
   [key: string]: unknown;
 }
 
@@ -67,23 +113,33 @@ export interface ScanEvent {
   id: string;
   timestamp: string;
   eventType: string;
-  location?: string;
-  locationNote?: string;
   parcelId?: string;
   agencyId?: string;
+  agencyName?: string;
   agentId?: string;
+  agentName?: string;
+  actorId?: string;
+  actorRole?: string;
+  latitude?: number;
+  longitude?: number;
+  locationNote?: string;
+  locationSource?: LocationSource;
+  comment?: string;
+  proofPhotoUrl?: string;
+  synced?: boolean;
 }
 
 export interface Payment {
   id: string;
   parcelId?: string;
+  parcelTrackingRef?: string;
   amount: number;
   currency?: string;
   method?: string;
   status?: string;
   reversed?: boolean;
   externalRef?: string;
-  createdAt?: string;
+  timestamp?: string;
 }
 
 export type PaymentStatus = Payment["status"];
@@ -101,7 +157,7 @@ export interface PickupRequest {
   state?: string;
 }
 
-export type PickupState = string;
+export type PickupState = "REQUESTED" | "ASSIGNED" | "COMPLETED" | "CANCELLED";
 
 export interface SupportTicket {
   id: string;

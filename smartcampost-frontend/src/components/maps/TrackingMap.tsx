@@ -1,63 +1,50 @@
 /**
  * Interactive Tracking Map Component
- * Shows parcel journey with animated marker and route visualization
+ * Shows parcel journey with animated marker traversing the route in real-time.
+ * Powered by MapLibre GL JS with vector tiles and 3D support.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Marker, Popup, Source, Layer, useMap } from "react-map-gl/maplibre";
 import {
-  Marker,
-  Popup,
-  Polyline,
-  useMap,
-} from "react-leaflet";
-import L from "leaflet";
-import { Package, MapPin, Navigation, Clock } from "lucide-react";
+  Package,
+  MapPin,
+  Navigation,
+  Clock,
+  Play,
+  Pause,
+  RotateCcw,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "@/theme/theme";
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
-import { SmoothMarker } from "@/components/maps/core/SmoothMarker";
+import {
+  AnimatedRouteMarker,
+  type RouteAnimationState,
+} from "@/components/maps/core/SmoothMarker";
+import { LAYER_COLORS } from "@/components/maps/core/mapStyles";
 
-// Fix Leaflet default marker icon issue
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-// Custom icons with shadow and smooth styling
-const createIcon = (color: string, emoji: string, pulse = false) =>
-  L.divIcon({
-    className: "custom-marker",
-    html: `<div style="
-      background: ${color};
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      border: 3px solid hsl(var(--background));
-      box-shadow: 0 3px 12px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-      ${pulse ? "animation: markerPulse 2s ease-in-out infinite;" : ""}
-    ">${emoji}</div>
-    ${pulse ? `<style>@keyframes markerPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.15);opacity:0.85} }</style>` : ""}`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
-
-const originIcon = createIcon("hsl(var(--secondary))", "📍");
-const destinationIcon = createIcon("hsl(var(--destructive))", "🏁");
-const parcelIcon = createIcon("hsl(var(--primary))", "📦", true);
-const transitIcon = createIcon("hsl(var(--accent))", "🚚");
+/* ------------------------------------------------------------------ */
+/* Custom marker component                                            */
+/* ------------------------------------------------------------------ */
+function MapMarkerIcon({
+  bgClass,
+  emoji,
+  pulse = false,
+}: {
+  bgClass: string;
+  emoji: string;
+  pulse?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-center w-10 h-10 text-xl rounded-full border-3 border-background shadow-lg cursor-pointer ${bgClass} ${pulse ? "animate-pulse" : ""}`}
+    >
+      {emoji}
+    </div>
+  );
+}
 
 interface ScanEvent {
   id: string;
@@ -76,7 +63,9 @@ interface TrackingMapProps {
   showAnimation?: boolean;
 }
 
-// Component to animate the map view
+/* ------------------------------------------------------------------ */
+/* Animated view — fly to centre on mount / change                    */
+/* ------------------------------------------------------------------ */
 function AnimatedView({
   center,
   zoom,
@@ -84,14 +73,16 @@ function AnimatedView({
   center: [number, number];
   zoom: number;
 }) {
-  const map = useMap();
+  const { current: map } = useMap();
   useEffect(() => {
-    map.flyTo(center, zoom, { duration: 1.5 });
+    map?.flyTo({ center: [center[1], center[0]], zoom, duration: 1500 });
   }, [center, zoom, map]);
   return null;
 }
 
-// Animated parcel marker that moves along the route
+/* ------------------------------------------------------------------ */
+/* Follow the animated parcel position                                */
+/* ------------------------------------------------------------------ */
 function FollowPosition({
   position,
   enabled,
@@ -99,14 +90,47 @@ function FollowPosition({
   position: [number, number] | null;
   enabled: boolean;
 }) {
-  const map = useMap();
+  const { current: map } = useMap();
   useEffect(() => {
-    if (!enabled || !position) return;
-    map.panTo(position, { animate: true, duration: 0.9 });
+    if (!enabled || !position || !map) return;
+    map.panTo([position[1], position[0]], { duration: 600 });
   }, [enabled, map, position]);
   return null;
 }
 
+/* ------------------------------------------------------------------ */
+/* GeoJSON helpers                                                    */
+/* ------------------------------------------------------------------ */
+function lineGeoJSON(
+  positions: [number, number][],
+): GeoJSON.Feature<GeoJSON.LineString> {
+  return {
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: positions.map(([lat, lng]) => [lng, lat]),
+    },
+    properties: {},
+  };
+}
+
+/** Slice `positions` up to `progress` (0→1) for the "traveled" trail */
+function sliceRoute(
+  positions: [number, number][],
+  progress: number,
+  animatedPos: [number, number],
+): [number, number][] {
+  if (positions.length < 2 || progress <= 0) return [];
+  const idx = Math.min(
+    Math.floor(progress * (positions.length - 1)),
+    positions.length - 2,
+  );
+  return [...positions.slice(0, idx + 1), animatedPos];
+}
+
+/* ------------------------------------------------------------------ */
+/* TrackingMap                                                        */
+/* ------------------------------------------------------------------ */
 export default function TrackingMap({
   trackingId,
   scanEvents = [],
@@ -114,25 +138,20 @@ export default function TrackingMap({
   showAnimation = true,
 }: TrackingMapProps) {
   const [isAnimating, setIsAnimating] = useState(showAnimation);
+  const [selectedEvent, setSelectedEvent] = useState<ScanEvent | null>(null);
+  const [animState, setAnimState] = useState<RouteAnimationState | null>(null);
   const { t } = useTranslation();
-  const { resolvedTheme } = useTheme();
 
-  // Keep resolvedTheme referenced (map tiles are handled in CameroonMap)
-  void resolvedTheme;
+  const eventPositions: [number, number][] = useMemo(
+    () =>
+      scanEvents
+        .filter((e) => e.latitude && e.longitude)
+        .map((e) => [e.latitude!, e.longitude!] as [number, number]),
+    [scanEvents],
+  );
 
-  // Convert scan events to positions
-  const eventPositions: [number, number][] = useMemo(() => {
-    return scanEvents
-      .filter((e) => e.latitude && e.longitude)
-      .map((e) => [e.latitude!, e.longitude!] as [number, number]);
-  }, [scanEvents]);
+  const fullRoute = eventPositions;
 
-  // Route MUST come only from ScanEvents GPS points
-  const fullRoute: [number, number][] = useMemo(() => {
-    return eventPositions;
-  }, [eventPositions]);
-
-  // Calculate map center
   const mapCenter: [number, number] = useMemo(() => {
     if (fullRoute.length > 0) {
       const lats = fullRoute.map((p) => p[0]);
@@ -142,18 +161,17 @@ export default function TrackingMap({
         (Math.min(...lngs) + Math.max(...lngs)) / 2,
       ];
     }
-    // Default to Cameroon center
     return [7.3697, 12.3547];
   }, [fullRoute]);
 
-  // Calculate appropriate zoom level
   const mapZoom = useMemo(() => {
     if (fullRoute.length < 2) return 10;
     const lats = fullRoute.map((p) => p[0]);
     const lngs = fullRoute.map((p) => p[1]);
-    const latDiff = Math.max(...lats) - Math.min(...lats);
-    const lngDiff = Math.max(...lngs) - Math.min(...lngs);
-    const maxDiff = Math.max(latDiff, lngDiff);
+    const maxDiff = Math.max(
+      Math.max(...lats) - Math.min(...lats),
+      Math.max(...lngs) - Math.min(...lngs),
+    );
     if (maxDiff > 5) return 6;
     if (maxDiff > 2) return 7;
     if (maxDiff > 1) return 8;
@@ -161,13 +179,35 @@ export default function TrackingMap({
     return 12;
   }, [fullRoute]);
 
-  // Get last known position for current parcel location
-  const currentPosition: [number, number] | null = useMemo(() => {
-    if (eventPositions.length > 0) {
-      return eventPositions[eventPositions.length - 1];
-    }
-    return null;
-  }, [eventPositions]);
+  /** Duration scales with number of waypoints: ~3s per segment, minimum 6s */
+  const animDuration = useMemo(
+    () => Math.max(6000, (fullRoute.length - 1) * 3000),
+    [fullRoute],
+  );
+
+  // Full route GeoJSON (line to be rendered)
+  const routeData = useMemo(
+    () => (fullRoute.length >= 2 ? lineGeoJSON(fullRoute) : null),
+    [fullRoute],
+  );
+
+  // Traveled portion GeoJSON (green trail behind parcel)
+  const traveledData = useMemo(() => {
+    if (!animState || fullRoute.length < 2) return null;
+    const sliced = sliceRoute(
+      fullRoute,
+      animState.progress,
+      animState.position,
+    );
+    return sliced.length >= 2 ? lineGeoJSON(sliced) : null;
+  }, [animState, fullRoute]);
+
+  const onProgress = useCallback(
+    (s: RouteAnimationState) => setAnimState(s),
+    [],
+  );
+
+  const isDelivered = currentStatus === "DELIVERED";
 
   if (!trackingId && fullRoute.length === 0) {
     return (
@@ -182,29 +222,61 @@ export default function TrackingMap({
     );
   }
 
+  const progressPct = animState ? Math.round(animState.progress * 100) : 0;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2">
             <Navigation className="w-5 h-5" />
             {t("trackingMap.title")}
             {trackingId && ` - ${trackingId}`}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button
-              variant={isAnimating ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsAnimating(!isAnimating)}
-            >
-              {isAnimating ? t("trackingMap.pause") : t("trackingMap.animate")}
-            </Button>
+            {fullRoute.length >= 2 && (
+              <Button
+                variant={isAnimating ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsAnimating(!isAnimating)}
+              >
+                {isAnimating ? (
+                  <>
+                    <Pause className="w-4 h-4 mr-1" />
+                    {t("trackingMap.pause")}
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-1" />
+                    {t("trackingMap.animate")}
+                  </>
+                )}
+              </Button>
+            )}
             <Badge variant="secondary">
               {t("trackingMap.checkpoints", { count: scanEvents.length })}
             </Badge>
           </div>
         </div>
+
+        {/* Progress bar */}
+        {fullRoute.length >= 2 && (
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                ref={(el) => {
+                  if (el) el.style.width = `${progressPct}%`;
+                }}
+                className="h-full rounded-full bg-primary transition-[width] duration-300"
+              />
+            </div>
+            <span className="text-xs text-muted-foreground tabular-nums w-9 text-right">
+              {progressPct}%
+            </span>
+          </div>
+        )}
       </CardHeader>
+
       <CardContent className="p-0">
         <div className="h-100 relative">
           <CameroonMap
@@ -214,111 +286,174 @@ export default function TrackingMap({
             showControls
             showSearch={false}
             className="rounded-none border-0"
+            pitch={35}
+            show3DBuildings
           >
             <AnimatedView center={mapCenter} zoom={mapZoom} />
-            <FollowPosition position={currentPosition} enabled={isAnimating} />
+            <FollowPosition
+              position={animState?.position ?? null}
+              enabled={isAnimating}
+            />
 
-            {/* Route line — solid background + dashed overlay for depth */}
-            {fullRoute.length >= 2 && (
-              <>
-                <Polyline
-                  positions={fullRoute}
-                  color="hsl(var(--primary))"
-                  weight={6}
-                  opacity={0.25}
-                  lineCap="round"
-                  lineJoin="round"
+            {/* Full route — dashed line (upcoming path) */}
+            {routeData && (
+              <Source id="tracking-route" type="geojson" data={routeData}>
+                <Layer
+                  id="route-glow"
+                  type="line"
+                  paint={{
+                    "line-color": LAYER_COLORS.primaryGlow,
+                    "line-width": 6,
+                    "line-opacity": 0.2,
+                  }}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
                 />
-                <Polyline
-                  positions={fullRoute}
-                  color="hsl(var(--primary))"
-                  weight={3}
-                  opacity={0.85}
-                  dashArray="12, 8"
-                  lineCap="round"
-                  lineJoin="round"
+                <Layer
+                  id="route-dash"
+                  type="line"
+                  paint={{
+                    "line-color": LAYER_COLORS.primary,
+                    "line-width": 3,
+                    "line-opacity": 0.5,
+                    "line-dasharray": [3, 2],
+                  }}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
                 />
-              </>
+              </Source>
+            )}
+
+            {/* Traveled trail — solid bright line behind the parcel */}
+            {traveledData && (
+              <Source id="traveled-trail" type="geojson" data={traveledData}>
+                <Layer
+                  id="trail-glow"
+                  type="line"
+                  paint={{
+                    "line-color": LAYER_COLORS.route,
+                    "line-width": 7,
+                    "line-opacity": 0.25,
+                  }}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                />
+                <Layer
+                  id="trail-solid"
+                  type="line"
+                  paint={{
+                    "line-color": LAYER_COLORS.route,
+                    "line-width": 4,
+                    "line-opacity": 0.9,
+                  }}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                />
+              </Source>
             )}
 
             {/* Origin marker */}
             {fullRoute.length > 0 && (
-              <Marker position={fullRoute[0]} icon={originIcon}>
-                <Popup>
-                  <div className="text-center">
-                    <strong>📍 {t("trackingMap.origin", "Origin")}</strong>
-                  </div>
-                </Popup>
+              <Marker
+                longitude={fullRoute[0][1]}
+                latitude={fullRoute[0][0]}
+                anchor="center"
+              >
+                <MapMarkerIcon bgClass="bg-secondary" emoji="📍" />
               </Marker>
             )}
 
             {/* Destination marker */}
             {fullRoute.length > 1 && (
               <Marker
-                position={fullRoute[fullRoute.length - 1]}
-                icon={destinationIcon}
+                longitude={fullRoute[fullRoute.length - 1][1]}
+                latitude={fullRoute[fullRoute.length - 1][0]}
+                anchor="center"
               >
-                <Popup>
-                  <div className="text-center">
-                    <strong>
-                      🏁 {t("trackingMap.destination", "Destination")}
-                    </strong>
-                  </div>
-                </Popup>
+                <MapMarkerIcon bgClass="bg-destructive" emoji="🏁" />
               </Marker>
             )}
 
-            {/* Transit checkpoints */}
+            {/* Transit checkpoint markers */}
             {scanEvents
               .filter((e) => e.latitude && e.longitude)
-              .map((event, index) => (
+              .map((event) => (
                 <Marker
                   key={event.id}
-                  position={[event.latitude!, event.longitude!]}
-                  icon={transitIcon}
+                  longitude={event.longitude!}
+                  latitude={event.latitude!}
+                  anchor="center"
+                  onClick={(e) => {
+                    e.originalEvent.stopPropagation();
+                    setSelectedEvent(event);
+                  }}
                 >
-                  <Popup>
-                    <div className="min-w-37.5">
-                      <strong className="flex items-center gap-1">
-                        <Package className="w-4 h-4" />
-                        {t("trackingMap.checkpointLabel", {
-                          index: index + 1,
-                        })}
-                      </strong>
-                      <div className="mt-1 text-sm">
-                        <p>{event.eventType}</p>
-                        {event.agencyName && <p>📍 {event.agencyName}</p>}
-                        <p className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {new Date(event.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </Popup>
+                  <MapMarkerIcon bgClass="bg-accent" emoji="🚚" />
                 </Marker>
               ))}
 
-            {/* Smooth current parcel position (real-time) */}
-            {currentPosition && (
-              <SmoothMarker
-                position={currentPosition}
-                icon={parcelIcon}
-                enabled={isAnimating}
-                durationMs={900}
-              >
-                <Popup>
-                  <div className="text-center">
-                    <strong>📦 {t("trackingMap.currentLocation")}</strong>
-                    <br />
-                    <Badge>{currentStatus}</Badge>
+            {/* Event popup */}
+            {selectedEvent &&
+              selectedEvent.latitude &&
+              selectedEvent.longitude && (
+                <Popup
+                  longitude={selectedEvent.longitude}
+                  latitude={selectedEvent.latitude}
+                  onClose={() => setSelectedEvent(null)}
+                  closeOnClick={false}
+                  anchor="bottom"
+                >
+                  <div className="min-w-37.5">
+                    <strong className="flex items-center gap-1">
+                      <Package className="w-4 h-4" />
+                      {t("trackingMap.checkpointLabel", {
+                        index:
+                          scanEvents
+                            .filter((e) => e.latitude && e.longitude)
+                            .indexOf(selectedEvent) + 1,
+                      })}
+                    </strong>
+                    <div className="mt-1 text-sm">
+                      <p>{selectedEvent.eventType}</p>
+                      {selectedEvent.agencyName && (
+                        <p>📍 {selectedEvent.agencyName}</p>
+                      )}
+                      <p className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {new Date(selectedEvent.timestamp).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </Popup>
-              </SmoothMarker>
+              )}
+
+            {/* Animated parcel marker — moves along the full route */}
+            {fullRoute.length >= 2 && (
+              <AnimatedRouteMarker
+                waypoints={fullRoute}
+                enabled={isAnimating && !isDelivered}
+                durationMs={animDuration}
+                loop
+                onProgress={onProgress}
+              >
+                <MapMarkerIcon
+                  bgClass="bg-primary"
+                  emoji="📦"
+                  pulse={isAnimating}
+                />
+              </AnimatedRouteMarker>
+            )}
+
+            {/* Static parcel at destination when delivered */}
+            {isDelivered && fullRoute.length > 0 && (
+              <Marker
+                longitude={fullRoute[fullRoute.length - 1][1]}
+                latitude={fullRoute[fullRoute.length - 1][0]}
+                anchor="center"
+              >
+                <MapMarkerIcon bgClass="bg-[hsl(142_76%_36%)]" emoji="✅" />
+              </Marker>
             )}
           </CameroonMap>
 
-          {/* Legend */}
-          <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-1000 text-xs border border-border">
+          {/* Legend overlay */}
+          <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-2 text-xs border border-border">
             <div className="font-semibold mb-2">
               {t("trackingMap.legend.title")}
             </div>
@@ -334,6 +469,10 @@ export default function TrackingMap({
               </div>
               <div className="flex items-center gap-2">
                 <span>🏁</span> {t("trackingMap.legend.destination")}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-block w-4 h-0.5 rounded bg-[#3b82f6]" />
+                {t("trackingMap.legend.traveled", { defaultValue: "Traveled" })}
               </div>
             </div>
           </div>

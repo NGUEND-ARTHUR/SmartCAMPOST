@@ -96,7 +96,9 @@ export default function UserAccountManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{t("userAccountManagement.title")}</h1>
+        <h1 className="text-3xl font-bold">
+          {t("userAccountManagement.title")}
+        </h1>
         <p className="text-muted-foreground">
           {t("userAccountManagement.subtitle")}
         </p>
@@ -122,14 +124,30 @@ export default function UserAccountManagement() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("userAccountManagement.allRoles")}</SelectItem>
-                  <SelectItem value="CLIENT">{t("userAccountManagement.client")}</SelectItem>
-                  <SelectItem value="AGENT">{t("userAccountManagement.agent")}</SelectItem>
-                  <SelectItem value="COURIER">{t("userAccountManagement.courier")}</SelectItem>
-                  <SelectItem value="STAFF">{t("userAccountManagement.staff")}</SelectItem>
-                  <SelectItem value="ADMIN">{t("userAccountManagement.admin")}</SelectItem>
-                  <SelectItem value="FINANCE">{t("userAccountManagement.finance")}</SelectItem>
-                  <SelectItem value="RISK">{t("userAccountManagement.risk")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("userAccountManagement.allRoles")}
+                  </SelectItem>
+                  <SelectItem value="CLIENT">
+                    {t("userAccountManagement.client")}
+                  </SelectItem>
+                  <SelectItem value="AGENT">
+                    {t("userAccountManagement.agent")}
+                  </SelectItem>
+                  <SelectItem value="COURIER">
+                    {t("userAccountManagement.courier")}
+                  </SelectItem>
+                  <SelectItem value="STAFF">
+                    {t("userAccountManagement.staff")}
+                  </SelectItem>
+                  <SelectItem value="ADMIN">
+                    {t("userAccountManagement.admin")}
+                  </SelectItem>
+                  <SelectItem value="FINANCE">
+                    {t("userAccountManagement.finance")}
+                  </SelectItem>
+                  <SelectItem value="RISK">
+                    {t("userAccountManagement.risk")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -145,7 +163,9 @@ export default function UserAccountManagement() {
               icon={Users}
               title={t("userAccountManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : displayedUsers.length === 0 ? (

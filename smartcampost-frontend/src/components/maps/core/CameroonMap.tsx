@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from "react";
-import { MapContainer, Polygon, TileLayer, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Map, { Source, Layer, useMap } from "react-map-gl/maplibre";
+import type { MapRef, MapLayerMouseEvent } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/theme/theme";
 import {
@@ -10,11 +11,42 @@ import {
   CAMEROON_MAX_ZOOM,
   CAMEROON_MIN_ZOOM,
 } from "./cameroon";
+import { MAP_STYLES, TERRAIN_TILES_URL, LAYER_COLORS } from "./mapStyles";
 import { MapControls } from "./MapControls";
 import { MapSearch } from "./MapSearch";
 
-type LatLngTuple = [number, number];
+/* ------------------------------------------------------------------ */
+/* Cameroon mask GeoJSON — dims everything outside the bounding box   */
+/* ------------------------------------------------------------------ */
+const CAMEROON_MASK_GEOJSON: GeoJSON.Feature = {
+  type: "Feature",
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      // outer ring (world)
+      [
+        [-180, -90],
+        [180, -90],
+        [180, 90],
+        [-180, 90],
+        [-180, -90],
+      ],
+      // inner ring (Cameroon cut-out)
+      [
+        [8.4, 1.65],
+        [16.3, 1.65],
+        [16.3, 13.1],
+        [8.4, 13.1],
+        [8.4, 1.65],
+      ],
+    ],
+  },
+  properties: {},
+};
 
+/* ------------------------------------------------------------------ */
+/* Height class mapping (avoids inline styles)                        */
+/* ------------------------------------------------------------------ */
 function heightToClassName(height: string | undefined): string {
   switch (height) {
     case "100%":
@@ -31,75 +63,9 @@ function heightToClassName(height: string | undefined): string {
   }
 }
 
-function CameroonBoundsEnforcer() {
-  const map = useMap();
-
-  useEffect(() => {
-    const z = map.getBoundsZoom(CAMEROON_BOUNDS, true);
-    const nextMin = Math.max(CAMEROON_MIN_ZOOM, z);
-    map.setMinZoom(nextMin);
-
-    const onMoveEnd = () => {
-      const center = map.getCenter();
-      if (!CAMEROON_BOUNDS.contains(center)) {
-        map.panTo(CAMEROON_BOUNDS.getCenter(), { animate: false });
-      }
-    };
-
-    const onZoomEnd = () => {
-      const currentZoom = map.getZoom();
-      if (currentZoom < nextMin) {
-        map.setZoom(nextMin, { animate: false });
-      }
-    };
-
-    map.on("moveend", onMoveEnd);
-    map.on("zoomend", onZoomEnd);
-    return () => {
-      map.off("moveend", onMoveEnd);
-      map.off("zoomend", onZoomEnd);
-    };
-  }, [map]);
-
-  return null;
-}
-
-function CameroonMask() {
-  const outerRing: LatLngTuple[] = useMemo(
-    () => [
-      [90, -180],
-      [90, 180],
-      [-90, 180],
-      [-90, -180],
-    ],
-    [],
-  );
-
-  const sw = CAMEROON_BOUNDS.getSouthWest();
-  const ne = CAMEROON_BOUNDS.getNorthEast();
-  const innerRing: LatLngTuple[] = useMemo(
-    () => [
-      [sw.lat, sw.lng],
-      [ne.lat, sw.lng],
-      [ne.lat, ne.lng],
-      [sw.lat, ne.lng],
-    ],
-    [ne.lat, ne.lng, sw.lat, sw.lng],
-  );
-
-  return (
-    <Polygon
-      positions={[outerRing, innerRing] as any}
-      pathOptions={{
-        stroke: false,
-        fillColor: "hsl(var(--background))",
-        fillOpacity: 0.7,
-      }}
-      interactive={false}
-    />
-  );
-}
-
+/* ------------------------------------------------------------------ */
+/* CameroonMap — core map wrapper with 3D support                     */
+/* ------------------------------------------------------------------ */
 export function CameroonMap({
   center = CAMEROON_CENTER,
   zoom = CAMEROON_DEFAULT_ZOOM,
@@ -108,30 +74,132 @@ export function CameroonMap({
   children,
   showControls = true,
   showSearch = false,
+  pitch = 0,
+  bearing = 0,
+  show3DBuildings = true,
+  showTerrain = false,
+  onClick,
+  interactiveLayerIds,
+  cursor,
 }: {
-  center?: LatLngTuple;
+  center?: [number, number];
   zoom?: number;
   height?: string;
   className?: string;
   children?: React.ReactNode;
   showControls?: boolean;
   showSearch?: boolean;
+  pitch?: number;
+  bearing?: number;
+  show3DBuildings?: boolean;
+  showTerrain?: boolean;
+  onClick?: (e: MapLayerMouseEvent) => void;
+  interactiveLayerIds?: string[];
+  cursor?: string;
 }) {
   const { resolvedTheme } = useTheme();
   const heightClassName = heightToClassName(height);
+  const mapRef = useRef<MapRef>(null);
+  const [ready, setReady] = useState(false);
 
-  const tile =
-    resolvedTheme === "dark"
-      ? {
-          url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  // centre is [lat, lng] for compat; MapLibre wants lng, lat
+  const longitude = center[1];
+  const latitude = center[0];
+
+  const mapStyle =
+    resolvedTheme === "dark" ? MAP_STYLES.dark : MAP_STYLES.light;
+
+  /* ---- 3D features setup (runs on initial load + style change) ---- */
+  const setup3D = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !map.isStyleLoaded()) return;
+
+    // 3D buildings
+    if (show3DBuildings && !map.getLayer("3d-buildings")) {
+      const style = map.getStyle();
+      for (const [name, source] of Object.entries(style?.sources ?? {})) {
+        if ((source as Record<string, unknown>).type === "vector") {
+          try {
+            map.addLayer({
+              id: "3d-buildings",
+              source: name,
+              "source-layer": "building",
+              type: "fill-extrusion",
+              minzoom: 14,
+              paint: {
+                "fill-extrusion-color":
+                  resolvedTheme === "dark"
+                    ? LAYER_COLORS.buildingDark
+                    : LAYER_COLORS.buildingLight,
+                "fill-extrusion-height": [
+                  "coalesce",
+                  ["get", "render_height"],
+                  5,
+                ],
+                "fill-extrusion-base": [
+                  "coalesce",
+                  ["get", "render_min_height"],
+                  0,
+                ],
+                "fill-extrusion-opacity": 0.7,
+              },
+            });
+          } catch {
+            /* layer may already exist */
+          }
+          break;
         }
-      : {
-          url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        };
+      }
+    }
+
+    // 3D terrain
+    if (showTerrain) {
+      try {
+        if (!map.getSource("terrain-dem")) {
+          map.addSource("terrain-dem", {
+            type: "raster-dem",
+            tiles: [TERRAIN_TILES_URL],
+            tileSize: 256,
+            encoding: "terrarium",
+          });
+        }
+        map.setTerrain({ source: "terrain-dem", exaggeration: 1.3 });
+      } catch {
+        /* source may already exist */
+      }
+    }
+  }, [show3DBuildings, showTerrain, resolvedTheme]);
+
+  const onLoad = useCallback(() => {
+    setReady(true);
+    setup3D();
+  }, [setup3D]);
+
+  // Re-apply 3D features after theme (style) switches
+  useEffect(() => {
+    if (!ready) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const handler = () => setup3D();
+    map.on("styledata", handler);
+    return () => {
+      map.off("styledata", handler);
+    };
+  }, [ready, setup3D]);
+
+  // Cursor for interactive layers
+  const onMouseEnter = useCallback(
+    (e: MapLayerMouseEvent) => {
+      if (interactiveLayerIds?.length) {
+        e.target.getCanvas().style.cursor = cursor ?? "pointer";
+      }
+    },
+    [interactiveLayerIds, cursor],
+  );
+  const onMouseLeave = useCallback((e: MapLayerMouseEvent) => {
+    e.target.getCanvas().style.cursor = "";
+  }, []);
 
   return (
     <div
@@ -141,43 +209,42 @@ export function CameroonMap({
         className,
       )}
     >
-      {/* Lean map styles — avoid broad will-change to save GPU memory */}
-      <style>{`
-        .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
-        .leaflet-control-zoom a { border-radius: 8px !important; }
-        .leaflet-tile-pane { transition: opacity 0.2s; }
-      `}</style>
-      <MapContainer
-        center={center}
-        zoom={zoom}
+      <Map
+        ref={mapRef}
+        initialViewState={{ longitude, latitude, zoom, pitch, bearing }}
         minZoom={CAMEROON_MIN_ZOOM}
         maxZoom={CAMEROON_MAX_ZOOM}
         maxBounds={CAMEROON_BOUNDS}
-        maxBoundsViscosity={1.0}
-        preferCanvas
-        zoomControl={false}
-        zoomAnimation
-        fadeAnimation
-        markerZoomAnimation
-        className="h-full w-full"
+        mapStyle={mapStyle}
+        style={{ width: "100%", height: "100%" }}
+        onLoad={onLoad}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        interactiveLayerIds={interactiveLayerIds}
+        attributionControl={true}
+        touchZoomRotate
+        dragRotate
       >
-        <TileLayer
-          url={tile.url}
-          attribution={tile.attribution}
-          subdomains="abcd"
-          bounds={CAMEROON_BOUNDS}
-          noWrap
-          maxNativeZoom={19}
-          keepBuffer={4}
-          updateWhenIdle
-          updateWhenZooming={false}
-        />
-        <CameroonBoundsEnforcer />
-        <CameroonMask />
+        {/* Cameroon mask — dim outside area */}
+        <Source id="cameroon-mask" type="geojson" data={CAMEROON_MASK_GEOJSON}>
+          <Layer
+            id="cameroon-mask-fill"
+            type="fill"
+            paint={{
+              "fill-color":
+                resolvedTheme === "dark"
+                  ? LAYER_COLORS.maskDark
+                  : LAYER_COLORS.maskLight,
+              "fill-opacity": 0.7,
+            }}
+          />
+        </Source>
+
         {showControls && <MapControls />}
         {showSearch && <MapSearch />}
         {children}
-      </MapContainer>
+      </Map>
     </div>
   );
 }

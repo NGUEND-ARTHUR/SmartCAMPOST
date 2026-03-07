@@ -50,7 +50,11 @@ export function fuzzyScore(queryRaw: string, candidateRaw: string): number {
   }
 
   const maxDistance = Math.min(6, Math.max(2, Math.floor(query.length / 3)));
-  const d = levenshtein(query.slice(0, 64), candidate.slice(0, 64), maxDistance);
+  const d = levenshtein(
+    query.slice(0, 64),
+    candidate.slice(0, 64),
+    maxDistance,
+  );
   if (d > maxDistance) return 0;
   return Math.max(0.2, 1 - d / Math.max(query.length, candidate.length));
 }

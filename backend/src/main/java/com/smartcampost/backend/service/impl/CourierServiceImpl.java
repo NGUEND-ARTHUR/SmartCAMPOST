@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CourierServiceImpl implements CourierService {
 
     private final CourierRepository courierRepository;
@@ -141,6 +143,11 @@ public class CourierServiceImpl implements CourierService {
                 .vehicleId(courier.getVehicleId())
                 .status(courier.getStatus())
                 .createdAt(courier.getCreatedAt())
+                .agencyId(courier.getAgency() != null ? courier.getAgency().getId() : null)
+                .agencyName(courier.getAgency() != null ? courier.getAgency().getAgencyName() : null)
+                .currentLatitude(courier.getCurrentLatitude())
+                .currentLongitude(courier.getCurrentLongitude())
+                .lastLocationAt(courier.getLastLocationAt())
                 .build();
     }
 }

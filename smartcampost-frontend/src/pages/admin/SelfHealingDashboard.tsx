@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { selfHealingService } from "../../services/ai/selfHealing.api";
 import type { CongestionAlert, SelfHealingAction } from "../../types";
+import { toast } from "sonner";
 
 export default function SelfHealingDashboard() {
   const { t } = useTranslation();
@@ -72,9 +73,11 @@ export default function SelfHealingDashboard() {
     try {
       const result = await selfHealingService.notifyAffectedClients(
         agencyId,
-        `Due to high volume at ${agencyName}, your parcel may experience a slight delay. We apologize for any inconvenience.`,
+        t("selfHealing.notifyMessage", { agencyName }),
       );
-      alert(`Notified ${result.notifiedClients} clients`);
+      toast.success(
+        t("selfHealing.notifiedClients", { count: result.notifiedClients }),
+      );
     } catch (error) {
       console.error("Failed to notify clients:", error);
     }
@@ -87,10 +90,10 @@ export default function SelfHealingDashboard() {
   };
 
   const getCongestionLabel = (level: number) => {
-    if (level >= 0.9) return "Critical";
-    if (level >= 0.7) return "High";
-    if (level >= 0.5) return "Medium";
-    return "Normal";
+    if (level >= 0.9) return t("selfHealing.levels.critical", "Critical");
+    if (level >= 0.7) return t("selfHealing.levels.high", "High");
+    if (level >= 0.5) return t("selfHealing.levels.medium", "Medium");
+    return t("selfHealing.levels.normal", "Normal");
   };
 
   return (
