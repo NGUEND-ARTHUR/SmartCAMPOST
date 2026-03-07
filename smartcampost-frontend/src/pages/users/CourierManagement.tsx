@@ -244,12 +244,24 @@ export default function CourierManagement() {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t("courierManagement.status.all")}</SelectItem>
-                  <SelectItem value="ACTIVE">{t("courierManagement.status.active")}</SelectItem>
-                  <SelectItem value="AVAILABLE">{t("courierManagement.status.available")}</SelectItem>
-                  <SelectItem value="ON_DELIVERY">{t("courierManagement.status.onDelivery")}</SelectItem>
-                  <SelectItem value="INACTIVE">{t("courierManagement.status.inactive")}</SelectItem>
-                  <SelectItem value="SUSPENDED">{t("courierManagement.status.suspended")}</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("courierManagement.status.all")}
+                  </SelectItem>
+                  <SelectItem value="ACTIVE">
+                    {t("courierManagement.status.active")}
+                  </SelectItem>
+                  <SelectItem value="AVAILABLE">
+                    {t("courierManagement.status.available")}
+                  </SelectItem>
+                  <SelectItem value="ON_DELIVERY">
+                    {t("courierManagement.status.onDelivery")}
+                  </SelectItem>
+                  <SelectItem value="INACTIVE">
+                    {t("courierManagement.status.inactive")}
+                  </SelectItem>
+                  <SelectItem value="SUSPENDED">
+                    {t("courierManagement.status.suspended")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -265,7 +277,9 @@ export default function CourierManagement() {
               icon={Truck}
               title={t("courierManagement.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : t("common.errorOccurred")
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredCouriers.length === 0 ? (
@@ -338,13 +352,21 @@ export default function CourierManagement() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ACTIVE">{t("courierManagement.status.active")}</SelectItem>
-                            <SelectItem value="AVAILABLE">{t("courierManagement.status.available")}</SelectItem>
+                            <SelectItem value="ACTIVE">
+                              {t("courierManagement.status.active")}
+                            </SelectItem>
+                            <SelectItem value="AVAILABLE">
+                              {t("courierManagement.status.available")}
+                            </SelectItem>
                             <SelectItem value="ON_DELIVERY">
                               {t("courierManagement.status.onDelivery")}
                             </SelectItem>
-                            <SelectItem value="INACTIVE">{t("courierManagement.status.inactive")}</SelectItem>
-                            <SelectItem value="SUSPENDED">{t("courierManagement.status.suspended")}</SelectItem>
+                            <SelectItem value="INACTIVE">
+                              {t("courierManagement.status.inactive")}
+                            </SelectItem>
+                            <SelectItem value="SUSPENDED">
+                              {t("courierManagement.status.suspended")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>

@@ -48,6 +48,14 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.listForParcel(parcelId));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<PageResponse<NotificationResponse>> listMyNotifications(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(notificationService.listMyNotifications(page, size));
+    }
+
     @GetMapping("/pickup/{pickupId}")
     public ResponseEntity<List<NotificationResponse>> listForPickup(@PathVariable UUID pickupId) {
         return ResponseEntity.ok(notificationService.listForPickup(pickupId));

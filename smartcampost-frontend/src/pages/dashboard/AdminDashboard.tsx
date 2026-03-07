@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Package, Users, Truck, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useDashboardSummary } from "@/hooks";
 import { getErrorMessage } from "@/lib/errorHandler";
 import useScanSSE from "@/hooks/useScanSSE";
@@ -40,26 +42,24 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <a href="/admin/finance">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-semibold">
-                Finance Dashboard
-              </button>
-            </a>
-            <a href="/admin/finance/create">
-              <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors font-semibold">
-                Create Finance
-              </button>
-            </a>
-            <a href="/admin/risk">
-              <button className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors font-semibold">
-                Risk Dashboard
-              </button>
-            </a>
-            <a href="/admin/risk/create">
-              <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors font-semibold">
-                Create Risk
-              </button>
-            </a>
+            <Button asChild variant="default">
+              <Link to="/admin/finance">
+                {t("dashboard.admin.financeDashboard")}
+              </Link>
+            </Button>
+            <Button asChild className="bg-green-600 hover:bg-green-700">
+              <Link to="/admin/finance/create">
+                {t("dashboard.admin.createFinance")}
+              </Link>
+            </Button>
+            <Button asChild className="bg-orange-600 hover:bg-orange-700">
+              <Link to="/admin/risk">{t("dashboard.admin.riskDashboard")}</Link>
+            </Button>
+            <Button asChild className="bg-purple-600 hover:bg-purple-700">
+              <Link to="/admin/risk/create">
+                {t("dashboard.admin.createRisk")}
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -144,18 +144,18 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Live Scans</CardTitle>
+            <CardTitle>{t("dashboard.admin.liveScans")}</CardTitle>
           </CardHeader>
           <CardContent>
             {normalizedLiveScans.length === 0 ? (
               <div className="text-sm text-muted-foreground">
-                Waiting for scan events…
+                {t("dashboard.admin.waitingForScans")}
               </div>
             ) : (
               <div className="space-y-2">
                 {normalizedLiveScans.map((e, idx) => (
                   <div
-                    key={idx}
+                    key={`${e.parcelId ?? ""}-${e.timestamp ?? ""}-${idx}`}
                     className="flex items-center justify-between text-sm"
                   >
                     <div className="flex flex-col">

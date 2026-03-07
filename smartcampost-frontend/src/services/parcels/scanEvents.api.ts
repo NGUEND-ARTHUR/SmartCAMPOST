@@ -18,6 +18,8 @@ export interface ScanEventResponse {
   agencyName?: string;
   agentId?: string;
   agentName?: string;
+  actorId?: string;
+  actorRole?: string;
   eventType: string;
   timestamp: string;
   locationNote?: string;
@@ -30,6 +32,7 @@ export interface ScanEventResponse {
   // Proof
   proofUrl?: string;
   comment?: string;
+  synced?: boolean;
 }
 
 export interface ScanEventCreateRequest {

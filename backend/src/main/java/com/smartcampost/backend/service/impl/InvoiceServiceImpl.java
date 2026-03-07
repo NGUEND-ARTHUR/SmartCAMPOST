@@ -33,8 +33,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Objects;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Slf4j
+@Transactional
 public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
@@ -82,8 +85,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                             persisted.getTotalAmount(),
                             payment.getCurrency() != null ? payment.getCurrency() : "XAF"
                     );
-                } catch (Exception ignored) {
-                    // Notification must never break invoice issuance
+                } catch (Exception ex) {
+                    log.warn("Notification failed during invoice issuance", ex);
                 }
                 return persisted;
             } catch (IOException e) {
@@ -104,18 +107,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     /**
-     * Retrieve all invoices for a given client (user) by their client entity ID.
-     * The userId here maps to the Client.id (entityId on UserAccount).
-     */
-    public List<Invoice> getInvoicesForUser(Long userId) {
-        Objects.requireNonNull(userId, "userId is required");
-        UUID clientId = UUID.nameUUIDFromBytes(userId.toString().getBytes());
-        // Use the repository method that traverses Payment -> Parcel -> Client
-        return invoiceRepository.findByPayment_Parcel_Client_IdOrderByIssuedAtDesc(clientId);
-    }
-
-    /**
-     * Overloaded version accepting UUID directly (preferred).
+     * Retrieve all invoices for a given client by their UUID.
      */
     public List<Invoice> getInvoicesForUser(UUID clientId) {
         Objects.requireNonNull(clientId, "clientId is required");
@@ -125,13 +117,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     /**
      * Retrieve a single invoice by its UUID primary key.
      */
-    public Invoice getInvoice(Long invoiceId) {
-        Objects.requireNonNull(invoiceId, "invoiceId is required");
-        // Legacy Long-based lookup — convert to string-based UUID search via invoice number fallback
-        log.warn("getInvoice(Long) called — prefer getInvoice(UUID). Attempting fallback.");
-        return null; // The controller uses UUID-based repo directly; this path is unused.
-    }
-
     public Invoice getInvoice(UUID invoiceId) {
         Objects.requireNonNull(invoiceId, "invoiceId is required");
         return invoiceRepository.findById(invoiceId)
@@ -142,12 +127,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     /**
      * Retrieve all invoices linked to a specific parcel.
      */
-    public List<Invoice> getInvoicesByParcel(Long parcelId) {
-        Objects.requireNonNull(parcelId, "parcelId is required");
-        UUID pid = UUID.nameUUIDFromBytes(parcelId.toString().getBytes());
-        return invoiceRepository.findByPayment_Parcel_IdOrderByIssuedAtDesc(pid);
-    }
-
     public List<Invoice> getInvoicesByParcel(UUID parcelId) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         return invoiceRepository.findByPayment_Parcel_IdOrderByIssuedAtDesc(parcelId);
@@ -156,12 +135,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     /**
      * Load the generated PDF file for an invoice as a Spring Resource.
      */
-    public Resource loadInvoicePdf(Long invoiceId) throws IOException {
-        Objects.requireNonNull(invoiceId, "invoiceId is required");
-        // Legacy Long path — unused by controller but kept for backwards compatibility
-        return null;
-    }
-
     public Resource loadInvoicePdf(UUID invoiceId) throws IOException {
         Objects.requireNonNull(invoiceId, "invoiceId is required");
         Invoice invoice = invoiceRepository.findById(invoiceId)

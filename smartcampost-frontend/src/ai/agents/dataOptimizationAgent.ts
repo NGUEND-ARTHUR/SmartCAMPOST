@@ -16,7 +16,10 @@ export class DataOptimizationAgent {
   }
 
   set<T>(key: string, value: T, ttlMs?: number) {
-    this.cache.set(key, { value, expiresAt: Date.now() + (ttlMs ?? this.ttlMs) });
+    this.cache.set(key, {
+      value,
+      expiresAt: Date.now() + (ttlMs ?? this.ttlMs),
+    });
   }
 
   clear(prefix?: string) {

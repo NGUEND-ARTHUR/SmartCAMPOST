@@ -117,181 +117,202 @@ export default function CourierDashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {cards.map((card, i) => (
-            <div key={i} className="bg-card rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">
-                    {card.title}
-                  </p>
-                  <p className="text-3xl font-semibold text-foreground">
-                    {card.value}
-                  </p>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {cards.map((card, i) => (
+                <div key={i} className="bg-card rounded-lg shadow p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-sm mb-1">
+                        {card.title}
+                      </p>
+                      <p className="text-3xl font-semibold text-foreground">
+                        {card.value}
+                      </p>
+                    </div>
+                    <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                      <card.icon className="w-6 h-6 text-blue-600" />
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
-                  <card.icon className="w-6 h-6 text-blue-600" />
-                </div>
+              ))}
+            </div>
+
+            <div className="bg-card rounded-lg shadow mb-6">
+              <div className="border-b border-border">
+                <nav className="flex -mb-px">
+                  <button
+                    onClick={() => setFilter("all")}
+                    className={`px-6 py-4 border-b-2 font-medium text-sm ${
+                      filter === "all"
+                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-muted-foreground"
+                    }`}
+                  >
+                    {t("courierDashboard.tabs.allTasks", {
+                      count: tasks.length,
+                    })}
+                  </button>
+
+                  <button
+                    onClick={() => setFilter("pickup")}
+                    className={`px-6 py-4 border-b-2 font-medium text-sm ${
+                      filter === "pickup"
+                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-muted-foreground"
+                    }`}
+                  >
+                    {t("courierDashboard.tabs.pickups", {
+                      count: tasks.filter((task) => task.type === "pickup")
+                        .length,
+                    })}
+                  </button>
+
+                  <button
+                    onClick={() => setFilter("delivery")}
+                    className={`px-6 py-4 border-b-2 font-medium text-sm ${
+                      filter === "delivery"
+                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-muted-foreground"
+                    }`}
+                  >
+                    {t("courierDashboard.tabs.deliveries", {
+                      count: tasks.filter((task) => task.type === "delivery")
+                        .length,
+                    })}
+                  </button>
+                </nav>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="bg-card rounded-lg shadow mb-6">
-          <div className="border-b border-border">
-            <nav className="flex -mb-px">
-              <button
-                onClick={() => setFilter("all")}
-                className={`px-6 py-4 border-b-2 font-medium text-sm ${
-                  filter === "all"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-muted-foreground"
-                }`}
-              >
-                {t("courierDashboard.tabs.allTasks", { count: tasks.length })}
-              </button>
-
-              <button
-                onClick={() => setFilter("pickup")}
-                className={`px-6 py-4 border-b-2 font-medium text-sm ${
-                  filter === "pickup"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-muted-foreground"
-                }`}
-              >
-                {t("courierDashboard.tabs.pickups", {
-                  count: tasks.filter((t) => t.type === "pickup").length,
-                })}
-              </button>
-
-              <button
-                onClick={() => setFilter("delivery")}
-                className={`px-6 py-4 border-b-2 font-medium text-sm ${
-                  filter === "delivery"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-muted-foreground"
-                }`}
-              >
-                {t("courierDashboard.tabs.deliveries", {
-                  count: tasks.filter((t) => t.type === "delivery").length,
-                })}
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {filteredTasks.map((task) => {
-            const Icon = getTaskTypeIcon(task.type);
-            return (
-              <div
-                key={task.id}
-                className="bg-card rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      <div
-                        className={`p-3 rounded-full ${task.type === "pickup" ? "bg-blue-100 dark:bg-blue-900/30" : "bg-green-100 dark:bg-green-900/30"}`}
-                      >
-                        <Icon
-                          className={`w-6 h-6 ${task.type === "pickup" ? "text-blue-600" : "text-green-600"}`}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-foreground">
-                            {task.trackingNumber}
-                          </h3>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}
+            <div className="space-y-4">
+              {filteredTasks.map((task) => {
+                const Icon = getTaskTypeIcon(task.type);
+                return (
+                  <div
+                    key={task.id}
+                    className="bg-card rounded-lg shadow hover:shadow-md transition-shadow"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4 flex-1">
+                          <div
+                            className={`p-3 rounded-full ${task.type === "pickup" ? "bg-blue-100 dark:bg-blue-900/30" : "bg-green-100 dark:bg-green-900/30"}`}
                           >
-                            {task.priority}
-                          </span>
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground capitalize">
-                            {task.type}
-                          </span>
+                            <Icon
+                              className={`w-6 h-6 ${task.type === "pickup" ? "text-blue-600" : "text-green-600"}`}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="font-semibold text-foreground">
+                                {task.trackingNumber}
+                              </h3>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}
+                              >
+                                {task.priority}
+                              </span>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground capitalize">
+                                {task.type}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center text-muted-foreground text-sm">
+                                <MapPin className="w-4 h-4 mr-2" />
+                                {task.address}
+                              </div>
+                              <div className="flex items-center text-muted-foreground text-sm">
+                                <Clock className="w-4 h-4 mr-2" />
+                                {t("courierDashboard.scheduled")}{" "}
+                                {task.scheduledTime
+                                  ? new Date(
+                                      task.scheduledTime,
+                                    ).toLocaleString()
+                                  : t("common.notScheduled")}
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                <span className="font-medium">
+                                  {t("courierDashboard.customer")}:
+                                </span>{" "}
+                                {task.customerName}
+                                {task.customerPhone
+                                  ? ` • ${task.customerPhone}`
+                                  : ""}
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <MapPin className="w-4 h-4 mr-2" />
-                            {task.address}
-                          </div>
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <Clock className="w-4 h-4 mr-2" />
-                            Scheduled:{" "}
-                            {new Date(task.scheduledTime).toLocaleString()}
-                          </div>
-                          <div className="text-muted-foreground text-sm">
-                            <span className="font-medium">Customer:</span>{" "}
-                            {task.customerName} • {task.customerPhone}
-                          </div>
+                        <div className="flex flex-col space-y-2 ml-4">
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
+                              )
+                            }
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
+                          >
+                            {t("courierDashboard.startTask")}
+                          </button>
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
+                              )
+                            }
+                            className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm whitespace-nowrap"
+                          >
+                            {t("courierDashboard.viewDetails")}
+                          </button>
                         </div>
                       </div>
                     </div>
+                  </div>
+                );
+              })}
 
-                    <div className="flex flex-col space-y-2 ml-4">
+              {filteredTasks.length === 0 && (
+                <div className="bg-card rounded-lg shadow p-12 text-center">
+                  <div className="max-w-sm mx-auto">
+                    <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="mb-2 text-foreground">
+                      {t("courierDashboard.noTasksFound")}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {t("courierDashboard.noTasksMessage", {
+                        filter:
+                          filter !== "all"
+                            ? t(`courierDashboard.tabs.${filter}`)
+                            : "",
+                      })}
+                    </p>
+                    <div className="mt-6 flex justify-center space-x-3">
                       <button
-                        onClick={() =>
-                          navigate(
-                            `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
-                          )
-                        }
+                        onClick={() => navigate(`/courier/pickups`)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
                       >
-                        Start Task
+                        {t("courierDashboard.actions.goToPickups")}
                       </button>
                       <button
-                        onClick={() =>
-                          navigate(
-                            `/courier/${task.type === "pickup" ? "pickups" : "deliveries"}/${task.id}`,
-                          )
-                        }
+                        onClick={() => navigate(`/courier/deliveries`)}
                         className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm whitespace-nowrap"
                       >
-                        View Details
+                        {t("courierDashboard.actions.goToDeliveries")}
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-
-          {filteredTasks.length === 0 && (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <div className="max-w-sm mx-auto">
-                <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="mb-2 text-foreground">
-                  {t("courierDashboard.noTasksFound")}
-                </h3>
-                <p className="text-muted-foreground">
-                  {t("courierDashboard.noTasksMessage", {
-                    filter:
-                      filter !== "all"
-                        ? t(`courierDashboard.tabs.${filter}`)
-                        : "",
-                  })}
-                </p>
-                <div className="mt-6 flex justify-center space-x-3">
-                  <button
-                    onClick={() => navigate(`/courier/pickups`)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
-                  >
-                    {t("courierDashboard.actions.goToPickups")}
-                  </button>
-                  <button
-                    onClick={() => navigate(`/courier/deliveries`)}
-                    className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm whitespace-nowrap"
-                  >
-                    {t("courierDashboard.actions.goToDeliveries")}
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -13,14 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { LanguageSwitcher } from "@/components/ui/languageswitcher";
+
 import { RegisterRequest } from "@/types";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
@@ -52,7 +45,6 @@ export function Register() {
     formState: { errors },
     watch,
   } = useForm<RegisterRequest>();
-  const password = watch("password");
   const phoneValue = watch("phone");
 
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -89,6 +81,10 @@ export function Register() {
   }, [otpSent]);
 
   const onSubmit = async (data: RegisterRequest) => {
+    if (!otpSent || !otpValue.trim()) {
+      toast.error(t("errors.otpRequired"));
+      return;
+    }
     setIsLoading(true);
     try {
       await apiClient.register({
@@ -104,7 +100,8 @@ export function Register() {
     } catch (error: unknown) {
       const apiErr = error as { code?: string; message?: string } | undefined;
       if (apiErr && apiErr.code && apiErr.message) {
-        toast.error(t(`errors.${apiErr.code}`) || apiErr.message);
+        const translated = t(`errors.${apiErr.code}`, { defaultValue: "" });
+        toast.error(translated || apiErr.message);
       } else {
         toast.error(t("errors.serverError"));
       }
@@ -171,6 +168,10 @@ export function Register() {
                   autoComplete="tel"
                   {...register("phone", {
                     required: t("errors.required"),
+                    pattern: {
+                      value: /^\+?[0-9]{6,15}$/,
+                      message: t("errors.invalidPhone"),
+                    },
                   })}
                 />
                 <Button
@@ -210,10 +211,10 @@ export function Register() {
 
             {otpSent && (
               <div className="space-y-2">
-                <Label htmlFor="otp">OTP</Label>
+                <Label htmlFor="otp">{t("auth.otp")}</Label>
                 <Input
                   id="otp"
-                  placeholder="Enter OTP"
+                  placeholder={t("auth.otpPlaceholder")}
                   value={otpValue}
                   ref={otpInputRef}
                   inputMode="numeric"
@@ -226,11 +227,6 @@ export function Register() {
                   }
                   required
                 />
-                {errors.otp && (
-                  <p className="text-sm text-destructive">
-                    {errors.otp.message}
-                  </p>
-                )}
               </div>
             )}
 

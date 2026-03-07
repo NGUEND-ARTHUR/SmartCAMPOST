@@ -16,6 +16,7 @@ import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.ComplianceService;
 import com.smartcampost.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -32,8 +33,12 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ComplianceServiceImpl implements ComplianceService {
 
     private final RiskAlertRepository riskAlertRepository;
@@ -178,8 +183,8 @@ public class ComplianceServiceImpl implements ComplianceService {
                                 UserAccount saved = userAccountRepository.save(account);
                                 try {
                                         notificationService.notifyAccountFrozen(saved);
-                                } catch (Exception ignored) {
-                                        // Notification must never break compliance freeze
+                                } catch (Exception ex) {
+                                        log.warn("Notification failed during compliance freeze", ex);
                                 }
     }
 
@@ -206,8 +211,8 @@ public class ComplianceServiceImpl implements ComplianceService {
                                 UserAccount saved = userAccountRepository.save(account);
                                 try {
                                         notificationService.notifyAccountUnfrozen(saved);
-                                } catch (Exception ignored) {
-                                        // Notification must never break compliance unfreeze
+                                } catch (Exception ex) {
+                                        log.warn("Notification failed during compliance unfreeze", ex);
                                 }
     }
 

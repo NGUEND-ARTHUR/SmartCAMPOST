@@ -1,7 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import LeafletMap from "@/components/maps/LeafletMap";
 
 export default function MapViewer() {
+  const { t } = useTranslation();
   // Example markers for demo; can be replaced with real data
   const markers: Array<{
     id: string;
@@ -14,9 +16,9 @@ export default function MapViewer() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Map Viewer</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("maps.viewer.title")}</h1>
       <p className="text-sm text-muted-foreground mb-4">
-        OpenStreetMap powered map. Use it for pickup, tracking, and location.
+        {t("maps.viewer.subtitle")}
       </p>
       <LeafletMap markers={markers} height="600px" showSearch />
     </div>

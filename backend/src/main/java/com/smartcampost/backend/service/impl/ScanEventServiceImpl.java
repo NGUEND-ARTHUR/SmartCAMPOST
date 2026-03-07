@@ -23,19 +23,28 @@ import com.smartcampost.backend.sse.SseEmitters;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.ScanEventService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ScanEventServiceImpl implements ScanEventService {
 
     private final ScanEventRepository scanEventRepository;
@@ -161,19 +170,23 @@ public class ScanEventServiceImpl implements ScanEventService {
                     actorId,
                     actorRole
             ));
-        } catch (Exception ignored) {
-            // Never break the main business flow because of AI/event listeners
+        } catch (Exception ex) {
+            log.warn("Failed to publish ScanEventRecordedEvent", ex);
         }
 
         // 📡 Emit SSE for live dashboards (de-duplicated inside SseEmitters)
         try {
             sseEmitters.emitScan(event);
-        } catch (Exception ignored) {
-            // Do not fail business flow on SSE errors
+        } catch (Exception ex) {
+            log.warn("Failed to emit SSE scan event", ex);
         }
 
         // mettre à jour le statut du colis selon l’event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
+        // 📍 Update parcel's current location from scan event GPS
+        // Every scan event carries the GPS of the scanning device — this becomes
+        // the parcel's last known location for map tracking
+        updateParcelLocation(parcel, event);
         if (newStatus != null) {
             ParcelStatus oldStatus = parcel.getStatus();
             validateStatusTransition(oldStatus, newStatus);
@@ -188,8 +201,8 @@ public class ScanEventServiceImpl implements ScanEventService {
                         newStatus,
                         Instant.now()
                 ));
-            } catch (Exception ignored) {
-                // Never break main flow
+            } catch (Exception ex) {
+                log.warn("Failed to publish ParcelStatusChangedEvent", ex);
             }
 
             // 🔔 Notifications based on status changes
@@ -251,20 +264,41 @@ public class ScanEventServiceImpl implements ScanEventService {
             .collect(Collectors.toList());
     }
 
-    // ================== STATUS AUTO-UPDATE ==================
+    // ================== STATUS AUTO-UPDATE (CONTEXT-AWARE) ==================
+
+    /**
+     * Determines the new parcel status based on the scan event type AND the parcel's
+     * delivery option (HOME vs AGENCY). This is the core business logic that drives
+     * the parcel lifecycle.
+     *
+     * KEY RULES:
+     * - HOME delivery: courier scans QR at client's home = TAKEN_IN_CHARGE (collection)
+     * - AGENCY delivery: agent scans QR at agency = AT_ORIGIN_AGENCY → TAKEN_IN_CHARGE
+     * - AT_ORIGIN_AGENCY always advances to TAKEN_IN_CHARGE (parcel is physically at agency)
+     * - The rest of the transit chain is identical for both delivery options
+     */
     private ParcelStatus applyParcelStatusFromEvent(Parcel parcel, ScanEventType type) {
         if (type == null) return null;
 
         return switch (type) {
             case CREATED -> ParcelStatus.CREATED;
             case ACCEPTED -> ParcelStatus.ACCEPTED;
-            case AT_ORIGIN_AGENCY -> ParcelStatus.ACCEPTED;
+
+            // Context-aware: AT_ORIGIN_AGENCY means client deposited at agency
+            // → parcel is ready for transit → advance to TAKEN_IN_CHARGE
+            case AT_ORIGIN_AGENCY -> ParcelStatus.TAKEN_IN_CHARGE;
+
             case TAKEN_IN_CHARGE -> ParcelStatus.TAKEN_IN_CHARGE;
             case IN_TRANSIT -> ParcelStatus.IN_TRANSIT;
             case ARRIVED_HUB -> ParcelStatus.ARRIVED_HUB;
             case DEPARTED_HUB -> ParcelStatus.IN_TRANSIT;
             case ARRIVED_DESTINATION, ARRIVED_DEST_AGENCY -> ParcelStatus.ARRIVED_DEST_AGENCY;
+
+            // Context-aware last mile:
+            // HOME delivery → OUT_FOR_DELIVERY makes sense (courier is en route)
+            // AGENCY delivery → OUT_FOR_DELIVERY still valid (parcel moved to pickup counter)
             case OUT_FOR_DELIVERY -> ParcelStatus.OUT_FOR_DELIVERY;
+
             case DELIVERED -> ParcelStatus.DELIVERED;
             case PICKED_UP_AT_AGENCY -> ParcelStatus.PICKED_UP_AT_AGENCY;
             case RETURNED_TO_SENDER -> ParcelStatus.RETURNED_TO_SENDER;
@@ -276,11 +310,60 @@ public class ScanEventServiceImpl implements ScanEventService {
         };
     }
 
-    // Keep status progression consistent (same semantics as parcel module)
+    // ================== ALLOWED TRANSITIONS MAP ==================
+
+    /**
+     * Explicit allowed transitions map — replaces ordinal-based comparison.
+     * Each status maps to the set of statuses it can transition TO.
+     * CANCELLED, RETURNED, and RETURNED_TO_SENDER are always allowed (handled separately).
+     */
+    private static final Map<ParcelStatus, Set<ParcelStatus>> ALLOWED_TRANSITIONS;
+    static {
+        ALLOWED_TRANSITIONS = new EnumMap<>(ParcelStatus.class);
+
+        ALLOWED_TRANSITIONS.put(ParcelStatus.CREATED, EnumSet.of(
+                ParcelStatus.ACCEPTED
+        ));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.ACCEPTED, EnumSet.of(
+                ParcelStatus.TAKEN_IN_CHARGE,
+                ParcelStatus.IN_TRANSIT   // small parcels may skip TAKEN_IN_CHARGE
+        ));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.TAKEN_IN_CHARGE, EnumSet.of(
+                ParcelStatus.IN_TRANSIT,
+                ParcelStatus.ARRIVED_HUB  // direct to hub if single-hop
+        ));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.IN_TRANSIT, EnumSet.of(
+                ParcelStatus.ARRIVED_HUB,
+                ParcelStatus.ARRIVED_DEST_AGENCY,  // direct to destination if no intermediate hub
+                ParcelStatus.OUT_FOR_DELIVERY       // direct delivery if same-city
+        ));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.ARRIVED_HUB, EnumSet.of(
+                ParcelStatus.IN_TRANSIT,            // DEPARTED_HUB → back to IN_TRANSIT
+                ParcelStatus.ARRIVED_DEST_AGENCY,
+                ParcelStatus.OUT_FOR_DELIVERY
+        ));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.ARRIVED_DEST_AGENCY, EnumSet.of(
+                ParcelStatus.OUT_FOR_DELIVERY,
+                ParcelStatus.PICKED_UP_AT_AGENCY,
+                ParcelStatus.DELIVERED              // agency hand-off counts as delivered
+        ));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.OUT_FOR_DELIVERY, EnumSet.of(
+                ParcelStatus.DELIVERED,
+                ParcelStatus.ARRIVED_DEST_AGENCY   // returned to agency after failed delivery
+        ));
+
+        // Final states — no forward transitions (only CANCEL/RETURN handled separately)
+        ALLOWED_TRANSITIONS.put(ParcelStatus.DELIVERED, EnumSet.noneOf(ParcelStatus.class));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.PICKED_UP_AT_AGENCY, EnumSet.noneOf(ParcelStatus.class));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.RETURNED_TO_SENDER, EnumSet.noneOf(ParcelStatus.class));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.RETURNED, EnumSet.noneOf(ParcelStatus.class));
+        ALLOWED_TRANSITIONS.put(ParcelStatus.CANCELLED, EnumSet.noneOf(ParcelStatus.class));
+    }
+
     private void validateStatusTransition(ParcelStatus current, ParcelStatus next) {
         if (current == next) return;
 
-        // final states: no transitions out
+        // Final states: no transitions out
         if (current == ParcelStatus.DELIVERED
                 || current == ParcelStatus.PICKED_UP_AT_AGENCY
                 || current == ParcelStatus.RETURNED_TO_SENDER
@@ -299,11 +382,28 @@ public class ScanEventServiceImpl implements ScanEventService {
             return;
         }
 
-        if (next.ordinal() < current.ordinal()) {
+        // Check explicit allowed transitions
+        Set<ParcelStatus> allowed = ALLOWED_TRANSITIONS.getOrDefault(current, EnumSet.noneOf(ParcelStatus.class));
+        if (!allowed.contains(next)) {
             throw new AuthException(
                     ErrorCode.PARCEL_STATUS_INVALID,
                     "Invalid status transition: " + current + " -> " + next
             );
+        }
+    }
+
+    // ================== PARCEL LOCATION UPDATE ==================
+
+    /**
+     * Updates the parcel's denormalized current location from the scan event GPS.
+     * The parcel's location during transit = the GPS of the last scanning device.
+     */
+    private void updateParcelLocation(Parcel parcel, ScanEvent event) {
+        if (event.getLatitude() != null && event.getLongitude() != null) {
+            parcel.setCurrentLatitude(event.getLatitude());
+            parcel.setCurrentLongitude(event.getLongitude());
+            parcel.setLocationUpdatedAt(event.getTimestamp());
+            parcelRepository.save(parcel);
         }
     }
 
@@ -543,6 +643,9 @@ public class ScanEventServiceImpl implements ScanEventService {
 
         @SuppressWarnings("null")
         ScanEvent savedEvent = scanEventRepository.save(event);
+
+        // Update parcel location from scan event GPS
+        updateParcelLocation(parcel, savedEvent);
 
         // Update parcel status based on event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);

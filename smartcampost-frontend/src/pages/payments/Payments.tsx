@@ -34,9 +34,9 @@ const statusColors: Record<string, string> = {
 };
 
 const methodLabels: Record<string, string> = {
-  CASH: "Cash",
-  MOBILE_MONEY: "Mobile Money",
-  CARD: "Card",
+  CASH: "cash",
+  MOBILE_MONEY: "mobileMoney",
+  CARD: "card",
 };
 
 export default function Payments() {
@@ -68,16 +68,16 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Payments</h1>
-        <p className="text-muted-foreground">
-          View and manage your payment history
-        </p>
+        <h1 className="text-3xl font-bold">{t("payments.title")}</h1>
+        <p className="text-muted-foreground">{t("payments.subtitle")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("payments.totalPaid")}
+            </CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -85,24 +85,8 @@ export default function Payments() {
               {totalPaid.toLocaleString()} XAF
             </div>
             <p className="text-xs text-muted-foreground">
-              {payments.filter((p) => p.status === "SUCCESS").length} successful
-              payments
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {totalPending.toLocaleString()} XAF
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {payments.filter((p) => p.status === "PENDING").length} pending
-              payments
+              {payments.filter((p) => p.status === "SUCCESS").length}{" "}
+              {t("payments.successfulPayments")}
             </p>
           </CardContent>
         </Card>
@@ -110,7 +94,25 @@ export default function Payments() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Transactions
+              {t("payments.pending")}
+            </CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {totalPending.toLocaleString()} XAF
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {payments.filter((p) => p.status === "PENDING").length}{" "}
+              {t("payments.pendingPayments")}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t("payments.totalTransactions")}
             </CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -118,7 +120,9 @@ export default function Payments() {
             <div className="text-2xl font-bold">
               {data?.totalElements ?? payments.length}
             </div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            <p className="text-xs text-muted-foreground">
+              {t("payments.allTime")}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -130,7 +134,7 @@ export default function Payments() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by payment or parcel ID..."
+                  placeholder={t("payments.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -141,17 +145,27 @@ export default function Payments() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger
                   className="w-full sm:w-44"
-                  title="Filter by status"
+                  title={t("payments.filterByStatus")}
                 >
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t("payments.filterByStatus")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="SUCCESS">Success</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="FAILED">Failed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("payments.filters.all")}
+                  </SelectItem>
+                  <SelectItem value="SUCCESS">
+                    {t("payments.filters.success")}
+                  </SelectItem>
+                  <SelectItem value="PENDING">
+                    {t("payments.filters.pending")}
+                  </SelectItem>
+                  <SelectItem value="FAILED">
+                    {t("payments.filters.failed")}
+                  </SelectItem>
+                  <SelectItem value="CANCELLED">
+                    {t("payments.filters.cancelled")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -165,19 +179,19 @@ export default function Payments() {
           ) : error ? (
             <EmptyState
               icon={Receipt}
-              title="Error loading payments"
+              title={t("payments.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.error")
               }
             />
           ) : filteredPayments.length === 0 ? (
             <EmptyState
               icon={Receipt}
-              title="No payments found"
+              title={t("payments.noPayments")}
               description={
                 searchQuery || statusFilter !== "ALL"
-                  ? "Try adjusting your search or filters"
-                  : "Payment transactions will appear here"
+                  ? t("payments.adjustFilters")
+                  : t("payments.emptyDescription")
               }
             />
           ) : (
@@ -185,12 +199,12 @@ export default function Payments() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Payment ID</TableHead>
-                    <TableHead>Parcel</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>{t("payments.table.paymentId")}</TableHead>
+                    <TableHead>{t("payments.table.parcel")}</TableHead>
+                    <TableHead>{t("common.amount")}</TableHead>
+                    <TableHead>{t("payments.table.method")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("payments.table.date")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,7 +223,9 @@ export default function Payments() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          {methodLabels[payment.method] || payment.method}
+                          {t(
+                            `payments.methods.${methodLabels[payment.method]}`,
+                          ) || payment.method}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -237,10 +253,10 @@ export default function Payments() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -248,7 +264,7 @@ export default function Payments() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

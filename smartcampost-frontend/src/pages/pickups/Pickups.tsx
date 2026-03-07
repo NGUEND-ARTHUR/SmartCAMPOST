@@ -33,6 +33,7 @@ import {
   useCreatePickup,
   useMyParcels,
   useGeolocation,
+  useUpdatePickupState,
 } from "@/hooks";
 import LocationPicker from "@/components/maps/LocationPicker";
 
@@ -72,6 +73,7 @@ export default function Pickups() {
   const { data, isLoading, error } = useMyPickups(page, 20);
   const { data: parcelsData } = useMyParcels(0, 100);
   const createPickup = useCreatePickup();
+  const cancelPickup = useUpdatePickupState();
   const { getCurrent } = useGeolocation(false);
 
   const pickups = data?.content ?? [];
@@ -337,9 +339,11 @@ export default function Pickups() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
-              <Button onClick={handleRequestPickup}>Submit Request</Button>
+              <Button onClick={handleRequestPickup}>
+                {t("pickups.page.submitRequest")}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -352,17 +356,17 @@ export default function Pickups() {
       ) : error ? (
         <EmptyState
           icon={Truck}
-          title="Error loading pickups"
+          title={t("pickups.page.errorTitle")}
           description={
-            error instanceof Error ? error.message : "An error occurred"
+            error instanceof Error ? error.message : t("common.error")
           }
         />
       ) : pickups.length === 0 ? (
         <EmptyState
           icon={Truck}
-          title="No pickup requests"
-          description="Schedule a pickup for your parcels"
-          actionLabel="Request Pickup"
+          title={t("pickups.page.noPickups")}
+          description={t("pickups.page.noPickupsDescription")}
+          actionLabel={t("pickups.page.requestPickup")}
           onAction={() => setIsDialogOpen(true)}
         />
       ) : (
@@ -378,7 +382,9 @@ export default function Pickups() {
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold">
-                          Pickup #{pickup.id.slice(0, 8)}
+                          {t("pickups.page.pickupId", {
+                            id: pickup.id.slice(0, 8),
+                          })}
                         </h3>
                         <Badge
                           className={
@@ -393,7 +399,7 @@ export default function Pickups() {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Package className="w-4 h-4" />
                           <span>
-                            Parcel:{" "}
+                            {t("pickups.page.parcelLabel")}{" "}
                             <span className="font-medium text-foreground">
                               {pickup.parcelId.slice(0, 8)}
                             </span>
@@ -413,7 +419,7 @@ export default function Pickups() {
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Truck className="w-4 h-4" />
                             <span>
-                              Courier:{" "}
+                              {t("pickups.page.courierLabel")}{" "}
                               <span className="font-medium text-foreground">
                                 {pickup.courierId.slice(0, 8)}
                               </span>
@@ -424,29 +430,50 @@ export default function Pickups() {
                       {pickup.comment && (
                         <div className="text-sm">
                           <span className="text-muted-foreground">
-                            Instructions:{" "}
+                            {t("pickups.page.instructionsLabel")}{" "}
                           </span>
                           <span>{pickup.comment}</span>
                         </div>
                       )}
                       <div className="text-xs text-muted-foreground">
-                        Requested on{" "}
+                        {t("pickups.page.requestedOn")}{" "}
                         {new Date(pickup.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
                   <div className="flex gap-2 ml-4">
                     {pickup.state === "REQUESTED" && (
-                      <Button variant="outline" size="sm">
-                        Cancel
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={cancelPickup.isPending}
+                        onClick={() => {
+                          cancelPickup.mutate(
+                            { id: pickup.id, data: { state: "CANCELLED" } },
+                            {
+                              onSuccess: () =>
+                                toast.success(
+                                  t("pickups.page.toasts.cancelled"),
+                                ),
+                              onError: (err) =>
+                                toast.error(
+                                  err instanceof Error
+                                    ? err.message
+                                    : t("pickups.page.toasts.cancelFailed"),
+                                ),
+                            },
+                          );
+                        }}
+                      >
+                        {t("common.cancel")}
                       </Button>
                     )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate(`/client/pickups/${pickup.id}`)}
+                      onClick={() => navigate(`/courier/pickups/${pickup.id}`)}
                     >
-                      View Details
+                      {t("pickups.page.viewDetails")}
                     </Button>
                   </div>
                 </div>
@@ -461,10 +488,10 @@ export default function Pickups() {
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
               >
-                Previous
+                {t("common.previous")}
               </Button>
               <span className="text-sm text-muted-foreground self-center">
-                Page {page + 1} of {totalPages}
+                {t("common.pageOf", { page: page + 1, total: totalPages })}
               </span>
               <Button
                 variant="outline"
@@ -472,7 +499,7 @@ export default function Pickups() {
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Next
+                {t("common.next")}
               </Button>
             </div>
           )}

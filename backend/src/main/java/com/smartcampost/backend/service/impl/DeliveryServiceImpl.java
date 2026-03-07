@@ -785,8 +785,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                     failureReason,
                     attempt.getAttemptedAt()
             ));
-        } catch (Exception ignored) {
-            // Never break delivery flow because of AI/event listeners
+        } catch (Exception ex) {
+            log.warn("Failed to publish DeliveryAttemptRecordedEvent", ex);
         }
 
         return attemptNumber;
