@@ -36,6 +36,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PickupRequestServiceImpl implements PickupRequestService {
 
     private final PickupRequestRepository pickupRequestRepository;

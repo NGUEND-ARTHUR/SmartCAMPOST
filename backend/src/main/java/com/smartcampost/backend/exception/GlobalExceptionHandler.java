@@ -135,6 +135,20 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // ================== DATA INTEGRITY (duplicate keys, constraint violations) ==================
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(
+            org.springframework.dao.DataIntegrityViolationException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "A data conflict occurred. The resource may already exist.",
+                ErrorCode.BUSINESS_ERROR,
+                request,
+                HttpStatus.CONFLICT
+        );
+    }
+
     // ================== RUNTIME (Biz errors) ==================
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(

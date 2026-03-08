@@ -121,6 +121,7 @@ public class ScanServiceImpl implements ScanService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ScanEvent> getScanEventsForParcel(java.util.UUID parcelId) {
         return scanEventRepository.findByParcel_IdOrderByTimestampAsc(parcelId);
     }

@@ -28,6 +28,11 @@ public class AgencyServiceImpl implements AgencyService {
             agencyCode = "AG-" + System.currentTimeMillis();
         }
 
+        // Check for duplicate agency code
+        if (agencyRepository.findByAgencyCode(agencyCode).isPresent()) {
+            throw new com.smartcampost.backend.exception.ConflictException("Agency with code '" + agencyCode + "' already exists");
+        }
+
         Agency agency = Agency.builder()
                 .id(UUID.randomUUID())
                 .agencyName(request.getAgencyName())
