@@ -34,7 +34,7 @@ public class ParcelDetailResponse {
 
     private double weight;
     private String dimensions;
-    private double declaredValue;
+    private Double declaredValue;
     private boolean fragile;
 
     private Instant createdAt;
@@ -64,6 +64,26 @@ public class ParcelDetailResponse {
 
     private UUID destinationAgencyId;
     private String destinationAgencyName;
+
+    // ---- PHOTO ----
+    private String photoUrl;
+
+    // ---- GPS / LOCATION ----
+    private Double creationLatitude;
+    private Double creationLongitude;
+    private Double currentLatitude;
+    private Double currentLongitude;
+    private Instant locationUpdatedAt;
+    private String locationMode;
+
+    // ---- VALIDATION ----
+    private Double validatedWeight;
+    private String validatedDimensions;
+    private String validationComment;
+    private Boolean descriptionConfirmed;
+    private Instant validatedAt;
+    private UUID validatedByStaffId;
+    private String validatedByStaffName;
 
     // ---- PRICING ----
     private Double lastAppliedPrice;

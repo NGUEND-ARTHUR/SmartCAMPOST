@@ -20,6 +20,7 @@ import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.SupportTicketService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -30,8 +31,12 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SupportTicketServiceImpl implements SupportTicketService {
 
     private final SupportTicketRepository supportTicketRepository;
@@ -87,8 +92,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 SupportTicket saved = supportTicketRepository.save(ticket);
                 try {
                         notificationService.notifySupportTicketCreated(client, saved.getSubject());
-                } catch (Exception ignored) {
-                        // Notification must never break ticket creation
+                } catch (Exception ex) {
+                        log.warn("Notification failed during ticket creation", ex);
                 }
         return toResponse(saved);
     }
@@ -176,8 +181,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                         if (saved.getClient() != null) {
                                 notificationService.notifySupportTicketReplied(saved.getClient(), saved.getSubject());
                         }
-                } catch (Exception ignored) {
-                        // Notification must never break ticket reply
+                } catch (Exception ex) {
+                        log.warn("Notification failed during ticket reply", ex);
                 }
         return toResponse(saved);
     }
@@ -224,8 +229,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                         if (saved.getClient() != null) {
                                 notificationService.notifySupportTicketStatusUpdated(saved.getClient(), saved.getSubject(), saved.getStatus() != null ? saved.getStatus().name() : null);
                         }
-                } catch (Exception ignored) {
-                        // Notification must never break ticket status update
+                } catch (Exception ex) {
+                        log.warn("Notification failed during ticket status update", ex);
                 }
         return toResponse(saved);
     }

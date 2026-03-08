@@ -7,6 +7,7 @@ import {
   InitPaymentRequest,
   ConfirmPaymentRequest,
 } from "@/services";
+import { parcelKeys } from "@/hooks/parcels/useParcels";
 
 export const paymentKeys = {
   all: ["payments"] as const,
@@ -61,6 +62,25 @@ export function useConfirmPayment() {
     mutationFn: (data: ConfirmPaymentRequest) => paymentService.confirm(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+    },
+  });
+}
+
+export function useMarkCodAsPaid() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (parcelId: string) => paymentService.markCodAsPaid(parcelId),
+    onSuccess: (resp) => {
+      const parcelId = resp.parcelId;
+      if (parcelId) {
+        queryClient.invalidateQueries({
+          queryKey: paymentKeys.forParcel(parcelId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: parcelKeys.detail(parcelId),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
     },
   });
 }

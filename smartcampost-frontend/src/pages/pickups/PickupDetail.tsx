@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useConfirmPickup, usePickup, useGeolocation } from "@/hooks";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Truck,
@@ -15,6 +16,7 @@ import {
 export default function PickupDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [step, setStep] = useState<
     "details" | "photo" | "signature" | "complete"
   >("details");
@@ -25,6 +27,7 @@ export default function PickupDetail() {
   const pickupId = id ?? "";
   const { data: pickup, isLoading, error } = usePickup(pickupId);
   const { getCurrent } = useGeolocation(false);
+  const useConfirm = useConfirmPickup();
 
   const scheduledText = pickup?.requestedDate
     ? `${new Date(pickup.requestedDate).toLocaleDateString()}${pickup.timeWindow ? ` (${pickup.timeWindow})` : ""}`
@@ -39,38 +42,26 @@ export default function PickupDetail() {
     }
   };
   const completePickup = () => {
-    // Confirm pickup via API if possible
     (async () => {
       try {
         const pos = await getCurrent();
         const latitude = pos.coords.latitude;
         const longitude = pos.coords.longitude;
 
-        if (photoProof) {
-          await useConfirm.mutateAsync({
-            pickupId: id,
-            photoUrl: photoProof,
-            descriptionConfirmed: true,
-            latitude,
-            longitude,
-          });
-        } else {
-          await useConfirm.mutateAsync({
-            pickupId: id,
-            descriptionConfirmed: true,
-            latitude,
-            longitude,
-          });
-        }
-      } catch (e) {
+        await useConfirm.mutateAsync({
+          pickupId: id,
+          photoUrl: photoProof || undefined,
+          descriptionConfirmed: true,
+          latitude,
+          longitude,
+        });
+      } catch {
         // ignore and continue to UI confirmation
       }
       setStep("complete");
       setTimeout(() => navigate("/courier/pickups"), 2000);
     })();
   };
-
-  const useConfirm = useConfirmPickup();
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,33 +72,37 @@ export default function PickupDetail() {
             className="flex items-center text-muted-foreground hover:text-foreground mb-4"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Pickups
+            {t("pickupDetail.backToPickups")}
           </button>
-          <h1 className="mb-2">Pickup Details</h1>
+          <h1 className="mb-2">{t("pickupDetail.title")}</h1>
           <p className="text-muted-foreground">
             {pickup ? `Pickup #${pickup.id.slice(0, 8)}` : ""}
           </p>
         </div>
 
         {isLoading ? (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <p className="text-muted-foreground">Loading pickup…</p>
+          <div className="bg-card rounded-lg shadow p-6 mb-6">
+            <p className="text-muted-foreground">{t("pickupDetail.loading")}</p>
           </div>
         ) : error ? (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="bg-card rounded-lg shadow p-6 mb-6">
             <p className="text-muted-foreground">
-              {error instanceof Error ? error.message : "Failed to load pickup"}
+              {error instanceof Error
+                ? error.message
+                : t("pickupDetail.loadFailed")}
             </p>
           </div>
         ) : null}
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="mb-4">Pickup Information</h2>
+        <div className="bg-card rounded-lg shadow p-6 mb-6">
+          <h2 className="mb-4">{t("pickupDetail.information")}</h2>
           <div className="space-y-4">
             <div className="flex items-center">
               <User className="w-5 h-5 text-muted-foreground mr-3" />
               <div>
-                <p className="text-sm text-muted-foreground">Requester</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("pickupDetail.requester")}
+                </p>
                 <p className="font-medium">
                   {pickup?.clientName ?? pickup?.clientId?.slice(0, 8) ?? "—"}
                 </p>
@@ -121,14 +116,18 @@ export default function PickupDetail() {
             <div className="flex items-center">
               <Calendar className="w-5 h-5 text-muted-foreground mr-3" />
               <div>
-                <p className="text-sm text-muted-foreground">Scheduled</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("pickupDetail.scheduled")}
+                </p>
                 <p className="font-medium">{scheduledText}</p>
               </div>
             </div>
             <div className="flex items-start">
               <MapPin className="w-5 h-5 text-muted-foreground mr-3 mt-1" />
               <div>
-                <p className="text-sm text-muted-foreground">Location</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("pickupDetail.location")}
+                </p>
                 <p className="font-medium">
                   {typeof pickup?.pickupLatitude === "number" &&
                   typeof pickup?.pickupLongitude === "number"
@@ -140,7 +139,7 @@ export default function PickupDetail() {
             {pickup?.comment && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm font-medium text-yellow-900 mb-1">
-                  Instructions
+                  {t("pickupDetail.instructions")}
                 </p>
                 <p className="text-sm text-yellow-700">{pickup.comment}</p>
               </div>
@@ -149,11 +148,11 @@ export default function PickupDetail() {
         </div>
 
         {step === "details" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="mb-3">Items to Pickup</h3>
+          <div className="bg-card rounded-lg shadow p-6 mb-6">
+            <h3 className="mb-3">{t("pickupDetail.itemsToPickup")}</h3>
             <ul className="space-y-2">
               <li className="flex justify-between border rounded p-3">
-                <span>Parcel</span>
+                <span>{t("pickupDetail.parcel")}</span>
                 <span className="font-medium">
                   {pickup?.trackingRef ?? pickup?.parcelId?.slice(0, 8) ?? "—"}
                 </span>
@@ -168,20 +167,20 @@ export default function PickupDetail() {
               onClick={() => setStep("photo")}
               className="flex-1 bg-blue-600 text-white py-3 rounded-lg"
             >
-              Capture Photo
+              {t("pickupDetail.capturePhoto")}
             </button>
             <button
               onClick={() => setStep("signature")}
               className="flex-1 border border-border text-foreground py-3 rounded-lg"
             >
-              Add Signature
+              {t("pickupDetail.addSignature")}
             </button>
           </div>
         )}
 
         {step === "photo" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="mb-3">Photo Proof</h3>
+          <div className="bg-card rounded-lg shadow p-6 mb-6">
+            <h3 className="mb-3">{t("pickupDetail.photoProof")}</h3>
             <div className="border-2 border-dashed border-border p-6 text-center">
               {photoProof ? (
                 <div>
@@ -194,7 +193,7 @@ export default function PickupDetail() {
                     onClick={() => fileInputRef.current?.click()}
                     className="text-blue-600"
                   >
-                    Retake Photo
+                    {t("pickupDetail.retakePhoto")}
                   </button>
                 </div>
               ) : (
@@ -204,7 +203,7 @@ export default function PickupDetail() {
                     onClick={() => fileInputRef.current?.click()}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg"
                   >
-                    Take Photo
+                    {t("pickupDetail.takePhoto")}
                   </button>
                 </div>
               )}
@@ -223,30 +222,30 @@ export default function PickupDetail() {
                 onClick={() => setStep("details")}
                 className="flex-1 border border-border py-3 rounded-lg"
               >
-                Back
+                {t("common.back")}
               </button>
               <button
                 onClick={() => setStep("signature")}
                 className="flex-1 bg-blue-600 text-white py-3 rounded-lg"
               >
-                Next
+                {t("common.next")}
               </button>
             </div>
           </div>
         )}
 
         {step === "signature" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="mb-3">Customer Signature</h3>
+          <div className="bg-card rounded-lg shadow p-6 mb-6">
+            <h3 className="mb-3">{t("pickupDetail.customerSignature")}</h3>
             <div>
               <input
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                placeholder="Customer name"
+                placeholder={t("pickupDetail.customerNamePlaceholder")}
                 className="w-full border border-border rounded px-4 py-2"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                Ask customer to type their name
+                {t("pickupDetail.askCustomerToSign")}
               </p>
             </div>
             <div className="flex space-x-4 mt-6">
@@ -254,31 +253,33 @@ export default function PickupDetail() {
                 onClick={() => setStep("photo")}
                 className="flex-1 border border-border py-3 rounded-lg"
               >
-                Back
+                {t("common.back")}
               </button>
               <button
                 onClick={completePickup}
                 disabled={!signature}
                 className="flex-1 bg-blue-600 text-white py-3 rounded-lg disabled:bg-muted"
               >
-                Complete Pickup
+                {t("pickupDetail.completePickup")}
               </button>
             </div>
           </div>
         )}
 
         {step === "complete" && (
-          <div className="bg-white rounded-lg shadow p-8">
+          <div className="bg-card rounded-lg shadow p-8">
             <div className="max-w-md mx-auto text-center">
               <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className="mb-2 text-green-600">Pickup Confirmed</h2>
+              <h2 className="mb-2 text-green-600">
+                {t("pickupDetail.pickupConfirmed")}
+              </h2>
               <p className="text-muted-foreground mb-6">
-                The pickup has been recorded successfully.
+                {t("pickupDetail.pickupRecordedSuccess")}
               </p>
               <p className="text-sm text-muted-foreground">
-                Returning to pickups list...
+                {t("pickupDetail.returningToList")}
               </p>
             </div>
           </div>

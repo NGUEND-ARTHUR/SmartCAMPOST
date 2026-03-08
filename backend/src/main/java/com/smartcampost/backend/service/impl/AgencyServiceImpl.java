@@ -81,6 +81,7 @@ public class AgencyServiceImpl implements AgencyService {
         dto.setAgencyCode(agency.getAgencyCode());
         dto.setCity(agency.getCity());
         dto.setRegion(agency.getRegion());
+        dto.setCountry(agency.getCountry());
         return dto;
     }
 }

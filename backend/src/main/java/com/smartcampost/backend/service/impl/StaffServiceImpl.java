@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class StaffServiceImpl implements StaffService {
 
     private final StaffRepository staffRepository;
@@ -240,6 +242,8 @@ public class StaffServiceImpl implements StaffService {
                 .status(staff.getStatus())
                 .hiredAt(staff.getHiredAt())
                 .terminatedAt(staff.getTerminatedAt())
+                .agencyId(staff.getAgency() != null ? staff.getAgency().getId() : null)
+                .agencyName(staff.getAgency() != null ? staff.getAgency().getAgencyName() : null)
                 .build();
     }
 }

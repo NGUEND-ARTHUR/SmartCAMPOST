@@ -31,7 +31,12 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import NotificationsDrawer from "@/components/NotificationsDrawer";
-import { exportToCsv, exportToJson, exportToPdf, exportToXlsx } from "@/lib/exportCsv";
+import {
+  exportToCsv,
+  exportToJson,
+  exportToPdf,
+  exportToXlsx,
+} from "@/lib/exportCsv";
 import { useMyParcels } from "@/hooks";
 
 export function ParcelList() {
@@ -42,9 +47,7 @@ export function ParcelList() {
   const [page, setPage] = useState(0);
   const [exportFormat, setExportFormat] = useState<
     "CSV" | "JSON" | "XLSX" | "PDF"
-  >(
-    "CSV",
-  );
+  >("CSV");
 
   const { data, isLoading, error } = useMyParcels(page, 20);
 

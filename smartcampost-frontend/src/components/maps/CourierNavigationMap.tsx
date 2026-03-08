@@ -1,18 +1,11 @@
 /**
  * Courier Navigation Map Component
  * Shows courier's current location and navigation to pickup/delivery points
- * with route optimization and turn-by-turn guidance
+ * with route optimization and turn-by-turn guidance.
+ * Powered by MapLibre GL JS with vector tiles and 3D support.
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
-import {
-  Marker,
-  Popup,
-  Polyline,
-  useMap,
-  Circle,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { Marker, Popup, Source, Layer, useMap } from "react-map-gl/maplibre";
 import {
   Navigation,
   MapPin,
@@ -28,43 +21,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "@/theme/theme";
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
+import { LAYER_COLORS } from "@/components/maps/core/mapStyles";
 
-// Fix Leaflet default marker icon issue
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
-  ._getIconUrl;
-
-// Custom icons
-const createIcon = (color: string, emoji: string) =>
-  L.divIcon({
-    className: "custom-marker",
-    html: `<div style="
-      background: ${color};
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      border: 2px solid hsl(var(--background));
-      animation: pulse 2s infinite;
-    ">${emoji}</div>
-    <style>
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-      }
-    </style>`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
-
-const courierIcon = createIcon("hsl(var(--primary))", "🚴");
-const pickupIcon = createIcon("hsl(var(--secondary))", "📦");
-const deliveryIcon = createIcon("hsl(var(--destructive))", "🏠");
-const waypointIcon = createIcon("hsl(var(--accent))", "📍");
+/* Reusable marker icon (replaces L.divIcon) */
+function NavMarkerIcon({
+  bgClass,
+  emoji,
+  pulse = false,
+}: {
+  bgClass: string;
+  emoji: string;
+  pulse?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-center w-10 h-10 text-xl rounded-full border-2 border-background shadow-lg cursor-pointer ${bgClass} ${pulse ? "animate-pulse" : ""}`}
+    >
+      {emoji}
+    </div>
+  );
+}
 
 interface Location {
   lat: number;
@@ -93,11 +70,51 @@ interface CourierNavigationMapProps {
 
 // Component to center map on courier
 function CenterOnCourier({ position }: { position: [number, number] }) {
-  const map = useMap();
+  const { current: map } = useMap();
   useEffect(() => {
-    map.setView(position, map.getZoom(), { animate: true });
+    if (!map) return;
+    map.easeTo({
+      center: [position[1], position[0]],
+      duration: 900,
+    });
   }, [position, map]);
   return null;
+}
+
+/* GeoJSON circle helper (approximate, for radius in meters) */
+function circleGeoJSON(
+  center: [number, number],
+  radiusMeters: number,
+  points = 64,
+): GeoJSON.Feature<GeoJSON.Polygon> {
+  const [lat, lon] = center;
+  const km = radiusMeters / 1000;
+  const coords: [number, number][] = [];
+  for (let i = 0; i <= points; i++) {
+    const angle = (i / points) * 2 * Math.PI;
+    const dx = km / (111.32 * Math.cos((lat * Math.PI) / 180));
+    const dy = km / 110.574;
+    coords.push([lon + dx * Math.cos(angle), lat + dy * Math.sin(angle)]);
+  }
+  return {
+    type: "Feature",
+    geometry: { type: "Polygon", coordinates: [coords] },
+    properties: {},
+  };
+}
+
+/* Route line helper */
+function routeGeoJSON(
+  positions: [number, number][],
+): GeoJSON.Feature<GeoJSON.LineString> {
+  return {
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: positions.map(([lat, lng]) => [lng, lat]),
+    },
+    properties: {},
+  };
 }
 
 // Haversine distance calculation
@@ -166,7 +183,6 @@ export default function CourierNavigationMap({
   onNavigate,
 }: CourierNavigationMapProps) {
   const { t } = useTranslation();
-  const { resolvedTheme } = useTheme();
   const [currentLocation, setCurrentLocation] = useState<Location | null>(
     courierLocation || null,
   );
@@ -270,24 +286,6 @@ export default function CourierNavigationMap({
       minutes: minutes % 60,
     });
   }, [totalDistance, t]);
-
-  const tileConfig = useMemo(() => {
-    if (resolvedTheme === "dark") {
-      return {
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      };
-    }
-    return {
-      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    };
-  }, [resolvedTheme]);
-
-  // Tiles are handled by CameroonMap; keep tileConfig referenced to avoid unused work warnings.
-  void tileConfig;
 
   const stopTypeLabel = useCallback(
     (type: Stop["type"]) =>
@@ -407,49 +405,76 @@ export default function CourierNavigationMap({
               showControls
               showSearch={false}
               className="rounded-none border-0"
+              pitch={35}
+              show3DBuildings
             >
-
               {currentLocation && (
                 <CenterOnCourier
                   position={[currentLocation.lat, currentLocation.lng]}
                 />
               )}
 
-              {/* Route polyline */}
+              {/* Route polyline via GeoJSON */}
               {routePositions.length >= 2 && (
-                <Polyline
-                  positions={routePositions}
-                  color={
-                    showOptimizedRoute
-                      ? "hsl(var(--secondary))"
-                      : "hsl(var(--primary))"
-                  }
-                  weight={4}
-                  opacity={0.8}
-                />
+                <Source
+                  id="courier-route"
+                  type="geojson"
+                  data={routeGeoJSON(routePositions)}
+                >
+                  <Layer
+                    id="courier-route-line"
+                    type="line"
+                    paint={{
+                      "line-color": showOptimizedRoute
+                        ? LAYER_COLORS.secondary
+                        : LAYER_COLORS.primary,
+                      "line-width": 4,
+                      "line-opacity": 0.8,
+                    }}
+                    layout={{ "line-cap": "round", "line-join": "round" }}
+                  />
+                </Source>
               )}
 
-              {/* Courier current location */}
+              {/* Courier location radius circle */}
               {currentLocation && (
-                <>
-                  <Circle
-                    center={[currentLocation.lat, currentLocation.lng]}
-                    radius={100}
-                    color="hsl(var(--primary))"
-                    fillColor="hsl(var(--primary))"
-                    fillOpacity={0.2}
+                <Source
+                  id="courier-radius"
+                  type="geojson"
+                  data={circleGeoJSON(
+                    [currentLocation.lat, currentLocation.lng],
+                    100,
+                  )}
+                >
+                  <Layer
+                    id="courier-radius-fill"
+                    type="fill"
+                    paint={{
+                      "fill-color": LAYER_COLORS.primary,
+                      "fill-opacity": 0.15,
+                    }}
                   />
-                  <Marker
-                    position={[currentLocation.lat, currentLocation.lng]}
-                    icon={courierIcon}
-                  >
-                    <Popup>
-                      <div className="text-center">
-                        <strong>🚴 {t("courierNavMap.youAreHere")}</strong>
-                      </div>
-                    </Popup>
-                  </Marker>
-                </>
+                  <Layer
+                    id="courier-radius-stroke"
+                    type="line"
+                    paint={{
+                      "line-color": LAYER_COLORS.primary,
+                      "line-width": 2,
+                      "line-opacity": 0.5,
+                    }}
+                  />
+                </Source>
+              )}
+
+              {/* Courier marker */}
+              {currentLocation && (
+                <Marker
+                  longitude={currentLocation.lng}
+                  latitude={currentLocation.lat}
+                  anchor="center"
+                >
+                  <NavMarkerIcon bgClass="bg-primary" emoji="🚴" pulse />
+                </Marker>
               )}
 
               {/* Stop markers */}
@@ -457,65 +482,89 @@ export default function CourierNavigationMap({
                 (stop, index) => (
                   <Marker
                     key={stop.id}
-                    position={[stop.location.lat, stop.location.lng]}
-                    icon={stop.type === "PICKUP" ? pickupIcon : deliveryIcon}
-                    eventHandlers={{
-                      click: () => setSelectedStop(stop),
+                    longitude={stop.location.lng}
+                    latitude={stop.location.lat}
+                    anchor="center"
+                    onClick={(e) => {
+                      e.originalEvent.stopPropagation();
+                      setSelectedStop(stop);
                     }}
                   >
-                    <Popup>
-                      <div className="min-w-50">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge
-                            variant="secondary"
-                            className={
-                              stop.type === "PICKUP"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }
-                          >
-                            #{index + 1} - {stopTypeLabel(stop.type)}
-                          </Badge>
-                        </div>
-                        <p className="font-semibold">{stop.trackingCode}</p>
-                        <div className="mt-2 space-y-1 text-sm">
-                          <p className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            {stop.clientName}
-                          </p>
-                          <p className="flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {stop.clientPhone}
-                          </p>
-                          {stop.location.address && (
-                            <p className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {stop.location.address}
-                            </p>
-                          )}
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => onNavigate?.(stop)}
-                          >
-                            <Navigation className="w-3 h-3 mr-1" />
-                            {t("courierNavMap.navigate")}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => onStopComplete?.(stop.id)}
-                          >
-                            ✓ {t("courierNavMap.complete")}
-                          </Button>
-                        </div>
-                      </div>
-                    </Popup>
+                    <NavMarkerIcon
+                      bgClass={
+                        stop.type === "PICKUP"
+                          ? "bg-secondary"
+                          : "bg-destructive"
+                      }
+                      emoji={stop.type === "PICKUP" ? "📦" : "🏠"}
+                    />
                   </Marker>
                 ),
+              )}
+
+              {/* Selected stop popup */}
+              {selectedStop && (
+                <Popup
+                  longitude={selectedStop.location.lng}
+                  latitude={selectedStop.location.lat}
+                  onClose={() => setSelectedStop(null)}
+                  closeOnClick={false}
+                  anchor="bottom"
+                >
+                  <div className="min-w-50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge
+                        variant="secondary"
+                        className={
+                          selectedStop.type === "PICKUP"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }
+                      >
+                        #
+                        {(showOptimizedRoute ? optimizedStops : stops).indexOf(
+                          selectedStop,
+                        ) + 1}{" "}
+                        - {stopTypeLabel(selectedStop.type)}
+                      </Badge>
+                    </div>
+                    <p className="font-semibold">{selectedStop.trackingCode}</p>
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {selectedStop.clientName}
+                      </p>
+                      <p className="flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        {selectedStop.clientPhone}
+                      </p>
+                      {selectedStop.location.address && (
+                        <p className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {selectedStop.location.address}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => onNavigate?.(selectedStop)}
+                      >
+                        <Navigation className="w-3 h-3 mr-1" />
+                        {t("courierNavMap.navigate")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => onStopComplete?.(selectedStop.id)}
+                      >
+                        ✓ {t("courierNavMap.complete")}
+                      </Button>
+                    </div>
+                  </div>
+                </Popup>
               )}
             </CameroonMap>
           </div>

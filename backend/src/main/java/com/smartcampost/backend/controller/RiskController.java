@@ -2,37 +2,34 @@ package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.admin.FreezeAccountRequest;
 import com.smartcampost.backend.dto.risk.RiskAlertUpdateRequest;
+import com.smartcampost.backend.model.enums.RiskAlertType;
+import com.smartcampost.backend.model.enums.RiskSeverity;
 import com.smartcampost.backend.service.RiskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/risk")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or hasRole('RISK')")
 public class RiskController {
 
     private final RiskService riskService;
 
-    // ✅ Create a new risk alert
+    // ✅ Create a new risk alert (persisted via service)
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createRisk(
+    public ResponseEntity<Object> createRisk(
             @Valid @RequestBody CreateRiskRequest request
     ) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", UUID.randomUUID().toString());
-        response.put("type", request.getType());
-        response.put("severity", request.getSeverity());
-        response.put("description", request.getDescription());
-        response.put("status", "ACTIVE");
-        response.put("createdAt", System.currentTimeMillis());
-        return ResponseEntity.ok(response);
+        RiskAlertType type = RiskAlertType.valueOf(request.getType().trim().toUpperCase());
+        RiskSeverity severity = RiskSeverity.valueOf(request.getSeverity().trim().toUpperCase());
+        return ResponseEntity.ok(riskService.createRiskAlert(type, severity, request.getDescription()));
     }
 
     // ✅ List all risk alerts (risk dashboard)

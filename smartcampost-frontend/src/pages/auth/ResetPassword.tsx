@@ -113,71 +113,81 @@ export default function ResetPassword() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="phone">{t("common.phone")}</Label>
-            <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+237 6XX XXX XXX"
-              autoComplete="tel"
-            />
-          </div>
+        <CardContent>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (step === "request") request();
+              else confirm();
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="phone">{t("common.phone")}</Label>
+              <Input
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+237 6XX XXX XXX"
+                autoComplete="tel"
+                disabled={step === "confirm"}
+              />
+            </div>
 
-          {step === "confirm" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="otp">{t("auth.otp")}</Label>
-                <Input
-                  id="otp"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  placeholder={t("auth.otpPlaceholder")}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="one-time-code"
-                  name="otp"
-                  maxLength={6}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pw">{t("auth.newPassword")}</Label>
-                <Input
-                  id="pw"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={t("auth.newPasswordPlaceholder")}
-                  autoComplete="new-password"
-                />
-              </div>
-            </>
-          )}
+            {step === "confirm" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="otp">{t("auth.otp")}</Label>
+                  <Input
+                    id="otp"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    placeholder={t("auth.otpPlaceholder")}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    name="otp"
+                    maxLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pw">{t("auth.newPassword")}</Label>
+                  <Input
+                    id="pw"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={t("auth.newPasswordPlaceholder")}
+                    autoComplete="new-password"
+                  />
+                </div>
+              </>
+            )}
 
-          {step === "request" ? (
-            <Button
-              className="w-full"
-              onClick={request}
-              disabled={busy || !canRequest}
-            >
-              {busy ? t("auth.requesting") : t("auth.requestOtp")}
-            </Button>
-          ) : (
-            <Button
-              className="w-full"
-              onClick={confirm}
-              disabled={busy || !canConfirm}
-            >
-              {busy ? t("auth.saving") : t("auth.confirmReset")}
-            </Button>
-          )}
+            {step === "request" ? (
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={busy || !canRequest}
+              >
+                {busy ? t("auth.requesting") : t("auth.requestOtp")}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={busy || !canConfirm}
+              >
+                {busy ? t("auth.saving") : t("auth.confirmReset")}
+              </Button>
+            )}
 
-          <div className="text-sm text-center text-muted-foreground">
-            <Link to="/auth/login" className="text-primary hover:underline">
-              {t("auth.backToLogin")}
-            </Link>
-          </div>
+            <div className="text-sm text-center text-muted-foreground">
+              <Link to="/auth/login" className="text-primary hover:underline">
+                {t("auth.backToLogin")}
+              </Link>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

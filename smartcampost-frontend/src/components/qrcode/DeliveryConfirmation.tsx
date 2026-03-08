@@ -33,6 +33,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { QRCodeScanner } from "./QRCodeScanner";
+import { parcelService } from "@/services";
+import { deliveryService } from "@/services";
 
 interface DeliveryInfo {
   trackingRef: string;
@@ -94,19 +96,44 @@ export function DeliveryConfirmation({
     }) => {
       if (!result.success || !result.data) return;
 
-      // In real app, fetch delivery info from backend
-      const info: DeliveryInfo = {
-        trackingRef: result.data.trackingRef,
-        parcelId: result.data.parcelId || result.data.trackingRef,
-        recipientName: "John Doe", // Would come from API
-        recipientPhone: "+237 6XX XXX XXX",
-        recipientAddress: "123 Main St, Douala",
-      };
+      try {
+        // Fetch real delivery info from backend using tracking reference
+        const parcelDetail = await parcelService.getByTracking(
+          result.data.trackingRef,
+        );
 
-      setDeliveryInfo(info);
-      setStep("verify");
+        const info: DeliveryInfo = {
+          trackingRef: parcelDetail.trackingRef,
+          parcelId: parcelDetail.id,
+          recipientName:
+            parcelDetail.recipientLabel ||
+            parcelDetail.clientName ||
+            "Recipient",
+          recipientPhone: "", // Phone is masked by backend for security; OTP is sent server-side
+          recipientAddress:
+            [
+              parcelDetail.recipientCity,
+              parcelDetail.recipientRegion,
+              parcelDetail.recipientCountry,
+            ]
+              .filter(Boolean)
+              .join(", ") || "Address on file",
+        };
+
+        setDeliveryInfo(info);
+        setStep("verify");
+      } catch (error) {
+        toast.error(
+          t("qrcode.deliveryConfirmation.toasts.scanFailed") ||
+            "Failed to load parcel information",
+          {
+            description:
+              error instanceof Error ? error.message : "Unknown error",
+          },
+        );
+      }
     },
-    [],
+    [t],
   );
 
   // Send OTP to recipient
@@ -138,19 +165,58 @@ export function DeliveryConfirmation({
   };
 
   // Verify OTP and proceed to proof
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (otpCode.length < 4) {
       toast.error(t("qrcode.deliveryConfirmation.toasts.invalidOtp"));
       return;
     }
 
-    // In real app, verify OTP with backend
+    if (!deliveryInfo) return;
+
     setIsVerifying(true);
-    setTimeout(() => {
+    try {
+      // Get current location for verification audit trail
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+          });
+        },
+      ).catch(() => null);
+
+      const lat = position?.coords.latitude ?? 0;
+      const lng = position?.coords.longitude ?? 0;
+
+      // Verify OTP with backend
+      const verified = await deliveryService.verifyOtp({
+        parcelId: deliveryInfo.parcelId,
+        otpCode,
+        latitude: lat,
+        longitude: lng,
+      });
+
+      if (verified) {
+        setStep("proof");
+        toast.success(t("qrcode.deliveryConfirmation.toasts.otpVerified"));
+      } else {
+        toast.error(
+          t("qrcode.deliveryConfirmation.toasts.invalidOtp") ||
+            "Invalid OTP code",
+        );
+      }
+    } catch (error) {
+      toast.error(
+        t("qrcode.deliveryConfirmation.toasts.otpVerifyFailed") ||
+          "OTP verification failed",
+        {
+          description:
+            error instanceof Error ? error.message : "Please try again",
+        },
+      );
+    } finally {
       setIsVerifying(false);
-      setStep("proof");
-      toast.success(t("qrcode.deliveryConfirmation.toasts.otpVerified"));
-    }, 1000);
+    }
   };
 
   // Capture photo

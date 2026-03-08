@@ -96,21 +96,23 @@ export default function UserAccountManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">User Account Management</h1>
+        <h1 className="text-3xl font-bold">
+          {t("userAccountManagement.title")}
+        </h1>
         <p className="text-muted-foreground">
-          View all user accounts and manage account freeze status
+          {t("userAccountManagement.subtitle")}
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>All User Accounts</CardTitle>
+            <CardTitle>{t("userAccountManagement.allAccounts")}</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search users..."
+                  placeholder={t("userAccountManagement.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-52"
@@ -122,14 +124,30 @@ export default function UserAccountManagement() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Roles</SelectItem>
-                  <SelectItem value="CLIENT">Client</SelectItem>
-                  <SelectItem value="AGENT">Agent</SelectItem>
-                  <SelectItem value="COURIER">Courier</SelectItem>
-                  <SelectItem value="STAFF">Staff</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="FINANCE">Finance</SelectItem>
-                  <SelectItem value="RISK">Risk</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("userAccountManagement.allRoles")}
+                  </SelectItem>
+                  <SelectItem value="CLIENT">
+                    {t("userAccountManagement.client")}
+                  </SelectItem>
+                  <SelectItem value="AGENT">
+                    {t("userAccountManagement.agent")}
+                  </SelectItem>
+                  <SelectItem value="COURIER">
+                    {t("userAccountManagement.courier")}
+                  </SelectItem>
+                  <SelectItem value="STAFF">
+                    {t("userAccountManagement.staff")}
+                  </SelectItem>
+                  <SelectItem value="ADMIN">
+                    {t("userAccountManagement.admin")}
+                  </SelectItem>
+                  <SelectItem value="FINANCE">
+                    {t("userAccountManagement.finance")}
+                  </SelectItem>
+                  <SelectItem value="RISK">
+                    {t("userAccountManagement.risk")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,31 +161,33 @@ export default function UserAccountManagement() {
           ) : error ? (
             <EmptyState
               icon={Users}
-              title="Error loading users"
+              title={t("userAccountManagement.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : displayedUsers.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="No users found"
+              title={t("userAccountManagement.noUsersFound")}
               description={
                 searchQuery || roleFilter !== "ALL"
-                  ? "Try adjusting your filters"
-                  : "No user accounts exist yet"
+                  ? t("userAccountManagement.filterHint")
+                  : t("userAccountManagement.noAccountsYet")
               }
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("userAccountManagement.user")}</TableHead>
+                  <TableHead>{t("userAccountManagement.contact")}</TableHead>
+                  <TableHead>{t("userAccountManagement.role")}</TableHead>
+                  <TableHead>{t("userAccountManagement.status")}</TableHead>
+                  <TableHead>{t("userAccountManagement.created")}</TableHead>
+                  <TableHead>{t("userAccountManagement.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -207,12 +227,12 @@ export default function UserAccountManagement() {
                       {user.frozen ? (
                         <Badge className="bg-red-100 text-red-800">
                           <ShieldOff className="w-3 h-3 mr-1" />
-                          Frozen
+                          {t("userAccountManagement.frozen")}
                         </Badge>
                       ) : (
                         <Badge className="bg-green-100 text-green-800">
                           <ShieldCheck className="w-3 h-3 mr-1" />
-                          Active
+                          {t("userAccountManagement.activeStatus")}
                         </Badge>
                       )}
                     </TableCell>
@@ -231,12 +251,12 @@ export default function UserAccountManagement() {
                         ) : user.frozen ? (
                           <>
                             <ShieldCheck className="w-4 h-4 mr-1" />
-                            Unfreeze
+                            {t("userAccountManagement.unfreeze")}
                           </>
                         ) : (
                           <>
                             <ShieldOff className="w-4 h-4 mr-1" />
-                            Freeze
+                            {t("userAccountManagement.freeze")}
                           </>
                         )}
                       </Button>

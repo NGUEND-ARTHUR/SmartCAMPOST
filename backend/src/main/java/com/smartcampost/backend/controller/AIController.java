@@ -18,6 +18,7 @@ import java.util.UUID;
 public class AIController {
     private final AIService aiService;
     private final AiAgentRecommendationService aiAgentRecommendationService;
+    private final com.smartcampost.backend.service.orchestrator.AIOrchestrator aiOrchestrator;
     
 
     /**
@@ -56,12 +57,19 @@ public class AIController {
             for (int i = 0; i < text.length(); i += chunkSize) {
                 int end = Math.min(text.length(), i + chunkSize);
                 String chunk = text.substring(i, end);
-                out.write(chunk.getBytes());
+                out.write(chunk.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 out.flush();
-                try { Thread.sleep(60); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(60); } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
+            out.flush();
         };
-        return ResponseEntity.ok().header("Content-Type", "text/plain; charset=utf-8").body(stream);
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/plain; charset=utf-8")
+                .header("Transfer-Encoding", "chunked")
+                .body(stream);
     }
 
     /**
@@ -102,7 +110,17 @@ public class AIController {
      */
     @GetMapping("/agent/status")
     public ResponseEntity<AgentStatusResponse> getAgentStatus() {
-        // This will be implemented by the AIService to return role-specific agent status
         return ResponseEntity.ok(aiService.getAgentStatus());
+    }
+
+    /**
+     * Assess shipment risk for a parcel
+     * Returns risk level, reason codes, and recommended action
+     */
+    @PostMapping("/assess-risk")
+    public ResponseEntity<ShipmentRiskResponse> assessRisk(
+            @Valid @RequestBody ShipmentRiskRequest request
+    ) {
+        return ResponseEntity.ok(aiOrchestrator.detectRisk(request));
     }
 }

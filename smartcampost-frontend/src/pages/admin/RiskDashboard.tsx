@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   Shield,
@@ -29,6 +30,7 @@ interface RiskStats {
 }
 
 export default function RiskDashboard() {
+  const { t } = useTranslation();
   const [stats] = useState<RiskStats>({
     activeAlerts: 12,
     resolvedAlerts: 145,
@@ -136,19 +138,19 @@ export default function RiskDashboard() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="mb-2">Risk Management Dashboard</h1>
+          <h1 className="mb-2">{t("adminRiskDashboard.title")}</h1>
           <p className="text-muted-foreground">
-            Monitor and manage security alerts and compliance
+            {t("adminRiskDashboard.overview")}
           </p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
-                  Active Alerts
+                  {t("adminRiskDashboard.totalIncidents")}
                 </p>
                 <p className="text-3xl font-semibold text-foreground">
                   {stats.activeAlerts}
@@ -160,11 +162,11 @@ export default function RiskDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
-                  Resolved Alerts
+                  {t("adminRiskDashboard.resolvedIncidents")}
                 </p>
                 <p className="text-3xl font-semibold text-foreground">
                   {stats.resolvedAlerts}
@@ -176,11 +178,11 @@ export default function RiskDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
-                  Compliance Score
+                  {t("adminRiskDashboard.systemRiskLevel")}
                 </p>
                 <p className="text-3xl font-semibold text-foreground">
                   {stats.complianceScore}%
@@ -192,11 +194,11 @@ export default function RiskDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
-                  Fraud Detected
+                  {t("adminRiskDashboard.pendingReview")}
                 </p>
                 <p className="text-3xl font-semibold text-foreground">
                   {stats.fraudDetected}
@@ -212,8 +214,10 @@ export default function RiskDashboard() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Weekly Alerts */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="mb-6">Weekly Alert Trend</h2>
+          <div className="bg-card rounded-lg shadow p-6">
+            <h2 className="mb-6">
+              {t("adminRiskDashboard.incidentManagement")}
+            </h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={weeklyAlerts}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -226,8 +230,8 @@ export default function RiskDashboard() {
           </div>
 
           {/* Alerts by Type */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="mb-6">Alerts by Type</h2>
+          <div className="bg-card rounded-lg shadow p-6">
+            <h2 className="mb-6">{t("adminRiskDashboard.riskPolicies")}</h2>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -257,11 +261,11 @@ export default function RiskDashboard() {
         </div>
 
         {/* Recent Alerts */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           <div className="p-6 border-b border-border flex items-center justify-between">
-            <h2 className="font-semibold">Recent Risk Alerts</h2>
+            <h2 className="font-semibold">{t("riskDashboard.recentAlerts")}</h2>
             <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View All Alerts →
+              {t("agentDashboard.viewAll")} →
             </button>
           </div>
           <div className="divide-y divide-border">
@@ -295,7 +299,9 @@ export default function RiskDashboard() {
                         {alert.description}
                       </p>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>Tracking: {alert.tracking}</span>
+                        <span>
+                          {t("adminRiskDashboard.auditLog")}: {alert.tracking}
+                        </span>
                         <span>•</span>
                         <span>{alert.time}</span>
                       </div>
@@ -303,10 +309,10 @@ export default function RiskDashboard() {
                   </div>
                   <div className="flex space-x-2 ml-4">
                     <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                      Investigate
+                      {t("adminRiskDashboard.createIncident")}
                     </button>
                     <button className="px-4 py-2 text-sm border border-border text-muted-foreground rounded-lg hover:bg-accent transition-colors">
-                      Dismiss
+                      {t("common.dismiss")}
                     </button>
                   </div>
                 </div>

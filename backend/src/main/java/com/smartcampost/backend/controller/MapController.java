@@ -13,14 +13,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/map")
 public class MapController {
+
+    private static final List<ParcelStatus> ACTIVE_STATUSES = List.of(
+            ParcelStatus.CREATED, ParcelStatus.ACCEPTED, ParcelStatus.TAKEN_IN_CHARGE,
+            ParcelStatus.IN_TRANSIT, ParcelStatus.ARRIVED_HUB, ParcelStatus.ARRIVED_DEST_AGENCY,
+            ParcelStatus.OUT_FOR_DELIVERY
+    );
 
     private final ParcelRepository parcelRepository;
     private final ScanEventService scanEventService;
@@ -65,14 +68,12 @@ public class MapController {
     @GetMapping("/couriers/me")
     @PreAuthorize("hasAnyRole('COURIER','AGENT')")
     public ResponseEntity<?> courierPersonalMap(java.security.Principal principal) {
-        Long uid = null;
-        try { uid = Long.parseLong(principal.getName()); } catch (Exception ignored) {}
-        if (uid == null) return ResponseEntity.badRequest().build();
+        String uid = principal.getName();
+        if (uid == null || uid.isBlank()) return ResponseEntity.badRequest().build();
         List<Location> locs = locationService.getRecentForUser(uid);
-        String actorId = String.valueOf(uid);
+        String actorId = uid;
 
-        List<Map<String, Object>> activeParcels = parcelRepository.findAll().stream()
-                .filter(p -> p.getStatus() != ParcelStatus.DELIVERED && p.getStatus() != ParcelStatus.CANCELLED)
+        List<Map<String, Object>> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES).stream()
                 .map(p -> {
                     ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
                     if (last == null || last.getActorId() == null || !actorId.equals(last.getActorId())) {
@@ -106,8 +107,7 @@ public class MapController {
         Map<String, Object> out = new HashMap<>();
         out.put("recentLocations", locationService.getRecentAll());
 
-        List<Map<String, Object>> activeParcels = parcelRepository.findAll().stream()
-                .filter(p -> p.getStatus() != ParcelStatus.DELIVERED && p.getStatus() != ParcelStatus.CANCELLED)
+        List<Map<String, Object>> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES).stream()
                 .limit(300)
                 .map(p -> {
                     Map<String, Object> parcel = new HashMap<>();
@@ -117,12 +117,19 @@ public class MapController {
                     parcel.put("creationLatitude", p.getCreationLatitude());
                     parcel.put("creationLongitude", p.getCreationLongitude());
 
-                    ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
-                    if (last != null) {
-                        parcel.put("currentLatitude", last.getLatitude());
-                        parcel.put("currentLongitude", last.getLongitude());
-                        parcel.put("currentTimestamp", last.getTimestamp());
-                        parcel.put("currentEventType", last.getEventType());
+                    // Use denormalized current location if available, fallback to last scan event
+                    if (p.getCurrentLatitude() != null && p.getCurrentLongitude() != null) {
+                        parcel.put("currentLatitude", p.getCurrentLatitude());
+                        parcel.put("currentLongitude", p.getCurrentLongitude());
+                        parcel.put("currentTimestamp", p.getLocationUpdatedAt());
+                    } else {
+                        ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
+                        if (last != null) {
+                            parcel.put("currentLatitude", last.getLatitude());
+                            parcel.put("currentLongitude", last.getLongitude());
+                            parcel.put("currentTimestamp", last.getTimestamp());
+                            parcel.put("currentEventType", last.getEventType());
+                        }
                     }
                     return parcel;
                 })

@@ -161,10 +161,7 @@ export function ClientDashboard() {
                           variant="ghost"
                           size="sm"
                           onClick={() =>
-                            window.open(
-                              `/client/parcels/${p.id}?print=label`,
-                              "_blank",
-                            )
+                            navigate(`/client/parcels/${p.id}/print-label`)
                           }
                         >
                           {t("parcelList.actions.printLabel")}
