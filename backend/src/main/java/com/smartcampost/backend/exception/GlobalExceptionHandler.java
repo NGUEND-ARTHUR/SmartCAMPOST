@@ -107,6 +107,34 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // ================== METHOD NOT ALLOWED (405) ==================
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
+            org.springframework.web.HttpRequestMethodNotSupportedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "Method not allowed: " + request.getMethod() + " " + request.getRequestURI(),
+                ErrorCode.BUSINESS_ERROR,
+                request,
+                HttpStatus.METHOD_NOT_ALLOWED
+        );
+    }
+
+    // ================== NO RESOURCE FOUND (404 for static resources) ==================
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "Resource not found: " + request.getRequestURI(),
+                ErrorCode.BUSINESS_ERROR,
+                request,
+                HttpStatus.NOT_FOUND
+        );
+    }
+
     // ================== RUNTIME (Biz errors) ==================
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(
