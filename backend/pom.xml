@@ -20,8 +20,12 @@
 	<properties>
 		<java.version>17</java.version>
 		<spring-ai.version>1.0.3</spring-ai.version>
-		<!-- 🔧 ADD: explicit Lombok version -->
+		<!-- 🔧 Centralized dependency versions for consistency -->
 		<lombok.version>1.18.42</lombok.version>
+		<jjwt.version>0.11.5</jjwt.version>
+		<zxing.version>3.5.2</zxing.version>
+		<pdfbox.version>2.0.27</pdfbox.version>
+		<caffeine.version>3.1.8</caffeine.version>
 	</properties>
 
 	<dependencies>
@@ -115,18 +119,18 @@
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
-			<version>0.11.5</version>
+			<version>${jjwt.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
-			<version>0.11.5</version>
+			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
-			<version>0.11.5</version>
+			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 
@@ -134,26 +138,26 @@
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>core</artifactId>
-			<version>3.5.2</version>
+			<version>${zxing.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
-			<version>3.5.2</version>
+			<version>${zxing.version}</version>
 		</dependency>
 
 		<!-- Caffeine cache for FAQ caching and rate limiting -->
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
-			<version>3.1.8</version>
+			<version>${caffeine.version}</version>
 		</dependency>
 
 		<!-- PDFBox for PDF generation (used by InvoiceService and QRService) -->
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.27</version>
+			<version>${pdfbox.version}</version>
 		</dependency>
 
 
@@ -162,23 +166,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-					<!-- PDF generation -->
-					<dependency>
-						<groupId>org.apache.pdfbox</groupId>
-						<artifactId>pdfbox</artifactId>
-						<version>2.1.28</version>
-					</dependency>
-					<!-- ZXing for QR code generation -->
-					<dependency>
-						<groupId>com.google.zxing</groupId>
-						<artifactId>core</artifactId>
-						<version>3.5.1</version>
-					</dependency>
-					<dependency>
-						<groupId>com.google.zxing</groupId>
-						<artifactId>javase</artifactId>
-						<version>3.5.1</version>
-					</dependency>
 			<dependency>
 				<groupId>org.springframework.ai</groupId>
 				<artifactId>spring-ai-bom</artifactId>
