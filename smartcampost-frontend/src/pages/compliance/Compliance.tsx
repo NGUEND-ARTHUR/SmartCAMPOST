@@ -86,21 +86,21 @@ export default function Compliance() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Compliance</h1>
-          <p className="text-muted-foreground">Compliance alerts and reports</p>
+          <h1 className="text-3xl font-bold">{t("compliance.title")}</h1>
+          <p className="text-muted-foreground">{t("compliance.subtitle")}</p>
         </div>
         <Button
           onClick={handleGenerateReport}
           disabled={generateReport.isPending}
         >
           <Download className="w-4 h-4 mr-2" />
-          Generate Report
+          {t("compliance.generateReport")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Compliance Alerts</CardTitle>
+          <CardTitle>{t("compliance.alertsTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -110,29 +110,29 @@ export default function Compliance() {
           ) : error ? (
             <EmptyState
               icon={FileCheck}
-              title="Error loading alerts"
+              title={t("compliance.states.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.error")
               }
             />
           ) : alerts.length === 0 ? (
             <EmptyState
               icon={FileCheck}
-              title="No compliance alerts"
-              description="All clear! No compliance issues detected."
+              title={t("compliance.states.emptyTitle")}
+              description={t("compliance.states.emptyDescription")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Alert ID</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("compliance.table.alertId")}</TableHead>
+                    <TableHead>{t("compliance.table.type")}</TableHead>
+                    <TableHead>{t("compliance.table.severity")}</TableHead>
+                    <TableHead>{t("compliance.table.description")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("compliance.table.created")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -159,12 +159,12 @@ export default function Compliance() {
                         {alert.resolved ? (
                           <Badge className="bg-green-100 text-green-800">
                             <CheckCircle className="w-3 h-3 mr-1" />
-                            Resolved
+                            {t("compliance.status.resolved")}
                           </Badge>
                         ) : (
                           <Badge className="bg-yellow-100 text-yellow-800">
                             <XCircle className="w-3 h-3 mr-1" />
-                            Open
+                            {t("compliance.status.open")}
                           </Badge>
                         )}
                       </TableCell>
@@ -178,7 +178,7 @@ export default function Compliance() {
                             onClick={() => handleResolve(alert.id)}
                             disabled={resolveAlert.isPending}
                           >
-                            Resolve
+                            {t("compliance.actions.resolve")}
                           </Button>
                         )}
                       </TableCell>
@@ -194,10 +194,10 @@ export default function Compliance() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -205,7 +205,7 @@ export default function Compliance() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

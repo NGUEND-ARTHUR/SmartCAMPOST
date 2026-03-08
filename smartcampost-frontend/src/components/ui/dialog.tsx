@@ -74,9 +74,11 @@ export function DialogTrigger({
     ...rest,
     className,
     onClick: (e: React.MouseEvent<HTMLElement>) => {
-      (rest.onClick as ((evt: React.MouseEvent<HTMLElement>) => void) | undefined)?.(
-        e,
-      );
+      (
+        rest.onClick as
+          | ((evt: React.MouseEvent<HTMLElement>) => void)
+          | undefined
+      )?.(e);
       if (!e.defaultPrevented) setOpen(true);
     },
   };
@@ -176,7 +178,10 @@ type SectionProps = React.PropsWithChildren<{ className?: string }> &
 export function DialogHeader({ children, className, ...rest }: SectionProps) {
   return (
     <div
-      className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
+      className={cn(
+        "flex flex-col space-y-1.5 text-center sm:text-left",
+        className,
+      )}
       {...rest}
     >
       {children}
@@ -201,10 +206,17 @@ export function DialogFooter({ children, className, ...rest }: SectionProps) {
 type DialogTitleProps = React.PropsWithChildren<{ className?: string }> &
   Omit<React.HTMLAttributes<HTMLHeadingElement>, "children">;
 
-export function DialogTitle({ children, className, ...rest }: DialogTitleProps) {
+export function DialogTitle({
+  children,
+  className,
+  ...rest
+}: DialogTitleProps) {
   return (
     <h2
-      className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+      className={cn(
+        "text-lg font-semibold leading-none tracking-tight",
+        className,
+      )}
       {...rest}
     >
       {children}

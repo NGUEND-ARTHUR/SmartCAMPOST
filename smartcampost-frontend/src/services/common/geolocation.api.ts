@@ -50,17 +50,18 @@ export interface RouteEtaResponse {
 export const geolocationService = {
   async geocode(data: GeocodeRequest): Promise<GeocodeResponse> {
     const addressLine = [data.address, data.city, data.country]
-      .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+      .filter(
+        (part): part is string =>
+          typeof part === "string" && part.trim().length > 0,
+      )
       .join(", ");
 
-    const res = await httpClient.post<
-      {
-        latitude: number;
-        longitude: number;
-        normalizedAddress?: string;
-        formattedAddress?: string;
-      }
-    >("/geo/geocode", { addressLine });
+    const res = await httpClient.post<{
+      latitude: number;
+      longitude: number;
+      normalizedAddress?: string;
+      formattedAddress?: string;
+    }>("/geo/geocode", { addressLine });
 
     return {
       latitude: res.latitude,

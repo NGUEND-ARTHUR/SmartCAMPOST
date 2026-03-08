@@ -104,4 +104,15 @@ export const aiService = {
   ): Promise<DeliveryPredictionResponse> {
     return httpClient.post("/ai/predict-delivery", request);
   },
+
+  /**
+   * Submit feedback for an AI response (fire-and-forget, best-effort)
+   */
+  submitFeedback(payload: {
+    sessionId?: string;
+    messageContent: string;
+    feedback: "positive" | "negative";
+  }): Promise<void> {
+    return httpClient.post("/ai/feedback", payload);
+  },
 };

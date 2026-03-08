@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -160,6 +161,23 @@ public class NotificationServiceImpl implements NotificationService {
                                 .totalPages(notifPage.getTotalPages())
                                 .build();
         }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listMyNotifications(int page, int size) {
+        UserAccount user = getCurrentUser();
+        Page<Notification> notifPage = notificationRepository
+                .findByRecipientPhoneOrderByCreatedAtDesc(user.getPhone(), PageRequest.of(page, size));
+        List<NotificationResponse> content = notifPage.getContent().stream()
+                .map(this::toResponse).collect(Collectors.toList());
+        return com.smartcampost.backend.dto.common.PageResponse.<NotificationResponse>builder()
+                .content(content)
+                .page(notifPage.getNumber())
+                .size(notifPage.getSize())
+                .totalElements(notifPage.getTotalElements())
+                .totalPages(notifPage.getTotalPages())
+                .build();
+    }
 
     @Override
     public NotificationResponse retryNotification(UUID id) {

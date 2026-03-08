@@ -10,8 +10,8 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
-    private Long userId; // courier or agent
+    @Column(name = "user_id", length = 64)
+    private String userId; // courier or agent (UUID string)
 
     @Column(name = "latitude", columnDefinition = "DECIMAL(10,8)")
     private Double latitude;
@@ -30,8 +30,8 @@ public class Location {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public Double getLatitude() { return latitude; }
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }

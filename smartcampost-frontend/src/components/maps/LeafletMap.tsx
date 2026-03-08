@@ -1,25 +1,10 @@
-import React from "react";
-import {
-  Marker,
-  Popup,
-  useMap,
-  Circle,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Popup, Source, Layer, useMap } from "react-map-gl/maplibre";
+import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
+import { LngLatBounds } from "maplibre-gl";
 
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
-
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+import { LAYER_COLORS } from "@/components/maps/core/mapStyles";
 
 export type MapProps = {
   center?: [number, number];
@@ -31,136 +16,67 @@ export type MapProps = {
   showControls?: boolean;
 };
 
-type MarkerItem = { id: string; position: [number, number]; label?: string };
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
-function createClusterIcon(count: number): L.DivIcon {
-  const size = count < 10 ? 34 : count < 100 ? 38 : 44;
-  const fontSize = count < 100 ? 12 : 11;
-  const html = `
-    <div style="
-      width:${size}px;
-      height:${size}px;
-      border-radius:${size}px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:hsl(var(--primary));
-      color:hsl(var(--primary-foreground));
-      border:2px solid hsl(var(--background));
-      box-shadow:0 1px 2px rgba(0,0,0,0.18);
-      font-weight:600;
-      font-size:${fontSize}px;">
-      ${count}
-    </div>`;
-  return L.divIcon({
-    html,
-    className: "smartcampost-cluster",
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
-  });
+/** Build a GeoJSON FeatureCollection from marker array */
+function markersToGeoJSON(
+  markers: NonNullable<MapProps["markers"]>,
+): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: markers.map((m) => ({
+      type: "Feature" as const,
+      geometry: {
+        type: "Point" as const,
+        coordinates: [m.position[1], m.position[0]], // lng, lat
+      },
+      properties: { id: m.id, label: m.label ?? m.id },
+    })),
+  };
 }
 
-function ClusteredMarkers({ markers }: { markers: MarkerItem[] }) {
-  const map = useMap();
-  const [zoom, setZoom] = React.useState(() => map.getZoom());
-
-  React.useEffect(() => {
-    const onZoomEnd = () => setZoom(map.getZoom());
-    map.on("zoomend", onZoomEnd);
-    return () => {
-      map.off("zoomend", onZoomEnd);
-    };
-  }, [map]);
-
-  const { singles, clusters } = React.useMemo(() => {
-    if (markers.length <= 80) {
-      return {
-        singles: markers,
-        clusters: [] as Array<{ key: string; position: [number, number]; count: number }>,
-      };
-    }
-
-    const gridSizePx = 64;
-    const groups = new Map<string, { count: number; sumLat: number; sumLng: number }>();
-
-    for (const m of markers) {
-      const p = map.project(L.latLng(m.position[0], m.position[1]), zoom);
-      const key = `${Math.floor(p.x / gridSizePx)}:${Math.floor(p.y / gridSizePx)}`;
-      const g = groups.get(key);
-      if (!g) {
-        groups.set(key, { count: 1, sumLat: m.position[0], sumLng: m.position[1] });
-      } else {
-        g.count += 1;
-        g.sumLat += m.position[0];
-        g.sumLng += m.position[1];
-      }
-    }
-
-    const clusteredCells = new Set<string>();
-    const nextClusters: Array<{ key: string; position: [number, number]; count: number }> = [];
-    for (const [key, g] of groups.entries()) {
-      if (g.count > 1) {
-        clusteredCells.add(key);
-        nextClusters.push({
-          key,
-          position: [g.sumLat / g.count, g.sumLng / g.count],
-          count: g.count,
-        });
-      }
-    }
-
-    if (nextClusters.length === 0) {
-      return { singles: markers, clusters: [] };
-    }
-
-    const nextSingles: MarkerItem[] = [];
-    for (const m of markers) {
-      const p = map.project(L.latLng(m.position[0], m.position[1]), zoom);
-      const key = `${Math.floor(p.x / gridSizePx)}:${Math.floor(p.y / gridSizePx)}`;
-      if (!clusteredCells.has(key)) nextSingles.push(m);
-    }
-
-    return { singles: nextSingles, clusters: nextClusters };
-  }, [map, markers, zoom]);
-
-  return (
-    <>
-      {clusters.map((c) => (
-        <Marker
-          key={`cluster-${c.key}`}
-          position={c.position}
-          icon={createClusterIcon(c.count)}
-          eventHandlers={{
-            click: () => {
-              const nextZoom = Math.min(map.getMaxZoom() ?? 19, zoom + 2);
-              map.flyTo(c.position, nextZoom, { duration: 0.5 });
-            },
-          }}
-        >
-          <Popup>{c.count} locations</Popup>
-        </Marker>
-      ))}
-      {singles.map((m) => (
-        <Marker key={m.id} position={m.position}>
-          <Popup>{m.label ?? m.id}</Popup>
-        </Marker>
-      ))}
-    </>
-  );
+/** Approximate circle polygon (meters → degrees) */
+function circleGeoJSON(
+  center: [number, number],
+  radiusM: number,
+  points = 64,
+): GeoJSON.Feature {
+  const [lat, lon] = center;
+  const km = radiusM / 1000;
+  const coords: [number, number][] = [];
+  for (let i = 0; i <= points; i++) {
+    const angle = (i / points) * 2 * Math.PI;
+    const dx = km / (111.32 * Math.cos((lat * Math.PI) / 180));
+    const dy = km / 110.574;
+    coords.push([lon + dx * Math.cos(angle), lat + dy * Math.sin(angle)]);
+  }
+  return {
+    type: "Feature",
+    geometry: { type: "Polygon", coordinates: [coords] },
+    properties: {},
+  };
 }
 
+/* ------------------------------------------------------------------ */
+/* FitBounds — auto-zoom to markers                                   */
+/* ------------------------------------------------------------------ */
 function FitBounds({ markers }: { markers?: MapProps["markers"] }) {
-  const map = useMap();
-  React.useEffect(() => {
-    if (!markers || markers.length === 0) return;
-    const bounds = L.latLngBounds(markers.map((m) => m.position));
-    map.fitBounds(bounds.pad(0.5));
+  const { current: map } = useMap();
+  useEffect(() => {
+    if (!markers?.length || !map) return;
+    const bounds = new LngLatBounds();
+    markers.forEach((m) => bounds.extend([m.position[1], m.position[0]]));
+    map.fitBounds(bounds, { padding: 50, duration: 1000 });
   }, [map, markers]);
   return null;
 }
 
-export default function LeafletMap({
+/* ------------------------------------------------------------------ */
+/* LeafletMap — main reusable map with clustering                     */
+/* ------------------------------------------------------------------ */
+function LeafletMapInner({
   center = [3.848, 11.5021],
   zoom = 12,
   height = "400px",
@@ -169,6 +85,59 @@ export default function LeafletMap({
   showSearch = false,
   showControls = true,
 }: MapProps) {
+  const [popupInfo, setPopupInfo] = useState<{
+    longitude: number;
+    latitude: number;
+    label: string;
+  } | null>(null);
+
+  const geojson = useMemo(() => markersToGeoJSON(markers), [markers]);
+
+  const circleData = useMemo(
+    () =>
+      showCircle ? circleGeoJSON(showCircle.center, showCircle.radius) : null,
+    [showCircle],
+  );
+
+  const onClick = useCallback((e: MapLayerMouseEvent) => {
+    const feature = e.features?.[0];
+    if (!feature) return;
+
+    if (feature.layer?.id === "clusters") {
+      // Zoom into clicked cluster
+      const coords = (feature.geometry as GeoJSON.Point).coordinates;
+      const clusterId = feature.properties?.cluster_id;
+      if (clusterId == null) return;
+      // Access underlying map to get expansion zoom
+      const rawMap = (
+        e.target as unknown as { getSource: (id: string) => unknown }
+      ).getSource?.("markers-source") as
+        | {
+            getClusterExpansionZoom: (id: number) => Promise<number>;
+          }
+        | undefined;
+      rawMap?.getClusterExpansionZoom(clusterId).then((zoom: number) => {
+        (e.target as unknown as { easeTo: (o: object) => void }).easeTo?.({
+          center: coords as [number, number],
+          zoom,
+          duration: 500,
+        });
+      });
+    } else if (feature.layer?.id === "unclustered-point") {
+      const [lng, lat] = (feature.geometry as GeoJSON.Point).coordinates;
+      setPopupInfo({
+        longitude: lng,
+        latitude: lat,
+        label: (feature.properties?.label as string) || "",
+      });
+    }
+  }, []);
+
+  const interactiveLayerIds = useMemo(
+    () => (markers.length > 0 ? ["clusters", "unclustered-point"] : undefined),
+    [markers.length],
+  );
+
   return (
     <CameroonMap
       center={center}
@@ -176,12 +145,111 @@ export default function LeafletMap({
       height={height}
       showSearch={showSearch}
       showControls={showControls}
+      onClick={onClick}
+      interactiveLayerIds={interactiveLayerIds}
     >
-      <ClusteredMarkers markers={markers} />
-      {showCircle && (
-        <Circle center={showCircle.center} radius={showCircle.radius} />
+      {/* GPU-powered clustering */}
+      {markers.length > 0 && (
+        <Source
+          id="markers-source"
+          type="geojson"
+          data={geojson}
+          cluster
+          clusterMaxZoom={14}
+          clusterRadius={50}
+        >
+          {/* Cluster circles */}
+          <Layer
+            id="clusters"
+            type="circle"
+            filter={["has", "point_count"]}
+            paint={{
+              "circle-color": LAYER_COLORS.primary,
+              "circle-radius": [
+                "step",
+                ["get", "point_count"],
+                18,
+                10,
+                24,
+                50,
+                30,
+                100,
+                38,
+              ],
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "#ffffff",
+            }}
+          />
+          {/* Cluster count labels */}
+          <Layer
+            id="cluster-count"
+            type="symbol"
+            filter={["has", "point_count"]}
+            layout={{
+              "text-field": "{point_count_abbreviated}",
+              "text-size": 12,
+            }}
+            paint={{
+              "text-color": "#ffffff",
+            }}
+          />
+          {/* Individual markers */}
+          <Layer
+            id="unclustered-point"
+            type="circle"
+            filter={["!", ["has", "point_count"]]}
+            paint={{
+              "circle-color": LAYER_COLORS.primary,
+              "circle-radius": 7,
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "#ffffff",
+            }}
+          />
+        </Source>
       )}
+
+      {/* Circle overlay */}
+      {circleData && (
+        <Source id="circle-source" type="geojson" data={circleData}>
+          <Layer
+            id="circle-fill"
+            type="fill"
+            paint={{
+              "fill-color": LAYER_COLORS.primary,
+              "fill-opacity": 0.15,
+            }}
+          />
+          <Layer
+            id="circle-stroke"
+            type="line"
+            paint={{
+              "line-color": LAYER_COLORS.primary,
+              "line-width": 2,
+            }}
+          />
+        </Source>
+      )}
+
+      {/* Popup */}
+      {popupInfo && (
+        <Popup
+          longitude={popupInfo.longitude}
+          latitude={popupInfo.latitude}
+          onClose={() => setPopupInfo(null)}
+          closeOnClick={false}
+          anchor="bottom"
+          className="maplibre-popup-custom"
+        >
+          <div className="text-sm font-medium text-foreground">
+            {popupInfo.label}
+          </div>
+        </Popup>
+      )}
+
       <FitBounds markers={markers} />
     </CameroonMap>
   );
 }
+
+const LeafletMap = React.memo(LeafletMapInner);
+export default LeafletMap;

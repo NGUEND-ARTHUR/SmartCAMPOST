@@ -144,14 +144,14 @@ export default function CourierManagement() {
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Courier
+              {t("courierManagement.addCourier")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Courier</DialogTitle>
+              <DialogTitle>{t("courierManagement.create.title")}</DialogTitle>
               <DialogDescription>
-                Add a new delivery courier to the system
+                {t("courierManagement.create.subtitle")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -209,13 +209,13 @@ export default function CourierManagement() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={createCourier.isPending}>
                 {createCourier.isPending && (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 )}
-                Create Courier
+                {t("courierManagement.create.action")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -225,7 +225,7 @@ export default function CourierManagement() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>All Couriers</CardTitle>
+            <CardTitle>{t("courierManagement.list.title")}</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -244,12 +244,24 @@ export default function CourierManagement() {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="AVAILABLE">Available</SelectItem>
-                  <SelectItem value="ON_DELIVERY">On Delivery</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  <SelectItem value="ALL">
+                    {t("courierManagement.status.all")}
+                  </SelectItem>
+                  <SelectItem value="ACTIVE">
+                    {t("courierManagement.status.active")}
+                  </SelectItem>
+                  <SelectItem value="AVAILABLE">
+                    {t("courierManagement.status.available")}
+                  </SelectItem>
+                  <SelectItem value="ON_DELIVERY">
+                    {t("courierManagement.status.onDelivery")}
+                  </SelectItem>
+                  <SelectItem value="INACTIVE">
+                    {t("courierManagement.status.inactive")}
+                  </SelectItem>
+                  <SelectItem value="SUSPENDED">
+                    {t("courierManagement.status.suspended")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -263,19 +275,21 @@ export default function CourierManagement() {
           ) : error ? (
             <EmptyState
               icon={Truck}
-              title="Error loading couriers"
+              title={t("courierManagement.list.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : filteredCouriers.length === 0 ? (
             <EmptyState
               icon={Truck}
-              title="No couriers found"
+              title={t("courierManagement.list.emptyTitle")}
               description={
                 searchQuery || statusFilter !== "ALL"
-                  ? "Try adjusting your filters"
-                  : "Add your first courier to get started"
+                  ? t("courierManagement.list.emptyFiltered")
+                  : t("courierManagement.list.emptyDefault")
               }
             />
           ) : (
@@ -283,11 +297,11 @@ export default function CourierManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Courier</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Vehicle</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("courierManagement.list.courier")}</TableHead>
+                    <TableHead>{t("courierManagement.list.phone")}</TableHead>
+                    <TableHead>{t("courierManagement.list.vehicle")}</TableHead>
+                    <TableHead>{t("courierManagement.list.status")}</TableHead>
+                    <TableHead>{t("courierManagement.list.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -313,7 +327,7 @@ export default function CourierManagement() {
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground text-sm">
-                            Not assigned
+                            {t("courierManagement.list.notAssigned")}
                           </span>
                         )}
                       </TableCell>
@@ -338,13 +352,21 @@ export default function CourierManagement() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ACTIVE">Active</SelectItem>
-                            <SelectItem value="AVAILABLE">Available</SelectItem>
-                            <SelectItem value="ON_DELIVERY">
-                              On Delivery
+                            <SelectItem value="ACTIVE">
+                              {t("courierManagement.status.active")}
                             </SelectItem>
-                            <SelectItem value="INACTIVE">Inactive</SelectItem>
-                            <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                            <SelectItem value="AVAILABLE">
+                              {t("courierManagement.status.available")}
+                            </SelectItem>
+                            <SelectItem value="ON_DELIVERY">
+                              {t("courierManagement.status.onDelivery")}
+                            </SelectItem>
+                            <SelectItem value="INACTIVE">
+                              {t("courierManagement.status.inactive")}
+                            </SelectItem>
+                            <SelectItem value="SUSPENDED">
+                              {t("courierManagement.status.suspended")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -360,10 +382,10 @@ export default function CourierManagement() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -371,7 +393,7 @@ export default function CourierManagement() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

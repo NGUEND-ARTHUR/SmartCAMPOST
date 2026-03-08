@@ -47,6 +47,7 @@
     "optional": "Optional",
     "noData": "No data available",
     "tryAgain": "Try again",
+    "featureUnavailable": "This feature is not yet available.",
     "view": "View",
     "details": "Details",
     "description": "Description",
@@ -60,7 +61,18 @@
     "noResults": "No results found",
     "selectAll": "Select All",
     "pageOf": "Page {{page}} of {{total}}",
-    "errorOccurred": "An error occurred"
+    "errorOccurred": "An error occurred",
+    "errorLoading": "Error loading data",
+    "export": "Export",
+    "inProgress": "In Progress",
+    "manage": "Manage",
+    "parcel": "Parcel",
+    "action": "Action",
+    "customer": "Customer",
+    "dismiss": "Dismiss",
+    "processing": "Processing…",
+    "notScheduled": "Not scheduled",
+    "unknown": "Unknown"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -215,7 +227,13 @@
       "title": "Admin Dashboard",
       "systemOverview": "System Overview",
       "userStats": "User Statistics",
-      "revenueStats": "Revenue Statistics"
+      "revenueStats": "Revenue Statistics",
+      "financeDashboard": "Finance Dashboard",
+      "createFinance": "Create Finance",
+      "riskDashboard": "Risk Dashboard",
+      "createRisk": "Create Risk",
+      "liveScans": "Live Scans",
+      "waitingForScans": "Waiting for scan events\u2026"
     },
     "finance": {
       "title": "Finance Dashboard",
@@ -315,6 +333,18 @@
       "description": "Description",
       "expectedDelivery": "Expected Delivery:",
       "na": "N/A",
+      "addresses": "Addresses",
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "trackingMap": "Tracking Map",
+      "trackingMapDescription": "Complete route history of this parcel",
+      "trackingTimeline": "Tracking Timeline",
+      "trackingTimelineDescription": "Complete history of scan and status events",
+      "codPayment": "COD Payment",
+      "codPaymentDescription": "Cash on delivery payment status",
+      "amountDue": "Amount Due",
+      "alreadyPaid": "Already Paid",
+      "markCodAsPaid": "Mark COD as Paid",
       "actions": {
         "viewPhoto": "View Photo",
         "downloadReceipt": "Download Receipt",
@@ -322,7 +352,14 @@
         "accept": "Accept",
         "validateAccept": "Validate & Accept",
         "validateLock": "Validate & Lock (Final QR)",
-        "cancel": "Cancel Parcel"
+        "cancel": "Cancel Parcel",
+        "noPhotoAvailable": "No photo available for this parcel",
+        "noReceiptAvailable": "No receipt available for this parcel",
+        "receiptDownloadFailed": "Failed to download receipt"
+      },
+      "timeline": {
+        "unknownAgent": "Unknown agent",
+        "viewProof": "View proof photo"
       }
     },
     "prompts": {
@@ -338,7 +375,9 @@
       "validateLockFailed": "Validate & Lock failed",
       "cancelled": "Parcel cancelled",
       "cancelledDescription": "Parcel {{trackingRef}}",
-      "cancelFailed": "Failed to cancel parcel"
+      "cancelFailed": "Failed to cancel parcel",
+      "codMarkedPaid": "COD marked as paid successfully",
+      "codPaymentFailed": "Failed to mark COD as paid"
     },
     "trackingNumber": "Tracking Number",
     "sender": "Sender",
@@ -390,7 +429,9 @@
       "editTitle": "Edit Address",
       "editDescription": "Update the address details below",
       "addAction": "Add Address",
-      "updateAction": "Update Address"
+      "updateAction": "Update Address",
+      "updating": "Updating...",
+      "adding": "Adding..."
     },
     "form": {
       "label": "Label *",
@@ -418,7 +459,12 @@
       "updated": "Address updated successfully",
       "added": "Address added successfully",
       "deleted": "Address deleted successfully"
-    }
+    },
+    "tabs": {
+      "form": "Address Details",
+      "map": "Location on Map"
+    },
+    "loading": "Loading addresses..."
   },
   "pickups": {
     "title": "Pickups",
@@ -461,8 +507,20 @@
         "requiredFields": "Please fill in all required fields",
         "invalidLatLng": "Please provide valid latitude/longitude",
         "requestSubmitted": "Pickup request submitted successfully!",
-        "createFailed": "Failed to create pickup"
-      }
+        "createFailed": "Failed to create pickup",
+        "cancelled": "Pickup cancelled successfully",
+        "cancelFailed": "Failed to cancel pickup"
+      },
+      "submitRequest": "Submit Request",
+      "errorTitle": "Error loading pickups",
+      "noPickups": "No pickup requests",
+      "noPickupsDescription": "Schedule a pickup for your parcels",
+      "pickupId": "Pickup #{{id}}",
+      "parcelLabel": "Parcel:",
+      "courierLabel": "Courier:",
+      "instructionsLabel": "Instructions:",
+      "requestedOn": "Requested on",
+      "viewDetails": "View Details"
     },
     "management": {
       "title": "Pickups Management",
@@ -519,6 +577,31 @@
       "cancelled": "Cancelled"
     }
   },
+  "pickupDetail": {
+    "backToPickups": "\u2190 Back to Pickups",
+    "title": "Pickup Detail",
+    "loading": "Loading pickup details...",
+    "loadFailed": "Failed to load pickup details",
+    "information": "Pickup Information",
+    "requester": "Requester",
+    "scheduled": "Scheduled",
+    "location": "Location",
+    "instructions": "Instructions",
+    "itemsToPickup": "Items to Pick Up",
+    "parcel": "Parcel",
+    "capturePhoto": "\ud83d\udcf7 Capture Photo",
+    "addSignature": "\u270d\ufe0f Add Signature",
+    "photoProof": "Photo Proof",
+    "retakePhoto": "Retake Photo",
+    "takePhoto": "Take Photo",
+    "customerSignature": "Customer Signature",
+    "customerNamePlaceholder": "Customer Name",
+    "askCustomerToSign": "Ask the customer to sign below",
+    "completePickup": "Complete Pickup",
+    "pickupConfirmed": "\u2705 Pickup Confirmed",
+    "pickupRecordedSuccess": "Pickup has been recorded successfully.",
+    "returningToList": "Returning to pickup list..."
+  },
   "deliveries": {
     "title": "Deliveries",
     "confirmDelivery": "Confirm Delivery",
@@ -536,8 +619,13 @@
       "listView": "List View",
       "errorTitle": "Error loading deliveries",
       "deliveryLocation": "Delivery location {{index}}",
+      "noDeliveries": "No deliveries",
+      "noDeliveriesDescription": "Deliveries assigned to you will appear here",
+      "recipient": "Recipient",
+      "unknownDestination": "Unknown destination",
       "toasts": {
-        "markedComplete": "Delivery {{id}} marked as complete"
+        "markedComplete": "Delivery {{id}} marked as complete",
+        "completeFailed": "Failed to complete delivery"
       }
     },
     "confirm": {
@@ -584,10 +672,36 @@
   },
   "payments": {
     "title": "Payments",
+    "subtitle": "View and manage your payment history",
     "amount": "Amount",
     "paymentMethod": "Payment Method",
     "transactionId": "Transaction ID",
     "paymentDate": "Payment Date",
+    "totalPaid": "Total Paid",
+    "successfulPayments": "successful payments",
+    "pending": "Pending",
+    "pendingPayments": "pending payments",
+    "totalTransactions": "Total Transactions",
+    "allTime": "All time",
+    "searchPlaceholder": "Search by payment or parcel ID...",
+    "filterByStatus": "Filter by status",
+    "errorTitle": "Error loading payments",
+    "noPayments": "No payments found",
+    "adjustFilters": "Try adjusting your search or filters",
+    "emptyDescription": "Payment transactions will appear here",
+    "table": {
+      "paymentId": "Payment ID",
+      "parcel": "Parcel",
+      "method": "Method",
+      "date": "Date"
+    },
+    "filters": {
+      "all": "All Status",
+      "success": "Success",
+      "pending": "Pending",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
     "status": {
       "pending": "Pending",
       "completed": "Completed",
@@ -712,6 +826,10 @@
   },
   "notifications": {
     "title": "Notifications",
+    "subtitle": "Logs and templates",
+    "logs": "Logs",
+    "noLogs": "No logs loaded",
+    "noLogsDescription": "Notification logs will appear here when available",
     "markAsRead": "Mark as read",
     "markAllAsRead": "Mark all as read",
     "noNotifications": "No notifications",
@@ -723,6 +841,11 @@
       "pickupRequested": "Pickup Requested",
       "pickupCompleted": "Pickup Completed"
     }
+  },
+  "locationPicker": {
+    "invalidCoordinates": "Please enter valid coordinates",
+    "latitudeOutOfRange": "Latitude must be between -90 and 90",
+    "longitudeOutOfRange": "Longitude must be between -180 and 180"
   },
   "users": {
     "staff": {
@@ -805,10 +928,235 @@
       "updateFailed": "Failed to update integration"
     }
   },
+  "agentDashboard": {
+    "title": "Agent Dashboard",
+    "subtitle": "Your pickups, deliveries and scanning tasks",
+    "openScanConsole": "Open Scan Console",
+    "loadingTasks": "Loading your tasks...",
+    "pending": "Pending",
+    "pendingDesc": "Tasks awaiting start",
+    "inProgress": "In Progress",
+    "inProgressDesc": "Active jobs",
+    "completedToday": "Completed Today",
+    "completedTodayDesc": "Done tasks",
+    "taskQueue": "Today's Task Queue",
+    "task": "Task",
+    "parcel": "Parcel",
+    "location": "Location",
+    "scheduled": "Scheduled",
+    "status": "Status",
+    "action": "Action",
+    "viewParcel": "View Parcel",
+    "failedLoadTasks": "Failed to load tasks",
+    "welcome": "Agent Dashboard",
+    "overview": "Manage your assigned tasks and parcels",
+    "scanParcel": "Scan Parcel",
+    "pendingTasks": "Pending Tasks",
+    "pendingTasksDesc": "Tasks awaiting start",
+    "avgDeliveryTimeDesc": "Currently active",
+    "deliveryRate": "Completed",
+    "deliveryRateDesc": "Tasks done today",
+    "recentAssignments": "Recent Assignments",
+    "parcelId": "Task Type",
+    "destination": "Location",
+    "assignedDate": "Scheduled Date",
+    "viewAll": "View"
+  },
+  "courierDashboard": {
+    "title": "Courier Dashboard",
+    "subtitle": "Your pickups, deliveries and route overview",
+    "scheduled": "Scheduled:",
+    "customer": "Customer",
+    "startTask": "Start Task",
+    "viewDetails": "View Details",
+    "noTasksFound": "No tasks found",
+    "noTasksMessage": "No {{filter}} tasks available right now",
+    "stats": {
+      "pendingPickups": "Pending Pickups",
+      "pendingDeliveries": "Pending Deliveries",
+      "completedToday": "Completed Today",
+      "distanceKm": "Distance (km)"
+    },
+    "tabs": {
+      "allTasks": "All Tasks ({{count}})",
+      "pickups": "Pickups ({{count}})",
+      "deliveries": "Deliveries ({{count}})"
+    },
+    "actions": {
+      "goToPickups": "Go to Pickups",
+      "goToDeliveries": "Go to Deliveries"
+    }
+  },
+  "staffDashboard": {
+    "title": "Staff Dashboard",
+    "subtitle": "Operations staffing, roles and workload overview",
+    "totalStaff": "Total Staff",
+    "allDepartments": "All departments",
+    "active": "Active",
+    "currentlyOnDuty": "Currently on duty",
+    "agents": "Agents",
+    "fieldOperations": "Field operations",
+    "searchPlaceholder": "Search staff by name or ID…",
+    "export": "Export",
+    "manage": "Manage",
+    "allRoles": "All Roles",
+    "errorTitle": "Error loading staff",
+    "emptyTitle": "No staff found",
+    "emptyFiltered": "Try adjusting your filters",
+    "emptyDefault": "Staff will appear here",
+    "staff": "Staff",
+    "role": "Role",
+    "status": "Status",
+    "email": "Email",
+    "action": "Action"
+  },
+  "financeDashboard": {
+    "title": "Finance Dashboard",
+    "subtitle": "Revenue, payment performance and reconciliation snapshot",
+    "totalRevenue": "Total Revenue",
+    "successfulPayments": "Successful payments",
+    "pendingAmount": "Pending Amount",
+    "awaitingConfirmation": "Awaiting confirmation",
+    "successRate": "Success",
+    "failedRate": "Failed",
+    "needsFollowUp": "Needs follow-up",
+    "recentTransactions": "Recent Transactions",
+    "noTransactions": "No transactions",
+    "transactionsAppear": "Transactions will appear here",
+    "transaction": "Transaction",
+    "amount": "Amount",
+    "method": "Method",
+    "status": "Status",
+    "date": "Date"
+  },
+  "riskDashboard": {
+    "title": "Risk Dashboard",
+    "subtitle": "Fraud signals, exceptions and operational risk alerts",
+    "openAlerts": "Open Alerts",
+    "requiresTriage": "Requires triage",
+    "investigating": "Investigating",
+    "critical": "Critical",
+    "highestSeverity": "Highest severity",
+    "resolved": "Resolved",
+    "closedItems": "Closed items",
+    "riskAlerts": "Risk Alerts",
+    "noAlerts": "No risk alerts",
+    "alertsAppear": "Risk alerts will appear here",
+    "type": "Type",
+    "severity": "Severity",
+    "description": "Description",
+    "status": "Status",
+    "date": "Date",
+    "action": "Action",
+    "investigate": "Investigate",
+    "dismiss": "Dismiss",
+    "tracking": "Tracking:",
+    "viewAllAlerts": "View All Alerts →"
+  },
+  "adminFinanceDashboard": {
+    "title": "Finance Dashboard",
+    "subtitle": "Monitor payments, revenue, and refunds",
+    "totalRevenue": "Total Revenue",
+    "vsLastMonth": "vs last month",
+    "pendingPayments": "Pending Payments",
+    "awaitingProcessing": "Awaiting processing",
+    "completedPayments": "Completed Payments",
+    "successfullyProcessed": "Successfully processed",
+    "pendingRefunds": "Pending Refunds",
+    "awaitingApproval": "Awaiting approval",
+    "revenueTrend": "Revenue Trend",
+    "paymentMethods": "Payment Methods",
+    "recentTransactions": "Recent Transactions",
+    "transaction": "Transaction",
+    "amount": "Amount",
+    "method": "Method",
+    "status": "Status",
+    "date": "Date"
+  },
+  "adminRiskDashboard": {
+    "title": "Risk Management Dashboard",
+    "subtitle": "Monitor and manage security alerts and compliance",
+    "activeAlerts": "Active Alerts",
+    "resolvedAlerts": "Resolved Alerts",
+    "complianceScore": "Compliance Score",
+    "fraudDetected": "Fraud Detected",
+    "weeklyAlertTrend": "Weekly Alert Trend",
+    "alertsByType": "Alerts by Type",
+    "recentRiskAlerts": "Recent Risk Alerts",
+    "viewAllAlerts": "View All Alerts →",
+    "investigate": "Investigate",
+    "dismiss": "Dismiss",
+    "tracking": "Tracking:"
+  },
+  "createFinancePage": {
+    "title": "Create Finance",
+    "name": "Name",
+    "namePlaceholder": "Finance name",
+    "description": "Description",
+    "descriptionPlaceholder": "Description of the finance entry",
+    "initialBalance": "Initial Balance",
+    "initialBalancePlaceholder": "0.00",
+    "creating": "Creating...",
+    "create": "Create Finance",
+    "success": "Finance created successfully!",
+    "requiredFields": "All fields are required and initial balance must be a number.",
+    "createFailed": "Failed to create finance entry"
+  },
+  "createRiskPage": {
+    "title": "Create Risk Alert",
+    "type": "Type",
+    "typePlaceholder": "e.g., FRAUD, COMPLIANCE",
+    "severity": "Severity",
+    "severityPlaceholder": "e.g., HIGH, MEDIUM, LOW",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the risk alert",
+    "creating": "Creating...",
+    "create": "Create Risk Alert",
+    "success": "Risk alert created successfully!",
+    "requiredFields": "All fields are required",
+    "createFailed": "Failed to create risk alert"
+  },
   "staffManagement": {
     "title": "Staff Management",
     "subtitle": "Manage staff and courier accounts",
+    "addStaff": "Add Staff",
     "fullName": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "phone": "Phone",
+    "phonePlaceholder": "+237 6XX XXX XXX",
+    "email": "Email",
+    "emailPlaceholder": "staff@campost.cm",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "role": "Role",
+    "selectRole": "Select a role",
+    "vehicleId": "Vehicle ID (optional)",
+    "vehicleIdPlaceholder": "VH-XXXXX (auto-generated if empty)",
+    "agencyOptional": "Agency (optional)",
+    "selectAgency": "Select agency",
+    "create": {
+      "title": "Create New Staff Member",
+      "subtitle": "Add a new staff member or administrator to the system",
+      "actionStaff": "Create Staff",
+      "actionCourier": "Create Courier"
+    },
+    "list": {
+      "title": "All Staff Members & Couriers",
+      "searchPlaceholder": "Search...",
+      "member": "Member",
+      "contact": "Contact",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions",
+      "errorTitle": "Error loading staff",
+      "emptyTitle": "No staff or couriers found",
+      "emptyFiltered": "Try adjusting your filters",
+      "emptyDefault": "Add your first staff member or courier to get started"
+    },
+    "filter": {
+      "allRoles": "All Roles",
+      "allStatus": "All Status"
+    },
     "requiredFields": "Please fill in all required fields",
     "courierCreated": "Courier created successfully",
     "failedCreateCourier": "Failed to create courier",
@@ -823,17 +1171,32 @@
     }
   },
   "riskAlerts": {
+    "title": "Risk Alerts",
+    "subtitle": "Review suspicious activity and operational risk signals.",
+    "alertsTitle": "Alerts",
+    "alertsDescription": "New and escalated alerts appear here.",
+    "table": {
+      "severity": "Severity",
+      "description": "Description",
+      "user": "User",
+      "parcel": "Parcel",
+      "created": "Created"
+    },
+    "states": {
+      "errorTitle": "Error loading alerts",
+      "emptyTitle": "No alerts yet",
+      "emptyDescription": "Risk alerts will appear here when detected."
+    },
+    "status": {
+      "resolved": "RESOLVED",
+      "open": "OPEN"
+    },
+    "actions": {
+      "freeze": "Freeze"
+    },
     "toasts": {
       "userFrozen": "User account frozen",
       "freezeFailed": "Failed to freeze user"
-    }
-  },
-  "compliance": {
-    "toasts": {
-      "alertResolved": "Alert resolved",
-      "resolveFailed": "Failed to resolve",
-      "reportStarted": "Report generation started",
-      "reportFailed": "Failed to generate report"
     }
   },
   "userAccounts": {
@@ -892,6 +1255,13 @@
       "qr": "Scan QR"
     },
     "numberPlaceholder": "Enter tracking number",
+    "lookup": "Lookup",
+    "tracking": "Tracking",
+    "status": "Status",
+    "lastNote": "Last note",
+    "timeline": "Timeline",
+    "map": "Map",
+    "audit": "Audit",
     "toasts": {
       "notFound": "Tracking not found",
       "invalidQr": "Unable to track with this QR"
@@ -948,8 +1318,34 @@
   },
   "compliance": {
     "title": "Compliance",
-    "subtitle": "Regulatory compliance and reporting",
-    "generateReport": "Generate Report"
+    "subtitle": "Compliance alerts and reports",
+    "generateReport": "Generate Report",
+    "alertsTitle": "Compliance Alerts",
+    "table": {
+      "alertId": "Alert ID",
+      "type": "Type",
+      "severity": "Severity",
+      "description": "Description",
+      "created": "Created"
+    },
+    "states": {
+      "errorTitle": "Error loading alerts",
+      "emptyTitle": "No compliance alerts",
+      "emptyDescription": "All clear! No compliance issues detected."
+    },
+    "status": {
+      "resolved": "Resolved",
+      "open": "Open"
+    },
+    "actions": {
+      "resolve": "Resolve"
+    },
+    "toasts": {
+      "alertResolved": "Alert resolved",
+      "resolveFailed": "Failed to resolve",
+      "reportStarted": "Report generation started",
+      "reportFailed": "Failed to generate report"
+    }
   },
   "risk": {
     "title": "Risk Alerts",
@@ -979,14 +1375,17 @@
     "defaultLocation": "Agency Counter",
     "status": {
       "created": "Created",
-      "atOriginAgency": "At Origin Agency",
+      "atOriginAgency": "At Origin Agency (Drop-off)",
+      "takenInCharge": "Taken In Charge (Pickup)",
       "inTransit": "In Transit",
       "arrivedHub": "Arrived at Hub",
       "departedHub": "Departed Hub",
       "arrivedDestination": "Arrived at Destination",
       "outForDelivery": "Out for Delivery",
       "delivered": "Delivered",
-      "returned": "Returned"
+      "pickedUpAtAgency": "Picked Up at Agency",
+      "returned": "Returned",
+      "deliveryFailed": "Delivery Failed"
     },
     "error": {
       "enterTrackingNumber": "Please enter a tracking number",
@@ -1033,7 +1432,8 @@
     "loadingFailed": "Failed to load data. Please refresh the page.",
     "saveFailed": "Failed to save. Please try again.",
     "deleteFailed": "Failed to delete. Please try again.",
-    "permissionDenied": "You do not have permission to perform this action."
+    "permissionDenied": "You do not have permission to perform this action.",
+    "otpRequired": "Please send and enter the OTP code first"
   },
   "messages": {
     "saveSuccess": "Saved successfully",
@@ -1088,6 +1488,471 @@
     "stopTypes": {
       "pickup": "Pickup",
       "delivery": "Delivery"
+    }
+  },
+  "agents": {
+    "title": "Agent Management",
+    "subtitle": "Manage agents and their agencies",
+    "add": "Add Agent",
+    "create": {
+      "title": "Create New Agent",
+      "subtitle": "Add a new postal agent to the system",
+      "action": "Create Agent",
+      "success": "Agent created successfully",
+      "error": "Failed to create agent"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter full name",
+      "phone": "Phone",
+      "phonePlaceholder": "+237 6XX XXX XXX",
+      "email": "Email",
+      "emailPlaceholder": "agent@campost.cm",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "assignAgency": "Assign to Agency",
+      "selectAgencyPlaceholder": "Select an agency",
+      "requiredFields": "Please fill in all required fields"
+    },
+    "list": {
+      "title": "All Agents",
+      "searchPlaceholder": "Search agents...",
+      "statusPlaceholder": "Filter by status",
+      "agent": "Agent",
+      "contact": "Contact",
+      "agency": "Agency",
+      "status": "Status",
+      "actions": "Actions",
+      "errorTitle": "Error loading agents",
+      "emptyTitle": "No agents found",
+      "emptyFiltered": "Try adjusting your search or filters",
+      "emptyDefault": "Add your first agent to get started"
+    },
+    "status": {
+      "all": "All Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended",
+      "updated": "Agent status updated to {{status}}",
+      "error": "Failed to update agent status"
+    },
+    "assign": {
+      "title": "Assign Agent to Agency",
+      "subtitle": "Select the agency to assign this agent to",
+      "action": "Assign to Agency",
+      "selectAgency": "Please select an agency",
+      "success": "Agent assigned to agency successfully",
+      "error": "Failed to assign agent to agency"
+    }
+  },
+  "agencies": {
+    "title": "Agency Management",
+    "subtitle": "Manage postal agencies and locations",
+    "add": "Add Agency",
+    "create": {
+      "title": "Create New Agency",
+      "subtitle": "Add a new postal agency to the system",
+      "action": "Create Agency",
+      "success": "Agency created successfully",
+      "error": "Failed to create agency"
+    },
+    "update": {
+      "title": "Edit Agency",
+      "subtitle": "Update the agency details",
+      "action": "Update Agency",
+      "success": "Agency updated successfully",
+      "error": "Failed to update agency"
+    },
+    "form": {
+      "name": "Agency Name",
+      "namePlaceholder": "e.g., Yaounde Central Post",
+      "code": "Agency Code",
+      "codePlaceholder": "e.g., YDE-001",
+      "address": "Street Address",
+      "addressPlaceholder": "Street address",
+      "city": "City",
+      "cityPlaceholder": "e.g., Yaounde",
+      "region": "Region",
+      "regionPlaceholder": "e.g., Centre",
+      "country": "Country",
+      "countryPlaceholder": "e.g., Cameroon",
+      "phone": "Phone",
+      "phonePlaceholder": "+237 XXX XXX XXX",
+      "email": "Email",
+      "emailPlaceholder": "agency@campost.cm",
+      "requiredFields": "Agency name is required"
+    },
+    "list": {
+      "title": "All Agencies",
+      "searchPlaceholder": "Search agencies...",
+      "agency": "Agency",
+      "location": "Location",
+      "contact": "Contact",
+      "status": "Status",
+      "actions": "Actions",
+      "errorTitle": "Error loading agencies",
+      "emptyTitle": "No agencies found",
+      "emptyFiltered": "Try adjusting your search",
+      "emptyDefault": "Add your first agency to get started"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "courierManagement": {
+    "title": "Courier Management",
+    "subtitle": "Manage delivery couriers",
+    "addCourier": "Add Courier",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter full name",
+    "phone": "Phone",
+    "phonePlaceholder": "+237 6XX XXX XXX",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "vehicleIdOptional": "Vehicle ID (optional)",
+    "vehicleIdPlaceholder": "e.g., VH-ABC123",
+    "searchPlaceholder": "Search couriers...",
+    "statusPlaceholder": "Filter by status",
+    "requiredFields": "Please fill in all required fields",
+    "courierCreated": "Courier created successfully",
+    "failedCreateCourier": "Failed to create courier",
+    "statusUpdated": "Courier status updated to {{status}}",
+    "failedUpdateStatus": "Failed to update status",
+    "create": {
+      "title": "Create New Courier",
+      "subtitle": "Add a new delivery courier to the system",
+      "action": "Create Courier"
+    },
+    "list": {
+      "title": "All Couriers",
+      "courier": "Courier",
+      "phone": "Phone",
+      "vehicle": "Vehicle",
+      "status": "Status",
+      "actions": "Actions",
+      "notAssigned": "Not assigned",
+      "errorTitle": "Error loading couriers",
+      "emptyTitle": "No couriers found",
+      "emptyFiltered": "Try adjusting your filters",
+      "emptyDefault": "Add your first courier to get started"
+    },
+    "status": {
+      "all": "All Status",
+      "active": "Active",
+      "available": "Available",
+      "onDelivery": "On Delivery",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    }
+  },
+  "clientManagement": {
+    "title": "Client Management",
+    "subtitle": "View and manage registered client accounts",
+    "searchPlaceholder": "Search by name, phone or email...",
+    "errorLoading": "Error loading clients",
+    "noClientsFound": "No clients found",
+    "tryAdjustingSearch": "Try adjusting your search",
+    "registeredClientsAppearHere": "Registered clients will appear here",
+    "clientDetails": "Client Details",
+    "viewClientInformation": "View detailed client information",
+    "clientNotFound": "Client not found",
+    "list": {
+      "title": "All Clients",
+      "client": "Client",
+      "phone": "Phone",
+      "email": "Email",
+      "language": "Language",
+      "joined": "Joined",
+      "actions": "Actions",
+      "view": "View"
+    },
+    "detail": {
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "preferredLanguage": "Preferred Language",
+      "clientId": "Client ID",
+      "userId": "User ID",
+      "registeredOn": "Registered on"
+    }
+  },
+  "tariffManagement": {
+    "title": "Tariff Management",
+    "subtitle": "Configure pricing tariffs for parcel services",
+    "addTariff": "Add Tariff",
+    "createTitle": "Create New Tariff",
+    "createDescription": "Define a new pricing tariff for parcel services",
+    "tariffName": "Tariff Name",
+    "serviceType": "Service Type",
+    "currency": "Currency",
+    "originZone": "Origin Zone",
+    "destinationZone": "Destination Zone",
+    "weightBracket": "Weight Bracket",
+    "basePrice": "Base Price",
+    "pricePerKg": "Price per Kg",
+    "namePlaceholder": "e.g., Standard Domestic",
+    "originPlaceholder": "e.g., YAOUNDE",
+    "destinationPlaceholder": "e.g., DOUALA",
+    "standard": "Standard",
+    "express": "Express",
+    "weight0_5": "0-5 kg",
+    "weight5_10": "5-10 kg",
+    "weight10_20": "10-20 kg",
+    "weight20_50": "20-50 kg",
+    "weight50plus": "50+ kg",
+    "createTariff": "Create Tariff",
+    "allTariffs": "All Tariffs",
+    "allTypes": "All Types",
+    "errorLoading": "Error loading tariffs",
+    "noTariffs": "No tariffs found",
+    "noTariffsDescription": "Create your first tariff to get started",
+    "price": "Price",
+    "actions": "Actions",
+    "previous": "Previous",
+    "pageOf": "Page {{current}} of {{total}}",
+    "next": "Next",
+    "editTitle": "Edit Tariff",
+    "editDescription": "Update tariff price",
+    "priceXAF": "Price (XAF)",
+    "saveChanges": "Save Changes"
+  },
+  "integrationManagement": {
+    "title": "Integration Management",
+    "subtitle": "Configure external service integrations (SMS, Payments, Maps, etc.)",
+    "addIntegration": "Add Integration",
+    "createTitle": "Create New Integration",
+    "createDescription": "Add a new external service integration",
+    "configType": "Config Type",
+    "providerName": "Provider Name",
+    "baseUrl": "Base URL",
+    "apiKey": "API Key",
+    "active": "Active",
+    "inactive": "Inactive",
+    "providerPlaceholder": "e.g., Orange Money, Twilio",
+    "baseUrlPlaceholder": "https://api.provider.com",
+    "apiKeyPlaceholder": "••••••••",
+    "createIntegration": "Create Integration",
+    "allIntegrations": "All Integrations",
+    "errorLoading": "Error loading integrations",
+    "noIntegrations": "No integrations configured",
+    "noIntegrationsDescription": "Add your first integration to connect external services",
+    "type": "Type",
+    "provider": "Provider",
+    "status": "Status",
+    "actions": "Actions",
+    "previous": "Previous",
+    "pageOf": "Page {{current}} of {{total}}",
+    "next": "Next",
+    "editTitle": "Edit Integration",
+    "editDescription": "Update integration configuration",
+    "saveChanges": "Save Changes"
+  },
+  "userAccountManagement": {
+    "title": "User Account Management",
+    "subtitle": "View all user accounts and manage account freeze status",
+    "allAccounts": "All User Accounts",
+    "searchPlaceholder": "Search users...",
+    "allRoles": "All Roles",
+    "client": "Client",
+    "agent": "Agent",
+    "courier": "Courier",
+    "staff": "Staff",
+    "admin": "Admin",
+    "finance": "Finance",
+    "risk": "Risk",
+    "errorLoading": "Error loading users",
+    "noUsersFound": "No users found",
+    "filterHint": "Try adjusting your filters",
+    "noAccountsYet": "No user accounts exist yet",
+    "user": "User",
+    "contact": "Contact",
+    "role": "Role",
+    "status": "Status",
+    "created": "Created",
+    "actions": "Actions",
+    "frozen": "Frozen",
+    "activeStatus": "Active",
+    "unfreeze": "Unfreeze",
+    "freeze": "Freeze"
+  },
+  "roles": {
+    "staff": "Staff",
+    "admin": "Administrator",
+    "finance": "Finance",
+    "riskManager": "Risk Manager",
+    "courier": "Courier",
+    "agent": "Agent",
+    "client": "Client"
+  },
+  "qrCodePage": {
+    "title": "Parcel QR Code",
+    "subtitle": "Scan or share this QR code for tracking",
+    "shareText": "Track parcel {{trackingRef}} on SmartCAMPOST",
+    "linkCopied": "Tracking link copied to clipboard",
+    "copyFailed": "Failed to copy link",
+    "shareTracking": "Share Tracking Link"
+  },
+  "chatbot": {
+    "title": "SmartBot",
+    "subtitle": "AI Assistant • Online",
+    "inputPlaceholder": "Type your message...",
+    "disclaimer": "Powered by SmartCAMPOST AI • Responses may not always be accurate",
+    "welcome": {
+      "guest": "Hello! \uD83D\uDC4B I'm SmartBot, your AI assistant.\n\nI can help you with:\n- \uD83D\uDCE6 Tracking parcels\n- \uD83D\uDCB0 Pricing & payments\n- \uD83D\uDE9A Delivery information\n- \uD83D\uDCCD Agency locations\n\nHow can I assist you today?",
+      "client": "Hello {{name}}! \uD83D\uDC4B Welcome to SmartCAMPOST.\n\nI can help you with:\n- \uD83D\uDCE6 Track your parcels in real-time\n- \uD83D\uDCB0 Get instant shipping quotes\n- \uD83D\uDE9A Schedule pickups and deliveries\n- \uD83D\uDCCD Find our agency locations\n\nWhat do you need help with today?",
+      "courier": "Welcome back, {{name}}! \uD83D\uDE9A\n\nI'm here to help you with:\n- \uD83D\uDCCD Optimize your delivery route\n- \uD83D\uDCE6 View your assigned parcels\n- \uD83D\uDCB0 Cash collection support\n- \uD83D\uDCCA Performance analytics\n\nWhat do you need?",
+      "agencyAdmin": "Welcome, Agency Manager \uD83C\uDFE2\n\nI can assist you with:\n- \uD83D\uDCE6 Parcel inventory management\n- \uD83D\uDC65 Staff and courier management\n- \uD83D\uDCCA Performance analytics & reports\n- \u26A0\uFE0F Alert management\n\nWhat do you need today?",
+      "admin": "Welcome, System Administrator \u2699\uFE0F\n\nI can help you with:\n- \uD83C\uDF10 System-wide analytics & monitoring\n- \uD83D\uDC65 User account management\n- \uD83C\uDFE2 Agency management\n- \uD83D\uDCB0 Tariff & pricing configuration\n- \uD83D\uDCCB Compliance & risk reports\n- \uD83D\uDD27 System status & health checks\n\nWhat do you need?",
+      "staff": "Welcome, {{name}}! \uD83C\uDFE2\n\nI can help you with:\n- \uD83D\uDCE6 Parcel processing & management\n- \uD83D\uDE9A Delivery coordination\n- \uD83D\uDCCA Performance analytics\n- \uD83D\uDCB3 Invoice & payment oversight\n- \uD83C\uDFAB Support ticket management\n\nWhat do you need today?",
+      "finance": "Welcome, Finance Manager \uD83D\uDCB0\n\nI can help you with:\n- \uD83D\uDCCA Revenue analytics & trends\n- \uD83D\uDCB0 Tariff & pricing management\n- \uD83E\uDDFE Invoice oversight & reconciliation\n- \uD83D\uDCCB Financial reports & exports\n- \uD83D\uDCB3 Payment tracking\n\nWhat can I help you with?",
+      "risk": "Welcome, Risk Analyst \uD83D\uDEE1\uFE0F\n\nI can help you with:\n- \u26A0\uFE0F Fraud detection & alerts\n- \uD83D\uDCCA Risk scoring & analytics\n- \uD83D\uDD0D Anomaly monitoring\n- \uD83D\uDCCB Compliance audits\n- \uD83D\uDD12 Security assessments\n\nWhat do you need?",
+      "default": "Hello! \uD83D\uDC4B I'm SmartBot, your AI assistant.\n\nI can help you with:\n- \uD83D\uDCE6 Tracking parcels\n- \uD83D\uDCB0 Pricing & payments\n- \uD83D\uDE9A Delivery information\n\nWhat can I help you with?"
+    },
+    "suggestions": {
+      "trackParcel": "Track my parcel",
+      "pricing": "What are your prices?",
+      "findAgency": "Find an agency",
+      "createShipment": "Create new shipment",
+      "checkRates": "Check delivery rates",
+      "showAssignments": "Show my assignments",
+      "optimizeRoute": "Optimize my route",
+      "updateStatus": "Update delivery status",
+      "parcelStats": "Parcel statistics",
+      "staffMgmt": "Staff management",
+      "generateReports": "Generate reports",
+      "systemAnalytics": "System analytics",
+      "manageUsers": "Manage users",
+      "configureTariffs": "Configure tariffs",
+      "viewAgencies": "View all agencies",
+      "viewParcels": "View parcels",
+      "checkAnalytics": "Check analytics",
+      "createTicket": "Create support ticket",
+      "revenueReports": "Revenue reports",
+      "manageTariffs": "Manage tariffs",
+      "viewInvoices": "View invoices",
+      "riskDashboard": "Risk dashboard",
+      "viewAlerts": "View alerts",
+      "complianceReport": "Compliance report",
+      "contactSupport": "Contact support",
+      "schedulePickup": "Schedule a pickup",
+      "manageAddresses": "Manage my addresses",
+      "scanQR": "Open QR scanner",
+      "courierAnalytics": "My performance stats",
+      "agencyAlerts": "View agency alerts",
+      "agencyDeliveries": "Agency deliveries",
+      "systemHealth": "System health check",
+      "scanParcel": "Scan a parcel",
+      "viewDeliveries": "View deliveries",
+      "exportReport": "Export report",
+      "pendingPayments": "Pending payments",
+      "flaggedAccounts": "Flagged accounts",
+      "manageIncidents": "Manage incidents"
+    },
+    "quickActions": {
+      "trackParcel": "Track Parcel",
+      "pricing": "Pricing",
+      "agencies": "Agencies",
+      "createShipment": "Create Shipment",
+      "getQuote": "Get Quote",
+      "deliveryTime": "Delivery Time",
+      "myAssignments": "My Assignments",
+      "optimizeRoute": "Optimize Route",
+      "updateStatus": "Update Status",
+      "paymentTips": "Payment Tips",
+      "parcelStats": "Parcel Stats",
+      "staffMgmt": "Staff Mgmt",
+      "reports": "Reports",
+      "alerts": "Alerts",
+      "systemAnalytics": "System Analytics",
+      "userMgmt": "User Management",
+      "tariffs": "Tariffs",
+      "parcels": "Parcels",
+      "analytics": "Analytics",
+      "deliveries": "Deliveries",
+      "support": "Support",
+      "revenue": "Revenue",
+      "invoices": "Invoices",
+      "riskDashboard": "Risk Dashboard",
+      "anomalies": "Anomalies",
+      "compliance": "Compliance",
+      "flaggedUsers": "Flagged Users",
+      "schedulePickup": "Schedule Pickup",
+      "myAddresses": "My Addresses",
+      "scanQR": "QR Scanner",
+      "courierAnalytics": "My Stats",
+      "agencyDeliveries": "Deliveries",
+      "manageAgencies": "Agencies",
+      "systemHealth": "System Health",
+      "staffInvoices": "Invoices",
+      "exportReport": "Export Report",
+      "pendingPayments": "Pending Payments",
+      "incidents": "Incidents",
+      "riskExport": "Export Risk Report"
+    }
+  },
+  "selfHealing": {
+    "notifyMessage": "Due to high volume at {{agencyName}}, your parcel may experience a slight delay. We apologize for any inconvenience.",
+    "notifiedClients": "Notified {{count}} clients",
+    "levels": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "normal": "Normal"
+    }
+  },
+  "roleMap": {
+    "title": {
+      "courier": "Courier Live Map",
+      "agent": "Agent Parcel Tracking",
+      "client": "My Parcel Locations",
+      "admin": "Operations Map Overview"
+    },
+    "subtitle": {
+      "client": "Track your parcel locations from real scan GPS events.",
+      "courier": "View active delivery parcel positions and tracking events.",
+      "agent": "Track accepted and in-transit parcels from live GPS scan updates.",
+      "admin": "Monitor fleet and parcel location activity across the platform."
+    },
+    "loadFailed": "Failed to load map data",
+    "liveUpdates": "Live updates every {{seconds}}s",
+    "trackedParcels": "Tracked Parcels",
+    "selectParcel": "Select parcel",
+    "locationMap": "Location Map",
+    "noGpsData": "No GPS map data available yet. Scan events and geolocation updates will appear here.",
+    "detailedRoute": "Detailed Tracking Route"
+  },
+  "invoices": {
+    "title": "My Invoices",
+    "invoiceNumber": "Invoice",
+    "total": "Total",
+    "downloadPdf": "Download PDF"
+  },
+  "scanPage": {
+    "title": "Scan Parcel",
+    "enterParcelId": "Enter parcel id or tracking number",
+    "gpsUnavailable": "GPS unavailable: enter address",
+    "scanRecorded": "Scan recorded. Status: ",
+    "error": "Error: ",
+    "parcelPlaceholder": "Parcel ID or tracking",
+    "addressPlaceholder": "Manual address (if GPS denied)",
+    "scanning": "Scanning...",
+    "scan": "Scan"
+  },
+  "maps": {
+    "tracking": {
+      "title": "Parcel Tracking Map",
+      "subtitle": "Track parcels in real-time.",
+      "origin": "Origin",
+      "current": "Current"
+    },
+    "pickup": {
+      "title": "Pickup Map",
+      "subtitle": "Map for scheduling and assigning pickups."
+    },
+    "viewer": {
+      "title": "Map Viewer",
+      "subtitle": "OpenStreetMap powered map. Use it for pickup, tracking, and location."
     }
   }
 }

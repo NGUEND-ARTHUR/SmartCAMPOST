@@ -6,19 +6,24 @@ import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.RiskAlert;
 import com.smartcampost.backend.model.UserAccount;
+import com.smartcampost.backend.model.enums.RiskAlertStatus;
+import com.smartcampost.backend.model.enums.RiskAlertType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
 import com.smartcampost.backend.repository.RiskAlertRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.RiskService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RiskServiceImpl implements RiskService {
@@ -46,8 +51,8 @@ public class RiskServiceImpl implements RiskService {
             } else if (severity instanceof String s && !s.isBlank()) {
                 alert.setSeverity(RiskSeverity.valueOf(s.trim().toUpperCase()));
             }
-        } catch (Exception ignored) {
-            // Ignore invalid severity values to preserve backward compatibility
+        } catch (Exception ex) {
+            log.warn("Invalid severity value provided for risk alert {}", alertId, ex);
         }
 
         // If your RiskAlert has setSeverity(RiskAlertSeverity) use it directly:
@@ -73,10 +78,24 @@ public class RiskServiceImpl implements RiskService {
             } else {
                 notificationService.notifyAccountUnfrozen(saved);
             }
-        } catch (Exception ignored) {
-            // Notification must never break risk action
+        } catch (Exception ex) {
+            log.warn("Notification failed during freeze/unfreeze for user {}", userId, ex);
         }
         return toUserResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public Object createRiskAlert(RiskAlertType type, RiskSeverity severity, String description) {
+        RiskAlert alert = RiskAlert.builder()
+                .alertType(type)
+                .severity(severity)
+                .status(RiskAlertStatus.OPEN)
+                .description(description)
+                .resolved(false)
+                .build();
+        RiskAlert saved = riskAlertRepository.save(alert);
+        return toResponse(saved);
     }
 
     private RiskAlertResponse toResponse(RiskAlert alert) {
@@ -105,7 +124,8 @@ public class RiskServiceImpl implements RiskService {
         Instant createdAt = null;
         try {
             createdAt = a.getCreatedAt();
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.warn("Failed to read createdAt for user account {}", a.getId(), ex);
             createdAt = null;
         }
         return UserAccountResponse.builder()

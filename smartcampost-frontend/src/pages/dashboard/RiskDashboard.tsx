@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ShieldAlert,
@@ -38,6 +39,7 @@ const stateStyles: Record<AlertState, string> = {
 };
 
 export default function RiskDashboard() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useRiskAlerts(page, 50);
   const alerts = useMemo(() => data?.content ?? [], [data]);
@@ -54,58 +56,72 @@ export default function RiskDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Risk Dashboard</h1>
-        <p className="text-muted-foreground">
-          Fraud signals, exceptions and operational risk alerts
-        </p>
+        <h1 className="text-3xl font-bold">{t("riskDashboard.title")}</h1>
+        <p className="text-muted-foreground">{t("riskDashboard.overview")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Alerts</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.activeAlerts")}
+            </CardTitle>
             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.open}</div>
-            <p className="text-xs text-muted-foreground">Requires triage</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.activeAlertsDesc")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Investigating</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.suspiciousActivities")}
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.investigating}</div>
-            <p className="text-xs text-muted-foreground">In progress</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.suspiciousActivitiesDesc")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Critical</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.critical")}
+            </CardTitle>
             <Siren className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.critical}</div>
-            <p className="text-xs text-muted-foreground">Highest severity</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.high")}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("riskDashboard.noAlerts")}
+            </CardTitle>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.resolved}</div>
-            <p className="text-xs text-muted-foreground">Closed items</p>
+            <p className="text-xs text-muted-foreground">
+              {t("riskDashboard.flaggedParcelsDesc")}
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Risk Alerts</CardTitle>
+          <CardTitle>{t("riskDashboard.recentAlerts")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -115,27 +131,29 @@ export default function RiskDashboard() {
           ) : error ? (
             <EmptyState
               icon={ShieldAlert}
-              title="Error loading alerts"
+              title={t("common.errorLoading")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error
+                  ? error.message
+                  : t("common.errorOccurred")
               }
             />
           ) : alerts.length === 0 ? (
             <EmptyState
               icon={ShieldAlert}
-              title="No risk alerts"
-              description="Risk alerts will appear here when detected"
+              title={t("riskDashboard.noAlerts")}
+              description={t("riskDashboard.recentAlerts")}
             />
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Alert</TableHead>
-                    <TableHead>Entity</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>{t("riskDashboard.alertId")}</TableHead>
+                    <TableHead>{t("riskDashboard.flaggedParcels")}</TableHead>
+                    <TableHead>{t("riskDashboard.severity")}</TableHead>
+                    <TableHead>{t("riskDashboard.status")}</TableHead>
+                    <TableHead>{t("riskDashboard.timestamp")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -188,10 +206,10 @@ export default function RiskDashboard() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -199,7 +217,7 @@ export default function RiskDashboard() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

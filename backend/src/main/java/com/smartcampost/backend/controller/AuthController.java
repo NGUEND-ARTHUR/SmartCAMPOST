@@ -71,9 +71,9 @@ public class AuthController {
 
     // Step 1 — demander OTP pour reset
     @PostMapping("/password/reset/request")
-    public ResponseEntity<Void> requestPasswordReset(@Valid @RequestBody SendOtpRequest request) {
-        authService.requestPasswordReset(request.getPhone());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<SendOtpResponse> requestPasswordReset(@Valid @RequestBody SendOtpRequest request) {
+        String code = authService.requestPasswordReset(request.getPhone());
+        return ResponseEntity.ok(SendOtpResponse.builder().otp(code).build());
     }
 
     // Step 2 — confirmer OTP + changer mot de passe

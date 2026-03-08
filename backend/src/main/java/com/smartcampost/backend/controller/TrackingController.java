@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -54,6 +56,7 @@ public class TrackingController {
     }
 
     @GetMapping("/parcel/{trackingNumber}")
+    @Transactional(readOnly = true)
     public ResponseEntity<TrackingResponse> trackByNumber(@PathVariable String trackingNumber) {
         return parcelRepository.findByTrackingRef(trackingNumber)
                 .map(p -> {
@@ -141,6 +144,7 @@ public class TrackingController {
     }
 
     @GetMapping("/qr/{code}")
+    @Transactional(readOnly = true)
     public ResponseEntity<TrackingResponse> trackByQr(@PathVariable String code, HttpServletRequest request) {
         return trackByQrInternal(code, request);
     }
@@ -153,6 +157,7 @@ public class TrackingController {
      * - Plain tracking reference
      */
     @PostMapping("/qr")
+    @Transactional(readOnly = true)
     public ResponseEntity<TrackingResponse> trackByQrPost(
             @Valid @RequestBody TrackingQrRequest body,
             HttpServletRequest request

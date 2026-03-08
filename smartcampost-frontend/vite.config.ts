@@ -21,7 +21,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 2200, // in KB
     rollupOptions: {
       output: {
-        manualChunks(id) {
+        manualChunks(id: string) {
           if (!id.includes("node_modules")) return;
 
           if (

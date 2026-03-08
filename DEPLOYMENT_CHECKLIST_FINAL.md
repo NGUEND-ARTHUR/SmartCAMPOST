@@ -169,7 +169,7 @@ private LocationSource resolveLocationSource(String raw) {
 
 ### Prerequisites Check
 
-- [x] Java 17 available
+- [x] Java 21 available
 - [x] Maven 3.8+ available
 - [x] TiDB Cloud smartcampostDB accessible
 - [x] Render backend deployment configured
