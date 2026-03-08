@@ -38,7 +38,7 @@ function Test-Endpoint {
     }
 }
 
-function Auth-Headers { @{ Authorization = "Bearer $TOKEN" } }
+function Get-AuthHeaders { @{ Authorization = "Bearer $TOKEN" } }
 
 Write-Host "`n========================================" -ForegroundColor Yellow
 Write-Host " SmartCAMPOST FINAL TEST SUITE" -ForegroundColor Yellow
@@ -99,13 +99,13 @@ if ($REFRESH) {
 }
 
 # 2e. Check profile (admin is not a client - 403 is expected)
-Test-Endpoint "Client Profile (admin=403 expected)" GET "/api/clients/me" -Headers (Auth-Headers) -ExpectedCodes @(200, 403)
+Test-Endpoint "Client Profile (admin=403 expected)" GET "/api/clients/me" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 403)
 
 # ─── 3. AGENCIES ───
 Write-Host "`n--- 3. AGENCIES ---" -ForegroundColor Cyan
 
 $agencyBody = '{"agencyName":"Test Agency Douala","agencyCode":"AGY-DLA-TEST","city":"Douala","region":"Littoral"}'
-$r = Test-Endpoint "Create Agency" POST "/api/agencies" $agencyBody -Headers (Auth-Headers) -ExpectedCodes @(200, 201, 400, 409)
+$r = Test-Endpoint "Create Agency" POST "/api/agencies" $agencyBody -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 201, 400, 409)
 $agencyId = $null
 if ($r.Pass) {
     try {
@@ -115,7 +115,7 @@ if ($r.Pass) {
     } catch {}
 }
 
-$r = Test-Endpoint "List Agencies" GET "/api/agencies" -Headers (Auth-Headers) -ExpectedCodes @(200)
+$r = Test-Endpoint "List Agencies" GET "/api/agencies" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 if ($r.Pass -and -not $agencyId) {
     try {
         $agencies = $r.Content | ConvertFrom-Json
@@ -128,7 +128,7 @@ if ($r.Pass -and -not $agencyId) {
 }
 
 if ($agencyId) {
-    Test-Endpoint "Get Agency by ID" GET "/api/agencies/$agencyId" -Headers (Auth-Headers) -ExpectedCodes @(200)
+    Test-Endpoint "Get Agency by ID" GET "/api/agencies/$agencyId" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 } else {
     Write-Host "  SKIP Get Agency by ID (no agency)" -ForegroundColor Yellow; $script:skip++
 }
@@ -136,7 +136,7 @@ if ($agencyId) {
 # ─── 4. AGENTS / STAFF ───
 Write-Host "`n--- 4. AGENTS ---" -ForegroundColor Cyan
 
-$r = Test-Endpoint "List Agents" GET "/api/agents" -Headers (Auth-Headers) -ExpectedCodes @(200)
+$r = Test-Endpoint "List Agents" GET "/api/agents" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 $agentId = $null
 if ($r.Pass) {
     try {
@@ -151,13 +151,13 @@ if ($r.Pass) {
 
 if ($agencyId) {
     $agentBody = "{`"fullName`":`"Test Agent`",`"phone`":`"+237670000099`",`"email`":`"agent@test.com`",`"password`":`"Agent@12345678`",`"role`":`"COUNTER_AGENT`",`"agencyId`":`"$agencyId`"}"
-    Test-Endpoint "Create Agent" POST "/api/agents" $agentBody -Headers (Auth-Headers) -ExpectedCodes @(200, 201, 409)
+    Test-Endpoint "Create Agent" POST "/api/agents" $agentBody -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 201, 409)
 }
 
 # ─── 5. CLIENTS ───
 Write-Host "`n--- 5. CLIENTS ---" -ForegroundColor Cyan
 
-$r = Test-Endpoint "List Clients" GET "/api/clients" -Headers (Auth-Headers) -ExpectedCodes @(200)
+$r = Test-Endpoint "List Clients" GET "/api/clients" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 $clientId = $null
 if ($r.Pass) {
     try {
@@ -171,13 +171,13 @@ if ($r.Pass) {
 }
 
 if ($clientId) {
-    Test-Endpoint "Get Client by ID" GET "/api/clients/$clientId" -Headers (Auth-Headers) -ExpectedCodes @(200)
+    Test-Endpoint "Get Client by ID" GET "/api/clients/$clientId" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 }
 
 # ─── 6. PARCELS ───
 Write-Host "`n--- 6. PARCELS ---" -ForegroundColor Cyan
 
-$r = Test-Endpoint "List Parcels" GET "/api/parcels" -Headers (Auth-Headers) -ExpectedCodes @(200)
+$r = Test-Endpoint "List Parcels" GET "/api/parcels" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 $parcelId = $null
 $trackingRef = $null
 if ($r.Pass) {
@@ -195,7 +195,7 @@ if ($r.Pass) {
 # Try to create a parcel if we have client and agency
 if ($clientId -and $agencyId) {
     $parcelBody = "{`"clientId`":`"$clientId`",`"originAgencyId`":`"$agencyId`",`"destinationAgencyId`":`"$agencyId`",`"weight`":2.5,`"dimensions`":`"30x20x15`",`"declaredValue`":5000,`"fragile`":false,`"serviceType`":`"STANDARD`",`"deliveryOption`":`"AGENCY`",`"paymentOption`":`"PREPAID`",`"senderAddress`":{`"street`":`"123 Test St`",`"city`":`"Douala`",`"region`":`"Littoral`",`"postalCode`":`"00100`",`"country`":`"Cameroon`"},`"recipientAddress`":{`"street`":`"456 Dest St`",`"city`":`"Yaounde`",`"region`":`"Centre`",`"postalCode`":`"00200`",`"country`":`"Cameroon`"},`"recipientName`":`"John Doe`",`"recipientPhone`":`"+237670000088`"}"
-    $r2 = Test-Endpoint "Create Parcel" POST "/api/parcels" $parcelBody -Headers (Auth-Headers) -ExpectedCodes @(200, 201, 400)
+    $r2 = Test-Endpoint "Create Parcel" POST "/api/parcels" $parcelBody -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 201, 400)
     if ($r2.Pass -and $r2.Code -lt 400) {
         try {
             $p = $r2.Content | ConvertFrom-Json
@@ -207,93 +207,93 @@ if ($clientId -and $agencyId) {
 }
 
 if ($trackingRef) {
-    Test-Endpoint "Track Parcel" GET "/api/parcels/track/$trackingRef" -Headers (Auth-Headers) -ExpectedCodes @(200)
+    Test-Endpoint "Track Parcel" GET "/api/parcels/track/$trackingRef" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 }
 
 if ($parcelId) {
-    Test-Endpoint "Get Parcel by ID" GET "/api/parcels/$parcelId" -Headers (Auth-Headers) -ExpectedCodes @(200)
+    Test-Endpoint "Get Parcel by ID" GET "/api/parcels/$parcelId" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 }
 
 # ─── 7. SCAN EVENTS ───
 Write-Host "`n--- 7. SCAN EVENTS ---" -ForegroundColor Cyan
 if ($parcelId) {
-    Test-Endpoint "Scan Events for Parcel" GET "/api/scan-events/parcel/$parcelId" -Headers (Auth-Headers) -ExpectedCodes @(200)
-    Test-Endpoint "Parcel Scan Events (alt)" GET "/api/parcels/$parcelId/scan-events" -Headers (Auth-Headers) -ExpectedCodes @(200)
+    Test-Endpoint "Scan Events for Parcel" GET "/api/scan-events/parcel/$parcelId" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+    Test-Endpoint "Parcel Scan Events (alt)" GET "/api/parcels/$parcelId/scan-events" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 } else {
     Write-Host "  SKIP Scan Events (no parcel)" -ForegroundColor Yellow; $script:skip++
 }
 
 # ─── 8. PAYMENTS ───
 Write-Host "`n--- 8. PAYMENTS ---" -ForegroundColor Cyan
-Test-Endpoint "List Payments" GET "/api/payments" -Headers (Auth-Headers) -ExpectedCodes @(200)
+Test-Endpoint "List Payments" GET "/api/payments" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 
 # ─── 9. INVOICES ───
 Write-Host "`n--- 9. INVOICES ---" -ForegroundColor Cyan
-Test-Endpoint "My Invoices" GET "/api/invoices/me" -Headers (Auth-Headers) -ExpectedCodes @(200)
+Test-Endpoint "My Invoices" GET "/api/invoices/me" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 
 # ─── 10. NOTIFICATIONS ───
 Write-Host "`n--- 10. NOTIFICATIONS ---" -ForegroundColor Cyan
-Test-Endpoint "List Notifications" GET "/api/notifications" -Headers (Auth-Headers) -ExpectedCodes @(200)
+Test-Endpoint "List Notifications" GET "/api/notifications" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 
 # ─── 11. LOCATIONS ───
 Write-Host "`n--- 11. LOCATIONS ---" -ForegroundColor Cyan
-Test-Endpoint "My Location" GET "/api/location/me" -Headers (Auth-Headers) -ExpectedCodes @(200, 400)
+Test-Endpoint "My Location" GET "/api/location/me" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 400)
 
 # ─── 12. AI FEATURES ───
 Write-Host "`n--- 12. AI FEATURES ---" -ForegroundColor Cyan
 
 # Route optimization 
-Test-Endpoint "AI Route Optimize" POST "/api/ai/optimize-route" '{"origin":{"lat":4.0511,"lng":9.7679},"destination":{"lat":3.848,"lng":11.5021},"waypoints":[]}' -Headers (Auth-Headers) -ExpectedCodes @(200, 400, 503)
+Test-Endpoint "AI Route Optimize" POST "/api/ai/optimize-route" '{"origin":{"lat":4.0511,"lng":9.7679},"destination":{"lat":3.848,"lng":11.5021},"waypoints":[]}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 400, 503)
 
 # AI chat
-Test-Endpoint "AI Chat" POST "/api/ai/chat" '{"message":"What is the status of my parcel?","language":"EN"}' -Headers (Auth-Headers) -ExpectedCodes @(200, 503)
+Test-Endpoint "AI Chat" POST "/api/ai/chat" '{"message":"What is the status of my parcel?","language":"EN"}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 503)
 
 # Delivery prediction
 if ($parcelId) {
-    Test-Endpoint "AI Delivery Prediction" GET "/api/ai/predict-delivery/$parcelId" -Headers (Auth-Headers) -ExpectedCodes @(200, 404, 503)
+    Test-Endpoint "AI Delivery Prediction" GET "/api/ai/predict-delivery/$parcelId" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 404, 503)
 }
 
 # Risk assessment
-Test-Endpoint "AI Risk Assessment" POST "/api/ai/assess-risk" '{"parcelValue":50000,"weight":5.0,"serviceType":"EXPRESS","origin":"Douala","destination":"Bamenda"}' -Headers (Auth-Headers) -ExpectedCodes @(200, 400, 503)
+Test-Endpoint "AI Risk Assessment" POST "/api/ai/assess-risk" '{"parcelValue":50000,"weight":5.0,"serviceType":"EXPRESS","origin":"Douala","destination":"Bamenda"}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 400, 503)
 
 # Agent status
-Test-Endpoint "AI Agent Status" GET "/api/ai/agent/status" -Headers (Auth-Headers) -ExpectedCodes @(200)
+Test-Endpoint "AI Agent Status" GET "/api/ai/agent/status" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 
 # ─── 13. SELF-HEALING ───
 Write-Host "`n--- 13. SELF-HEALING ---" -ForegroundColor Cyan
-Test-Endpoint "Self-Healing Congestion" GET "/api/self-healing/congestion" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Self-Healing Actions" GET "/api/self-healing/actions" -Headers (Auth-Headers) -ExpectedCodes @(200)
+Test-Endpoint "Self-Healing Congestion" GET "/api/self-healing/congestion" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Self-Healing Actions" GET "/api/self-healing/actions" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
 
 # ─── 14. RISK ALERTS ───
 Write-Host "`n--- 14. RISK ALERTS ---" -ForegroundColor Cyan
-Test-Endpoint "List Risk Alerts" GET "/api/risk/alerts" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Create Risk Alert" POST "/api/risk" '{"type":"THEFT","description":"Suspicious activity detected","severity":"HIGH"}' -Headers (Auth-Headers) -ExpectedCodes @(200, 201, 400)
+Test-Endpoint "List Risk Alerts" GET "/api/risk/alerts" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Create Risk Alert" POST "/api/risk" '{"type":"THEFT","description":"Suspicious activity detected","severity":"HIGH"}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 201, 400)
 
 # ─── 15. ANALYTICS ───
 Write-Host "`n--- 15. ANALYTICS ---" -ForegroundColor Cyan
-Test-Endpoint "Dashboard Summary" GET "/api/dashboard/summary" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Analytics - Demand Forecast" POST "/api/analytics/demand-forecast" '{"region":"Littoral","days":7}' -Headers (Auth-Headers) -ExpectedCodes @(200, 501)
-Test-Endpoint "Analytics - Sentiment" GET "/api/analytics/sentiment" -Headers (Auth-Headers) -ExpectedCodes @(200, 501)
-Test-Endpoint "Analytics - Smart Notifications" GET "/api/analytics/smart-notifications" -Headers (Auth-Headers) -ExpectedCodes @(200, 501)
-Test-Endpoint "Analytics - Address Validation" POST "/api/analytics/validate-address" '{"street":"123 Main St","city":"Douala","region":"Littoral","country":"Cameroon"}' -Headers (Auth-Headers) -ExpectedCodes @(200, 501)
+Test-Endpoint "Dashboard Summary" GET "/api/dashboard/summary" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Analytics - Demand Forecast" POST "/api/analytics/demand-forecast" '{"region":"Littoral","days":7}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 501)
+Test-Endpoint "Analytics - Sentiment" GET "/api/analytics/sentiment" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 501)
+Test-Endpoint "Analytics - Smart Notifications" GET "/api/analytics/smart-notifications" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 501)
+Test-Endpoint "Analytics - Address Validation" POST "/api/analytics/validate-address" '{"street":"123 Main St","city":"Douala","region":"Littoral","country":"Cameroon"}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 501)
 
 # ─── 16. QR CODES ───
 Write-Host "`n--- 16. QR CODES ---" -ForegroundColor Cyan
 if ($parcelId) {
-    Test-Endpoint "Generate QR Code" GET "/api/parcels/$parcelId/qr" -Headers (Auth-Headers) -ExpectedCodes @(200, 404)
+    Test-Endpoint "Generate QR Code" GET "/api/parcels/$parcelId/qr" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 404)
 }
 
 # ─── 16b. ADDITIONAL ENDPOINTS ───
 Write-Host "`n--- 16b. ADDITIONAL ENDPOINTS ---" -ForegroundColor Cyan
-Test-Endpoint "Addresses (admin=403 expected)" GET "/api/addresses/me" -Headers (Auth-Headers) -ExpectedCodes @(200, 403)
-Test-Endpoint "Admin Users" GET "/api/admin/users" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Compliance Alerts" GET "/api/compliance/alerts" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Couriers List" GET "/api/couriers" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Pickups List" GET "/api/pickups" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Refunds List" GET "/api/refunds" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Finance Stats" GET "/api/finance/stats" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Integration List" GET "/api/integrations" -Headers (Auth-Headers) -ExpectedCodes @(200)
-Test-Endpoint "Offline Sync" POST "/api/offline/sync" '{"lastSyncAt":"2026-01-01T00:00:00Z"}' -Headers (Auth-Headers) -ExpectedCodes @(200, 400)
+Test-Endpoint "Addresses (admin=403 expected)" GET "/api/addresses/me" -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 403)
+Test-Endpoint "Admin Users" GET "/api/admin/users" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Compliance Alerts" GET "/api/compliance/alerts" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Couriers List" GET "/api/couriers" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Pickups List" GET "/api/pickups" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Refunds List" GET "/api/refunds" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Finance Stats" GET "/api/finance/stats" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Integration List" GET "/api/integrations" -Headers (Get-AuthHeaders) -ExpectedCodes @(200)
+Test-Endpoint "Offline Sync" POST "/api/offline/sync" '{"lastSyncAt":"2026-01-01T00:00:00Z"}' -Headers (Get-AuthHeaders) -ExpectedCodes @(200, 400)
 
 # ─── 17. UNAUTHORIZED ACCESS ───
 Write-Host "`n--- 17. SECURITY CHECKS ---" -ForegroundColor Cyan
