@@ -25,6 +25,12 @@ spring:
         format_sql: false  # Disable in production
     show-sql: ${SHOW_SQL:false}  # SECURITY: Disable SQL logging in production
 
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: true
+    baseline-version: 4
+    locations: classpath:db/migration
+
   ai:
     openai:
       # SECURITY: API key from environment variable only
