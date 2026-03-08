@@ -155,6 +155,36 @@ export function CreateParcel() {
     );
   };
 
+  /** Validate required fields for the current step before advancing */
+  const validateCurrentStep = (): boolean => {
+    if (currentStep === 0) {
+      if (!senderAddressId) {
+        toast.error("Please select a sender address before continuing.");
+        return false;
+      }
+      if (!recipientAddressId) {
+        toast.error("Please select a recipient address before continuing.");
+        return false;
+      }
+      return true;
+    }
+    if (currentStep === 1) {
+      const weight = getValues("weight");
+      if (!weight || weight <= 0) {
+        toast.error("Please enter a valid weight for the parcel.");
+        return false;
+      }
+      return true;
+    }
+    // Steps 2 (service) and 3 (payment) have defaults, always valid
+    return true;
+  };
+
+  const handleNext = () => {
+    if (!validateCurrentStep()) return;
+    setCurrentStep(Math.min(steps.length - 1, currentStep + 1));
+  };
+
   const canSaveAddress = useMemo(() => {
     return Boolean(
       addressForm.label.trim() &&
@@ -379,9 +409,17 @@ export function CreateParcel() {
                   <LocationPicker
                     latitude={selectedLat}
                     longitude={selectedLng}
+                    compact
                     onLocationChange={(lat, lng) => {
                       setSelectedLat(lat);
                       setSelectedLng(lng);
+                    }}
+                    onLocationResolved={(result) => {
+                      setAddressForm((prev) => ({
+                        ...prev,
+                        city: result.city || prev.city,
+                        region: result.region || prev.region,
+                      }));
                     }}
                   />
                 </TabsContent>
@@ -850,9 +888,7 @@ export function CreateParcel() {
               {currentStep < steps.length - 1 ? (
                 <Button
                   type="button"
-                  onClick={() =>
-                    setCurrentStep(Math.min(steps.length - 1, currentStep + 1))
-                  }
+                  onClick={handleNext}
                 >
                   Next
                 </Button>

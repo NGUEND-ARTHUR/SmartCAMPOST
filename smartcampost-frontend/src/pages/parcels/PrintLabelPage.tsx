@@ -82,15 +82,27 @@ export default function PrintLabelPage() {
             {t("label.print.instructions")}
           </div>
           <div className="border rounded p-4 bg-white">
-            <div className="flex justify-center mb-2">
-              <QRCodeDisplay
-                trackingRef={parcel.trackingRef}
-                parcelId={parcel.id}
-                size="medium"
-                showActions={false}
-                showLabel={false}
-              />
-            </div>
+            {parcel.qrStatus === "FINAL" ? (
+              <div className="flex justify-center mb-2">
+                <QRCodeDisplay
+                  trackingRef={parcel.trackingRef}
+                  parcelId={parcel.id}
+                  qrContent={parcel.finalQrCode as string | undefined}
+                  size="medium"
+                  showActions={false}
+                  showLabel={false}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-6 mb-2 text-center">
+                <p className="text-sm font-medium text-amber-600">
+                  ⏳ QR code pending approval
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Print label after staff validates this parcel.
+                </p>
+              </div>
+            )}
             <div className="text-center font-mono text-sm font-bold mb-2">
               {parcel.trackingRef}
             </div>

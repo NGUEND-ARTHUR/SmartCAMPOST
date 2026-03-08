@@ -287,9 +287,17 @@ export default function Addresses() {
                 <LocationPicker
                   latitude={selectedLat}
                   longitude={selectedLng}
+                  compact
                   onLocationChange={(lat, lng) => {
                     setSelectedLat(lat);
                     setSelectedLng(lng);
+                  }}
+                  onLocationResolved={(result) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      city: result.city || prev.city,
+                      region: result.region || prev.region,
+                    }));
                   }}
                 />
               </TabsContent>

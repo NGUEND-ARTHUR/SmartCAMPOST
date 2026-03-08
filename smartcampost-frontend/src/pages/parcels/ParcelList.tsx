@@ -9,6 +9,7 @@ import {
   Loader2,
   Bell,
   Download,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import NotificationsDrawer from "@/components/NotificationsDrawer";
+import { QRCodeViewerDialog } from "@/components/qrcode";
 import {
   exportToCsv,
   exportToJson,
@@ -38,6 +40,7 @@ import {
   exportToXlsx,
 } from "@/lib/exportCsv";
 import { useMyParcels } from "@/hooks";
+import type { Parcel } from "@/types";
 
 export function ParcelList() {
   const { t } = useTranslation();
@@ -48,6 +51,7 @@ export function ParcelList() {
   const [exportFormat, setExportFormat] = useState<
     "CSV" | "JSON" | "XLSX" | "PDF"
   >("CSV");
+  const [qrParcel, setQrParcel] = useState<Parcel | null>(null);
 
   const { data, isLoading, error } = useMyParcels(page, 20);
 
@@ -264,6 +268,14 @@ export function ParcelList() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => setQrParcel(parcel)}
+                          >
+                            <QrCode className="w-4 h-4 mr-1" />
+                            QR
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() =>
                               navigate(`/client/parcels/${parcel.id}#tracking`)
                             }
@@ -315,6 +327,26 @@ export function ParcelList() {
           )}
         </CardContent>
       </Card>
+
+      {/* QR Code Viewer Dialog */}
+      {qrParcel && (
+        <QRCodeViewerDialog
+          open={!!qrParcel}
+          onOpenChange={(open) => {
+            if (!open) setQrParcel(null);
+          }}
+          trackingRef={qrParcel.trackingRef}
+          parcelId={qrParcel.id}
+          qrContent={
+            qrParcel.locked && qrParcel.qrStatus === "FINAL"
+              ? qrParcel.finalQrCode
+              : undefined
+          }
+          qrStatus={qrParcel.qrStatus}
+          serviceType={qrParcel.serviceType}
+          createdAt={qrParcel.createdAt}
+        />
+      )}
     </div>
   );
 }

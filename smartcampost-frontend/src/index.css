@@ -116,6 +116,11 @@
   height: 62vh;
 }
 
+.cameroon-map-h-350 {
+  height: 350px;
+  min-height: 300px;
+}
+
 /* QR preview image size */
 .qr-image {
   width: 120px;
