@@ -40,6 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
     // ======================== PUBLIC API ========================
 
     @Override
+    @Transactional
     public NotificationResponse triggerNotification(TriggerNotificationRequest request) {
 
                 Objects.requireNonNull(request, "request must not be null");
@@ -145,6 +146,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
         public com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listNotifications(int page, int size) {
                 UserAccount user = getCurrentUser();
                 if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
@@ -200,6 +202,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<NotificationResponse> listForParcel(UUID parcelId) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         return notificationRepository.findByParcel_IdOrderByCreatedAtDesc(parcelId)

@@ -6,6 +6,7 @@ import com.smartcampost.backend.model.enums.ServiceType;
 import com.smartcampost.backend.model.enums.PaymentOption;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.UUID;
@@ -48,6 +49,7 @@ public class CreateParcelRequest {
 
     private String photoUrl;               // optional
     @JsonAlias("description")
+    @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String descriptionComment;     // optional
     // ------------------
 }

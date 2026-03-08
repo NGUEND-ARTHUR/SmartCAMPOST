@@ -390,6 +390,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     // ==================== GET DELIVERY STATUS ====================
 
     @Override
+    @Transactional(readOnly = true)
     public DeliveryStatusResponse getDeliveryStatus(UUID parcelId) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(id)

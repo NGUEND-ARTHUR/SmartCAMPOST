@@ -1,7 +1,9 @@
 package com.smartcampost.backend.controller;
 
+import com.smartcampost.backend.dto.scan.ScanEventResponse;
 import com.smartcampost.backend.model.ScanEvent;
 import com.smartcampost.backend.model.ScanType;
+import com.smartcampost.backend.service.ScanEventService;
 import com.smartcampost.backend.service.ScanService;
 
 import org.springframework.http.ResponseEntity;
@@ -17,20 +19,21 @@ import java.util.Map;
 public class ScanController {
 
     private final ScanService scanService;
+    private final ScanEventService scanEventService;
 
-    public ScanController(ScanService scanService) {
+    public ScanController(ScanService scanService, ScanEventService scanEventService) {
         this.scanService = scanService;
+        this.scanEventService = scanEventService;
     }
 
     @GetMapping("/{parcelId}/scan-events")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CLIENT')")
-    public List<ScanEvent> getScanEvents(@PathVariable String parcelId, Principal principal) {
-        // Clients will receive events but ownership should be validated in production
+    public ResponseEntity<List<ScanEventResponse>> getScanEvents(@PathVariable String parcelId, Principal principal) {
         try {
             java.util.UUID pid = java.util.UUID.fromString(parcelId);
-            return scanService.getScanEventsForParcel(pid);
+            return ResponseEntity.ok(scanEventService.getHistoryForParcel(pid));
         } catch (IllegalArgumentException ex) {
-            return List.of();
+            return ResponseEntity.ok(List.of());
         }
     }
 
