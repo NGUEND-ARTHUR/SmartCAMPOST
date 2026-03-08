@@ -323,6 +323,7 @@ export default function Pickups() {
                       <LocationPicker
                         latitude={pickupLatValue}
                         longitude={pickupLngValue}
+                        compact
                         onLocationChange={(lat, lng) => {
                           setPickupLatitude(String(lat));
                           setPickupLongitude(String(lng));

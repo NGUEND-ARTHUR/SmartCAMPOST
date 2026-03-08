@@ -24,14 +24,46 @@ import { useTranslation } from "react-i18next";
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
 import { isWithinCameroon } from "@/components/maps/core/cameroon";
 
+/** Reverse geocode via Nominatim (no key needed, respects usage policy) */
+async function reverseGeocode(
+  lat: number,
+  lng: number,
+): Promise<{ city?: string; region?: string; displayName?: string } | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en&zoom=14`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "SmartCAMPOST/1.0" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const addr = data.address || {};
+    return {
+      city:
+        addr.city || addr.town || addr.village || addr.hamlet || addr.county,
+      region: addr.state || addr.region,
+      displayName: data.display_name,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export interface LocationPickerResult {
+  city?: string;
+  region?: string;
+  displayName?: string;
+}
+
 interface LocationPickerProps {
   latitude: number | null;
   longitude: number | null;
   onLocationChange: (latitude: number, longitude: number) => void;
+  onLocationResolved?: (result: LocationPickerResult) => void;
   onClose?: () => void;
   allowManualInput?: boolean;
   allowSearch?: boolean;
   restrictToCameroon?: boolean;
+  compact?: boolean;
 }
 
 // Component to center map on marker position
@@ -55,10 +87,12 @@ export default function LocationPicker({
   latitude,
   longitude,
   onLocationChange,
+  onLocationResolved,
   onClose,
   allowManualInput = true,
   allowSearch = true,
   restrictToCameroon = true,
+  compact = false,
 }: LocationPickerProps) {
   const { t } = useTranslation();
   const [isLocating, setIsLocating] = useState(false);
@@ -77,6 +111,8 @@ export default function LocationPicker({
   );
   const [searchResults, setSearchResults] = useState<GeoSearchResult[]>([]);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
+  const [resolvedLabel, setResolvedLabel] = useState<string | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
 
   // Current position for map center
   const currentPosition: [number, number] = useMemo(() => {
@@ -93,6 +129,21 @@ export default function LocationPicker({
       watchIdRef.current = null;
     }
   }, []);
+
+  /** Resolve lat/lng → city/region via reverse geocoding, notify parent */
+  const resolveLocation = useCallback(
+    async (lat: number, lng: number) => {
+      setIsResolving(true);
+      const result = await reverseGeocode(lat, lng);
+      setIsResolving(false);
+      if (result) {
+        const label = [result.city, result.region].filter(Boolean).join(", ");
+        setResolvedLabel(label || result.displayName || null);
+        onLocationResolved?.(result);
+      }
+    },
+    [onLocationResolved],
+  );
 
   // Follow device GPS location in real-time (until user selects a point)
   useEffect(() => {
@@ -190,8 +241,9 @@ export default function LocationPicker({
       setManualLat(lat.toString());
       setManualLng(lng.toString());
       setSearchResultLabel(null);
+      void resolveLocation(lat, lng);
     },
-    [onLocationChange, restrictToCameroon, stopFollowingUser],
+    [onLocationChange, restrictToCameroon, stopFollowingUser, resolveLocation],
   );
 
   const handleSearch = useCallback(async () => {
@@ -297,18 +349,20 @@ export default function LocationPicker({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={compact ? "space-y-2" : "space-y-4"}>
       <Card>
-        <CardHeader>
+        <CardHeader className={compact ? "pb-2 pt-3 px-3" : undefined}>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             Select Location
           </CardTitle>
-          <CardDescription>
-            Click on the map or use the GPS locator to select a location
-          </CardDescription>
+          {!compact && (
+            <CardDescription>
+              Click on the map or use the GPS locator to select a location
+            </CardDescription>
+          )}
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={compact ? "space-y-2 px-3 pb-3" : "space-y-4"}>
           {allowSearch && (
             <div className="space-y-2">
               <Label htmlFor="location-search">Search on map</Label>
@@ -391,7 +445,7 @@ export default function LocationPicker({
             <CameroonMap
               center={currentPosition}
               zoom={13}
-              height="400px"
+              height={compact ? "350px" : "400px"}
               showControls
               showSearch={false}
               className="rounded-lg"
@@ -461,13 +515,15 @@ export default function LocationPicker({
                 </>
               )}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              💡 Tip: Click anywhere on the map to select a location, or use the
-              button above to get your current position.
-            </p>
+            {!compact && (
+              <p className="text-xs text-muted-foreground">
+                💡 Tip: Click anywhere on the map to select a location, or use
+                the button above to get your current position.
+              </p>
+            )}
           </div>
 
-          {/* Current Coordinates Display */}
+          {/* Current Coordinates + Resolved Location Display */}
           {latitude != null && longitude != null && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm font-medium">Current Coordinates:</p>
@@ -475,11 +531,20 @@ export default function LocationPicker({
                 Latitude: {latitude.toFixed(6)} | Longitude:{" "}
                 {longitude.toFixed(6)}
               </p>
+              {isResolving && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Resolving location...
+                </p>
+              )}
+              {resolvedLabel && !isResolving && (
+                <p className="text-xs text-primary mt-1">📍 {resolvedLabel}</p>
+              )}
             </div>
           )}
 
           {/* Manual Coordinate Input */}
-          {allowManualInput && (
+          {allowManualInput && !compact && (
             <div className="space-y-3 pt-4 border-t">
               <p className="text-sm font-medium">
                 Or enter coordinates manually:

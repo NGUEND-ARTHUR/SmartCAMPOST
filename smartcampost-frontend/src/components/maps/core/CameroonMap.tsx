@@ -57,6 +57,8 @@ function heightToClassName(height: string | undefined): string {
       return "cameroon-map-h-62vh";
     case "60vh":
       return "cameroon-map-h-60vh";
+    case "350px":
+      return "cameroon-map-h-350";
     case "400px":
     default:
       return "cameroon-map-h-400";
@@ -188,6 +190,18 @@ export function CameroonMap({
     };
   }, [ready, setup3D]);
 
+  // Resize map when container becomes visible (fixes rendering inside tabs / dialogs)
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      mapRef.current?.getMap()?.resize();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // Cursor for interactive layers
   const onMouseEnter = useCallback(
     (e: MapLayerMouseEvent) => {
@@ -203,6 +217,7 @@ export function CameroonMap({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative w-full overflow-hidden rounded-lg border border-border bg-card",
         heightClassName,

@@ -4,3 +4,4 @@
 export { QRCodeDisplay } from "./QRCodeDisplay";
 export { QRCodeScanner } from "./QRCodeScanner";
 export { DeliveryConfirmation } from "./DeliveryConfirmation";
+export { QRCodeViewerDialog } from "./QRCodeViewerDialog";
