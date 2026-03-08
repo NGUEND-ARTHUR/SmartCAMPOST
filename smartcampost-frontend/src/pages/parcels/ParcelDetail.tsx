@@ -14,8 +14,9 @@ import {
   Globe,
   ImageIcon,
   MessageSquare,
+  QrCode,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import type { ParcelStatus as TransitionParcelStatus } from "@/lib/transitions";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TrackingMap } from "@/components/maps";
-import { QRCodeDisplay } from "@/components/qrcode";
+import { QRCodeDisplay, QRCodeViewerDialog } from "@/components/qrcode";
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
 import { EmptyState } from "@/components/EmptyState";
@@ -63,6 +64,7 @@ export default function ParcelDetail() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
 
   const authUser = useAuthStore((s) => s.user);
   const normalizedRole = (() => {
@@ -348,7 +350,28 @@ export default function ParcelDetail() {
         </Card>
 
         {/* QR Code for Printing */}
-        <QRCodeDisplay
+        <Card>
+          <CardContent className="py-4 flex flex-col items-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full"
+              onClick={() => setIsQrDialogOpen(true)}
+            >
+              <QrCode className="w-5 h-5 mr-2" />
+              View QR Code
+            </Button>
+            {parcel.qrStatus !== "FINAL" && (
+              <p className="text-xs text-muted-foreground text-center">
+                The final QR code will be available after staff approval.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <QRCodeViewerDialog
+          open={isQrDialogOpen}
+          onOpenChange={setIsQrDialogOpen}
           trackingRef={parcel.trackingRef}
           parcelId={parcel.id}
           qrContent={
@@ -356,13 +379,11 @@ export default function ParcelDetail() {
               ? (parcel.finalQrCode as string | undefined)
               : undefined
           }
+          qrStatus={parcel.qrStatus}
           senderCity={parcel.senderCity}
           recipientCity={parcel.recipientCity}
           serviceType={parcel.serviceType}
           createdAt={parcel.createdAt}
-          size="medium"
-          showLabel={true}
-          showActions={true}
         />
       </div>
 

@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, Package, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, Loader2, Package, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QRCodeDisplay } from "@/components/qrcode";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useParcel } from "@/hooks";
@@ -137,22 +138,34 @@ export default function QRCodePage() {
       </Card>
 
       {/* QR Code Display */}
-      <QRCodeDisplay
-        trackingRef={parcel.trackingRef || parcel.id}
-        parcelId={parcel.id}
-        qrContent={
-          parcel.locked && parcel.qrStatus === "FINAL"
-            ? (parcel.finalQrCode as string | undefined)
-            : undefined
-        }
-        senderCity={parcel.senderCity}
-        recipientCity={parcel.recipientCity}
-        serviceType={parcel.serviceType}
-        createdAt={parcel.createdAt}
-        size="large"
-        showLabel={true}
-        showActions={true}
-      />
+      {parcel.qrStatus === "FINAL" ? (
+        <QRCodeDisplay
+          trackingRef={parcel.trackingRef || parcel.id}
+          parcelId={parcel.id}
+          qrContent={parcel.finalQrCode as string | undefined}
+          senderCity={parcel.senderCity}
+          recipientCity={parcel.recipientCity}
+          serviceType={parcel.serviceType}
+          createdAt={parcel.createdAt}
+          size="large"
+          showLabel={true}
+          showActions={true}
+        />
+      ) : (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10 text-center space-y-3">
+            <Clock className="w-12 h-12 text-muted-foreground" />
+            <Badge variant="secondary">
+              <Clock className="w-3 h-3 mr-1" />
+              Pending Approval
+            </Badge>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              The final QR code will be generated after the parcel is validated
+              and approved by staff.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Share Button */}
       <Button variant="outline" className="w-full" onClick={handleShare}>
