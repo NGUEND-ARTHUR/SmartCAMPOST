@@ -1,0 +1,1602 @@
+
+============================================
+   SmartCAMPOST COMPREHENSIVE TEST V3
+   2026-03-08 13:46:39
+============================================
+
+
+--- MODULE 1: AUTHENTICATION ---
+[PASS] Admin login
+[PASS] Send OTP for registration
+[FAIL-409] Register CLIENT : 
+{
+  "timestamp": "2026-03-08T12:46:39.447392500Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "USER_PHONE_EXISTS",
+  "message": "Phone already exists",
+  "path": "/api/auth/register"
+}
+[PASS] Client login
+[PASS-EXPECTED-401] Wrong password → 401
+[PASS-EXPECTED-404] Nonexistent user → 404
+[PASS] Verify OTP (wrong code → 200 w/ verified=false)
+[PASS] Request login OTP
+[PASS] Request password reset
+[PASS-EXPECTED-400] Register with blank fields → 400
+[PASS-EXPECTED-400] Login with missing phone → 400
+
+--- MODULE 2: AGENCIES ---
+[FAIL-400] Create agency (Yaounde) : 
+{
+  "timestamp": "2026-03-08T12:46:41.849341900Z",
+  "status": 400,
+  "error": "Bad Request",
+  "code": "BUSINESS_ERROR",
+  "message": "could not execute statement [Unique index or primary key 
+[FAIL-400] Create agency (Douala) : 
+{
+  "timestamp": "2026-03-08T12:46:41.877560200Z",
+  "status": 400,
+  "error": "Bad Request",
+  "code": "BUSINESS_ERROR",
+  "message": "could not execute statement [Unique index or primary key 
+[PASS] List agencies
+[PASS-EXPECTED-400] Duplicate agency code → 400/409
+
+--- MODULE 3: ADMIN USER MANAGEMENT ---
+[PASS] Admin: List all users
+
+id        : d43494e5-11eb-4d23-a165-17cc02ad0830
+phone     : +237690000000
+role      : ADMIN
+entityId  : f7df5055-0d7e-4a56-82e6-d52b030356ae
+frozen    : False
+createdAt : 08/03/2026 12:42:19
+
+id        : 6ecbb32f-0a6f-46b4-81b0-7f067be530cf
+phone     : +237670000001
+role      : CLIENT
+entityId  : bb2bf089-f882-4fe5-823a-ce0e17b60887
+frozen    : False
+createdAt : 08/03/2026 12:42:28
+
+id        : 6e8405a5-1057-467a-8c14-6d83912deb33
+phone     : +237670000010
+role      : STAFF
+entityId  : e1c0c587-e9dc-40dd-8973-acf3b483d9e3
+frozen    : False
+createdAt : 08/03/2026 12:42:32
+
+id        : e3b5406c-9a29-40f2-8683-0348975c4fc2
+phone     : +237670000020
+role      : FINANCE
+entityId  : 423d5733-761e-428b-a1cb-9c028778c4e4
+frozen    : False
+createdAt : 08/03/2026 12:42:32
+
+id        : 9efa4e4d-4c4f-4482-8210-768f6bc94a51
+phone     : +237670000030
+role      : RISK
+entityId  : 394fd738-9469-4c0e-a90c-990f7f1b6037
+frozen    : False
+createdAt : 08/03/2026 12:42:32
+
+id        : 514ae0e7-4ce5-481f-9db2-bd660a57cc4e
+phone     : +237670000040
+role      : AGENT
+entityId  : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+frozen    : False
+createdAt : 08/03/2026 12:42:33
+
+id        : f7ed4c54-66d0-42d5-b6dc-08989ccb4b24
+phone     : +237670000050
+role      : COURIER
+entityId  : c869e300-20ff-4954-b218-d500d202884a
+frozen    : False
+createdAt : 08/03/2026 12:42:33
+
+id        : 83bf5ae2-8c1b-4589-af29-981da58aa18a
+phone     : +237670000002
+role      : CLIENT
+entityId  : edd65176-6322-40ad-b382-1275f20621ee
+frozen    : False
+createdAt : 08/03/2026 12:42:43
+
+[PASS] Admin: List users by role CLIENT
+id        : 6ecbb32f-0a6f-46b4-81b0-7f067be530cf
+phone     : +237670000001
+role      : CLIENT
+entityId  : bb2bf089-f882-4fe5-823a-ce0e17b60887
+frozen    : False
+createdAt : 08/03/2026 12:42:28
+
+id        : 83bf5ae2-8c1b-4589-af29-981da58aa18a
+phone     : +237670000002
+role      : CLIENT
+entityId  : edd65176-6322-40ad-b382-1275f20621ee
+frozen    : False
+createdAt : 08/03/2026 12:42:43
+
+[PASS] Admin: List users by role ADMIN
+id        : d43494e5-11eb-4d23-a165-17cc02ad0830
+phone     : +237690000000
+role      : ADMIN
+entityId  : f7df5055-0d7e-4a56-82e6-d52b030356ae
+frozen    : False
+createdAt : 08/03/2026 12:42:19
+
+[PASS-EXPECTED-403] Client CANNOT access admin
+[PASS-EXPECTED-403] Unauth CANNOT access admin
+
+--- MODULE 4: CLIENT PROFILE ---
+[PASS] Client: My profile
+[PASS] Client: Update profile
+id                : bb2bf089-f882-4fe5-823a-ce0e17b60887
+fullName          : Jean Dupont Updated
+phone             : +237670000001
+email             : jean.updated@test.cm
+preferredLanguage : EN
+createdAt         : 08/03/2026 12:42:28
+
+[PASS] Client: Update language
+id                : bb2bf089-f882-4fe5-823a-ce0e17b60887
+fullName          : Jean Dupont Updated
+phone             : +237670000001
+email             : jean.updated@test.cm
+preferredLanguage : EN
+createdAt         : 08/03/2026 12:42:28
+
+[PASS] Admin: List clients
+content          : {@{id=bb2bf089-f882-4fe5-823a-ce0e17b60887; fullName=Jean Dupont Updated; phone=+237670000001; email=jean.updated@test.cm; preferredLanguage=EN; createdAt=08/03/2026 12:42:28}, @{id=edd65176-6322-40ad-b382-1275f20621ee; fullName=Alice Kamga; phone=+237670000002; email=alice@test.cm; preferredLanguage=EN; createdAt=08/03/2026 12:42:43}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS-EXPECTED-403] Unauth CANNOT get profile
+
+--- MODULE 5: STAFF MANAGEMENT ---
+[FAIL-409] Admin: Create STAFF : 
+{
+  "timestamp": "2026-03-08T12:46:42.134257700Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "STAFF_CONFLICT",
+  "message": "Staff conflict: email and phone already in use",
+  "path": 
+[PASS] Admin: List staff
+content          : {@{id=f7df5055-0d7e-4a56-82e6-d52b030356ae; fullName=SmartCAMPOST Administrator; role=ADMIN; email=admin@smartcampost.cm; phone=+237690000000; status=ACTIVE; hiredAt=2026-03-08; terminatedAt=; agencyId=; agencyName=}, @{id=e1c0c587-e9dc-40dd-8973-acf3b483d9e3; fullName=Staff Member 1; role=STAFF; email=staff1@campost.cm; phone=+237670000010; status=ACTIVE; hiredAt=2026-03-08; terminatedAt=; agencyId=; agencyName=}, @{id=423d5733-761e-428b-a1cb-9c028778c4e4; fullName=Finance Officer; role=FINANCE; email=finance1@campost.cm; phone=+237670000020; status=ACTIVE; hiredAt=2026-03-08; terminatedAt=; agencyId=; agencyName=}, @{id=394fd738-9469-4c0e-a90c-990f7f1b6037; fullName=Risk Analyst; role=RISK; email=risk1@campost.cm; phone=+237670000030; status=ACTIVE; hiredAt=2026-03-08; terminatedAt=; agencyId=; agencyName=}…}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 5
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 5
+empty            : False
+
+[PASS] Staff login
+[PASS-EXPECTED-403] Client CANNOT create staff
+
+--- MODULE 6: FINANCE STAFF ---
+[FAIL-409] Admin: Create FINANCE staff : 
+{
+  "timestamp": "2026-03-08T12:46:42.350877200Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "STAFF_CONFLICT",
+  "message": "Staff conflict: email and phone already in use",
+  "path": 
+[PASS] Finance login
+
+--- MODULE 7: RISK STAFF ---
+[FAIL-409] Admin: Create RISK staff : 
+{
+  "timestamp": "2026-03-08T12:46:42.517905200Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "STAFF_CONFLICT",
+  "message": "Staff conflict: email and phone already in use",
+  "path": 
+[PASS] Risk login
+
+--- MODULE 8: AGENTS ---
+[FAIL-409] Admin: Create AGENT : 
+{
+  "timestamp": "2026-03-08T12:46:42.785443800Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "AGENT_CONFLICT",
+  "message": "Agent conflict: staff number and phone already in use",
+  "
+[PASS] List agents
+content          : {@{id=1723b6b3-bf60-470f-86ca-408cbd8885ef; fullName=Agent Yaounde; staffNumber=AGT-001; phone=+237670000040; status=ACTIVE; agencyId=; agencyName=; createdAt=08/03/2026 12:42:33}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Agent login
+[PASS-EXPECTED-403] Client CANNOT create agent
+
+--- MODULE 9: COURIERS ---
+[FAIL-409] Admin: Create COURIER : 
+{
+  "timestamp": "2026-03-08T12:46:43.122293900Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "COURIER_PHONE_EXISTS",
+  "message": "Phone already in use",
+  "path": "/api/couriers"
+}
+[PASS] List couriers
+content          : {@{id=c869e300-20ff-4954-b218-d500d202884a; fullName=Courier Douala; phone=+237670000050; vehicleId=; status=AVAILABLE; createdAt=08/03/2026 12:42:33; agencyId=; agencyName=; currentLatitude=; currentLongitude=; lastLocationAt=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Courier login
+[PASS-EXPECTED-403] Client CANNOT create courier
+
+--- MODULE 10: ADDRESSES ---
+[PASS] Client: Create sender address
+[PASS] Client: Create recipient address
+[PASS] Client: List my addresses
+id        : 823d28c3-d7c7-4511-9de5-85149b0c6dae
+label     : Home Yaounde Updated
+street    : Rue 1000 Updated
+city      : Yaounde
+region    : Centre
+country   : Cameroon
+latitude  : 3.848
+longitude : 11.5021
+
+id        : 9caeb788-5c6d-418b-96bf-5425aaa5960d
+label     : Office Douala
+street    : Boulevard de la Liberte
+city      : Douala
+region    : Littoral
+country   : Cameroon
+latitude  : 4.0511
+longitude : 9.7679
+
+id        : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+label     : Home Yaounde
+street    : Rue 1000
+city      : Yaounde
+region    : Centre
+country   : Cameroon
+latitude  : 3.848
+longitude : 11.5021
+
+id        : 4b6832ff-5715-4b8b-9d99-c878296c8079
+label     : Office Douala
+street    : Boulevard de la Liberte
+city      : Douala
+region    : Littoral
+country   : Cameroon
+latitude  : 4.0511
+longitude : 9.7679
+
+[PASS] Client: Get address by ID
+id        : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+label     : Home Yaounde
+street    : Rue 1000
+city      : Yaounde
+region    : Centre
+country   : Cameroon
+latitude  : 3.848
+longitude : 11.5021
+
+[PASS] Client: Update address
+id        : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+label     : Home Yaounde Updated
+street    : Rue 1000 Updated
+city      : Yaounde
+region    : Centre
+country   : Cameroon
+latitude  : 3.848
+longitude : 11.5021
+
+[PASS] Client: Delete address
+[PASS] Client: Re-create recipient addr
+[PASS-EXPECTED-400] Address: Missing required fields → 400
+[PASS-EXPECTED-404] Address: Nonexistent ID → 404
+
+--- MODULE 11: TARIFFS ---
+[FAIL-409] Admin: Create tariff : 
+{
+  "timestamp": "2026-03-08T12:46:43.533379300Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "TARIFF_CONFLICT",
+  "message": "Tariff already exists for this combination",
+  "path": "/a
+[PASS] List all tariffs
+content          : {@{id=89d648f6-7180-4d57-9927-3535f15db142; serviceType=STANDARD; originZone=CENTRE; destinationZone=LITTORAL; weightBracket=1-5; price=2500}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Tariff quote
+tariffId        : 89d648f6-7180-4d57-9927-3535f15db142
+parcelId        : 
+serviceType     : STANDARD
+originZone      : CENTRE
+destinationZone : LITTORAL
+weightBracket   : 1-5
+basePrice       : 2500
+applied         : False
+
+[PASS-EXPECTED-404] Tariff quote no match → 404
+[PASS-EXPECTED-403] Client CANNOT access tariffs
+
+--- MODULE 12: PARCELS ---
+[PASS] Client: Create parcel
+[PASS] Client: List my parcels
+content          : {@{id=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; trackingRef=SCM-20260308-774940; trackingNumber=SCM-20260308-774940; status=OUT_FOR_DELIVERY; serviceType=STANDARD; deliveryOption=AGENCY; weight=2.5; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; senderAddressId=823d28c3-d7c7-4511-9de5-85149b0c6dae; recipientAddressId=9caeb788-5c6d-418b-96bf-5425aaa5960d; paymentOption=PREPAID; photoUrl=; descriptionComment=Documents for business; qrStatus=FINAL; locked=True; createdAt=08/03/2026 12:42:34; expectedDeliveryAt=}, @{id=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; trackingNumber=SCM-20260308-917454; status=CREATED; serviceType=STANDARD; deliveryOption=AGENCY; weight=2.5; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; senderAddressId=8379d1d1-74bf-4852-aad2-61c9dc43cc4b; recipientAddressId=8f680222-4e1a-41de-a0cb-155bfcc39668; paymentOption=PREPAID; photoUrl=; descriptionComment=Documents for business; qrStatus=PARTIAL; locked=False; createdAt=08/03/2026 12:46:43; expectedDeliveryAt=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS] Admin: List all parcels
+content          : {@{id=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; trackingRef=SCM-20260308-774940; trackingNumber=SCM-20260308-774940; status=OUT_FOR_DELIVERY; serviceType=STANDARD; deliveryOption=AGENCY; weight=2.5; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; senderAddressId=823d28c3-d7c7-4511-9de5-85149b0c6dae; recipientAddressId=9caeb788-5c6d-418b-96bf-5425aaa5960d; paymentOption=PREPAID; photoUrl=; descriptionComment=Documents for business; qrStatus=FINAL; locked=True; createdAt=08/03/2026 12:42:34; expectedDeliveryAt=}, @{id=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; trackingNumber=SCM-20260308-917454; status=CREATED; serviceType=STANDARD; deliveryOption=AGENCY; weight=2.5; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; senderAddressId=8379d1d1-74bf-4852-aad2-61c9dc43cc4b; recipientAddressId=8f680222-4e1a-41de-a0cb-155bfcc39668; paymentOption=PREPAID; photoUrl=; descriptionComment=Documents for business; qrStatus=PARTIAL; locked=False; createdAt=08/03/2026 12:46:43; expectedDeliveryAt=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS] Client: Get parcel by ID
+id                    : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef           : SCM-20260308-917454
+trackingNumber        : SCM-20260308-917454
+status                : CREATED
+serviceType           : STANDARD
+deliveryOption        : AGENCY
+paymentOption         : PREPAID
+descriptionComment    : Documents for business
+qrStatus              : PARTIAL
+locked                : False
+partialQrCode         : SCM-20260308-917454|PARTIAL|1772974003643
+finalQrCode           : 
+weight                : 2.5
+dimensions            : 30x20x15
+declaredValue         : 15000
+fragile               : False
+createdAt             : 08/03/2026 12:46:43
+expectedDeliveryAt    : 
+clientId              : bb2bf089-f882-4fe5-823a-ce0e17b60887
+clientName            : Jean Dupont Updated
+senderAddressId       : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+senderLabel           : Home Yaounde Updated
+senderCity            : Yaounde
+senderRegion          : Centre
+senderCountry         : Cameroon
+recipientAddressId    : 8f680222-4e1a-41de-a0cb-155bfcc39668
+recipientLabel        : Office Douala
+recipientCity         : Douala
+recipientRegion       : Littoral
+recipientCountry      : Cameroon
+originAgencyId        : 
+originAgencyName      : 
+destinationAgencyId   : 
+destinationAgencyName : 
+photoUrl              : 
+creationLatitude      : 
+creationLongitude     : 
+currentLatitude       : 
+currentLongitude      : 
+locationUpdatedAt     : 
+locationMode          : GPS_DEFAULT
+validatedWeight       : 
+validatedDimensions   : 
+validationComment     : 
+descriptionConfirmed  : 
+validatedAt           : 
+validatedByStaffId    : 
+validatedByStaffName  : 
+lastAppliedPrice      : 
+pricingHistory        : {}
+
+[PASS-EXPECTED-400] Create parcel: missing fields → 400
+[PASS] Staff: Accept parcel
+id                 : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef        : SCM-20260308-917454
+trackingNumber     : SCM-20260308-917454
+status             : ACCEPTED
+serviceType        : STANDARD
+deliveryOption     : AGENCY
+weight             : 2.5
+clientId           : bb2bf089-f882-4fe5-823a-ce0e17b60887
+senderAddressId    : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+recipientAddressId : 8f680222-4e1a-41de-a0cb-155bfcc39668
+paymentOption      : PREPAID
+photoUrl           : 
+descriptionComment : Documents for business
+qrStatus           : PARTIAL
+locked             : False
+createdAt          : 08/03/2026 12:46:43
+expectedDeliveryAt : 
+
+[PASS] Staff: Validate and lock parcel
+id                 : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef        : SCM-20260308-917454
+trackingNumber     : SCM-20260308-917454
+status             : ACCEPTED
+serviceType        : STANDARD
+deliveryOption     : AGENCY
+weight             : 2.5
+clientId           : bb2bf089-f882-4fe5-823a-ce0e17b60887
+senderAddressId    : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+recipientAddressId : 8f680222-4e1a-41de-a0cb-155bfcc39668
+paymentOption      : PREPAID
+photoUrl           : 
+descriptionComment : Documents for business
+qrStatus           : FINAL
+locked             : True
+createdAt          : 08/03/2026 12:46:43
+expectedDeliveryAt : 
+
+[PASS] Client: Change delivery option to HOME
+id                 : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef        : SCM-20260308-917454
+trackingNumber     : SCM-20260308-917454
+status             : ACCEPTED
+serviceType        : STANDARD
+deliveryOption     : HOME
+weight             : 2.5
+clientId           : bb2bf089-f882-4fe5-823a-ce0e17b60887
+senderAddressId    : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+recipientAddressId : 8f680222-4e1a-41de-a0cb-155bfcc39668
+paymentOption      : PREPAID
+photoUrl           : 
+descriptionComment : Documents for business
+qrStatus           : FINAL
+locked             : True
+createdAt          : 08/03/2026 12:46:43
+expectedDeliveryAt : 
+
+[PASS] Client: Change delivery option back to AGENCY
+id                 : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef        : SCM-20260308-917454
+trackingNumber     : SCM-20260308-917454
+status             : ACCEPTED
+serviceType        : STANDARD
+deliveryOption     : AGENCY
+weight             : 2.5
+clientId           : bb2bf089-f882-4fe5-823a-ce0e17b60887
+senderAddressId    : 8379d1d1-74bf-4852-aad2-61c9dc43cc4b
+recipientAddressId : 8f680222-4e1a-41de-a0cb-155bfcc39668
+paymentOption      : PREPAID
+photoUrl           : 
+descriptionComment : Documents for business
+qrStatus           : FINAL
+locked             : True
+createdAt          : 08/03/2026 12:46:43
+expectedDeliveryAt : 
+
+[PASS-EXPECTED-400] Change delivery option: null → 400
+[PASS] Can correct parcel
+canCorrect : False
+
+
+--- MODULE 13: PRICING ---
+[PASS] Pricing: Quote for parcel
+parcelId : 2379b239-52c9-4cde-a14d-054953dc2517
+amount   : 1750
+currency : XAF
+
+[PASS] Pricing details for parcel
+content          : {}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 0
+totalElements    : 0
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 0
+empty            : True
+
+
+--- MODULE 14: PAYMENTS ---
+[PASS] Client: Init payment
+[PASS] Confirm payment
+id                : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+amount            : 1750
+currency          : XAF
+method            : CASH
+status            : SUCCESS
+timestamp         : 08/03/2026 12:46:43
+externalRef       : CASH-001
+reversed          : False
+
+[PASS] Get payment by ID
+id                : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+amount            : 1750
+currency          : XAF
+method            : CASH
+status            : SUCCESS
+timestamp         : 08/03/2026 12:46:43
+externalRef       : CASH-001
+reversed          : False
+
+[PASS] Payments for parcel
+id                : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+amount            : 1750
+currency          : XAF
+method            : CASH
+status            : SUCCESS
+timestamp         : 08/03/2026 12:46:43
+externalRef       : CASH-001
+reversed          : False
+
+[PASS] Admin: List all payments
+content          : {@{id=777caa3b-4476-4453-8587-b46ce2ec3db7; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; amount=1750; currency=XAF; method=CASH; status=SUCCESS; timestamp=08/03/2026 12:42:34; externalRef=CASH-001; reversed=False}, @{id=9616b293-ca60-4f83-8699-be8edcec60b3; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; parcelTrackingRef=SCM-20260308-917454; amount=1750; currency=XAF; method=CASH; status=SUCCESS; timestamp=08/03/2026 12:46:43; externalRef=CASH-001; reversed=False}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS-EXPECTED-404] Init payment: bad parcel → 404
+
+--- MODULE 15: SCAN EVENTS ---
+[PASS] Agent: Create scan event (TAKEN_IN_CHARGE)
+[PASS] Agent: Create scan event (IN_TRANSIT)
+id                : 1438cad6-ac1d-4ff4-ad3f-f5ed7f1ff91e
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef       : SCM-20260308-917454
+agencyId          : 
+agencyName        : 
+agentId           : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+agentName         : Agent Yaounde
+eventType         : IN_TRANSIT
+timestamp         : 2026-03-08T12:46:44.163132700Z
+locationNote      : 
+parcelStatusAfter : IN_TRANSIT
+latitude          : 3.95
+longitude         : 10.5
+locationSource    : DEVICE_GPS
+actorId           : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+actorRole         : AGENT
+proofUrl          : 
+comment           : 
+synced            : True
+
+[FAIL-400] Get scan events for parcel (via parcels) : 
+{
+  "timestamp": "2026-03-08T12:46:44.206354100Z",
+  "status": 400,
+  "error": "Bad Request",
+  "code": "BUSINESS_ERROR",
+  "message": "Could not write JSON: Could not initialize proxy [com.sma
+[PASS] Get scan events (via scan-events)
+id                : 9de9e38f-bce1-405f-b19d-334fb6e8b823
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef       : SCM-20260308-917454
+agencyId          : 
+agencyName        : 
+agentId           : 
+agentName         : 
+eventType         : ACCEPTED
+timestamp         : 08/03/2026 12:46:43
+locationNote      : 
+parcelStatusAfter : IN_TRANSIT
+latitude          : 3.848
+longitude         : 11.5021
+locationSource    : DEVICE_GPS
+actorId           : e1c0c587-e9dc-40dd-8973-acf3b483d9e3
+actorRole         : STAFF
+proofUrl          : 
+comment           : OK verified by staff
+synced            : True
+
+id                : ce16d5bc-9023-4f84-9d7a-fdd883bb833f
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef       : SCM-20260308-917454
+agencyId          : 
+agencyName        : 
+agentId           : 
+agentName         : 
+eventType         : PROOF_CAPTURED
+timestamp         : 08/03/2026 12:46:43
+locationNote      : 
+parcelStatusAfter : IN_TRANSIT
+latitude          : 3.848
+longitude         : 11.5021
+locationSource    : DEVICE_GPS
+actorId           : e1c0c587-e9dc-40dd-8973-acf3b483d9e3
+actorRole         : STAFF
+proofUrl          : 
+comment           : FINAL_QR_VALIDATED_AND_LOCKED
+synced            : True
+
+id                : 7d3ce64f-8f12-4318-a639-f8d2ddbbcc02
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef       : SCM-20260308-917454
+agencyId          : 
+agencyName        : 
+agentId           : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+agentName         : Agent Yaounde
+eventType         : TAKEN_IN_CHARGE
+timestamp         : 08/03/2026 12:46:44
+locationNote      : 
+parcelStatusAfter : IN_TRANSIT
+latitude          : 3.848
+longitude         : 11.5021
+locationSource    : DEVICE_GPS
+actorId           : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+actorRole         : AGENT
+proofUrl          : 
+comment           : 
+synced            : True
+
+id                : 1438cad6-ac1d-4ff4-ad3f-f5ed7f1ff91e
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef       : SCM-20260308-917454
+agencyId          : 
+agencyName        : 
+agentId           : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+agentName         : Agent Yaounde
+eventType         : IN_TRANSIT
+timestamp         : 08/03/2026 12:46:44
+locationNote      : 
+parcelStatusAfter : IN_TRANSIT
+latitude          : 3.95
+longitude         : 10.5
+locationSource    : DEVICE_GPS
+actorId           : 1723b6b3-bf60-470f-86ca-408cbd8885ef
+actorRole         : AGENT
+proofUrl          : 
+comment           : 
+synced            : True
+
+
+--- MODULE 16: QR CODES ---
+[PASS] QR verify (POST)
+valid             : False
+status            : TOKEN_NOT_FOUND
+message           : QR code non reconnu. Ce code pourrait être falsifié.
+errorCode         : QR_TOKEN_NOT_FOUND
+tokenId           : 
+tokenType         : 
+tokenCreatedAt    : 
+tokenExpiresAt    : 
+verificationCount : 
+parcelId          : 
+trackingRef       : 
+parcelStatus      : 
+serviceType       : 
+weight            : 
+dimensions        : 
+fragile           : 
+clientName        : 
+originAgency      : 
+destinationAgency : 
+pickupId          : 
+pickupStatus      : 
+requestedDate     : 
+timeWindow        : 
+verifiedAt        : 2026-03-08T12:46:44.270853700Z
+tamperingDetected : True
+riskLevel         : MEDIUM
+
+[PASS] QR verify GET
+valid             : False
+status            : TOKEN_NOT_FOUND
+message           : Format de QR code invalide.
+errorCode         : QR_INVALID_FORMAT
+tokenId           : 
+tokenType         : 
+tokenCreatedAt    : 
+tokenExpiresAt    : 
+verificationCount : 
+parcelId          : 
+trackingRef       : 
+parcelStatus      : 
+serviceType       : 
+weight            : 
+dimensions        : 
+fragile           : 
+clientName        : 
+originAgency      : 
+destinationAgency : 
+pickupId          : 
+pickupStatus      : 
+requestedDate     : 
+timeWindow        : 
+verifiedAt        : 2026-03-08T12:46:44.291460900Z
+tamperingDetected : True
+riskLevel         : MEDIUM
+
+
+--- MODULE 17: TRACKING ---
+[PASS] Track parcel by ref
+parcelId         : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef      : SCM-20260308-917454
+trackingNumber   : SCM-20260308-917454
+status           : IN_TRANSIT
+currentLocation  : @{latitude=3.95; longitude=10.5; locationSource=DEVICE_GPS; eventType=IN_TRANSIT; updatedAt=08/03/2026 12:46:44}
+lastLocationNote : 
+updatedAt        : 08/03/2026 12:46:44
+timeline         : {@{id=9de9e38f-bce1-405f-b19d-334fb6e8b823; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=; agentName=; eventType=ACCEPTED; timestamp=08/03/2026 12:46:43; locationNote=; parcelStatusAfter=IN_TRANSIT; latitude=3.848; longitude=11.5021; locationSource=DEVICE_GPS; actorId=; actorRole=; proofUrl=; comment=; synced=True}, @{id=ce16d5bc-9023-4f84-9d7a-fdd883bb833f; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=; agentName=; eventType=PROOF_CAPTURED; timestamp=08/03/2026 12:46:43; locationNote=; parcelStatusAfter=IN_TRANSIT; latitude=3.848; longitude=11.5021; locationSource=DEVICE_GPS; actorId=; actorRole=; proofUrl=; comment=; synced=True}, @{id=7d3ce64f-8f12-4318-a639-f8d2ddbbcc02; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=; agentName=; eventType=TAKEN_IN_CHARGE; timestamp=08/03/2026 12:46:44; locationNote=; parcelStatusAfter=IN_TRANSIT; latitude=3.848; longitude=11.5021; locationSource=DEVICE_GPS; actorId=; actorRole=; proofUrl=; comment=; synced=True}, @{id=1438cad6-ac1d-4ff4-ad3f-f5ed7f1ff91e; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=; agentName=; eventType=IN_TRANSIT; timestamp=08/03/2026 12:46:44; locationNote=; parcelStatusAfter=IN_TRANSIT; latitude=3.95; longitude=10.5; locationSource=DEVICE_GPS; actorId=; actorRole=; proofUrl=; comment=; synced=True}}
+
+[PASS-EXPECTED-404] Track nonexistent → 404
+
+--- MODULE 18: NOTIFICATIONS ---
+[PASS] Client: My notifications
+content       : {@{id=8ef2180a-83d9-4f30-8c5f-9c70361398d8; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; parcelTrackingRef=SCM-20260308-917454; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=PARCEL_IN_TRANSIT; status=SENT; subject=Parcel in transit; message=Dear Jean Dupont Updated, your parcel SCM-20260308-917454 is now in transit to its destination.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:46:44; sentAt=08/03/2026 12:46:44}, @{id=fa7e52bc-8fc8-409a-aa4f-5512ccf80927; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; parcelTrackingRef=SCM-20260308-917454; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=INVOICE_ISSUED; status=SENT; subject=Invoice issued; message=Dear Jean Dupont Updated, your invoice INV-20260308-EDC735FF has been issued for parcel SCM-20260308-917454. Amount: 1750.00 XAF.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:46:44; sentAt=08/03/2026 12:46:44}, @{id=168fbef0-c7cc-417d-8f3e-3010118841a8; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; parcelTrackingRef=SCM-20260308-917454; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=PAYMENT_CONFIRMED; status=SENT; subject=Payment confirmed; message=Dear Jean Dupont Updated, we have received your payment for parcel SCM-20260308-917454. Amount: 1750.00 XAF.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:46:44; sentAt=08/03/2026 12:46:44}, @{id=018c2243-b393-480d-84ed-49002cccbc3a; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; parcelTrackingRef=SCM-20260308-917454; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=PARCEL_STATUS_CHANGE; status=SENT; subject=Parcel validated and accepted; message=Dear Jean Dupont Updated, your parcel SCM-20260308-917454 has been validated and accepted by our agent. It is now ready for processing and will soon be on its way.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:46:43; sentAt=08/03/2026 12:46:43}…}
+page          : 0
+size          : 20
+totalElements : 17
+totalPages    : 1
+first         : True
+last          : True
+number        : 0
+
+[PASS] Admin: List all notifications
+content       : {@{id=1d581ca8-27f5-490d-82b9-fc91d848eda1; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=PARCEL_STATUS_CHANGE; status=SENT; subject=Parcel validated and accepted; message=Dear Jean Dupont Updated, your parcel SCM-20260308-774940 has been validated and accepted by our agent. It is now ready for processing and will soon be on its way.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:42:34; sentAt=08/03/2026 12:42:34}, @{id=84369dcd-995b-4704-87a3-76d5c5addbe0; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=PARCEL_STATUS_CHANGE; status=SENT; subject=Parcel validated and accepted; message=Dear Jean Dupont Updated, your parcel SCM-20260308-774940 has been validated and accepted by our agent. It is now ready for processing and will soon be on its way.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:42:34; sentAt=08/03/2026 12:42:34}, @{id=264bd687-400b-4f41-8a13-c1fbc864ac04; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=PAYMENT_CONFIRMED; status=SENT; subject=Payment confirmed; message=Dear Jean Dupont Updated, we have received your payment for parcel SCM-20260308-774940. Amount: 1750.00 XAF.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:42:34; sentAt=08/03/2026 12:42:34}, @{id=d9d9fe52-357b-477e-ad1d-97e4a3e83e85; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; pickupId=; recipientPhone=+237670000001; recipientEmail=jean.updated@test.cm; channel=SMS; type=INVOICE_ISSUED; status=SENT; subject=Invoice issued; message=Dear Jean Dupont Updated, your invoice INV-20260308-1D28F399 has been issued for parcel SCM-20260308-774940. Amount: 1750.00 XAF.; errorMessage=; retryCount=0; createdAt=08/03/2026 12:42:35; sentAt=08/03/2026 12:42:35}…}
+page          : 0
+size          : 50
+totalElements : 17
+totalPages    : 1
+first         : True
+last          : True
+number        : 0
+
+[PASS] Notifications for parcel
+id                : 8ef2180a-83d9-4f30-8c5f-9c70361398d8
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+pickupId          : 
+recipientPhone    : +237670000001
+recipientEmail    : jean.updated@test.cm
+channel           : SMS
+type              : PARCEL_IN_TRANSIT
+status            : SENT
+subject           : Parcel in transit
+message           : Dear Jean Dupont Updated, your parcel SCM-20260308-917454 is now in transit to its destination.
+errorMessage      : 
+retryCount        : 0
+createdAt         : 08/03/2026 12:46:44
+sentAt            : 08/03/2026 12:46:44
+
+id                : fa7e52bc-8fc8-409a-aa4f-5512ccf80927
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+pickupId          : 
+recipientPhone    : +237670000001
+recipientEmail    : jean.updated@test.cm
+channel           : SMS
+type              : INVOICE_ISSUED
+status            : SENT
+subject           : Invoice issued
+message           : Dear Jean Dupont Updated, your invoice INV-20260308-EDC735FF has been issued for parcel SCM-20260308-917454. Amount: 1750.00 XAF.
+errorMessage      : 
+retryCount        : 0
+createdAt         : 08/03/2026 12:46:44
+sentAt            : 08/03/2026 12:46:44
+
+id                : 168fbef0-c7cc-417d-8f3e-3010118841a8
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+pickupId          : 
+recipientPhone    : +237670000001
+recipientEmail    : jean.updated@test.cm
+channel           : SMS
+type              : PAYMENT_CONFIRMED
+status            : SENT
+subject           : Payment confirmed
+message           : Dear Jean Dupont Updated, we have received your payment for parcel SCM-20260308-917454. Amount: 1750.00 XAF.
+errorMessage      : 
+retryCount        : 0
+createdAt         : 08/03/2026 12:46:44
+sentAt            : 08/03/2026 12:46:44
+
+id                : 018c2243-b393-480d-84ed-49002cccbc3a
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+pickupId          : 
+recipientPhone    : +237670000001
+recipientEmail    : jean.updated@test.cm
+channel           : SMS
+type              : PARCEL_STATUS_CHANGE
+status            : SENT
+subject           : Parcel validated and accepted
+message           : Dear Jean Dupont Updated, your parcel SCM-20260308-917454 has been validated and accepted by our agent. It is now ready for processing and will soon be on its way.
+errorMessage      : 
+retryCount        : 0
+createdAt         : 08/03/2026 12:46:43
+sentAt            : 08/03/2026 12:46:43
+
+id                : 655d6176-64b7-453e-b31d-9201ea8f9ffe
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+pickupId          : 
+recipientPhone    : +237670000001
+recipientEmail    : jean.updated@test.cm
+channel           : SMS
+type              : PARCEL_STATUS_CHANGE
+status            : SENT
+subject           : Parcel validated and accepted
+message           : Dear Jean Dupont Updated, your parcel SCM-20260308-917454 has been validated and accepted by our agent. It is now ready for processing and will soon be on its way.
+errorMessage      : 
+retryCount        : 0
+createdAt         : 08/03/2026 12:46:43
+sentAt            : 08/03/2026 12:46:43
+
+[PASS] Admin: Trigger notification
+id                : 93f828a5-ca5a-4d8a-a9af-18b8071c875f
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+pickupId          : 
+recipientPhone    : +237670000001
+recipientEmail    : jean.updated@test.cm
+channel           : SMS
+type              : PARCEL_STATUS_CHANGE
+status            : SENT
+subject           : Notification
+message           : Test notification
+errorMessage      : 
+retryCount        : 0
+createdAt         : 2026-03-08T12:46:44.571550700Z
+sentAt            : 2026-03-08T12:46:44.572543300Z
+
+[PASS-EXPECTED-400] Trigger with bad type → 400
+
+--- MODULE 19: PICKUPS ---
+[PASS] Client: Create pickup
+[PASS] Client: My pickups
+content          : {@{id=7bf816ef-2dee-4151-8765-53031dba4c48; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; trackingRef=SCM-20260308-774940; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; clientName=Jean Dupont Updated; clientPhone=+237670000001; courierId=; courierName=; requestedDate=2026-03-10; timeWindow=09:00-12:00; state=REQUESTED; comment=Ring doorbell; pickupLatitude=3.848; pickupLongitude=11.5021; locationMode=GPS_DEFAULT; createdAt=08/03/2026 12:42:36}, @{id=db12ce32-0d8c-4536-b8d0-889b63204583; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; clientName=Jean Dupont Updated; clientPhone=+237670000001; courierId=; courierName=; requestedDate=2026-03-10; timeWindow=09:00-12:00; state=REQUESTED; comment=Ring doorbell; pickupLatitude=3.848; pickupLongitude=11.5021; locationMode=GPS_DEFAULT; createdAt=08/03/2026 12:46:44}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS] Courier: My pickups
+content          : {}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 0
+totalElements    : 0
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 0
+empty            : True
+
+[PASS] Admin: List all pickups
+content          : {@{id=7bf816ef-2dee-4151-8765-53031dba4c48; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; trackingRef=SCM-20260308-774940; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; clientName=Jean Dupont Updated; clientPhone=+237670000001; courierId=; courierName=; requestedDate=2026-03-10; timeWindow=09:00-12:00; state=REQUESTED; comment=Ring doorbell; pickupLatitude=3.848; pickupLongitude=11.5021; locationMode=GPS_DEFAULT; createdAt=08/03/2026 12:42:36}, @{id=db12ce32-0d8c-4536-b8d0-889b63204583; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; clientName=Jean Dupont Updated; clientPhone=+237670000001; courierId=; courierName=; requestedDate=2026-03-10; timeWindow=09:00-12:00; state=REQUESTED; comment=Ring doorbell; pickupLatitude=3.848; pickupLongitude=11.5021; locationMode=GPS_DEFAULT; createdAt=08/03/2026 12:46:44}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS] Get pickup by ID
+id              : db12ce32-0d8c-4536-b8d0-889b63204583
+parcelId        : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef     : SCM-20260308-917454
+clientId        : bb2bf089-f882-4fe5-823a-ce0e17b60887
+clientName      : Jean Dupont Updated
+clientPhone     : +237670000001
+courierId       : 
+courierName     : 
+requestedDate   : 2026-03-10
+timeWindow      : 09:00-12:00
+state           : REQUESTED
+comment         : Ring doorbell
+pickupLatitude  : 3.848
+pickupLongitude : 11.5021
+locationMode    : GPS_DEFAULT
+createdAt       : 08/03/2026 12:46:44
+
+[PASS] Pickup by parcel
+id              : db12ce32-0d8c-4536-b8d0-889b63204583
+parcelId        : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef     : SCM-20260308-917454
+clientId        : bb2bf089-f882-4fe5-823a-ce0e17b60887
+clientName      : Jean Dupont Updated
+clientPhone     : +237670000001
+courierId       : 
+courierName     : 
+requestedDate   : 2026-03-10
+timeWindow      : 09:00-12:00
+state           : REQUESTED
+comment         : Ring doorbell
+pickupLatitude  : 3.848
+pickupLongitude : 11.5021
+locationMode    : GPS_DEFAULT
+createdAt       : 08/03/2026 12:46:44
+
+[PASS-EXPECTED-400] Create pickup: missing fields → 400
+
+--- MODULE 20: INVOICES ---
+[PASS] Client: My invoices
+id                : baefa265-ff3c-40b5-b620-63422aae4146
+paymentId         : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+invoiceNumber     : INV-20260308-EDC735FF
+totalAmount       : 1750
+issuedAt          : 08/03/2026 12:46:44
+pdfLink           : storage\invoices\INV-20260308-EDC735FF.pdf
+
+id                : 30ad2e13-e2ad-4d03-9bc3-80e5807385b8
+paymentId         : 777caa3b-4476-4453-8587-b46ce2ec3db7
+parcelId          : f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476
+parcelTrackingRef : SCM-20260308-774940
+invoiceNumber     : INV-20260308-1D28F399
+totalAmount       : 1750
+issuedAt          : 08/03/2026 12:42:35
+pdfLink           : storage\invoices\INV-20260308-1D28F399.pdf
+
+[PASS] Invoices by parcel
+id                : baefa265-ff3c-40b5-b620-63422aae4146
+paymentId         : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+invoiceNumber     : INV-20260308-EDC735FF
+totalAmount       : 1750
+issuedAt          : 08/03/2026 12:46:44
+pdfLink           : storage\invoices\INV-20260308-EDC735FF.pdf
+
+
+--- MODULE 21: SUPPORT TICKETS ---
+[FAIL-409] Client: Create support ticket : 
+{
+  "timestamp": "2026-03-08T12:46:44.854086800Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "TICKET_CONFLICT",
+  "message": "You already have an active support ticket",
+  "path": "/ap
+[PASS] Client: My tickets
+content          : {@{id=622fbb97-5ca4-4af2-82f3-b29c6f72c8ad; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; clientName=Jean Dupont Updated; subject=Delivery delay inquiry; message=My parcel has been in transit for too long, please check.
+                   
+                   [REPLY] We are looking into this. Your parcel is currently in transit.; category=COMPLAINT; status=IN_PROGRESS; createdAt=08/03/2026 12:42:36; updatedAt=08/03/2026 12:42:36}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Admin: List all tickets
+content          : {@{id=622fbb97-5ca4-4af2-82f3-b29c6f72c8ad; clientId=bb2bf089-f882-4fe5-823a-ce0e17b60887; clientName=Jean Dupont Updated; subject=Delivery delay inquiry; message=My parcel has been in transit for too long, please check.
+                   
+                   [REPLY] We are looking into this. Your parcel is currently in transit.; category=COMPLAINT; status=IN_PROGRESS; createdAt=08/03/2026 12:42:36; updatedAt=08/03/2026 12:42:36}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[FAIL-404] Get ticket by ID : 
+{
+  "timestamp": "2026-03-08T12:46:44.909194400Z",
+  "status": 404,
+  "error": "Not Found",
+  "code": "BUSINESS_ERROR",
+  "message": "Resource not found: /api/support/tickets/",
+  "path": "/ap
+[FAIL-403] Admin: Reply to ticket : 
+[PASS-EXPECTED-409] Duplicate ticket → 409
+[PASS-EXPECTED-403] Reply with blank → 400
+
+--- MODULE 22: DASHBOARD ---
+[PASS] Admin: Dashboard summary
+metrics : @{registeredClients=2; externalIntegrationStatus=NOT_CONFIGURED; paymentGatewayConfigured=False; deliveredParcels=0; totalTickets=1; enabledIntegrations=0; activeUsers=8; totalRevenue=3500; totalParcels=2; totalPayments=2; totalRiskAlerts=1}
+
+[PASS] Client: Dashboard summary
+metrics : @{registeredClients=2; externalIntegrationStatus=NOT_CONFIGURED; paymentGatewayConfigured=False; deliveredParcels=0; totalTickets=1; enabledIntegrations=0; activeUsers=8; totalRevenue=3500; totalParcels=2; totalPayments=2; totalRiskAlerts=1}
+
+[PASS] Staff: Dashboard summary
+metrics : @{registeredClients=2; externalIntegrationStatus=NOT_CONFIGURED; paymentGatewayConfigured=False; deliveredParcels=0; totalTickets=1; enabledIntegrations=0; activeUsers=8; totalRevenue=3500; totalParcels=2; totalPayments=2; totalRiskAlerts=1}
+
+[PASS-EXPECTED-403] Unauth CANNOT access dashboard
+
+--- MODULE 23: FINANCE ---
+[PASS] Admin: Finance stats
+totalRevenue      : 3500
+pendingPayments   : 0
+completedPayments : 3500
+refundsPending    : 1500
+totalPaymentCount : 2
+successCount      : 2
+pendingCount      : 0
+failedCount       : 0
+
+[PASS] Finance: Finance stats
+totalRevenue      : 3500
+pendingPayments   : 0
+completedPayments : 3500
+refundsPending    : 1500
+totalPaymentCount : 2
+successCount      : 2
+pendingCount      : 0
+failedCount       : 0
+
+[PASS] Admin: Finance refunds
+content          : {@{id=7ab18170-8b3d-4f59-b163-3a5998f1a48e; paymentId=777caa3b-4476-4453-8587-b46ce2ec3db7; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; amount=1500; currency=XAF; status=REQUESTED; reason=Customer changed mind; createdAt=08/03/2026 12:42:37; processedAt=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS-EXPECTED-403] Client CANNOT access finance
+[PASS-EXPECTED-403] Agent CANNOT access finance
+[PASS-EXPECTED-403] Courier CANNOT access finance
+
+--- MODULE 24: RISK ---
+[PASS] Admin: Risk alerts
+content          : {@{id=59cc4c7c-5589-48a1-81f7-98135b96392a; alertType=AML_FLAG; severity=HIGH; status=OPEN; parcelId=; paymentId=; entityType=; entityId=; description=Suspicious high-value transaction detected; resolved=False; createdAt=08/03/2026 12:42:37; updatedAt=; reviewedByStaffId=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Risk: Risk alerts
+content          : {@{id=59cc4c7c-5589-48a1-81f7-98135b96392a; alertType=AML_FLAG; severity=HIGH; status=OPEN; parcelId=; paymentId=; entityType=; entityId=; description=Suspicious high-value transaction detected; resolved=False; createdAt=08/03/2026 12:42:37; updatedAt=; reviewedByStaffId=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Admin: Create risk alert
+id                : 34a8e752-c66a-4fa0-b3e9-30c54542622e
+alertType         : AML_FLAG
+severity          : HIGH
+status            : OPEN
+parcelId          : 
+paymentId         : 
+entityType        : 
+entityId          : 
+description       : Suspicious high-value transaction detected
+resolved          : False
+createdAt         : 2026-03-08T12:46:45.169791300Z
+updatedAt         : 
+reviewedByStaffId : 
+
+[PASS-EXPECTED-403] Client CANNOT access risk
+[PASS-EXPECTED-403] Agent CANNOT access risk
+[PASS-EXPECTED-400] Invalid risk type → 400
+
+--- MODULE 25: REFUNDS ---
+[PASS] Admin: List all refunds
+content          : {@{id=7ab18170-8b3d-4f59-b163-3a5998f1a48e; paymentId=777caa3b-4476-4453-8587-b46ce2ec3db7; parcelId=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; parcelTrackingRef=SCM-20260308-774940; amount=1500; currency=XAF; status=REQUESTED; reason=Customer changed mind; createdAt=08/03/2026 12:42:37; processedAt=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 1
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 1
+empty            : False
+
+[PASS] Admin: Create refund
+[PASS] Get refund by ID
+id                : 9cde83ad-35cc-44d2-ad26-c8a6eb0eef2b
+paymentId         : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+amount            : 1500
+currency          : XAF
+status            : REQUESTED
+reason            : Customer changed mind
+createdAt         : 08/03/2026 12:46:45
+processedAt       : 
+
+[PASS] Refunds for payment
+id                : 9cde83ad-35cc-44d2-ad26-c8a6eb0eef2b
+paymentId         : 9616b293-ca60-4f83-8699-be8edcec60b3
+parcelId          : 2379b239-52c9-4cde-a14d-054953dc2517
+parcelTrackingRef : SCM-20260308-917454
+amount            : 1500
+currency          : XAF
+status            : REQUESTED
+reason            : Customer changed mind
+createdAt         : 08/03/2026 12:46:45
+processedAt       : 
+
+
+--- MODULE 26: DELIVERY ---
+[PASS] Courier: Start delivery
+parcelId           : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef        : SCM-20260308-917454
+status             : OUT_FOR_DELIVERY
+recipientName      : Office Douala
+recipientPhone     : +23****01
+recipientAddress   : Office Douala, Douala, Littoral
+recipientLatitude  : 4.0511
+recipientLongitude : 9.7679
+courierId          : 
+courierName        : 
+otpSent            : False
+otpSentTo          : 
+startedAt          : 2026-03-08T12:46:45.351089900Z
+expectedDeliveryAt : 
+recipientNotified  : True
+
+[PASS] Delivery status
+parcelId            : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef         : SCM-20260308-917454
+status              : OUT_FOR_DELIVERY
+deliveryOption      : AGENCY
+currentStage        : Out for delivery
+currentAgencyName   : 
+recipientName       : Office Douala
+recipientCity       : Douala
+courierId           : 
+courierName         : 
+courierPhone        : 
+attemptCount        : 0
+attempts            : {}
+proofId             : 
+proofType           : 
+deliveredAt         : 
+receiverName        : 
+otpSent             : False
+otpSentAt           : 
+scheduledDeliveryAt : 
+paymentRequired     : False
+amountDue           : 0
+paymentCollected    : False
+rescheduled         : False
+
+[FAIL-400] Send delivery OTP : 
+
+--- MODULE 27: RECEIPTS ---
+[FAIL-404] Receipt by parcel : 
+{
+  "timestamp": "2026-03-08T12:46:45.447984800Z",
+  "status": 404,
+  "error": "Not Found",
+  "code": "BUSINESS_ERROR",
+  "message": "Receipt not found",
+  "path": "/api/receipts/parcel/2379b2
+
+--- MODULE 28: LOCATION ---
+[PASS] Courier: Update location
+id        : 3
+userId    : +237670000050
+latitude  : 4.0511
+longitude : 9.7679
+address   : 
+source    : GPS
+timestamp : 08/03/2026 13:46:45
+
+[PASS] Agent: Update location
+id        : 4
+userId    : +237670000040
+latitude  : 3.848
+longitude : 11.5021
+address   : 
+source    : GPS
+timestamp : 08/03/2026 13:46:45
+
+[PASS] Courier: Recent locations
+id        : 3
+userId    : +237670000050
+latitude  : 4.0511
+longitude : 9.7679
+address   : 
+source    : GPS
+timestamp : 08/03/2026 13:46:45
+
+id        : 1
+userId    : +237670000050
+latitude  : 4.0511
+longitude : 9.7679
+address   : 
+source    : GPS
+timestamp : 08/03/2026 13:42:37
+
+
+--- MODULE 29: MAP ---
+[PASS] Map: Parcel map data
+timeline        : {@{id=9de9e38f-bce1-405f-b19d-334fb6e8b823; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=; agentName=; eventType=ACCEPTED; timestamp=08/03/2026 12:46:43; locationNote=; parcelStatusAfter=OUT_FOR_DELIVERY; latitude=3.848; longitude=11.5021; locationSource=DEVICE_GPS; actorId=e1c0c587-e9dc-40dd-8973-acf3b483d9e3; actorRole=STAFF; proofUrl=; comment=OK verified by staff; synced=True}, @{id=ce16d5bc-9023-4f84-9d7a-fdd883bb833f; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=; agentName=; eventType=PROOF_CAPTURED; timestamp=08/03/2026 12:46:43; locationNote=; parcelStatusAfter=OUT_FOR_DELIVERY; latitude=3.848; longitude=11.5021; locationSource=DEVICE_GPS; actorId=e1c0c587-e9dc-40dd-8973-acf3b483d9e3; actorRole=STAFF; proofUrl=; comment=FINAL_QR_VALIDATED_AND_LOCKED; synced=True}, @{id=7d3ce64f-8f12-4318-a639-f8d2ddbbcc02; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=1723b6b3-bf60-470f-86ca-408cbd8885ef; agentName=Agent Yaounde; eventType=TAKEN_IN_CHARGE; timestamp=08/03/2026 12:46:44; locationNote=; parcelStatusAfter=OUT_FOR_DELIVERY; latitude=3.848; longitude=11.5021; locationSource=DEVICE_GPS; actorId=1723b6b3-bf60-470f-86ca-408cbd8885ef; actorRole=AGENT; proofUrl=; comment=; synced=True}, @{id=1438cad6-ac1d-4ff4-ad3f-f5ed7f1ff91e; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; agencyId=; agencyName=; agentId=1723b6b3-bf60-470f-86ca-408cbd8885ef; agentName=Agent Yaounde; eventType=IN_TRANSIT; timestamp=08/03/2026 12:46:44; locationNote=; parcelStatusAfter=OUT_FOR_DELIVERY; latitude=3.95; longitude=10.5; locationSource=DEVICE_GPS; actorId=1723b6b3-bf60-470f-86ca-408cbd8885ef; actorRole=AGENT; proofUrl=; comment=; synced=True}…}
+trackingNumber  : SCM-20260308-917454
+parcelId        : 2379b239-52c9-4cde-a14d-054953dc2517
+status          : OUT_FOR_DELIVERY
+currentLocation : @{note=Starting delivery; eventId=922f439d-41e5-41b1-b0d6-015441afaefc; latitude=4.0511; timestamp=08/03/2026 12:46:45; longitude=9.7679}
+
+[PASS] Map: Admin overview
+recentLocations : {@{id=4; userId=+237670000040; latitude=3.848; longitude=11.5021; address=; source=GPS; timestamp=08/03/2026 13:46:45}, @{id=3; userId=+237670000050; latitude=4.0511; longitude=9.7679; address=; source=GPS; timestamp=08/03/2026 13:46:45}, @{id=2; userId=+237670000040; latitude=3.848; longitude=11.5021; address=; source=GPS; timestamp=08/03/2026 13:42:37}, @{id=1; userId=+237670000050; latitude=4.0511; longitude=9.7679; address=; source=GPS; timestamp=08/03/2026 13:42:37}}
+activeParcels   : {@{trackingRef=SCM-20260308-774940; creationLongitude=11.5021; currentLongitude=10.5; currentTimestamp=08/03/2026 12:42:40; currentLatitude=3.9; id=f8b3c1b4-fc55-4e4e-b11b-0c28b9b28476; creationLatitude=3.848; status=OUT_FOR_DELIVERY}, @{trackingRef=SCM-20260308-917454; creationLongitude=11.5021; currentLongitude=9.7679; currentTimestamp=08/03/2026 12:46:45; currentLatitude=4.0511; id=2379b239-52c9-4cde-a14d-054953dc2517; creationLatitude=3.848; status=OUT_FOR_DELIVERY}}
+
+
+--- MODULE 30: GEOLOCATION ---
+[PASS] Geocode address
+latitude          : 3.9000289
+longitude         : 11.4991866
+normalizedAddress : U.S. Embassy in Cameroon, Rue Rosa Parks, Ntoungou, Yaoundé II, Communauté urbaine de Yaoundé, Mfoundi, Centre, Cameroun
+
+[PASS] Geo search
+latitude    : 3.8689867
+longitude   : 11.5213344
+displayName : Communauté urbaine de Yaoundé, Mfoundi, Centre, Cameroun
+category    : boundary
+type        : administrative
+city        : Communauté urbaine de Yaoundé
+state       : Centre
+country     : Cameroun
+
+[PASS] Route ETA
+durationSeconds : 17432
+distanceKm      : 193.697192159387
+
+[PASS-EXPECTED-400] Geocode blank → 400
+
+--- MODULE 31: SELF-HEALING ---
+[PASS] Self-healing: Congestion overview
+[PASS] Self-healing: Actions
+
+--- MODULE 32: OFFLINE SYNC ---
+[PASS] Offline sync
+batchId         : batch-001
+totalEvents     : 1
+successCount    : 0
+failureCount    : 1
+failures        : {@{eventIndex=0; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; eventType=IN_TRANSIT; errorMessage=Invalid status transition: OUT_FOR_DELIVERY -> IN_TRANSIT}}
+syncedAt        : 2026-03-08T12:46:48.902364900Z
+syncedCount     : 0
+failedCount     : 1
+syncedEvents    : {}
+failedEvents    : {@{localId=offline-001; error=Invalid status transition: OUT_FOR_DELIVERY -> IN_TRANSIT; retryable=False}}
+serverTimestamp : 2026-03-08T12:46:48.902364900Z
+
+
+--- MODULE 33: USSD ---
+[PASS] USSD handle
+message    : Tracking number not found.
+endSession : True
+
+
+--- MODULE 34: INTEGRATIONS ---
+[PASS] List integrations
+content          : {}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 0
+totalElements    : 0
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 0
+empty            : True
+
+
+--- MODULE 35: ANALYTICS / AI ---
+[PASS] Analytics: ETA for parcel
+parcelId            : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef         : SCM-20260308-917454
+predictedDeliveryAt : 09/03/2026 12:46:48
+confidence          : 0.75
+lastEventType       : IN_TRANSIT
+lastEventAt         : 08/03/2026 12:46:48
+lastLocationNote    : 
+
+[PASS] Analytics: Demand forecast
+agencyId           : 
+agencyName         : 
+region             : 
+forecasts          : {@{date=2026-03-09; predictedVolume=0; confidence=0.83; demandLevel=LOW}, @{date=2026-03-10; predictedVolume=0; confidence=0.81; demandLevel=LOW}, @{date=2026-03-11; predictedVolume=0; confidence=0.79; demandLevel=LOW}, @{date=2026-03-12; predictedVolume=0; confidence=0.77; demandLevel=LOW}…}
+currentBacklog     : 2
+averageDailyVolume : 0.07
+trend              : INCREASING
+confidenceScore    : 0.5
+recommendation     : Volume is rising and backlog is high. Consider adding temporary staff or redistributing parcels to nearby agencies.
+
+[PASS] Analytics: Sentiment
+overallSentiment  : NEUTRAL
+sentimentScore    : 0
+totalInteractions : 1
+positiveCount     : 0
+neutralCount      : 1
+negativeCount     : 0
+topIssues         : {}
+satisfactionRate  : 0
+
+
+--- MODULE 36: AUDIT ---
+[PASS] Audit: Parcel audit trail
+parcelId      : 2379b239-52c9-4cde-a14d-054953dc2517
+trackingRef   : SCM-20260308-917454
+currentStatus : OUT_FOR_DELIVERY
+createdAt     : 08/03/2026 12:46:43
+auditTrail    : {@{recordId=9de9e38f-bce1-405f-b19d-334fb6e8b823; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; actorId=e1c0c587-e9dc-40dd-8973-acf3b483d9e3; actorRole=STAFF; actorName=; timestamp=08/03/2026 12:46:43; deviceTimestamp=; latitude=3.848; longitude=11.5021; locationNote=; locationSource=DEVICE_GPS; action=ACCEPTED; eventType=ACCEPTED; previousStatus=; newStatus=; comment=OK verified by staff; proofUrl=; agencyId=; agencyName=}, @{recordId=ce16d5bc-9023-4f84-9d7a-fdd883bb833f; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; actorId=e1c0c587-e9dc-40dd-8973-acf3b483d9e3; actorRole=STAFF; actorName=; timestamp=08/03/2026 12:46:43; deviceTimestamp=08/03/2026 12:46:43; latitude=3.848; longitude=11.5021; locationNote=; locationSource=DEVICE_GPS; action=PROOF_CAPTURED; eventType=PROOF_CAPTURED; previousStatus=; newStatus=; comment=FINAL_QR_VALIDATED_AND_LOCKED; proofUrl=; agencyId=; agencyName=}, @{recordId=7d3ce64f-8f12-4318-a639-f8d2ddbbcc02; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; actorId=1723b6b3-bf60-470f-86ca-408cbd8885ef; actorRole=AGENT; actorName=Agent Yaounde; timestamp=08/03/2026 12:46:44; deviceTimestamp=; latitude=3.848; longitude=11.5021; locationNote=; locationSource=DEVICE_GPS; action=TAKEN_IN_CHARGE; eventType=TAKEN_IN_CHARGE; previousStatus=; newStatus=; comment=; proofUrl=; agencyId=; agencyName=}, @{recordId=1438cad6-ac1d-4ff4-ad3f-f5ed7f1ff91e; parcelId=2379b239-52c9-4cde-a14d-054953dc2517; trackingRef=SCM-20260308-917454; actorId=1723b6b3-bf60-470f-86ca-408cbd8885ef; actorRole=AGENT; actorName=Agent Yaounde; timestamp=08/03/2026 12:46:44; deviceTimestamp=; latitude=3.95; longitude=10.5; locationNote=; locationSource=DEVICE_GPS; action=IN_TRANSIT; eventType=IN_TRANSIT; previousStatus=; newStatus=; comment=; proofUrl=; agencyId=; agencyName=}…}
+totalEvents   : 6
+
+
+--- MODULE 37: COMPLIANCE ---
+[PASS] Compliance: List alerts
+content          : {@{id=59cc4c7c-5589-48a1-81f7-98135b96392a; alertType=AML_FLAG; severity=HIGH; status=OPEN; parcelId=; paymentId=; entityType=; entityId=; description=Suspicious high-value transaction detected; resolved=False; createdAt=08/03/2026 12:42:37; updatedAt=; reviewedByStaffId=}, @{id=34a8e752-c66a-4fa0-b3e9-30c54542622e; alertType=AML_FLAG; severity=HIGH; status=OPEN; parcelId=; paymentId=; entityType=; entityId=; description=Suspicious high-value transaction detected; resolved=False; createdAt=08/03/2026 12:46:45; updatedAt=; reviewedByStaffId=}}
+pageable         : @{pageNumber=0; pageSize=10; sort=; offset=0; paged=True; unpaged=False}
+last             : True
+totalPages       : 1
+totalElements    : 2
+first            : True
+size             : 10
+number           : 0
+sort             : @{empty=True; sorted=False; unsorted=True}
+numberOfElements : 2
+empty            : False
+
+[PASS] Compliance: Reports
+generatedAt : 2026-03-08T12:46:49.047135400Z
+period      : 2026-01-01 to 2026-12-31
+stats       : @{totalAlerts=2; amlAlerts=2; highOrCriticalAlerts=2; byType=; unresolvedAlerts=2; complianceRuleStatusCode=COMPLIANCE_RULE_VIOLATION}
+
+
+--- MODULE 38: CROSS-ROLE ACCESS CONTROL ---
+[PASS-EXPECTED-400] Client CANNOT list all parcels (admin)
+[PASS-EXPECTED-403] Agent CANNOT access admin users
+[PASS-EXPECTED-403] Courier CANNOT access admin users
+[PASS-EXPECTED-403] Courier CANNOT access finance
+[PASS-EXPECTED-403] Agent CANNOT access risk
+[PASS-EXPECTED-403] Courier CANNOT create staff
+[PASS-EXPECTED-400] Staff CANNOT create parcel
+[PASS-EXPECTED-403] Client CANNOT access delivery
+[PASS-EXPECTED-400] Finance CANNOT create parcel
+[PASS-EXPECTED-403] Risk CANNOT access finance
+
+--- MODULE 39: EDGE CASES ---
+[PASS-EXPECTED-403] Invalid JWT → 401/403
+[PASS-EXPECTED-400] Empty body on parcel create → 400
+[PASS-EXPECTED-403] SQL injection in tracking → safe
+[PASS-EXPECTED-409] XSS in support ticket → handled
+[PASS-EXPECTED-400] Oversized description → handled
+[PASS-EXPECTED-400] Negative weight → 400
+[PASS-EXPECTED-400] Zero amount refund → 400
+
+--- MODULE 40: MULTI-USER ISOLATION ---
+[PASS] Send OTP for client 2
+[FAIL-409] Register client 2 : 
+{
+  "timestamp": "2026-03-08T12:46:51.250323500Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "USER_PHONE_EXISTS",
+  "message": "Phone already exists",
+  "path": "/api/auth/register"
+}
+[PASS] Client 2 login
+[PASS] Client 2: My parcels (should be empty)
+[PASS] Client 2: My addresses (should be empty)
+[PASS] Client 2: My notifications (isolated)
+
+============================================
+   COMPREHENSIVE TEST RESULTS SUMMARY
+============================================
+TOTAL: 170  PASS: 154  FAIL: 16  UNEXPECTED: 0
+============================================
+
+FAILURES:
+  1. [FAIL-409] Register CLIENT : 
+{
+  "timestamp": "2026-03-08T12:46:39.447392500Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "USER_PHONE_EXISTS",
+  "message": "Phone already exists",
+  "path": "/api/auth/register"
+}
+  2. [FAIL-400] Create agency (Yaounde) : 
+{
+  "timestamp": "2026-03-08T12:46:41.849341900Z",
+  "status": 400,
+  "error": "Bad Request",
+  "code": "BUSINESS_ERROR",
+  "message": "could not execute statement [Unique index or primary key violation: \u0022PUBLIC.UKO7RJ7RY3WSUBGKK258JB54AO3_INDEX_7 ON PUBLIC.AGENCY(AGENCY_CODE NULLS FIRST) VALUES ( /* 1 */ \u0027YDE-HQ\u0027 )\u0022; SQL statement:\ninsert into agency (agency_code,agency_name,city,country,region,agency_id) values (?,?,?,?,?,?) [23505-232]] [insert into agency (agency_code,agency_name,city,country,region,agency_id) values (?,?,?,?,?,?)]; SQL [insert into agency (agency_code,agency_name,city,country,region,agency_id) values (?,?,?,?,?,?)]; constraint [PUBLIC.UKO7RJ7RY3WSUBGKK258JB54AO3_INDEX_7]",
+  "path": "/api/agencies"
+}
+  3. [FAIL-400] Create agency (Douala) : 
+{
+  "timestamp": "2026-03-08T12:46:41.877560200Z",
+  "status": 400,
+  "error": "Bad Request",
+  "code": "BUSINESS_ERROR",
+  "message": "could not execute statement [Unique index or primary key violation: \u0022PUBLIC.UKO7RJ7RY3WSUBGKK258JB54AO3_INDEX_7 ON PUBLIC.AGENCY(AGENCY_CODE NULLS FIRST) VALUES ( /* 2 */ \u0027DLA-PT\u0027 )\u0022; SQL statement:\ninsert into agency (agency_code,agency_name,city,country,region,agency_id) values (?,?,?,?,?,?) [23505-232]] [insert into agency (agency_code,agency_name,city,country,region,agency_id) values (?,?,?,?,?,?)]; SQL [insert into agency (agency_code,agency_name,city,country,region,agency_id) values (?,?,?,?,?,?)]; constraint [PUBLIC.UKO7RJ7RY3WSUBGKK258JB54AO3_INDEX_7]",
+  "path": "/api/agencies"
+}
+  4. [FAIL-409] Admin: Create STAFF : 
+{
+  "timestamp": "2026-03-08T12:46:42.134257700Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "STAFF_CONFLICT",
+  "message": "Staff conflict: email and phone already in use",
+  "path": "/api/staff"
+}
+  5. [FAIL-409] Admin: Create FINANCE staff : 
+{
+  "timestamp": "2026-03-08T12:46:42.350877200Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "STAFF_CONFLICT",
+  "message": "Staff conflict: email and phone already in use",
+  "path": "/api/staff"
+}
+  6. [FAIL-409] Admin: Create RISK staff : 
+{
+  "timestamp": "2026-03-08T12:46:42.517905200Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "STAFF_CONFLICT",
+  "message": "Staff conflict: email and phone already in use",
+  "path": "/api/staff"
+}
+  7. [FAIL-409] Admin: Create AGENT : 
+{
+  "timestamp": "2026-03-08T12:46:42.785443800Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "AGENT_CONFLICT",
+  "message": "Agent conflict: staff number and phone already in use",
+  "path": "/api/agents"
+}
+  8. [FAIL-409] Admin: Create COURIER : 
+{
+  "timestamp": "2026-03-08T12:46:43.122293900Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "COURIER_PHONE_EXISTS",
+  "message": "Phone already in use",
+  "path": "/api/couriers"
+}
+  9. [FAIL-409] Admin: Create tariff : 
+{
+  "timestamp": "2026-03-08T12:46:43.533379300Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "TARIFF_CONFLICT",
+  "message": "Tariff already exists for this combination",
+  "path": "/api/tariffs"
+}
+  10. [FAIL-400] Get scan events for parcel (via parcels) : 
+{
+  "timestamp": "2026-03-08T12:46:44.206354100Z",
+  "status": 400,
+  "error": "Bad Request",
+  "code": "BUSINESS_ERROR",
+  "message": "Could not write JSON: Could not initialize proxy [com.smartcampost.backend.model.Parcel#2379b239-52c9-4cde-a14d-054953dc2517] - no session",
+  "path": "/api/parcels/2379b239-52c9-4cde-a14d-054953dc2517/scan-events"
+}
+  11. [FAIL-409] Client: Create support ticket : 
+{
+  "timestamp": "2026-03-08T12:46:44.854086800Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "TICKET_CONFLICT",
+  "message": "You already have an active support ticket",
+  "path": "/api/support/tickets"
+}
+  12. [FAIL-404] Get ticket by ID : 
+{
+  "timestamp": "2026-03-08T12:46:44.909194400Z",
+  "status": 404,
+  "error": "Not Found",
+  "code": "BUSINESS_ERROR",
+  "message": "Resource not found: /api/support/tickets/",
+  "path": "/api/support/tickets/"
+}
+  13. [FAIL-403] Admin: Reply to ticket : 
+  14. [FAIL-400] Send delivery OTP : 
+  15. [FAIL-404] Receipt by parcel : 
+{
+  "timestamp": "2026-03-08T12:46:45.447984800Z",
+  "status": 404,
+  "error": "Not Found",
+  "code": "BUSINESS_ERROR",
+  "message": "Receipt not found",
+  "path": "/api/receipts/parcel/2379b239-52c9-4cde-a14d-054953dc2517"
+}
+  16. [FAIL-409] Register client 2 : 
+{
+  "timestamp": "2026-03-08T12:46:51.250323500Z",
+  "status": 409,
+  "error": "Conflict",
+  "code": "USER_PHONE_EXISTS",
+  "message": "Phone already exists",
+  "path": "/api/auth/register"
+}
+
+Pass Rate: 90.6%
