@@ -452,6 +452,7 @@ CREATE TABLE IF NOT EXISTS notification (
   error_message    VARCHAR(255) NULL,
   created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   sent_at          TIMESTAMP    NULL,
+  read_at          TIMESTAMP    NULL,
   CONSTRAINT pk_notification PRIMARY KEY (notification_id),
   CONSTRAINT fk_notification_parcel
     FOREIGN KEY (parcel_id) REFERENCES parcel(parcel_id)
@@ -464,7 +465,7 @@ CREATE TABLE IF NOT EXISTS notification (
 CREATE INDEX ix_notif_parcel ON notification(parcel_id);
 CREATE INDEX ix_notif_pickup ON notification(pickup_id);
 CREATE INDEX ix_notif_type   ON notification(type);
-CREATE INDEX ix_notif_status ON notification(status);
+CREATE INDEX ix_notif_status ON notification(status);\nCREATE INDEX ix_notif_read   ON notification(read_at);
 
 
 -- =========================================================

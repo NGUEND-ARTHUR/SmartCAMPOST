@@ -60,4 +60,20 @@ public class NotificationController {
     public ResponseEntity<List<NotificationResponse>> listForPickup(@PathVariable UUID pickupId) {
         return ResponseEntity.ok(notificationService.listForPickup(pickupId));
     }
+
+    @PutMapping("/{id}/read")
+    public ResponseEntity<NotificationResponse> markAsRead(@PathVariable UUID id) {
+        return ResponseEntity.ok(notificationService.markAsRead(id));
+    }
+
+    @PutMapping("/read-all")
+    public ResponseEntity<Void> markAllAsRead() {
+        notificationService.markAllAsRead();
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me/unread-count")
+    public ResponseEntity<Long> getUnreadCount() {
+        return ResponseEntity.ok(notificationService.getUnreadCount());
+    }
 }

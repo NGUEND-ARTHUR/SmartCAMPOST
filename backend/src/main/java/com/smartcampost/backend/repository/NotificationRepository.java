@@ -15,4 +15,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     List<Notification> findByPickupRequest_IdOrderByCreatedAtDesc(UUID pickupId);
 
     Page<Notification> findByRecipientPhoneOrderByCreatedAtDesc(String phone, Pageable pageable);
+
+    long countByRecipientPhoneAndReadAtIsNull(String phone);
+
+    List<Notification> findByRecipientPhoneAndReadAtIsNull(String phone);
 }

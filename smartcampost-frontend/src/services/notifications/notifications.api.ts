@@ -15,6 +15,8 @@ export interface NotificationResponse {
   pickupId?: string;
   createdAt: string;
   sentAt?: string;
+  readAt?: string;
+  read: boolean;
 }
 
 export interface TriggerNotificationRequest {
@@ -53,5 +55,24 @@ export const notificationService = {
 
   listForPickup(pickupId: string): Promise<NotificationResponse[]> {
     return httpClient.get(`/notifications/pickup/${pickupId}`);
+  },
+
+  listMy(
+    page = 0,
+    size = 20,
+  ): Promise<PaginatedResponse<NotificationResponse>> {
+    return httpClient.get(`/notifications/me?page=${page}&size=${size}`);
+  },
+
+  markAsRead(id: string): Promise<NotificationResponse> {
+    return httpClient.put(`/notifications/${id}/read`);
+  },
+
+  markAllAsRead(): Promise<void> {
+    return httpClient.put("/notifications/read-all");
+  },
+
+  getUnreadCount(): Promise<number> {
+    return httpClient.get("/notifications/me/unread-count");
   },
 };

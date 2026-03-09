@@ -28,6 +28,15 @@ public interface NotificationService {
 
     List<NotificationResponse> listForPickup(UUID pickupId);
 
+    // Mark a single notification as read
+    NotificationResponse markAsRead(UUID notificationId);
+
+    // Mark all current user's notifications as read
+    void markAllAsRead();
+
+    // Get unread count for current user
+    long getUnreadCount();
+
     // Intégration avec le business
     void notifyPickupRequested(PickupRequest pickup);
 

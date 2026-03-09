@@ -79,6 +79,9 @@ public class Notification {
     @Column(name = "sent_at")
     private Instant sentAt;
 
+    @Column(name = "read_at")
+    private Instant readAt;
+
     @PrePersist
     void onCreate() {
         if (id == null) {

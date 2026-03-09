@@ -34,4 +34,6 @@ public class NotificationResponse {
     private int retryCount;
     private Instant createdAt;
     private Instant sentAt;
+    private Instant readAt;
+    private boolean read;
 }
