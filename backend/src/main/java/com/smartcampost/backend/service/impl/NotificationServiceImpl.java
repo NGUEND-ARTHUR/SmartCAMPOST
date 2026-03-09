@@ -220,6 +220,53 @@ public class NotificationServiceImpl implements NotificationService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public NotificationResponse markAsRead(UUID notificationId) {
+        Objects.requireNonNull(notificationId, "notificationId is required");
+
+        Notification notif = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Notification not found",
+                        ErrorCode.NOTIFICATION_NOT_FOUND
+                ));
+
+        // Verify ownership: only the recipient can mark their notification as read
+        UserAccount user = getCurrentUser();
+        if (notif.getRecipientPhone() != null
+                && !notif.getRecipientPhone().equals(user.getPhone())) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to mark this notification as read");
+        }
+
+        if (notif.getReadAt() == null) {
+            notif.setReadAt(Instant.now());
+            notificationRepository.save(notif);
+        }
+
+        return toResponse(notif);
+    }
+
+    @Override
+    @Transactional
+    public void markAllAsRead() {
+        UserAccount user = getCurrentUser();
+        List<Notification> unread = notificationRepository
+                .findByRecipientPhoneAndReadAtIsNull(user.getPhone());
+
+        Instant now = Instant.now();
+        for (Notification n : unread) {
+            n.setReadAt(now);
+        }
+        notificationRepository.saveAll(unread);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long getUnreadCount() {
+        UserAccount user = getCurrentUser();
+        return notificationRepository.countByRecipientPhoneAndReadAtIsNull(user.getPhone());
+    }
+
     // ======================== AUTO EVENTS ========================
 
     @Override
@@ -987,6 +1034,8 @@ public class NotificationServiceImpl implements NotificationService {
                 .retryCount(n.getRetryCount())
                 .createdAt(n.getCreatedAt())
                 .sentAt(n.getSentAt())
+                .readAt(n.getReadAt())
+                .read(n.getReadAt() != null)
                 .build();
     }
 }

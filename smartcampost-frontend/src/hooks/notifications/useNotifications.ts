@@ -59,6 +59,41 @@ export function useTriggerNotification() {
   });
 }
 
+export function useMyNotifications(page = 0, size = 20) {
+  return useQuery({
+    queryKey: [...notificationKeys.all, "my", { page, size }] as const,
+    queryFn: () => notificationService.listMy(page, size),
+  });
+}
+
+export function useUnreadCount() {
+  return useQuery({
+    queryKey: [...notificationKeys.all, "unread-count"] as const,
+    queryFn: () => notificationService.getUnreadCount(),
+    refetchInterval: 30000,
+  });
+}
+
+export function useMarkAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => notificationService.markAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+    },
+  });
+}
+
+export function useMarkAllAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => notificationService.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+    },
+  });
+}
+
 export function useRetryNotification() {
   const queryClient = useQueryClient();
   return useMutation({
