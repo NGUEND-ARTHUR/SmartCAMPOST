@@ -2,6 +2,7 @@ package com.smartcampost.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartcampost.backend.model.ScanEvent;
+import com.smartcampost.backend.service.ScanEventService;
 import com.smartcampost.backend.service.ScanService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,10 @@ public class ScanControllerTest {
         @Bean
         public ScanService scanService() {
             return Mockito.mock(ScanService.class);
+        }
+        @Bean
+        public ScanEventService scanEventService() {
+            return Mockito.mock(ScanEventService.class);
         }
     }
 
