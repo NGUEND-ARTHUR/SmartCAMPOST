@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -46,10 +47,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final success = await auth.register(request);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful! Please login.')),
-      );
-      Navigator.pop(context);
+      final tr = context.read<LocaleProvider>().tr;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr('registration_success'))));
+      context.pop();
     }
   }
 

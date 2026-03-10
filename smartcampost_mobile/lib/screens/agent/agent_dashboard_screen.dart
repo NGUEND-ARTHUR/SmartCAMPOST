@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -43,14 +44,14 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await auth.logout();
               if (!context.mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
+              context.go('/login');
             },
           ),
         ],
@@ -120,33 +121,31 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                     icon: Icons.qr_code_scanner,
                     title: tr('scan_parcel'),
                     subtitle: tr('scan_parcel_subtitle'),
-                    onTap: () => Navigator.pushNamed(context, '/agent/scan'),
+                    onTap: () => context.push('/agent/scan'),
                   ),
                   _ActionTile(
                     icon: Icons.add_box_outlined,
                     title: tr('receive_parcel'),
                     subtitle: tr('receive_parcel_subtitle'),
-                    onTap: () => Navigator.pushNamed(context, '/agent/intake'),
+                    onTap: () => context.push('/agent/intake'),
                   ),
                   _ActionTile(
                     icon: Icons.check_circle_outline,
                     title: tr('validate_parcels'),
                     subtitle: tr('validate_parcels_subtitle'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/agent/validate'),
+                    onTap: () => context.push('/agent/validate'),
                   ),
                   _ActionTile(
                     icon: Icons.inventory,
                     title: tr('all_parcels'),
                     subtitle: tr('manage_agency_parcels'),
-                    onTap: () => Navigator.pushNamed(context, '/agent/parcels'),
+                    onTap: () => context.push('/agent/parcels'),
                   ),
                   _ActionTile(
                     icon: Icons.people_outline,
                     title: tr('assign_courier'),
                     subtitle: tr('assign_courier_subtitle'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/agent/assign-courier'),
+                    onTap: () => context.push('/agent/assign-courier'),
                   ),
                 ],
               ),
@@ -156,29 +155,32 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
         onTap: (i) {
           switch (i) {
             case 1:
-              Navigator.pushNamed(context, '/agent/scan');
+              context.push('/agent/scan');
               break;
             case 2:
-              Navigator.pushNamed(context, '/agent/parcels');
+              context.push('/agent/parcels');
               break;
             case 3:
-              Navigator.pushNamed(context, '/agent/validate');
+              context.push('/agent/validate');
               break;
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Scan',
+            icon: const Icon(Icons.dashboard),
+            label: tr('home'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2),
-            label: 'Parcels',
+            icon: const Icon(Icons.qr_code_scanner),
+            label: tr('scan'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle),
-            label: 'Validate',
+            icon: const Icon(Icons.inventory_2),
+            label: tr('parcels'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.check_circle),
+            label: tr('validate'),
           ),
         ],
       ),

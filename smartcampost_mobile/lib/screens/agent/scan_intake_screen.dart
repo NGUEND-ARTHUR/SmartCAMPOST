@@ -160,7 +160,7 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
                 if (_scannedItems.isNotEmpty)
                   TextButton(
                     onPressed: () => setState(() => _scannedItems.clear()),
-                    child: const Text('Clear'),
+                    child: Text(context.read<LocaleProvider>().tr('clear')),
                   ),
               ],
             ),

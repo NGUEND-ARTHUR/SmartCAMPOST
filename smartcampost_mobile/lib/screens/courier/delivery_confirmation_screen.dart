@@ -46,7 +46,9 @@ class _DeliveryConfirmationScreenState
   Future<void> _verifyOtp() async {
     final code = _otpController.text.trim();
     if (code.length < 4) {
-      setState(() => _error = 'Please enter a valid OTP code');
+      setState(
+        () => _error = context.read<LocaleProvider>().tr('enter_valid_otp'),
+      );
       return;
     }
     setState(() {
@@ -60,8 +62,10 @@ class _DeliveryConfirmationScreenState
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Delivery confirmed successfully!'),
+          SnackBar(
+            content: Text(
+              context.read<LocaleProvider>().tr('delivery_confirmed'),
+            ),
             backgroundColor: Colors.green,
           ),
         );

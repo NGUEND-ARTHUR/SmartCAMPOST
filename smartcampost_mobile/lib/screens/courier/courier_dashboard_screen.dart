@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -43,7 +44,7 @@ class _CourierDashboardScreenState extends State<CourierDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
         ],
       ),
@@ -107,27 +108,25 @@ class _CourierDashboardScreenState extends State<CourierDashboardScreen> {
                     icon: Icons.qr_code_scanner,
                     title: tr('scan_qr'),
                     subtitle: tr('scan_qr_subtitle'),
-                    onTap: () => Navigator.pushNamed(context, '/courier/scan'),
+                    onTap: () => context.push('/courier/scan'),
                   ),
                   _ActionTile(
                     icon: Icons.local_shipping_outlined,
                     title: tr('my_deliveries'),
                     subtitle: tr('my_deliveries_subtitle'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/courier/deliveries'),
+                    onTap: () => context.push('/courier/deliveries'),
                   ),
                   _ActionTile(
                     icon: Icons.inventory_2_outlined,
                     title: tr('pickups'),
                     subtitle: tr('assigned_pickups_subtitle'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/courier/pickups'),
+                    onTap: () => context.push('/courier/pickups'),
                   ),
                   _ActionTile(
                     icon: Icons.map_outlined,
                     title: tr('route_map'),
                     subtitle: tr('route_map_subtitle'),
-                    onTap: () => Navigator.pushNamed(context, '/courier/map'),
+                    onTap: () => context.push('/courier/map'),
                   ),
                 ],
               ),
@@ -137,29 +136,32 @@ class _CourierDashboardScreenState extends State<CourierDashboardScreen> {
         onTap: (i) {
           switch (i) {
             case 1:
-              Navigator.pushNamed(context, '/courier/deliveries');
+              context.push('/courier/deliveries');
               break;
             case 2:
-              Navigator.pushNamed(context, '/courier/scan');
+              context.push('/courier/scan');
               break;
             case 3:
-              Navigator.pushNamed(context, '/courier/pickups');
+              context.push('/courier/pickups');
               break;
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.local_shipping),
-            label: 'Deliveries',
+            icon: const Icon(Icons.dashboard),
+            label: tr('home'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Scan',
+            icon: const Icon(Icons.local_shipping),
+            label: tr('deliveries'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2),
-            label: 'Pickups',
+            icon: const Icon(Icons.qr_code_scanner),
+            label: tr('scan'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.inventory_2),
+            label: tr('pickups'),
           ),
         ],
       ),

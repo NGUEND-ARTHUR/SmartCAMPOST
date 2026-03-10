@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
@@ -150,10 +151,7 @@ class _TrackParcelScreenState extends State<TrackParcelScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    '/client/parcels/${parcel.id}',
-                  ),
+                  onPressed: () => context.push('/client/parcels/${parcel.id}'),
                   icon: const Icon(Icons.open_in_new),
                   label: Text(tr('view_details')),
                 ),

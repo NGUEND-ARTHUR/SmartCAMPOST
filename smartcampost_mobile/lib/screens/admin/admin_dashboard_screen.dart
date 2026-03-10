@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -43,14 +44,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await auth.logout();
               if (!context.mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
+              context.go('/login');
             },
           ),
         ],
@@ -113,38 +114,37 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.people_outline,
                     title: tr('user_management'),
                     subtitle: tr('manage_users_subtitle'),
-                    onTap: () => Navigator.pushNamed(context, '/admin/users'),
+                    onTap: () => context.push('/admin/users'),
                   ),
                   _ActionTile(
                     icon: Icons.calculate_outlined,
                     title: tr('tariffs'),
                     subtitle: tr('manage_tariffs_subtitle'),
-                    onTap: () => Navigator.pushNamed(context, '/admin/tariffs'),
+                    onTap: () => context.push('/admin/tariffs'),
                   ),
                   _ActionTile(
                     icon: Icons.inventory,
                     title: tr('all_parcels'),
                     subtitle: tr('view_all_parcels'),
-                    onTap: () => Navigator.pushNamed(context, '/admin/parcels'),
+                    onTap: () => context.push('/admin/parcels'),
                   ),
                   _ActionTile(
                     icon: Icons.bar_chart,
                     title: tr('analytics'),
                     subtitle: tr('system_analytics'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/admin/analytics'),
+                    onTap: () => context.push('/admin/analytics'),
                   ),
                   _ActionTile(
                     icon: Icons.security,
                     title: tr('audit_logs'),
                     subtitle: tr('view_audit_logs'),
-                    onTap: () => Navigator.pushNamed(context, '/admin/audit'),
+                    onTap: () => context.push('/admin/audit'),
                   ),
                   _ActionTile(
                     icon: Icons.warning_amber,
                     title: tr('risk_alerts'),
                     subtitle: tr('view_risk_alerts'),
-                    onTap: () => Navigator.pushNamed(context, '/admin/risk'),
+                    onTap: () => context.push('/admin/risk'),
                   ),
                 ],
               ),
@@ -154,26 +154,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         onTap: (i) {
           switch (i) {
             case 1:
-              Navigator.pushNamed(context, '/admin/users');
+              context.push('/admin/users');
               break;
             case 2:
-              Navigator.pushNamed(context, '/admin/parcels');
+              context.push('/admin/parcels');
               break;
             case 3:
-              Navigator.pushNamed(context, '/admin/analytics');
+              context.push('/admin/analytics');
               break;
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Users'),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2),
-            label: 'Parcels',
+            icon: const Icon(Icons.dashboard),
+            label: tr('home'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Analytics',
+            icon: const Icon(Icons.people),
+            label: tr('users'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.inventory_2),
+            label: tr('parcels'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.bar_chart),
+            label: tr('analytics'),
           ),
         ],
       ),

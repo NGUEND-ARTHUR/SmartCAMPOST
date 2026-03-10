@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -43,14 +44,14 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await auth.logout();
               if (!context.mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
+              context.go('/login');
             },
           ),
         ],
@@ -78,9 +79,9 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Total Revenue',
-                            style: TextStyle(
+                          Text(
+                            tr('total_revenue'),
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
@@ -96,7 +97,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Period: This Month',
+                            tr('period_this_month'),
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 12,
@@ -150,29 +151,25 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                     icon: Icons.payment,
                     title: tr('payments'),
                     subtitle: tr('view_all_payments'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/finance/payments'),
+                    onTap: () => context.push('/finance/payments'),
                   ),
                   _ActionTile(
                     icon: Icons.undo,
                     title: tr('refunds'),
                     subtitle: tr('manage_refunds'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/finance/refunds'),
+                    onTap: () => context.push('/finance/refunds'),
                   ),
                   _ActionTile(
                     icon: Icons.receipt_long,
                     title: tr('invoices'),
                     subtitle: tr('view_invoices'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/finance/invoices'),
+                    onTap: () => context.push('/finance/invoices'),
                   ),
                   _ActionTile(
                     icon: Icons.bar_chart,
                     title: tr('analytics'),
                     subtitle: tr('financial_analytics'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/finance/analytics'),
+                    onTap: () => context.push('/finance/analytics'),
                   ),
                 ],
               ),
@@ -182,23 +179,32 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
         onTap: (i) {
           switch (i) {
             case 1:
-              Navigator.pushNamed(context, '/finance/payments');
+              context.push('/finance/payments');
               break;
             case 2:
-              Navigator.pushNamed(context, '/finance/refunds');
+              context.push('/finance/refunds');
               break;
             case 3:
-              Navigator.pushNamed(context, '/finance/analytics');
+              context.push('/finance/analytics');
               break;
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payments'),
-          BottomNavigationBarItem(icon: Icon(Icons.undo), label: 'Refunds'),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Analytics',
+            icon: const Icon(Icons.dashboard),
+            label: tr('home'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.payment),
+            label: tr('payments'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.undo),
+            label: tr('refunds'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.bar_chart),
+            label: tr('analytics'),
           ),
         ],
       ),

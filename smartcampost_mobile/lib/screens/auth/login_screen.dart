@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -126,8 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/forgot-password'),
+                      onPressed: () => context.push('/forgot-password'),
                       child: Text(tr('forgot_password')),
                     ),
                   ),
@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // OTP Login
                   OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamed(context, '/otp-login'),
+                    onPressed: () => context.push('/otp-login'),
                     icon: const Icon(Icons.phone_android),
                     label: Text(tr('login_with_otp')),
                   ),
@@ -182,8 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text(tr('no_account')),
                       TextButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/register'),
+                        onPressed: () => context.push('/register'),
                         child: Text(tr('register')),
                       ),
                     ],

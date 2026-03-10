@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
@@ -102,10 +103,11 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
     setState(() => _isSubmitting = false);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Parcel created successfully!')),
-      );
-      Navigator.pop(context);
+      final tr = context.read<LocaleProvider>().tr;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr('parcel_created_success'))));
+      context.pop();
     }
   }
 
@@ -176,10 +178,19 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                   labelText: tr('service_type'),
                   prefixIcon: const Icon(Icons.local_shipping_outlined),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'STANDARD', child: Text('Standard')),
-                  DropdownMenuItem(value: 'EXPRESS', child: Text('Express')),
-                  DropdownMenuItem(value: 'ECONOMY', child: Text('Economy')),
+                items: [
+                  DropdownMenuItem(
+                    value: 'STANDARD',
+                    child: Text(tr('standard')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'EXPRESS',
+                    child: Text(tr('express')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'ECONOMY',
+                    child: Text(tr('economy')),
+                  ),
                 ],
                 onChanged: (v) => setState(() => _serviceType = v!),
               ),
@@ -192,14 +203,14 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                   labelText: tr('delivery_option'),
                   prefixIcon: const Icon(Icons.delivery_dining),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'AGENCY_PICKUP',
-                    child: Text('Agency Pickup'),
+                    child: Text(tr('agency_pickup')),
                   ),
                   DropdownMenuItem(
                     value: 'HOME_DELIVERY',
-                    child: Text('Home Delivery'),
+                    child: Text(tr('home_delivery')),
                   ),
                 ],
                 onChanged: (v) => setState(() => _deliveryOption = v!),
@@ -213,15 +224,18 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                   labelText: tr('payment_option'),
                   prefixIcon: const Icon(Icons.payment),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'PREPAID', child: Text('Prepaid')),
+                items: [
+                  DropdownMenuItem(
+                    value: 'PREPAID',
+                    child: Text(tr('prepaid')),
+                  ),
                   DropdownMenuItem(
                     value: 'CASH_ON_DELIVERY',
-                    child: Text('Cash on Delivery'),
+                    child: Text(tr('cash_on_delivery')),
                   ),
                   DropdownMenuItem(
                     value: 'MOBILE_MONEY',
-                    child: Text('Mobile Money'),
+                    child: Text(tr('mobile_money')),
                   ),
                 ],
                 onChanged: (v) => setState(() => _paymentOption = v!),
@@ -314,7 +328,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
               // Fragile
               SwitchListTile(
                 title: Text(tr('fragile')),
-                subtitle: const Text('Handle with care'),
+                subtitle: Text(tr('handle_with_care')),
                 value: _fragile,
                 onChanged: (v) => setState(() => _fragile = v),
                 secondary: const Icon(Icons.warning_amber_rounded),

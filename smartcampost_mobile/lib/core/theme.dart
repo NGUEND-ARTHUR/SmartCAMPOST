@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
@@ -44,13 +43,13 @@ class AppTheme {
         error: errorColor,
         surface: surfaceColor,
       ),
-      textTheme: GoogleFonts.interTextTheme(),
+      textTheme: ThemeData.light().textTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -69,10 +68,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          textStyle: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -133,7 +129,7 @@ class AppTheme {
         primary: const Color(0xFF60A5FA),
         secondary: secondaryColor,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      textTheme: ThemeData.dark().textTheme,
     );
   }
 }

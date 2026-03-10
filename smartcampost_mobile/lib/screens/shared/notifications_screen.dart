@@ -105,7 +105,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           color: n.read == true ? Colors.grey : Colors.blue,
                         ),
                         title: Text(
-                          n.title ?? 'Notification',
+                          n.title ?? tr('notifications'),
                           style: TextStyle(
                             fontWeight: n.read == true
                                 ? FontWeight.normal

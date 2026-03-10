@@ -170,7 +170,9 @@ class _DeliveryCard extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: onStart,
                       icon: const Icon(Icons.play_arrow),
-                      label: const Text('Start Delivery'),
+                      label: Text(
+                        context.read<LocaleProvider>().tr('start_delivery'),
+                      ),
                     ),
                   ),
                 if (parcel.status == 'OUT_FOR_DELIVERY') ...[
@@ -181,7 +183,9 @@ class _DeliveryCard extends StatelessWidget {
                         backgroundColor: AppTheme.accentColor,
                       ),
                       icon: const Icon(Icons.check_circle),
-                      label: const Text('Confirm Delivery'),
+                      label: Text(
+                        context.read<LocaleProvider>().tr('confirm_delivery'),
+                      ),
                     ),
                   ),
                 ],
