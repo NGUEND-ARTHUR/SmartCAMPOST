@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -35,7 +36,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.language),
@@ -88,23 +89,21 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                     icon: Icons.add_box_outlined,
                     label: tr('new_parcel'),
                     color: AppTheme.primaryColor,
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/client/parcels/create'),
+                    onTap: () => context.push('/client/parcels/create'),
                   ),
                   const SizedBox(width: 12),
                   _QuickAction(
                     icon: Icons.search,
                     label: tr('track'),
                     color: AppTheme.secondaryColor,
-                    onTap: () => Navigator.pushNamed(context, '/client/track'),
+                    onTap: () => context.push('/client/track'),
                   ),
                   const SizedBox(width: 12),
                   _QuickAction(
                     icon: Icons.local_shipping_outlined,
                     label: tr('pickups'),
                     color: AppTheme.accentColor,
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/client/pickups'),
+                    onTap: () => context.push('/client/pickups'),
                   ),
                 ],
               ),
@@ -114,8 +113,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             SectionTitle(
               title: tr('recent_parcels'),
               trailing: TextButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/client/parcels'),
+                onPressed: () => context.push('/client/parcels'),
                 child: Text(tr('see_all')),
               ),
             ),
@@ -130,8 +128,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                 icon: Icons.inbox_outlined,
                 title: tr('no_parcels'),
                 action: ElevatedButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/client/parcels/create'),
+                  onPressed: () => context.push('/client/parcels/create'),
                   icon: const Icon(Icons.add),
                   label: Text(tr('new_parcel')),
                 ),
@@ -146,10 +143,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                       senderCity: p.senderCity,
                       recipientCity: p.recipientCity,
                       createdAt: p.createdAt,
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        '/client/parcels/${p.id}',
-                      ),
+                      onTap: () => context.push('/client/parcels/${p.id}'),
                     ),
                   ),
 
@@ -169,16 +163,16 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       case 0:
         break; // Already on dashboard
       case 1:
-        Navigator.pushNamed(context, '/client/parcels');
+        context.push('/client/parcels');
         break;
       case 2:
-        Navigator.pushNamed(context, '/client/track');
+        context.push('/client/track');
         break;
       case 3:
-        Navigator.pushNamed(context, '/client/support');
+        context.push('/client/support');
         break;
       case 4:
-        Navigator.pushNamed(context, '/client/profile');
+        context.push('/profile');
         break;
     }
   }
@@ -239,21 +233,31 @@ class _ClientBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.read<LocaleProvider>().tr;
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.inventory_2),
-          label: 'Parcels',
+          icon: const Icon(Icons.dashboard),
+          label: tr('home'),
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Track'),
         BottomNavigationBarItem(
-          icon: Icon(Icons.support_agent),
-          label: 'Support',
+          icon: const Icon(Icons.inventory_2),
+          label: tr('parcels'),
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.search),
+          label: tr('track'),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.support_agent),
+          label: tr('support'),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.person),
+          label: tr('profile'),
+        ),
       ],
     );
   }

@@ -151,16 +151,25 @@ class _ValidationCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (parcel.clientName != null)
-              _DetailRow(Icons.person_outline, 'Sender: ${parcel.clientName}'),
+              _DetailRow(
+                Icons.person_outline,
+                '${context.read<LocaleProvider>().tr('sender')}: ${parcel.clientName}',
+              ),
             if (parcel.weight != null)
-              _DetailRow(Icons.scale, 'Weight: ${parcel.weight} kg'),
+              _DetailRow(
+                Icons.scale,
+                '${context.read<LocaleProvider>().tr('weight')}: ${parcel.weight} kg',
+              ),
             if (parcel.declaredValue != null)
               _DetailRow(
                 Icons.attach_money,
-                'Value: ${parcel.declaredValue} XAF',
+                '${context.read<LocaleProvider>().tr('declared_value')}: ${parcel.declaredValue} XAF',
               ),
             if (parcel.serviceType != null)
-              _DetailRow(Icons.category, 'Service: ${parcel.serviceType}'),
+              _DetailRow(
+                Icons.category,
+                '${context.read<LocaleProvider>().tr('service_type')}: ${parcel.serviceType}',
+              ),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -168,7 +177,9 @@ class _ValidationCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onValidate,
                     icon: const Icon(Icons.verified),
-                    label: const Text('Validate & Lock'),
+                    label: Text(
+                      context.read<LocaleProvider>().tr('validate_and_lock'),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -179,7 +190,7 @@ class _ValidationCard extends StatelessWidget {
                       backgroundColor: AppTheme.accentColor,
                     ),
                     icon: const Icon(Icons.check),
-                    label: const Text('Accept'),
+                    label: Text(context.read<LocaleProvider>().tr('accept')),
                   ),
                 ),
               ],

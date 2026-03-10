@@ -82,7 +82,7 @@ class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Parcels: ${alert.parcelCount} / Threshold: ${alert.threshold}',
+                            '${tr('parcels')}: ${alert.parcelCount} / ${tr('threshold')}: ${alert.threshold}',
                             style: const TextStyle(fontSize: 12),
                           ),
                           Text(
@@ -114,7 +114,7 @@ class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Level ${alert.congestionLevel}',
+                          '${tr('level')} ${alert.congestionLevel}',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

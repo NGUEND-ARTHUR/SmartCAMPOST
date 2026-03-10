@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:smartcampost_mobile/core/constants.dart';
@@ -54,9 +55,13 @@ import 'package:smartcampost_mobile/screens/risk/compliance_alerts_screen.dart';
 // Shared screens
 import 'package:smartcampost_mobile/screens/shared/notifications_screen.dart';
 import 'package:smartcampost_mobile/screens/shared/profile_screen.dart';
+import 'package:smartcampost_mobile/screens/shared/placeholder_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Prevent google_fonts from fetching fonts at runtime (causes gray box on slow networks)
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   final localeProvider = LocaleProvider();
   await localeProvider.init();
@@ -143,6 +148,20 @@ class SmartCampostApp extends StatelessWidget {
               path: 'track',
               builder: (context, state) => const TrackParcelScreen(),
             ),
+            GoRoute(
+              path: 'pickups',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'pickups',
+                icon: Icons.local_shipping,
+              ),
+            ),
+            GoRoute(
+              path: 'support',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'support',
+                icon: Icons.support_agent,
+              ),
+            ),
           ],
         ),
 
@@ -170,6 +189,13 @@ class SmartCampostApp extends StatelessWidget {
               path: 'scan',
               builder: (context, state) => const QrScanScreen(),
             ),
+            GoRoute(
+              path: 'map',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'delivery_map',
+                icon: Icons.map,
+              ),
+            ),
           ],
         ),
 
@@ -186,6 +212,21 @@ class SmartCampostApp extends StatelessWidget {
               path: 'scan',
               builder: (context, state) => const ScanIntakeScreen(),
             ),
+            GoRoute(
+              path: 'intake',
+              builder: (context, state) => const ScanIntakeScreen(),
+            ),
+            GoRoute(
+              path: 'parcels',
+              builder: (context, state) => const ParcelValidationScreen(),
+            ),
+            GoRoute(
+              path: 'assign-courier',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'assign_courier',
+                icon: Icons.person_add,
+              ),
+            ),
           ],
         ),
 
@@ -201,6 +242,21 @@ class SmartCampostApp extends StatelessWidget {
             GoRoute(
               path: 'analytics',
               builder: (context, state) => const AnalyticsScreen(),
+            ),
+            GoRoute(
+              path: 'pickups',
+              builder: (context, state) => const PickupAssignmentsScreen(),
+            ),
+            GoRoute(
+              path: 'track',
+              builder: (context, state) => const TrackParcelScreen(),
+            ),
+            GoRoute(
+              path: 'congestion',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'congestion',
+                icon: Icons.warning_amber,
+              ),
             ),
           ],
         ),
@@ -226,6 +282,17 @@ class SmartCampostApp extends StatelessWidget {
               path: 'analytics',
               builder: (context, state) => const AnalyticsScreen(),
             ),
+            GoRoute(
+              path: 'audit',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'audit_logs',
+                icon: Icons.history,
+              ),
+            ),
+            GoRoute(
+              path: 'risk',
+              builder: (context, state) => const ComplianceAlertsScreen(),
+            ),
           ],
         ),
 
@@ -237,6 +304,24 @@ class SmartCampostApp extends StatelessWidget {
             GoRoute(
               path: 'payments',
               builder: (context, state) => const PaymentsScreen(),
+            ),
+            GoRoute(
+              path: 'refunds',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'refunds',
+                icon: Icons.undo,
+              ),
+            ),
+            GoRoute(
+              path: 'invoices',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'invoices',
+                icon: Icons.receipt_long,
+              ),
+            ),
+            GoRoute(
+              path: 'analytics',
+              builder: (context, state) => const AnalyticsScreen(),
             ),
           ],
         ),
@@ -250,6 +335,21 @@ class SmartCampostApp extends StatelessWidget {
               path: 'compliance',
               builder: (context, state) => const ComplianceAlertsScreen(),
             ),
+            GoRoute(
+              path: 'alerts',
+              builder: (context, state) => const ComplianceAlertsScreen(),
+            ),
+            GoRoute(
+              path: 'risk-alerts',
+              builder: (context, state) => const ComplianceAlertsScreen(),
+            ),
+            GoRoute(
+              path: 'audit',
+              builder: (context, state) => const PlaceholderScreen(
+                titleKey: 'audit_logs',
+                icon: Icons.history,
+              ),
+            ),
           ],
         ),
 
@@ -261,6 +361,20 @@ class SmartCampostApp extends StatelessWidget {
         GoRoute(
           path: '/profile',
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/support',
+          builder: (context, state) => const PlaceholderScreen(
+            titleKey: 'support',
+            icon: Icons.support_agent,
+          ),
+        ),
+        GoRoute(
+          path: '/forgot-password',
+          builder: (context, state) => const PlaceholderScreen(
+            titleKey: 'forgot_password',
+            icon: Icons.lock_reset,
+          ),
         ),
       ],
     );

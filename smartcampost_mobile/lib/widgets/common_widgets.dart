@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 
 class StatusBadge extends StatelessWidget {
@@ -131,7 +133,7 @@ class ErrorRetryWidget extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(context.read<LocaleProvider>().tr('retry')),
             ),
           ],
         ),

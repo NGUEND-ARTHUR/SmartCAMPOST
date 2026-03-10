@@ -39,6 +39,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   }
 
   void _showPaymentDetail(Payment payment) {
+    final tr = context.read<LocaleProvider>().tr;
     showModalBottomSheet(
       context: context,
       builder: (_) => Padding(
@@ -48,26 +49,26 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Payment #${payment.id}',
+              '${tr('payment_number')} #${payment.id}',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const Divider(),
             InfoRow(
-              label: 'Amount',
+              label: tr('amount'),
               value: '${payment.amount} ${payment.currency ?? 'XAF'}',
             ),
-            InfoRow(label: 'Method', value: payment.method ?? '-'),
-            InfoRow(label: 'Status', value: payment.status ?? '-'),
-            InfoRow(label: 'Parcel ID', value: payment.parcelId ?? '-'),
-            InfoRow(label: 'Ref', value: payment.externalRef ?? '-'),
+            InfoRow(label: tr('method'), value: payment.method ?? '-'),
+            InfoRow(label: tr('status'), value: payment.status ?? '-'),
+            InfoRow(label: tr('parcel_id'), value: payment.parcelId ?? '-'),
+            InfoRow(label: tr('ref'), value: payment.externalRef ?? '-'),
             InfoRow(
-              label: 'Date',
+              label: tr('date'),
               value: payment.timestamp?.toString().split('.').first ?? '-',
             ),
             if (payment.reversed == true)
-              const Chip(
-                label: Text('REVERSED'),
-                color: WidgetStatePropertyAll(Colors.red),
+              Chip(
+                label: Text(tr('reversed')),
+                color: const WidgetStatePropertyAll(Colors.red),
               ),
           ],
         ),
