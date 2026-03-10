@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -43,14 +44,14 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await auth.logout();
               if (!context.mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
+              context.go('/login');
             },
           ),
         ],
@@ -113,33 +114,31 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                     icon: Icons.inventory,
                     title: tr('all_parcels'),
                     subtitle: tr('view_manage_parcels'),
-                    onTap: () => Navigator.pushNamed(context, '/staff/parcels'),
+                    onTap: () => context.push('/staff/parcels'),
                   ),
                   _ActionTile(
                     icon: Icons.local_shipping_outlined,
                     title: tr('pickups'),
                     subtitle: tr('manage_pickups'),
-                    onTap: () => Navigator.pushNamed(context, '/staff/pickups'),
+                    onTap: () => context.push('/staff/pickups'),
                   ),
                   _ActionTile(
                     icon: Icons.search,
                     title: tr('track_parcel'),
                     subtitle: tr('track_any_parcel'),
-                    onTap: () => Navigator.pushNamed(context, '/staff/track'),
+                    onTap: () => context.push('/staff/track'),
                   ),
                   _ActionTile(
                     icon: Icons.bar_chart,
                     title: tr('analytics'),
                     subtitle: tr('view_analytics'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/staff/analytics'),
+                    onTap: () => context.push('/staff/analytics'),
                   ),
                   _ActionTile(
                     icon: Icons.warning_amber_outlined,
                     title: tr('congestion_alerts'),
                     subtitle: tr('view_congestion'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/staff/congestion'),
+                    onTap: () => context.push('/staff/congestion'),
                   ),
                 ],
               ),
@@ -149,26 +148,32 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
         onTap: (i) {
           switch (i) {
             case 1:
-              Navigator.pushNamed(context, '/staff/parcels');
+              context.push('/staff/parcels');
               break;
             case 2:
-              Navigator.pushNamed(context, '/staff/track');
+              context.push('/staff/track');
               break;
             case 3:
-              Navigator.pushNamed(context, '/staff/analytics');
+              context.push('/staff/analytics');
               break;
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2),
-            label: 'Parcels',
+            icon: const Icon(Icons.dashboard),
+            label: tr('home'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Track'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Analytics',
+            icon: const Icon(Icons.inventory_2),
+            label: tr('parcels'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.search),
+            label: tr('track'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.bar_chart),
+            label: tr('analytics'),
           ),
         ],
       ),

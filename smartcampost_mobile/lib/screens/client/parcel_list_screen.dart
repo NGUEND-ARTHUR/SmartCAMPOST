@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
@@ -58,10 +59,7 @@ class _ParcelListScreenState extends State<ParcelListScreen> {
                     title: tr('no_parcels'),
                     subtitle: tr('no_parcels_subtitle'),
                     action: ElevatedButton.icon(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/client/parcels/create',
-                      ),
+                      onPressed: () => context.push('/client/parcels/create'),
                       icon: const Icon(Icons.add),
                       label: Text(tr('new_parcel')),
                     ),
@@ -85,14 +83,13 @@ class _ParcelListScreenState extends State<ParcelListScreen> {
                     senderCity: p.senderCity,
                     recipientCity: p.recipientCity,
                     createdAt: p.createdAt,
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/client/parcels/${p.id}'),
+                    onTap: () => context.push('/client/parcels/${p.id}'),
                   );
                 },
               ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/client/parcels/create'),
+        onPressed: () => context.push('/client/parcels/create'),
         child: const Icon(Icons.add),
       ),
     );

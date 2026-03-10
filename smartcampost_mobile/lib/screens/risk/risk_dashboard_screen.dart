@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -52,14 +53,14 @@ class _RiskDashboardScreenState extends State<RiskDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await auth.logout();
               if (!context.mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
+              context.go('/login');
             },
           ),
         ],
@@ -121,20 +122,19 @@ class _RiskDashboardScreenState extends State<RiskDashboardScreen> {
                     icon: Icons.warning_amber_outlined,
                     title: tr('compliance_alerts'),
                     subtitle: tr('view_compliance_alerts'),
-                    onTap: () => Navigator.pushNamed(context, '/risk/alerts'),
+                    onTap: () => context.push('/risk/alerts'),
                   ),
                   _ActionTile(
                     icon: Icons.security,
                     title: tr('risk_alerts'),
                     subtitle: tr('view_risk_alerts'),
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/risk/risk-alerts'),
+                    onTap: () => context.push('/risk/risk-alerts'),
                   ),
                   _ActionTile(
                     icon: Icons.history,
                     title: tr('audit_logs'),
                     subtitle: tr('view_audit_trail'),
-                    onTap: () => Navigator.pushNamed(context, '/risk/audit'),
+                    onTap: () => context.push('/risk/audit'),
                   ),
                   const SizedBox(height: 24),
 
@@ -185,20 +185,26 @@ class _RiskDashboardScreenState extends State<RiskDashboardScreen> {
         onTap: (i) {
           switch (i) {
             case 1:
-              Navigator.pushNamed(context, '/risk/alerts');
+              context.push('/risk/alerts');
               break;
             case 2:
-              Navigator.pushNamed(context, '/risk/audit');
+              context.push('/risk/audit');
               break;
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.warning_amber),
-            label: 'Alerts',
+            icon: const Icon(Icons.dashboard),
+            label: tr('home'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Audit'),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.warning_amber),
+            label: tr('alerts'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.history),
+            label: tr('audit'),
+          ),
         ],
       ),
     );

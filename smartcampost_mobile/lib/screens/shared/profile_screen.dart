@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
@@ -138,14 +139,14 @@ class ProfileScreen extends StatelessWidget {
                   leading: const Icon(Icons.notifications_outlined),
                   title: Text(tr('notifications')),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.pushNamed(context, '/notifications'),
+                  onTap: () => context.push('/notifications'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.support_agent),
                   title: Text(tr('support')),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.pushNamed(context, '/support'),
+                  onTap: () => context.push('/support'),
                 ),
               ],
             ),
@@ -177,7 +178,7 @@ class ProfileScreen extends StatelessWidget {
                 if (confirm == true) {
                   await auth.logout();
                   if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/login');
+                    context.go('/login');
                   }
                 }
               },
