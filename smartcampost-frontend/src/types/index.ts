@@ -1,6 +1,7 @@
 export interface User {
   id: string;
-  email: string;
+  phone: string;
+  email?: string;
   name: string;
   role:
     | "CLIENT"
@@ -9,13 +10,11 @@ export interface User {
     | "STAFF"
     | "ADMIN"
     | "FINANCE"
-    | "RISK"
-    | "admin"
-    | "user";
+    | "RISK";
 }
 
 export interface LoginRequest {
-  email: string;
+  phone: string;
   password: string;
 }
 

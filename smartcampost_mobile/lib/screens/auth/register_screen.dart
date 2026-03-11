@@ -89,9 +89,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: const Icon(Icons.phone_outlined),
                     hintText: '+237...',
                   ),
-                  validator: (v) => v == null || v.trim().isEmpty
-                      ? tr('field_required')
-                      : null,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return tr('field_required');
+                    }
+                    if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(v.trim())) {
+                      return tr('invalid_phone');
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -122,6 +128,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: (v) {
                     if (v == null || v.isEmpty) return tr('field_required');
                     if (v.length < 8) return 'Minimum 8 characters';
+                    if (!RegExp(
+                      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)',
+                    ).hasMatch(v)) {
+                      return 'Must contain uppercase, lowercase, and digit';
+                    }
                     return null;
                   },
                 ),

@@ -169,7 +169,7 @@ export function Register() {
                   {...register("phone", {
                     required: t("errors.required"),
                     pattern: {
-                      value: /^\+?[0-9]{6,15}$/,
+                      value: /^\+?[0-9]{8,15}$/,
                       message: t("errors.invalidPhone"),
                     },
                   })}
@@ -252,8 +252,12 @@ export function Register() {
                 {...register("password", {
                   required: t("errors.required"),
                   minLength: {
-                    value: 6,
+                    value: 8,
                     message: t("errors.passwordTooShort"),
+                  },
+                  pattern: {
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
+                    message: t("errors.passwordComplexity"),
                   },
                 })}
               />

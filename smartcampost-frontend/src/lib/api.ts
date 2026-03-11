@@ -50,7 +50,7 @@ class ApiClient {
   // Helper to transform backend AuthResponse to frontend LoginResponse
   private transformAuthToLoginResponse(
     auth: RawAuth,
-    emailFallback?: string,
+    phoneFallback?: string,
   ): LoginResponse {
     const rawRole = String(auth.role || "").trim();
     const normalizedRole = (() => {
@@ -74,7 +74,7 @@ class ApiClient {
 
     const user = {
       id: auth.userId || auth.entityId || "0",
-      email: auth.phone || emailFallback || "",
+      phone: auth.phone || phoneFallback || "",
       name: auth.fullName || "",
       role: normalizedRole,
     };
@@ -200,9 +200,8 @@ class ApiClient {
 
   // Backend login expects { phone, password } and returns AuthResponse
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    // allow using email field as phone if user typed phone
     const payload = {
-      phone: credentials.email,
+      phone: credentials.phone,
       password: credentials.password,
     };
 
@@ -211,7 +210,7 @@ class ApiClient {
       body: JSON.stringify(payload),
     });
 
-    return this.transformAuthToLoginResponse(auth, credentials.email);
+    return this.transformAuthToLoginResponse(auth, credentials.phone);
   }
 
   async requestOtpLogin(payload: {
@@ -265,7 +264,7 @@ class ApiClient {
       body: JSON.stringify(data),
     });
 
-    return this.transformAuthToLoginResponse(auth, data.email || data.phone);
+    return this.transformAuthToLoginResponse(auth, data.phone || data.email);
   }
 
   async sendOtp(phone: string): Promise<{ otp?: string }> {
