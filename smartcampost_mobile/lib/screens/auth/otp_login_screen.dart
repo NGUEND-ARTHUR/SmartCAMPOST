@@ -23,9 +23,11 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
   }
 
   Future<void> _requestOtp() async {
-    if (_phoneController.text.trim().isEmpty) return;
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) return;
+    if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(phone)) return;
     final auth = context.read<AuthProvider>();
-    final success = await auth.requestOtp(phone: _phoneController.text.trim());
+    final success = await auth.requestOtp(phone: phone);
     if (success && mounted) {
       setState(() => _otpSent = true);
     }

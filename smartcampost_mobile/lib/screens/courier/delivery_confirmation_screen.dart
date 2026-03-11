@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/parcel.dart';
@@ -18,6 +19,7 @@ class DeliveryConfirmationScreen extends StatefulWidget {
 class _DeliveryConfirmationScreenState
     extends State<DeliveryConfirmationScreen> {
   final _otpController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _otpSent = false;
   bool _isSending = false;
   bool _isVerifying = false;
@@ -26,16 +28,53 @@ class _DeliveryConfirmationScreenState
   @override
   void dispose() {
     _otpController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
+  Future<Position?> _getCurrentPosition() async {
+    try {
+      bool enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) return null;
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        return null;
+      }
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _sendOtp() async {
+    final phone = _phoneController.text.trim();
+    if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(phone)) {
+      setState(
+        () => _error = context.read<LocaleProvider>().tr('invalid_phone'),
+      );
+      return;
+    }
     setState(() {
       _isSending = true;
       _error = null;
     });
     try {
-      await DeliveryService().sendDeliveryOtp(widget.parcel.id);
+      final pos = await _getCurrentPosition();
+      await DeliveryService().sendDeliveryOtp(
+        parcelId: widget.parcel.id,
+        phoneNumber: phone,
+        latitude: pos?.latitude,
+        longitude: pos?.longitude,
+      );
       if (mounted) setState(() => _otpSent = true);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
@@ -56,9 +95,12 @@ class _DeliveryConfirmationScreenState
       _error = null;
     });
     try {
+      final pos = await _getCurrentPosition();
       await DeliveryService().verifyDeliveryOtp(
-        deliveryId: widget.parcel.id,
-        otp: code,
+        parcelId: widget.parcel.id,
+        otpCode: code,
+        latitude: pos?.latitude,
+        longitude: pos?.longitude,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,6 +169,17 @@ class _DeliveryConfirmationScreenState
             const SizedBox(height: 16),
 
             if (!_otpSent) ...[
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: tr('recipient_phone'),
+                  hintText: '+237...',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.phone),
+                ),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(

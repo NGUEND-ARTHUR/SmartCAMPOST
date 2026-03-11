@@ -28,9 +28,8 @@ class QrService {
   final ApiClient _api = ApiClient();
 
   Future<Map<String, dynamic>> verifyQr(String qrData) async {
-    return _api.post<Map<String, dynamic>>(
-      '/qr/verify',
-      data: {'qrData': qrData},
+    return _api.get<Map<String, dynamic>>(
+      '/qr/verify/${Uri.encodeComponent(qrData)}',
     );
   }
 

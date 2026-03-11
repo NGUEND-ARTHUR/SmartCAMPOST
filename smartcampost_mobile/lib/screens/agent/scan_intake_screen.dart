@@ -60,8 +60,8 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
         final scanEvent = await ScanService().createScanEvent({
           'parcelId': parcelId,
           'eventType': 'INTAKE',
-          'lat': lat,
-          'lng': lng,
+          'latitude': lat,
+          'longitude': lng,
           'locationSource': lat != null ? 'GPS' : 'MANUAL',
         });
 

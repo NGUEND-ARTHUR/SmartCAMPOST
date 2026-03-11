@@ -50,17 +50,18 @@ class AuthService {
     await _api.post('/auth/verify-otp', data: {'phone': phone, 'otp': otp});
   }
 
-  Future<void> requestPasswordReset({required String email}) async {
-    await _api.post('/auth/password/reset/request', data: {'email': email});
+  Future<void> requestPasswordReset({required String phone}) async {
+    await _api.post('/auth/password/reset/request', data: {'phone': phone});
   }
 
   Future<void> confirmPasswordReset({
-    required String token,
+    required String phone,
+    required String otp,
     required String newPassword,
   }) async {
     await _api.post(
       '/auth/password/reset/confirm',
-      data: {'token': token, 'newPassword': newPassword},
+      data: {'phone': phone, 'otp': otp, 'newPassword': newPassword},
     );
   }
 

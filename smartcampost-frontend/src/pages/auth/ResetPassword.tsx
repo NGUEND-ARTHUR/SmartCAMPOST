@@ -51,12 +51,13 @@ export default function ResetPassword() {
     return () => controller.abort();
   }, [step]);
 
-  const canRequest = useMemo(() => phone.trim().length >= 6, [phone]);
+  const canRequest = useMemo(() => phone.trim().length >= 8, [phone]);
   const canConfirm = useMemo(
     () =>
-      phone.trim().length >= 6 &&
+      phone.trim().length >= 8 &&
       otp.trim().length >= 4 &&
-      newPassword.length >= 6,
+      newPassword.length >= 8 &&
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(newPassword),
     [phone, otp, newPassword],
   );
 

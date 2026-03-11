@@ -93,6 +93,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (v == null || v.trim().isEmpty) {
                         return tr('field_required');
                       }
+                      if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(v.trim())) {
+                        return tr('invalid_phone');
+                      }
                       return null;
                     },
                   ),
@@ -118,6 +121,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) return tr('field_required');
+                      if (v.length < 8) return tr('password_too_short');
+                      if (!RegExp(
+                        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)',
+                      ).hasMatch(v)) {
+                        return tr('password_complexity');
+                      }
                       return null;
                     },
                   ),

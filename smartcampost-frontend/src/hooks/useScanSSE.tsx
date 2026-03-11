@@ -1,5 +1,23 @@
 import { useEffect, useRef } from "react";
 
+function getAuthToken(): string | null {
+  try {
+    const stored = localStorage.getItem("auth-storage");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed?.state?.token || parsed?.token || null;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+function getSseBaseUrl(): string {
+  const raw = import.meta.env.VITE_API_URL as string | undefined;
+  if (!raw) return "http://localhost:8080/api";
+  const trimmed = raw.replace(/\/+$/, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+}
+
 export default function useScanSSE(onEvent: (e: unknown) => void) {
   const esRef = useRef<EventSource | null>(null);
   const retryRef = useRef(0);
@@ -9,7 +27,12 @@ export default function useScanSSE(onEvent: (e: unknown) => void) {
 
     const connect = () => {
       if (cancelled) return;
-      const es = new EventSource("/api/stream/scans");
+      const token = getAuthToken();
+      const base = getSseBaseUrl();
+      const url = token
+        ? `${base}/stream/scans?token=${encodeURIComponent(token)}`
+        : `${base}/stream/scans`;
+      const es = new EventSource(url);
       esRef.current = es;
 
       es.onopen = () => {

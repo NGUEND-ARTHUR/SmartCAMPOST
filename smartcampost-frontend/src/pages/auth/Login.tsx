@@ -61,7 +61,7 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       const res = await login({
-        email: data.phoneOrEmail,
+        phone: data.phoneOrEmail,
         password: data.password,
       });
       toast.success(t("messages.loginSuccess"));

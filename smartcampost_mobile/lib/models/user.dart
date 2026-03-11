@@ -1,5 +1,6 @@
 class User {
   final String id;
+  final String? entityId;
   final String? fullName;
   final String? name;
   final String? email;
@@ -13,6 +14,7 @@ class User {
 
   User({
     required this.id,
+    this.entityId,
     this.fullName,
     this.name,
     this.email,
@@ -28,7 +30,8 @@ class User {
   String get displayName => fullName ?? name ?? email ?? phone ?? 'Unknown';
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-    id: json['id']?.toString() ?? '',
+    id: (json['id'] ?? json['userId'] ?? '').toString(),
+    entityId: json['entityId']?.toString(),
     fullName: json['fullName'] as String?,
     name: json['name'] as String?,
     email: json['email'] as String?,
@@ -43,6 +46,7 @@ class User {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'entityId': entityId,
     'fullName': fullName,
     'name': name,
     'email': email,
@@ -68,6 +72,7 @@ class AuthResponse {
         ? User.fromJson(json['user'] as Map<String, dynamic>)
         : User(
             id: (json['userId'] ?? json['entityId'] ?? '').toString(),
+            entityId: json['entityId']?.toString(),
             fullName: json['fullName'] as String?,
             phone: json['phone'] as String?,
             email: json['email'] as String?,
