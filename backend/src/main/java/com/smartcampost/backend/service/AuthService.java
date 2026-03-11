@@ -10,6 +10,9 @@ public interface AuthService {
     // =================== LOGIN (password) ===================
     AuthResponse login(LoginRequest request);
 
+    // =================== GOOGLE AUTH ===================
+    AuthResponse loginWithGoogle(GoogleAuthRequest request);
+
     // =================== OTP GÉNÉRIQUE ===================
     /**
      * Sends an OTP and returns the code (for DEV only).

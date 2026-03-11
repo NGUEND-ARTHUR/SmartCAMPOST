@@ -34,6 +34,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    // =================== LOGIN WITH GOOGLE ===================
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
+    }
+
     // =================== LOGIN PAR OTP ===================
 
     // Step 1 — demander OTP pour login

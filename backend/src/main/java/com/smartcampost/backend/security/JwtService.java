@@ -40,6 +40,9 @@ public class JwtService {
         claims.put("phone", user.getPhone());
         claims.put("role", user.getRole().name());
         claims.put("entityId", user.getEntityId().toString());
+        if (user.getEmail() != null) {
+            claims.put("email", user.getEmail());
+        }
 
         long now = System.currentTimeMillis();
         long exp = now + tokenValidityMs;

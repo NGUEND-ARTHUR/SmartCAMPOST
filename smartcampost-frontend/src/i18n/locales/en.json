@@ -72,7 +72,8 @@
     "dismiss": "Dismiss",
     "processing": "Processing…",
     "notScheduled": "Not scheduled",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "or": "OR"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -1433,7 +1434,8 @@
     "saveFailed": "Failed to save. Please try again.",
     "deleteFailed": "Failed to delete. Please try again.",
     "permissionDenied": "You do not have permission to perform this action.",
-    "otpRequired": "Please send and enter the OTP code first"
+    "otpRequired": "Please send and enter the OTP code first",
+    "googleSignInFailed": "Google sign-in failed. Please try again."
   },
   "messages": {
     "saveSuccess": "Saved successfully",

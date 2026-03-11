@@ -268,5 +268,10 @@
   "view_audit_trail": "Voir le journal d'audit",
   "registration_success": "Inscription r\u00e9ussie ! Veuillez vous connecter.",
   "enter_valid_otp": "Veuillez entrer un code OTP valide",
-  "delivery_confirmed": "Livraison confirm\u00e9e avec succ\u00e8s !"
+  "delivery_confirmed": "Livraison confirm\u00e9e avec succ\u00e8s !",
+  "or": "OU",
+  "sign_in_with_google": "Se connecter avec Google",
+  "sign_up_with_google": "S'inscrire avec Google",
+  "google_sign_in_failed": "\u00c9chec de la connexion Google",
+  "google_sign_in_cancelled": "Connexion Google annul\u00e9e"
 }

@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginRequest {
 
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^\\+?[0-9]{8,15}$", message = "Invalid phone number format")
+    // phone now accepts phone numbers OR email addresses
+    @NotBlank(message = "Phone number or email is required")
     private String phone;
 
     @NotBlank(message = "Password is required")
