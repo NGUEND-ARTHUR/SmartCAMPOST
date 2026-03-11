@@ -14,6 +14,7 @@ import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/screens/auth/login_screen.dart';
 import 'package:smartcampost_mobile/screens/auth/register_screen.dart';
 import 'package:smartcampost_mobile/screens/auth/otp_login_screen.dart';
+import 'package:smartcampost_mobile/screens/auth/forgot_password_screen.dart';
 
 // Client screens
 import 'package:smartcampost_mobile/screens/client/client_dashboard_screen.dart';
@@ -371,10 +372,7 @@ class SmartCampostApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/forgot-password',
-          builder: (context, state) => const PlaceholderScreen(
-            titleKey: 'forgot_password',
-            icon: Icons.lock_reset,
-          ),
+          builder: (context, state) => const ForgotPasswordScreen(),
         ),
       ],
     );

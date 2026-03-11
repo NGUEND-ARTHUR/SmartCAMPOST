@@ -11,17 +11,37 @@ class DeliveryService {
     await _api.post('/delivery/complete', data: data);
   }
 
-  Future<void> sendDeliveryOtp(String deliveryId) async {
-    await _api.post('/delivery/otp/send', data: {'deliveryId': deliveryId});
+  Future<void> sendDeliveryOtp({
+    required String parcelId,
+    required String phoneNumber,
+    double? latitude,
+    double? longitude,
+  }) async {
+    await _api.post(
+      '/delivery/otp/send',
+      data: {
+        'parcelId': parcelId,
+        'phoneNumber': phoneNumber,
+        'latitude': ?latitude,
+        'longitude': ?longitude,
+      },
+    );
   }
 
   Future<void> verifyDeliveryOtp({
-    required String deliveryId,
-    required String otp,
+    required String parcelId,
+    required String otpCode,
+    double? latitude,
+    double? longitude,
   }) async {
     await _api.post(
       '/delivery/otp/verify',
-      data: {'deliveryId': deliveryId, 'otp': otp},
+      data: {
+        'parcelId': parcelId,
+        'otpCode': otpCode,
+        'latitude': ?latitude,
+        'longitude': ?longitude,
+      },
     );
   }
 
