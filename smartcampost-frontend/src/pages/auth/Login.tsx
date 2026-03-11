@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Package } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,7 @@ interface LoginFormValues {
 export default function Login() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { login, isLoading } = useAuthStore();
+  const { login, loginWithGoogle, isLoading } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -138,6 +139,43 @@ export default function Login() {
                 ? t("common.loading")
                 : t("auth.signIn")}
             </Button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  {t("common.or", "OR")}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  if (credentialResponse.credential) {
+                    setIsSubmitting(true);
+                    loginWithGoogle(credentialResponse.credential)
+                      .then((res) => {
+                        toast.success(t("messages.loginSuccess"));
+                        navigate(routeByRole(res.user.role), { replace: true });
+                      })
+                      .catch((err: unknown) => {
+                        toast.error(getErrorMessage(err));
+                      })
+                      .finally(() => setIsSubmitting(false));
+                  }
+                }}
+                onError={() => {
+                  toast.error(t("errors.googleSignInFailed", "Google sign-in failed"));
+                }}
+                theme="outline"
+                size="large"
+                width="100%"
+                text="signin_with"
+              />
+            </div>
 
             <div className="text-center space-y-2">
               <Link

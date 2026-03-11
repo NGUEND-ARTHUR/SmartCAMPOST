@@ -71,7 +71,8 @@
     "customer": "Client",
     "dismiss": "Rejeter",
     "processing": "Traitement en cours…",
-    "notScheduled": "Non planifié"
+    "notScheduled": "Non planifié",
+    "or": "OU"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -1409,7 +1410,8 @@
     "saveFailed": "Échec de l'enregistrement. Veuillez réessayer.",
     "deleteFailed": "Échec de la suppression. Veuillez réessayer.",
     "permissionDenied": "Vous n'avez pas la permission d'effectuer cette action.",
-    "otpRequired": "Veuillez d'abord envoyer et saisir le code OTP"
+    "otpRequired": "Veuillez d'abord envoyer et saisir le code OTP",
+    "googleSignInFailed": "Échec de la connexion Google. Veuillez réessayer."
   },
   "messages": {
     "saveSuccess": "Enregistré avec succès",

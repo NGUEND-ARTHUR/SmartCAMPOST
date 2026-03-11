@@ -1260,3 +1260,25 @@ CREATE INDEX ix_intent_active ON intent_action_mapping(active);
 -- =========================================================
 -- DONE - SmartCAMPOST Complete Schema (All Migrations Applied)
 -- =========================================================
+
+
+-- =========================================================
+-- V6: Google OAuth + Email Authentication Support
+-- =========================================================
+-- Add email, auth_provider, google_id columns to user_account
+ALTER TABLE user_account
+  MODIFY phone VARCHAR(20) NULL,
+  MODIFY password_hash VARCHAR(255) NULL,
+  ADD COLUMN email VARCHAR(255) NULL AFTER phone,
+  ADD COLUMN auth_provider VARCHAR(20) NOT NULL DEFAULT 'LOCAL' AFTER password_hash,
+  ADD COLUMN google_id VARCHAR(255) NULL AFTER auth_provider;
+
+-- Add unique constraints for email and google_id
+ALTER TABLE user_account ADD CONSTRAINT uq_user_email UNIQUE (email);
+ALTER TABLE user_account ADD CONSTRAINT uq_user_google_id UNIQUE (google_id);
+CREATE INDEX ix_user_auth_provider ON user_account(auth_provider);
+
+-- Allow phone and password_hash to be NULL for Google-authenticated clients
+ALTER TABLE client MODIFY phone VARCHAR(30) NULL;
+ALTER TABLE client MODIFY password_hash VARCHAR(255) NULL;
+-- =========================================================

@@ -13,6 +13,7 @@ public class AuthResponse {
     private UUID entityId;
     private String fullName;
     private String phone;
+    private String email;
     private String role;
     private String accessToken;
     private String tokenType;

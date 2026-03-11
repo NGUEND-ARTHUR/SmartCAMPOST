@@ -181,6 +181,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         : Text(tr('register')),
                   ),
                 ),
+                const SizedBox(height: 16),
+
+                // OR divider
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        tr('or'),
+                        style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Google Sign-Up button
+                SizedBox(
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: auth.isLoading ? null : () async {
+                      final success = await auth.loginWithGoogle();
+                      if (success && mounted) {
+                        // Navigation handled by GoRouter redirect
+                      }
+                    },
+                    icon: Image.network(
+                      'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                      height: 20,
+                      width: 20,
+                    errorBuilder: (_, _, _) =>
+                          const Icon(Icons.g_mobiledata, size: 24),
+                    ),
+                    label: Text(tr('sign_up_with_google')),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

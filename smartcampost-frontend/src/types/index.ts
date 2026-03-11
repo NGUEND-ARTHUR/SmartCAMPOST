@@ -11,6 +11,7 @@ export interface User {
     | "ADMIN"
     | "FINANCE"
     | "RISK";
+  authProvider?: "LOCAL" | "GOOGLE";
 }
 
 export interface LoginRequest {

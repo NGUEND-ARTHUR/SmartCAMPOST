@@ -21,7 +21,7 @@ public class Client {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
-    @Column(name = "phone", nullable = false, length = 30, unique = true)
+    @Column(name = "phone", length = 30, unique = true)
     private String phone;
 
     @Column(name = "email", length = 100, unique = true)
@@ -31,7 +31,7 @@ public class Client {
     private String preferredLanguage;
 
     // 🔐 mot de passe hashé pour login Client
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -7,10 +7,12 @@ import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.OtpException;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.*;
+import com.smartcampost.backend.model.enums.AuthProvider;
 import com.smartcampost.backend.model.enums.OtpPurpose;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.*;
 import com.smartcampost.backend.security.AccountLockoutService;
+import com.smartcampost.backend.security.GoogleTokenVerifierService;
 import com.smartcampost.backend.security.JwtService;
 import com.smartcampost.backend.service.AuthService;
 import com.smartcampost.backend.service.OtpService;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.lang.Nullable;
@@ -34,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final OtpService otpService;
     private final AccountLockoutService lockoutService;
+    private final GoogleTokenVerifierService googleTokenVerifier;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -95,7 +99,9 @@ public class AuthServiceImpl implements AuthService {
         UserAccount account = UserAccount.builder()
             .id(UUID.randomUUID())
             .phone(request.getPhone())
+            .email(request.getEmail())
             .passwordHash(encodedPassword)
+            .authProvider(AuthProvider.LOCAL)
             .role(UserRole.CLIENT)
             .entityId(client.getId())
             .build();
@@ -112,6 +118,7 @@ public class AuthServiceImpl implements AuthService {
                 .entityId(client.getId())
                 .fullName(client.getFullName())
                 .phone(account.getPhone())
+                .email(account.getEmail())
                 .role("CLIENT")
                 .accessToken(token)
                 .tokenType("Bearer")
@@ -126,25 +133,28 @@ public class AuthServiceImpl implements AuthService {
 
         Objects.requireNonNull(request, "request is required");
 
+        String identifier = request.getPhone();
+
         // SECURITY: Check if account is locked due to too many failed attempts
-        if (lockoutService.isLocked(request.getPhone())) {
-            long remainingSeconds = lockoutService.getRemainingLockoutSeconds(request.getPhone());
+        if (lockoutService.isLocked(identifier)) {
+            long remainingSeconds = lockoutService.getRemainingLockoutSeconds(identifier);
             throw new AuthException(
                 ErrorCode.AUTH_ACCOUNT_LOCKED,
                 "Account temporarily locked. Try again in " + (remainingSeconds / 60) + " minutes."
             );
         }
 
-        UserAccount user = userAccountRepository.findByPhone(request.getPhone())
+        // Try finding by phone first, then by email
+        UserAccount user = userAccountRepository.findByPhone(identifier)
+            .or(() -> userAccountRepository.findByEmail(identifier))
             .orElseThrow(() -> {
-                // Record failed attempt even for non-existent accounts (prevents user enumeration)
-                lockoutService.recordFailedAttempt(request.getPhone());
+                lockoutService.recordFailedAttempt(identifier);
                 return new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials");
             });
 
         if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
             // Record failed attempt
-            boolean nowLocked = lockoutService.recordFailedAttempt(request.getPhone());
+            boolean nowLocked = lockoutService.recordFailedAttempt(identifier);
             if (nowLocked) {
                 throw new AuthException(
                     ErrorCode.AUTH_ACCOUNT_LOCKED,
@@ -155,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // SECURITY: Clear lockout on successful login
-        lockoutService.clearLockout(request.getPhone());
+        lockoutService.clearLockout(identifier);
 
         String fullName = resolveFullName(user);
         String token = jwtService.generateToken(user);
@@ -165,7 +175,102 @@ public class AuthServiceImpl implements AuthService {
                 .entityId(user.getEntityId())
                 .fullName(fullName)
                 .phone(user.getPhone())
+                .email(user.getEmail())
                 .role(user.getRole().name())
+                .accessToken(token)
+                .tokenType("Bearer")
+                .build();
+    }
+
+    // ============================================================
+    // LOGIN WITH GOOGLE
+    // ============================================================
+    @Override
+    public AuthResponse loginWithGoogle(GoogleAuthRequest request) {
+
+        Objects.requireNonNull(request, "request is required");
+
+        Map<String, Object> payload = googleTokenVerifier.verify(request.getIdToken());
+        if (payload == null) {
+            throw new AuthException(ErrorCode.AUTH_GOOGLE_TOKEN_INVALID, "Invalid Google ID token");
+        }
+
+        String googleId = (String) payload.get("sub");
+        String email = (String) payload.get("email");
+        String name = (String) payload.get("name");
+
+        // 1) Try find existing user by googleId
+        var existingByGoogle = userAccountRepository.findByGoogleId(googleId);
+        if (existingByGoogle.isPresent()) {
+            UserAccount user = existingByGoogle.get();
+            String fullName = resolveFullName(user);
+            String token = jwtService.generateToken(user);
+            return AuthResponse.builder()
+                    .userId(user.getId())
+                    .entityId(user.getEntityId())
+                    .fullName(fullName)
+                    .phone(user.getPhone())
+                    .email(user.getEmail())
+                    .role(user.getRole().name())
+                    .accessToken(token)
+                    .tokenType("Bearer")
+                    .build();
+        }
+
+        // 2) Try find existing user by email and link Google
+        var existingByEmail = userAccountRepository.findByEmail(email);
+        if (existingByEmail.isPresent()) {
+            UserAccount user = existingByEmail.get();
+            user.setGoogleId(googleId);
+            user.setAuthProvider(AuthProvider.GOOGLE);
+            userAccountRepository.save(user);
+
+            String fullName = resolveFullName(user);
+            String token = jwtService.generateToken(user);
+            return AuthResponse.builder()
+                    .userId(user.getId())
+                    .entityId(user.getEntityId())
+                    .fullName(fullName)
+                    .phone(user.getPhone())
+                    .email(user.getEmail())
+                    .role(user.getRole().name())
+                    .accessToken(token)
+                    .tokenType("Bearer")
+                    .build();
+        }
+
+        // 3) Create new Client + UserAccount for Google user
+        Client client = Client.builder()
+                .id(UUID.randomUUID())
+                .fullName(name != null && !name.isEmpty() ? name : email)
+                .email(email)
+                .build();
+
+        @SuppressWarnings("null")
+        Client savedClient = clientRepository.save(client);
+        client = savedClient;
+
+        UserAccount account = UserAccount.builder()
+                .id(UUID.randomUUID())
+                .email(email)
+                .googleId(googleId)
+                .authProvider(AuthProvider.GOOGLE)
+                .role(UserRole.CLIENT)
+                .entityId(client.getId())
+                .build();
+
+        @SuppressWarnings("null")
+        UserAccount savedAccount = userAccountRepository.save(account);
+        account = savedAccount;
+
+        String token = jwtService.generateToken(account);
+
+        return AuthResponse.builder()
+                .userId(account.getId())
+                .entityId(client.getId())
+                .fullName(client.getFullName())
+                .email(account.getEmail())
+                .role("CLIENT")
                 .accessToken(token)
                 .tokenType("Bearer")
                 .build();
@@ -335,6 +440,7 @@ public class AuthServiceImpl implements AuthService {
                 .entityId(user.getEntityId())
                 .fullName(fullName)
                 .phone(user.getPhone())
+                .email(user.getEmail())
                 .role(user.getRole().name())
                 .accessToken(token)
                 .tokenType("Bearer")

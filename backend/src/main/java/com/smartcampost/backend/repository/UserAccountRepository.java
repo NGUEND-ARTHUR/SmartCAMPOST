@@ -14,6 +14,12 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     boolean existsByPhone(String phone);
 
+    Optional<UserAccount> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+    Optional<UserAccount> findByGoogleId(String googleId);
+
     // ✅ NEW: used to fetch the account linked to a Staff/Agent/Courier entity by entityId
     Optional<UserAccount> findFirstByEntityId(UUID entityId);
 

@@ -41,6 +41,7 @@ type RawAuth = {
   userId?: string;
   entityId?: string;
   phone?: string;
+  email?: string;
   fullName?: string;
   accessToken?: string;
   token?: string;
@@ -75,6 +76,7 @@ class ApiClient {
     const user = {
       id: auth.userId || auth.entityId || "0",
       phone: auth.phone || phoneFallback || "",
+      email: auth.email || "",
       name: auth.fullName || "",
       role: normalizedRole,
     };
@@ -265,6 +267,15 @@ class ApiClient {
     });
 
     return this.transformAuthToLoginResponse(auth, data.phone || data.email);
+  }
+
+  async loginWithGoogle(idToken: string): Promise<LoginResponse> {
+    const auth = await this.request<RawAuth>("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ idToken }),
+    });
+
+    return this.transformAuthToLoginResponse(auth);
   }
 
   async sendOtp(phone: string): Promise<{ otp?: string }> {
