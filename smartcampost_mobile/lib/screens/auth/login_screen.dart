@@ -191,7 +191,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           tr('or'),
-                          style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                       const Expanded(child: Divider()),

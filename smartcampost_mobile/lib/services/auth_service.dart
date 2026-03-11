@@ -6,7 +6,11 @@ import 'package:smartcampost_mobile/services/auth_storage.dart';
 class AuthService {
   final ApiClient _api = ApiClient();
   final AuthStorage _storage = AuthStorage();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+    serverClientId:
+        '428837425425-hvbdljimv02i2kapehk51haap4160v68.apps.googleusercontent.com',
+  );
 
   Future<AuthResponse> login({
     required String phone,
