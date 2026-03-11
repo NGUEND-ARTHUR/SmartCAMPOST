@@ -11,6 +11,7 @@ public enum ErrorCode {
     AUTH_UNAUTHORIZED,
     AUTH_FORBIDDEN,
     AUTH_ACCOUNT_LOCKED,
+    AUTH_GOOGLE_TOKEN_INVALID,
 
     // =====================================================
     // OTP

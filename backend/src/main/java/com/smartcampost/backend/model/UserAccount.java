@@ -1,5 +1,6 @@
 package com.smartcampost.backend.model;
 
+import com.smartcampost.backend.model.enums.AuthProvider;
 import com.smartcampost.backend.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,11 +20,22 @@ public class UserAccount {
     @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(name = "phone", nullable = false, unique = true, length = 20)
+    @Column(name = "phone", unique = true, length = 20)
     private String phone;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(name = "email", unique = true, length = 255)
+    private String email;
+
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = "auth_provider", nullable = false, length = 20)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "google_id", unique = true, length = 255)
+    private String googleId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)

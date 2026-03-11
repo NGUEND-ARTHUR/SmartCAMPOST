@@ -1,3 +1,4 @@
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smartcampost_mobile/core/api_client.dart';
 import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/services/auth_storage.dart';
@@ -5,6 +6,7 @@ import 'package:smartcampost_mobile/services/auth_storage.dart';
 class AuthService {
   final ApiClient _api = ApiClient();
   final AuthStorage _storage = AuthStorage();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   Future<AuthResponse> login({
     required String phone,
@@ -35,6 +37,26 @@ class AuthService {
     final data = await _api.post<Map<String, dynamic>>(
       '/auth/login/otp/confirm',
       data: {'phone': phone, 'otp': otp},
+    );
+    final auth = AuthResponse.fromJson(data);
+    await _storage.saveToken(auth.accessToken);
+    await _storage.saveUser(auth.user.toJson());
+    return auth;
+  }
+
+  Future<AuthResponse> loginWithGoogle() async {
+    final account = await _googleSignIn.signIn();
+    if (account == null) {
+      throw Exception('Google sign-in cancelled');
+    }
+    final authentication = await account.authentication;
+    final idToken = authentication.idToken;
+    if (idToken == null) {
+      throw Exception('Failed to get Google ID token');
+    }
+    final data = await _api.post<Map<String, dynamic>>(
+      '/auth/google',
+      data: {'idToken': idToken},
     );
     final auth = AuthResponse.fromJson(data);
     await _storage.saveToken(auth.accessToken);

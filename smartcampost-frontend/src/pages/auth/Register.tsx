@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Package as PackageIcon } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,11 +17,14 @@ import {
 
 import { RegisterRequest } from "@/types";
 import { apiClient } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { routeByRole } from "@/lib/routeByRole";
 
 export function Register() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { loginWithGoogle } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState<"FR" | "EN">(
     i18n.language === "fr" ? "FR" : "EN",
@@ -271,6 +275,48 @@ export function Register() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? t("common.loading") : t("common.register")}
             </Button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  {t("common.or", "OR")}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  if (credentialResponse.credential) {
+                    setIsLoading(true);
+                    loginWithGoogle(credentialResponse.credential)
+                      .then((res) => {
+                        toast.success(t("messages.loginSuccess"));
+                        navigate(routeByRole(res.user.role), { replace: true });
+                      })
+                      .catch((err: unknown) => {
+                        const apiErr = err as { code?: string; message?: string } | undefined;
+                        if (apiErr?.message) {
+                          toast.error(apiErr.message);
+                        } else {
+                          toast.error(t("errors.serverError"));
+                        }
+                      })
+                      .finally(() => setIsLoading(false));
+                  }
+                }}
+                onError={() => {
+                  toast.error(t("errors.googleSignInFailed", "Google sign-in failed"));
+                }}
+                theme="outline"
+                size="large"
+                width="100%"
+                text="signup_with"
+              />
+            </div>
 
             <p className="text-sm text-muted-foreground text-center">
               {t("auth.haveAccount")}{" "}

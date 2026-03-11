@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api";
 
 interface AuthStore extends AuthState {
   login: (credentials: LoginRequest) => Promise<LoginResponse>;
+  loginWithGoogle: (idToken: string) => Promise<LoginResponse>;
   setAuth: (user: User, token: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
@@ -22,6 +23,23 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true });
         try {
           const res = await apiClient.login(credentials);
+          set({
+            user: res.user,
+            token: res.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return res;
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      loginWithGoogle: async (idToken: string) => {
+        set({ isLoading: true });
+        try {
+          const res = await apiClient.loginWithGoogle(idToken);
           set({
             user: res.user,
             token: res.token,

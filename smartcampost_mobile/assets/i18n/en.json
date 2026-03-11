@@ -268,5 +268,10 @@
   "view_audit_trail": "View Audit Trail",
   "registration_success": "Registration successful! Please login.",
   "enter_valid_otp": "Please enter a valid OTP code",
-  "delivery_confirmed": "Delivery confirmed successfully!"
+  "delivery_confirmed": "Delivery confirmed successfully!",
+  "or": "OR",
+  "sign_in_with_google": "Sign in with Google",
+  "sign_up_with_google": "Sign up with Google",
+  "google_sign_in_failed": "Google sign-in failed",
+  "google_sign_in_cancelled": "Google sign-in was cancelled"
 }
