@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e6]
+        - generic [ref=e10]: SmartCAMPOST
+      - generic [ref=e11]:
+        - button "🇫🇷 Français" [ref=e13]:
+          - img [ref=e14]
+          - generic [ref=e17]: 🇫🇷
+          - text: Français
+        - button "Connexion" [ref=e18]
+        - button "S'inscrire" [ref=e19]
+    - generic [ref=e20]:
+      - heading "Services Postaux Intelligents pour le Cameroun" [level=1] [ref=e21]
+      - paragraph [ref=e22]: Suivez, envoyez et gérez vos colis facilement. Solutions logistiques modernes pour particuliers et entreprises.
+      - generic [ref=e24]:
+        - textbox "Numéro de Suivi" [ref=e25]
+        - button "Rechercher" [ref=e26]
+      - generic [ref=e27]:
+        - button "Commencer" [ref=e28]
+        - button "Se connecter" [ref=e29]
+    - generic [ref=e30]:
+      - heading "Nos Services" [level=2] [ref=e31]
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - img [ref=e35]
+          - heading "Suivi en Temps Réel" [level=3] [ref=e39]
+          - paragraph [ref=e40]: Suivez vos colis en temps réel avec notre système GPS avancé
+        - generic [ref=e41]:
+          - img [ref=e43]
+          - heading "Livraison Rapide" [level=3] [ref=e46]
+          - paragraph [ref=e47]: Options de livraison express dans toutes les régions du Cameroun
+        - generic [ref=e48]:
+          - img [ref=e50]
+          - heading "Manipulation Sécurisée" [level=3] [ref=e55]
+          - paragraph [ref=e56]: Vos colis sont manipulés avec soin et entièrement assurés
+        - generic [ref=e57]:
+          - img [ref=e59]
+          - heading "Support 24/7" [level=3] [ref=e61]
+          - paragraph [ref=e62]: Notre équipe de service client est toujours prête à vous aider
+    - contentinfo [ref=e63]:
+      - paragraph [ref=e65]: © 2026 SmartCAMPOST. Tout rights reserved.
+  - button [ref=e66]:
+    - img [ref=e67]
+  - region "Notifications alt+T"
+```

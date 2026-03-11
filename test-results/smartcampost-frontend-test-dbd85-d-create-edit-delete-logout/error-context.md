@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - heading "Créer un compte" [level=3] [ref=e11]
+      - paragraph [ref=e12]: Rejoignez SmartCAMPOST aujourd'hui
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - text: Langue Préférée
+        - generic [ref=e16]:
+          - button "🇫🇷 Français" [ref=e17]
+          - button "🇬🇧 English" [ref=e18]
+      - generic [ref=e19]:
+        - text: Nom complet
+        - textbox "Nom complet" [ref=e20]: Workflow User
+      - generic [ref=e21]:
+        - text: Numéro de téléphone
+        - generic [ref=e22]:
+          - textbox "Numéro de téléphone" [ref=e23]:
+            - /placeholder: +237 6XX XXX XXX
+            - text: "+237690000002"
+          - button "Envoyer OTP" [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]: Email (Optionnel)
+        - textbox "Email (Optionnel)" [ref=e27]:
+          - /placeholder: your@email.com
+          - text: workflow@smartcampost.cm
+      - generic [ref=e28]:
+        - text: Mot de passe
+        - textbox "Mot de passe" [ref=e29]: Workflow@2026
+      - button "S'inscrire" [active] [ref=e30]
+      - generic [ref=e35]: OU
+      - paragraph [ref=e37]:
+        - text: Vous avez déjà un compte ?
+        - link "Se connecter" [ref=e38] [cursor=pointer]:
+          - /url: /auth/login
+  - button [ref=e39]:
+    - img [ref=e40]
+  - region "Notifications alt+T"
+```

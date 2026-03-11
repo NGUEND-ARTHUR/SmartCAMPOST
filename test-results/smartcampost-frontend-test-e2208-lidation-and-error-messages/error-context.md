@@ -1,0 +1,44 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - heading "Créer un compte" [level=3] [ref=e11]
+      - paragraph [ref=e12]: Rejoignez SmartCAMPOST aujourd'hui
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - text: Langue Préférée
+        - generic [ref=e16]:
+          - button "🇫🇷 Français" [ref=e17]
+          - button "🇬🇧 English" [ref=e18]
+      - generic [ref=e19]:
+        - text: Nom complet
+        - textbox "Nom complet" [active] [ref=e20]
+        - paragraph [ref=e21]: Ce champ est requis
+      - generic [ref=e22]:
+        - text: Numéro de téléphone
+        - generic [ref=e23]:
+          - textbox "Numéro de téléphone" [ref=e24]:
+            - /placeholder: +237 6XX XXX XXX
+          - button "Envoyer OTP" [ref=e25]
+        - paragraph [ref=e26]: Ce champ est requis
+      - generic [ref=e27]:
+        - generic [ref=e28]: Email (Optionnel)
+        - textbox "Email (Optionnel)" [ref=e29]:
+          - /placeholder: your@email.com
+      - generic [ref=e30]:
+        - text: Mot de passe
+        - textbox "Mot de passe" [ref=e31]
+        - paragraph [ref=e32]: Ce champ est requis
+      - button "S'inscrire" [ref=e33]
+      - generic [ref=e38]: OU
+      - paragraph [ref=e40]:
+        - text: Vous avez déjà un compte ?
+        - link "Se connecter" [ref=e41] [cursor=pointer]:
+          - /url: /auth/login
+  - button [ref=e42]:
+    - img [ref=e43]
+  - region "Notifications alt+T"
+```
