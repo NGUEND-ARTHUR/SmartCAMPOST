@@ -203,17 +203,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 SizedBox(
                   height: 50,
                   child: OutlinedButton.icon(
-                    onPressed: auth.isLoading ? null : () async {
-                      final success = await auth.loginWithGoogle();
-                      if (success && mounted) {
-                        // Navigation handled by GoRouter redirect
-                      }
-                    },
+                    onPressed: auth.isLoading
+                        ? null
+                        : () async {
+                            final success = await auth.loginWithGoogle();
+                            if (success && mounted) {
+                              // Navigation handled by GoRouter redirect
+                            }
+                          },
                     icon: Image.network(
                       'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
                       height: 20,
                       width: 20,
-                    errorBuilder: (_, _, _) =>
+                      errorBuilder: (_, _, _) =>
                           const Icon(Icons.g_mobiledata, size: 24),
                     ),
                     label: Text(tr('sign_up_with_google')),
