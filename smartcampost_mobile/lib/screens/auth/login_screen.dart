@@ -105,6 +105,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'Mobile build v1.0.2',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E3A5F),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 40),
 
                   // Phone field
