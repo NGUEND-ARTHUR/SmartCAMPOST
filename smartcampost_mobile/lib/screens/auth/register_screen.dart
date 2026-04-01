@@ -55,6 +55,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Widget _googleIcon() {
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFD1D5DB)),
+      ),
+      child: const Text(
+        'G',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1E3A5F),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -211,13 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               // Navigation handled by GoRouter redirect
                             }
                           },
-                    icon: Image.network(
-                      'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                      height: 20,
-                      width: 20,
-                      errorBuilder: (_, _, _) =>
-                          const Icon(Icons.g_mobiledata, size: 24),
-                    ),
+                    icon: _googleIcon(),
                     label: Text(tr('sign_up_with_google')),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey[300]!),
