@@ -1,4 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
+import playwright from '../../../node_modules/@playwright/test/index.js';
+
+const { defineConfig, devices } = playwright;
 
 export default defineConfig({
   testDir: './tests/e2e',
