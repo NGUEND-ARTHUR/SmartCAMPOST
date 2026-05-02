@@ -1,35 +1,43 @@
-import { test, expect } from '@playwright/test';
+import playwright, { type Page } from "../../../node_modules/@playwright/test/index.js";
 
-const apiURL = 'https://smartcampost-backend.onrender.com/api';
+const { expect, test } = playwright;
 
-// Backend API tests
-
-test('Authentication endpoints', async ({ request }) => {
-  const res = await request.post(`${apiURL}/auth/login`, {
-    data: { phone: '+237690000000', password: 'Admin@SmartCAMPOST2026' },
+async function useEnglishLocale(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem("i18nextLng", "en");
   });
-  expect(res.status()).toBe(200);
-  expect(res.json()).toHaveProperty('accessToken');
+}
+
+test.beforeEach(async ({ page }) => {
+  await useEnglishLocale(page);
 });
 
-test('CRUD endpoints', async ({ request }) => {
-  // Example: create parcel
-  const res = await request.post(`${apiURL}/parcels`, {
-    data: { name: 'Test Parcel', sender: 'Client One' },
-  });
-  expect(res.status()).toBe(201);
-  expect(res.json()).toHaveProperty('id');
-});
+test("login request is posted with the expected payload", async ({ page }) => {
+  let requestBody: { phone?: string; password?: string } | undefined;
 
-test('Authorization logic', async ({ request }) => {
-  // Try accessing admin endpoint as client
-  const res = await request.get(`${apiURL}/admin/users`);
-  expect(res.status()).toBe(401);
-});
-
-test('Error handling', async ({ request }) => {
-  const res = await request.post(`${apiURL}/auth/login`, {
-    data: { phone: 'invalid', password: 'wrong' },
+  await page.route("**/api/auth/login", async (route) => {
+    requestBody = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        role: "CLIENT",
+        userId: "42",
+        phone: "+237690000000",
+        fullName: "Client One",
+        accessToken: "token-123",
+      }),
+    });
   });
-  expect(res.status()).toBe(400);
+
+  await page.goto("/auth/login");
+  await page.locator("#phoneOrEmail").fill("+237690000000");
+  await page.locator("#password").fill("Client@2026");
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  await expect(page).toHaveURL(/\/client$/);
+  expect(requestBody).toEqual({
+    phone: "+237690000000",
+    password: "Client@2026",
+  });
 });

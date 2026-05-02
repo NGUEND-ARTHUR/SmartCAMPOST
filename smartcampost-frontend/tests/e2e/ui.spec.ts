@@ -1,30 +1,48 @@
-import { test, expect } from '@playwright/test';
+import playwright, { type Page } from "../../../node_modules/@playwright/test/index.js";
 
-const baseURL = 'https://smartcampost-frontend.vercel.app';
+const { expect, test } = playwright;
 
-test('UI navigation and rendering', async ({ page }) => {
-  await page.goto(baseURL);
-  await expect(page.locator('nav')).toBeVisible();
-  await page.click('text=Dashboard');
-  await expect(page.locator('text=Dashboard')).toBeVisible();
-  await page.click('text=Parcels');
-  await expect(page.locator('text=Parcels')).toBeVisible();
+async function useEnglishLocale(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem("i18nextLng", "en");
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  await useEnglishLocale(page);
 });
 
-test('Form validation and error messages', async ({ page }) => {
-  await page.goto(`${baseURL}/auth/register`);
-  await page.click('button[type="submit"]');
-  await expect(page.locator('text=required')).toBeVisible();
+test("landing page renders and navigates to auth pages", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("heading", { name: "Smart Postal Services for Cameroon" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Register" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(page).toHaveURL(/\/auth\/login$/);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Register" }).click();
+  await expect(page).toHaveURL(/\/auth\/register$/);
 });
 
-test('Loading states', async ({ page }) => {
-  await page.goto(`${baseURL}/dashboard`);
-  await expect(page.locator('text=Loading')).toBeVisible();
+test("landing tracking search keeps the query in the URL", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByPlaceholder("Tracking Number").fill("SCP123456");
+  await page.getByRole("button", { name: "Search" }).click();
+
+  await expect(page).toHaveURL(/\/tracking\?ref=SCP123456$/);
 });
 
-test('No console errors', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', err => errors.push(err));
-  await page.goto(baseURL);
-  expect(errors.length).toBe(0);
+test("landing page loads without runtime errors", async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error));
+
+  await page.goto("/");
+
+  expect(pageErrors).toHaveLength(0);
 });

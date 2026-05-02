@@ -1,4 +1,6 @@
-import { test, expect } from "@playwright/test";
+import playwright from "../../node_modules/@playwright/test/index.js";
+
+const { test, expect } = playwright;
 
 // Minimal smoke E2E tests with network interception to avoid requiring real backend credentials.
 

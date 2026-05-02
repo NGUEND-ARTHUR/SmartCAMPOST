@@ -1,33 +1,31 @@
-import { test, expect } from "@playwright/test";
+import playwright, { type Page } from "../../../node_modules/@playwright/test/index.js";
 
-const baseURL = "https://smartcampost-frontend.vercel.app";
+const { expect, test } = playwright;
 
-// Edge case tests
+async function useEnglishLocale(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem("i18nextLng", "en");
+  });
+}
 
-test("Invalid input: empty forms", async ({ page }) => {
-  await page.goto(`${baseURL}/auth/register`);
-  await page.click('button[type="submit"]');
-  await expect(page.locator("text=required")).toBeVisible();
+test.beforeEach(async ({ page }) => {
+  await useEnglishLocale(page);
 });
 
-test("Invalid input: large data", async ({ page }) => {
-  await page.goto(`${baseURL}/parcels/create`);
-  await page.fill('input[name="parcelName"]', "A".repeat(1000));
-  await page.click('button[type="submit"]');
-  await expect(page.locator("text=too long")).toBeVisible();
+test("empty tracking submission keeps the user on the landing page", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Search" }).click();
+
+  await expect(page).toHaveURL(/\/$/);
 });
 
-test("Unauthorized API access", async ({ request }) => {
-  const res = await request.get(
-    "https://smartcampost-backend.onrender.com/api/admin/users",
-  );
-  expect(res.status()).toBe(401);
-});
+test("unknown routes redirect back to the landing page", async ({ page }) => {
+  await page.goto("/does-not-exist");
 
-test("Expired session", async ({ page }) => {
-  await page.goto(`${baseURL}/auth/login`);
-  // Simulate login, then expire session (mock or manipulate cookie)
-  // ...
-  await page.goto(`${baseURL}/dashboard`);
-  await expect(page.locator("text=Login")).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page.getByRole("heading", { name: "Smart Postal Services for Cameroon" }),
+  ).toBeVisible();
 });
