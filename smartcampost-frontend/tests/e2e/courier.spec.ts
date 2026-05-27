@@ -32,15 +32,15 @@ test.describe('Courier flows - mocked isolated pages', () => {
             const list = document.getElementById('list');
             arr.forEach(d => {
               const row = document.createElement('div');
-              row.innerHTML = `<span>Delivery ${d.id}</span> <button data-id="${d.id}" class="accept">Accept</button>`;
+              row.innerHTML = '<span>Delivery ' + d.id + '</span> <button data-id="' + d.id + '" class="accept">Accept</button>';
               list.appendChild(row);
             });
             document.querySelectorAll('.accept').forEach(btn => btn.addEventListener('click', async (ev) => {
               const id = ev.target.getAttribute('data-id');
-              await fetch(`/api/deliveries/${id}/accept`, { method: 'POST' });
+              await fetch('/api/deliveries/' + id + '/accept', { method: 'POST' });
               document.getElementById('status').textContent = 'accepted';
               // simulate in-progress -> complete
-              await fetch(`/api/deliveries/${id}/complete`, { method: 'POST' });
+              await fetch('/api/deliveries/' + id + '/complete', { method: 'POST' });
               document.getElementById('status').textContent = 'Delivery completed';
             }));
           }

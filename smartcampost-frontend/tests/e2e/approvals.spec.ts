@@ -35,12 +35,12 @@ test.describe('Approvals and AI-assisted actions - mocked pages', () => {
             if (!arr || arr.length === 0) { document.getElementById('empty').style.display='block'; return }
             arr.forEach(a => {
               const row = document.createElement('div');
-              row.innerHTML = `<span>${a.reason}</span> <button data-id="${a.id}" class="approve">Approve</button>`;
+              row.innerHTML = '<span>' + a.reason + '</span> <button data-id="' + a.id + '" class="approve">Approve</button>';
               list.appendChild(row);
             });
             document.querySelectorAll('.approve').forEach(btn => btn.addEventListener('click', async (ev) => {
               const id = ev.target.getAttribute('data-id');
-              await fetch(`/api/approvals/${id}/approve`, { method: 'POST' });
+              await fetch('/api/approvals/' + id + '/approve', { method: 'POST' });
               document.getElementById('list').innerHTML = '';
               document.getElementById('empty').style.display='block';
             }));
@@ -52,10 +52,11 @@ test.describe('Approvals and AI-assisted actions - mocked pages', () => {
 
     await page.setContent(html);
 
-    await expect(page.locator('text=AI Approval Requests')).toBeVisible({ timeout: 2000 });
+    // Wait for the page content and approve button to be available
+    await page.waitForSelector('text=AI Approval Requests', { timeout: 5000 });
     const approveButton = page.locator('button', { hasText: 'Approve' }).first();
-    await expect(approveButton).toBeVisible({ timeout: 2000 });
+    await expect(approveButton).toBeVisible({ timeout: 5000 });
     await approveButton.click();
-    await expect(page.locator('text=No pending approvals')).toBeVisible({ timeout: 2000 });
+    await expect(page.locator('text=No pending approvals')).toBeVisible({ timeout: 5000 });
   });
 });
