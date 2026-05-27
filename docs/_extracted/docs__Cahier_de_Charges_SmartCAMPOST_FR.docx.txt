@@ -1,0 +1,29 @@
+ICT University – Yaoundé, Cameroun
+Licence en Génie LogicielCahier des Charges du Projet de Fin d'ÉtudesAuteur : Nguend Arthur Johann
+SmartCAMPOST : Système intelligent de suivi, collecte et livraison de colis basé sur le QR Code, la géolocalisation, l’IA et le paiement numérique
+1. Présentation générale du projet
+Le projet SmartCAMPOST vise à moderniser les services de la CAMPOST à travers un système numérique complet de gestion et de suivi des colis. Ce système permet aux clients d’envoyer, de suivre et de recevoir leurs colis en toute transparence grâce à des QR Codes, à la géolocalisation et aux paiements numériques intégrés.
+2. Objectifs du projet
+Objectif général : Concevoir et implémenter une plateforme intelligente et intégrée pour la gestion numérique des colis de la CAMPOST.Objectifs spécifiques : suivi en temps réel via QR Code, paiement numérique, notifications automatiques, IA prédictive, etc.
+3. Présentation de la CAMPOST
+CAMPOST est une entreprise publique assurant les services postaux et financiers au Cameroun. Ses processus sont encore manuels, d’où la nécessité de ce projet pour améliorer la traçabilité et la satisfaction client.
+4. Description fonctionnelle du système
+Modules : Client (suivi, paiement, description du colis), Agent (enregistrement, validation, scan QR), Administrateur (supervision, rapports, statistiques).
+5. Exigences fonctionnelles
+Chaque colis doit avoir un QR Code unique. Les agents peuvent le scanner pour mettre à jour le statut. Les notifications doivent être automatiques et bilingues.
+6. Exigences non fonctionnelles
+Performance ≤ 3 s par opération, sécurité (OTP, TLS), accessibilité mobile/desktop, disponibilité 99,5 %, ergonomie intuitive, multilinguisme.
+7. Technologies envisagées
+Frontend : Flutter / ReactJS ; Backend : Node.js / Django REST ; Base de données : PostgreSQL ; QR : ZXing ; Paiements : Orange, MTN, CAMPOST Money ; IA : TensorFlow Lite.
+8. Architecture du système
+Composants : Application mobile client, application agent, tableau de bord admin, serveur API, base PostgreSQL, service SMS/paiement.
+9. Contraintes et risques
+Connectivité faible, coût des API SMS, besoin de formation du personnel, surcharge potentielle du serveur.
+10. Planning prévisionnel
+Phase 1 : Étude (2 sem.) ; Phase 2 : Conception (3 sem.) ; Phase 3 : Développement (6 sem.) ; Phase 4 : Test (2 sem.) ; Déploiement pilote (2 sem.) ; Maintenance continue.
+11. Budget prévisionnel
+Développement : 2 000 000 FCFA ; Hébergement : 300 000 ; API : 200 000 ; Formation : 150 000 ; Matériel : 250 000. Total : 2 900 000 FCFA.
+12. Livrables attendus
+Cahier des charges validé, maquettes, applications mobiles (client et agent), tableau de bord, documentation, rapport de tests.
+13. Conclusion
+SmartCAMPOST transformera les services postaux camerounais en rendant la livraison plus rapide, fiable et transparente. L’usage du QR Code, de l’IA et des paiements mobiles positionne la CAMPOST comme un acteur clé de la digitalisation nationale.

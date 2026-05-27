@@ -1,0 +1,331 @@
+SMARTCAMPOST BACKEND COMPLETION ROADMAP
+Spec vs Implementation – What Is Missing Per Module
+0. Global Consistency (Project Name & Scope)
+Spec (Documents)
+Project title (FR/EN) sometimes:
+“SmartCAMPOST: Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and Digital Payments”
+Sometimes with AI missing, sometimes included.
+Backend
+We have:
+AnalyticsService (ETA prediction + anomaly detection) → AI is really part of the system.
+Actions to align
+Fix title everywhere (report, diagrams, README) to:
+SmartCAMPOST: Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, AI, and Digital Payments
+Keep this as the only official project title in FR & EN versions.
+1. Parcel Lifecycle & Statuses
+Spec (Documents)
+You describe a rich lifecycle:
+Créé
+Accepté
+Pris en charge
+Au centre d’origine
+En transit
+Arrivé hub
+Sorti du hub
+Arrivé agence destination
+Sorti en distribution
+Livré / Retiré
+Retour à l’expéditeur (non livré)
+And you use ACCEPTED as a real state in the French text.
+Backend (Current)
+ParcelStatus may not contain all these steps (you explicitly flagged:
+“ACCEPTED parcel status – Document says: Exists / Backend: ❌ Not implemented”
+Fine-grained steps are mostly expressed via ScanEventType (e.g. ARRIVED_HUB, OUT_FOR_DELIVERY, etc.) and mapped to a simpler ParcelStatus (CREATED, IN_TRANSIT, DELIVERED, RETURNED, CANCELLED).
+Required changes
+Decide on final ParcelStatus enum and update both code + docs:
+Option A (recommended): keep ParcelStatus fairly simple:
+CREATED, ACCEPTED, IN_TRANSIT, DELIVERED, RETURNED, CANCELLED
+Option B: fully mirror all steps directly in ParcelStatus (more complex).
+Add ACCEPTED to ParcelStatus (and SQL schema) if not already there.
+Update status transition logic in:
+ParcelServiceImpl (status changes on creation / acceptance)
+ScanEventServiceImpl.applyParcelStatusFromEvent(...)so that:
+First agent validation ⇒ CREATED → ACCEPTED
+Scan events with ARRIVAL / DEPARTURE / OUT_FOR_DELIVERY ⇒ IN_TRANSIT
+Delivered scan ⇒ DELIVERED
+Return events ⇒ RETURNED
+Update documentation to clearly state:
+Timeline (full list of steps) = driven by ScanEvents
+ParcelStatus = summarized “high-level state”.
+2. QR Code & Label Generation
+Spec (Documents)
+QR Code:
+Generated at parcel registration.
+May have a temporary QR for pickup requests.
+Printed on a label and stuck on the parcel.
+Used in ALL scans.
+Backend (Current)
+Backend generates trackingRef (string) for each Parcel.
+No explicit QR image generation in Java (front-end / printer handles that).
+No entity/field for temporary QR in PickupRequest or Parcel.
+Required changes
+You have 2 options:
+Option A: Keep it conceptual (no code change, just doc fixes)
+Document says:
+“The backend generates a trackingRef; the QR image is generated on the frontend from this ID.”
+Temporary QR for pickup = handled at frontend layer (no DB field).
+Option B: Implement real support for “Temporary QR”
+If you want it in backend:
+Add fields (for example):
+On PickupRequest:
+String tempTrackingRef or String tempQrToken
+When client creates pickup:
+Generate tempTrackingRef.
+When agent confirms collection and creates the Parcel:
+Promote tempTrackingRef → official trackingRef and/or keep link.
+Update documentation accordingly.
+👉 As of now, your documents mention “temporary QR” but backend does not support it. Decide whether you implement it or rephrase docs to keep it conceptual.
+3. Pickup Request / Home Collection
+Spec
+Client can:
+Create a pickup request
+Get a confirmation / planning
+Agent:
+Sees assigned pickups
+Validates collection
+May scan temporary QR
+Confirms “Pris en charge”
+Backend (Current)
+Entities/services:
+PickupRequest with:
+parcel (or parcelId)
+courier
+requestedDate
+timeWindow
+state (REQUESTED, ASSIGNED, COMPLETED, CANCELLED)
+comment
+PickupRequestServiceImpl supports:
+create
+assign courier
+update state
+listing (client / courier / admin)
+Works conceptually with your description.
+Missing / Improvements
+State renaming / mapping:
+In doc you use “Pris en charge”.
+In code you use COMPLETED.
+Decide mapping and mention in doc:
+COMPLETED = “Pickup done / Pris en charge”.
+Optionally:
+Add a field for GPS coordinates at pickup confirmation, if you want to support the “preuve GPS” described in text.
+4. Payment, COD & Refunds
+Spec
+Client can pay:
+At registration
+At pickup
+At home delivery (COD)
+You explicitly mention: COD possible; refunds/chargebacks module (in English spec).
+You also mention specific payment channels (OM, MoMo, CAMPOST Money).
+Backend (Current)
+Payment entity:
+amount, currency, method, status, externalRef, timestamp, linked to Parcel.
+PaymentStatus currently: INIT, PAID, FAILED.
+PaymentMethod: CASH, MOBILE_MONEY, CARD.
+PaymentServiceImpl:
+initPayment(...)
+confirmPayment(...)
+Basic history & listing.
+No COD-specific logic.
+No Refund/Chargeback entities or services (you only added error codes).
+Required changes
+4.1. COD (Cash on Delivery)
+To truly support COD at backend level:
+Add a field on Parcel:
+boolean cod or PaymentOption paymentOption (PREPAID, COD).
+For COD:
+Allow parcel to be created with cod=true.
+Payment is only confirmed at delivery time.
+Delivery agent triggers initPayment or confirmPayment at final scan.
+Update DeliveryProof or scan event logic to link payment confirmation with final delivery.
+4.2. Refunds & Chargebacks (optional now, but your spec mentions them)
+If you keep them in the document, define:
+Entities:
+Refund (linked to Payment)
+Chargeback or Dispute
+Service layer:
+RefundService, DisputeService
+Controllers:
+/api/refunds/**, /api/chargebacks/**
+Or:👉 Keep refunds as future work and tone down details in the report.
+4.3. Payment Channels
+You mention OM / MTN / CAMPOST Money.
+Backend side:
+Keep MOBILE_MONEY as generic.
+In documentation phrase it as:
+“The system supports Mobile Money payments (e.g., Orange Money, MTN Mobile Money, CAMPOST Money) via a generic mobile money gateway.”
+5. OTP Verification at Delivery & Delivery Proof
+Spec
+At final delivery / branch pickup:
+System sends an OTP to recipient.
+Agent checks OTP + possibly photo/signature.
+Delivery is confirmed; proof stored.
+Backend (Current)
+You flagged:
+OTP validation NOT implemented.
+DeliveryProof entity exists in DB schema:
+proof_type (SIGNATURE, PHOTO, OTP)
+details
+linked to Parcel and Courier.
+But:
+No controller/service implementing full delivery-proof logic.
+No OTP flow tied to final ScanEvent.
+Required changes
+5.1. OTP Delivery Logic
+Add a small module:
+DeliveryOtpService:
+sendDeliveryOtp(parcelId, phone)
+validateDeliveryOtp(parcelId, code)
+Integrate with Notification / SMS.
+At final delivery endpoint:
+Verify OTP before marking parcel DELIVERED.
+5.2. DeliveryProof Logic
+Implement service:
+DeliveryProofService:
+createProof(parcelId, courierId, DeliveryProofType, details)
+attach photo URL / signature hash if needed.
+Wire it into the final scan event handler:
+when ScanEventType is DELIVERED or RETIRED:
+ensure:
+OTP validated
+DeliveryProof created
+ParcelStatus updated
+Notification sent.
+6. AI / Analytics / Routing
+Spec
+You describe:
+ETA prediction.
+Anomaly detection.
+Route optimization.
+“Virtual assistant: Où est mon colis ?”
+Backend (Current)
+Implemented:
+AnalyticsServiceImpl:
+predictEtaForParcel(UUID parcelId) → uses createdAt or expectedDeliveryAt.
+checkPaymentAnomaly(UUID paymentId) → simple threshold rule.
+Missing:
+Route optimization (no route, no routing engine).
+Real ML model.
+Assistant logic (will be front-end / chatbot + API call to parcel tracking).
+Required changes
+At backend level, to be consistent:
+Keep AI simple but real:
+ETA with heuristics based on:
+distance or zones (origin/destination agency/region)
+historical ScanEvent durations (future improvement).
+Document route optimization as:
+“Future enhancement” or handled by a separate service not yet implemented.
+Do NOT over-claim ML if you only use rules/heuristics.
+7. GPS / Geolocation
+Spec
+GPS / geolocation used:
+For pickups.
+For delivery routes.
+For ETA and optimization.
+Backend (Current)
+Address table has:
+latitude, longitude (optional).
+No fields to store real-time position of couriers / agents.
+No route computation logic.
+Required changes (optional for now)
+To fully reflect the spec:
+Decide minimal backend support:
+keep GPS at address level (OK for v1).
+For live GPS:
+Add entity/field:
+CourierLocation or lastKnownLat/Long on Courier.
+Endpoints:
+/api/couriers/{id}/location (update)
+Route computation:
+Likely delegated to external map API (front-end or separate microservice).
+For now, in the report you can say:
+“GPS is used primarily for precise addressing and zone-based ETA. Real-time routing optimization is planned as future work.”
+8. Notifications
+Spec
+Notifications for:
+Registration confirmed.
+Colis pris en charge.
+En transit (optional).
+Arrived at destination.
+Out for delivery.
+Delivered / Retired.
+Reminders for non-collected parcels.
+Backend (Current)
+Notification entity exists.
+Notification service supports:
+sending and logging basic events (payment, parcel updates, etc.).
+Required changes
+Define clearly in code:
+which events trigger notifications:
+after parcel creation,
+after first scan,
+after arrival at destination agency,
+when OUT_FOR_DELIVERY,
+when DELIVERED/RETURNED.
+Ensure these triggers are implemented in:
+ParcelServiceImpl
+ScanEventServiceImpl
+PickupRequestServiceImpl
+PaymentServiceImpl (for payment confirmation, invoice link).
+Optionally implement:
+scheduled job to send reminders for non-collected parcels.
+9. Photos & Agent Comments
+Spec
+At description validation you mention:
+optional photo of the parcel
+detailed agent comments on mismatch.
+Backend (Current)
+No field on Parcel for images.
+Comments are not formalized (except comment on PickupRequest).
+DeliveryProof can hold some details at delivery, not at registration.
+Options
+Option A – Keep it conceptual (report-level only)
+Say:
+“The system can support photo capture and comments as metadata attached to the parcel; this is planned for a future iteration.”
+Option B – Implement minimal support
+Add to Parcel:
+String descriptionComment
+String photoUrl (link to S3/Cloud storage/MinIO).
+Modify CreateParcelRequest and UpdateParcelRequest DTOs.
+Expose endpoints to update those when agent validates.
+10. Switch from Agency Pickup to Home Delivery After Arrival
+Spec
+You say:
+“À l’arrivée à l’agence de destination, je choisis retrait en agence ou livraison à domicile.”
+Backend (Current)
+Parcel has deliveryOption = AGENCY or HOME.
+There is no endpoint to change deliveryOption after creation.
+Required changes
+Implement endpoint:
+PATCH /api/parcels/{id}/delivery-option
+Rules:
+Only client owning the parcel can change it.
+Only when ParcelStatus is something like IN_TRANSIT or ARRIVED_DESTINATION, but not yet DELIVERED.
+When switching from AGENCY → HOME:
+Trigger:
+tariff recalculation,
+new payment (if extra cost),
+assignment to courier for last mile.
+Final Summary: What I MUST Implement Before Moving to Frontend
+Here is My backend TODO checklist:
+ParcelStatus & ScanEvent
+Add ACCEPTED if missing.
+Normalize transitions + mapping from ScanEventType.
+Temporary QR (optional)
+Decide: implement in DB (PickupRequest.tempTrackingRef) or keep conceptual.
+COD Support
+Add cod or paymentOption on Parcel.
+Handle payment at delivery time.
+OTP Delivery Flow
+Add DeliveryOtpService.
+Integrate OTP check into final delivery endpoint.
+DeliveryProof Logic
+Implement service + controller logic to create and link proof on delivery.
+AI & GPS
+Keep ETA & anomaly detection as implemented.
+Reframe route optimization as future work, or implement minimal skeleton.
+Notifications
+Wire notifications for all key events (creation, pickup, arrival, out for delivery, delivered, reminders).
+Photos & Comments (optional)
+If you want them, add fields and endpoints; otherwise, phrase them in the report as “future enhancement”.
+Change of Delivery Option
+Add endpoint for client to switch deliveryOption (AGENCY ↔ HOME) before delivery, with possible extra pricing + payment.
