@@ -42,7 +42,11 @@ jobs:
         run: |
           echo "Listing playwright package in node_modules"
           ls -la node_modules/@playwright || true
-          npx --yes playwright test tests/e2e --project=chromium --reporter=list,html
+          echo "cwd: $(pwd)"
+          echo "node version: $(node -v)"
+          echo "ls node_modules top-level"
+          ls -la node_modules || true
+          ./node_modules/.bin/playwright test tests/e2e --project=chromium --reporter=list,html
 
       - name: Upload Playwright report
         if: always()
