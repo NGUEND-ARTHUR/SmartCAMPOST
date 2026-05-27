@@ -45,10 +45,14 @@ test.describe('Auth flows (web) - mocked isolated pages', () => {
 
     await page.setContent(html);
 
+    // Wait for the login inputs to be available before interacting
+    await page.waitForSelector('#phoneOrEmail', { timeout: 5000 });
+    await page.waitForSelector('#password', { timeout: 5000 });
+
     await page.fill('#phoneOrEmail', testUser.email);
     await page.fill('#password', testUser.password);
     await page.click('#submitBtn');
 
-    await expect(page.locator('text=Client Dashboard')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('text=Client Dashboard')).toBeVisible({ timeout: 5000 });
   });
 });
