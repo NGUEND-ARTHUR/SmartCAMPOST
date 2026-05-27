@@ -1,0 +1,52 @@
+name: Playwright E2E (mocked)
+
+on:
+  push:
+    paths:
+      - 'smartcampost-frontend/**'
+      - '.github/workflows/playwright-e2e.yml'
+  pull_request:
+    paths:
+      - 'smartcampost-frontend/**'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: smartcampost-frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        working-directory: smartcampost-frontend
+        run: |
+          npm ci
+
+      - name: Install Playwright browsers
+        working-directory: smartcampost-frontend
+        run: |
+          npx playwright install --with-deps
+
+      - name: Run Playwright e2e (mocked pages)
+        working-directory: smartcampost-frontend
+        run: |
+          npx playwright test tests/e2e --project=chromium --reporter=list
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: smartcampost-frontend/tests/e2e/playwright-report || ./playwright-report
