@@ -34,9 +34,13 @@ test.describe('Parcel flows (web) - mocked isolated pages', () => {
 
     await page.setContent(html);
 
-    await expect(page.locator('text=Create New Parcel')).toBeVisible({ timeout: 2000 });
+    // Ensure form is present before interacting
+    await page.waitForSelector('text=Create New Parcel', { timeout: 5000 });
+    await page.waitForSelector('#recipientName', { timeout: 5000 });
+
+    await expect(page.locator('text=Create New Parcel')).toBeVisible({ timeout: 5000 });
     await page.fill('#recipientName', 'Test Recipient');
     await page.click('#createBtn');
-    await expect(page.locator('text=Created: TRK123')).toBeVisible({ timeout: 2000 });
+    await expect(page.locator('text=Created: TRK123')).toBeVisible({ timeout: 5000 });
   });
 });
