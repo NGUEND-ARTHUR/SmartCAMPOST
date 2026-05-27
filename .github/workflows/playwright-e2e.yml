@@ -25,24 +25,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: smartcampost-frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('smartcampost-frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        working-directory: smartcampost-frontend
         run: |
-          npm ci
+          npm ci --prefix smartcampost-frontend
 
       - name: Install Playwright browsers
-        working-directory: smartcampost-frontend
         run: |
-          npx playwright install --with-deps
+          npx --yes --prefix=smartcampost-frontend playwright install --with-deps
 
       - name: Run Playwright e2e (mocked pages)
-        working-directory: smartcampost-frontend
         run: |
-          npx playwright test tests/e2e --project=chromium --reporter=list
+          node -e "process.chdir('smartcampost-frontend'); require('child_process').spawnSync('npx',['playwright','test','tests/e2e','--project=chromium','--reporter=list'],{stdio:'inherit'});"
 
       - name: Upload Playwright report
         if: always()
