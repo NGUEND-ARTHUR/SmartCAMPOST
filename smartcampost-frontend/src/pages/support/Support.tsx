@@ -60,11 +60,12 @@ const priorityColors: Record<TicketPriority, string> = {
 export default function Support() {
   const { t } = useTranslation();
   const categoryLabels: Record<TicketCategory, string> = {
-    DELIVERY: t("support.category.delivery"),
-    PAYMENT: t("support.category.payment"),
-    DAMAGED: t("support.category.damaged"),
-    LOST: t("support.category.lost"),
-    OTHER: t("support.category.other"),
+    DELIVERY_ISSUE: t("support.category.delivery_issue"),
+    PAYMENT_ISSUE: t("support.category.payment_issue"),
+    DAMAGED_GOODS: t("support.category.damaged_goods"),
+    LOST_PARCEL: t("support.category.lost_parcel"),
+    TECHNICAL_SUPPORT: t("support.category.technical_support"),
+    GENERAL_INQUIRY: t("support.category.general_inquiry"),
   };
 
   const statusLabelKey: Record<TicketStatus, string> = {
@@ -177,20 +178,23 @@ export default function Support() {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DELIVERY">
-                      {t("support.category.delivery")}
+                    <SelectItem value="DELIVERY_ISSUE">
+                      {t("support.category.delivery_issue")}
                     </SelectItem>
-                    <SelectItem value="PAYMENT">
-                      {t("support.category.payment")}
+                    <SelectItem value="PAYMENT_ISSUE">
+                      {t("support.category.payment_issue")}
                     </SelectItem>
-                    <SelectItem value="DAMAGED">
-                      {t("support.category.damaged")}
+                    <SelectItem value="DAMAGED_GOODS">
+                      {t("support.category.damaged_goods")}
                     </SelectItem>
-                    <SelectItem value="LOST">
-                      {t("support.category.lost")}
+                    <SelectItem value="LOST_PARCEL">
+                      {t("support.category.lost_parcel")}
                     </SelectItem>
-                    <SelectItem value="OTHER">
-                      {t("support.category.other")}
+                    <SelectItem value="TECHNICAL_SUPPORT">
+                      {t("support.category.technical_support")}
+                    </SelectItem>
+                    <SelectItem value="GENERAL_INQUIRY">
+                      {t("support.category.general_inquiry")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
