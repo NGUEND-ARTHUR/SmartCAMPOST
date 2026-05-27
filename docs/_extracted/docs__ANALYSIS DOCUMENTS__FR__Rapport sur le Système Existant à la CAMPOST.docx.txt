@@ -1,0 +1,83 @@
+Rapport sur le Système Existant à la CAMPOST
+Introduction
+Le présent rapport a pour objectif d’analyser le système existant au sein de la CAMPOST, notamment en ce qui concerne la gestion et le suivi des opérations postales et logistiques.Cette analyse constitue la première étape de mon projet de stage intitulé :
+“Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and AI”
+Elle vise à identifier les processus actuellement utilisés, leurs forces et faiblesses, afin de proposer des pistes d’amélioration digitale adaptées au contexte camerounais.
+Présentation de la CAMPOST
+La CAMPOST (Cameroun Postal Services) est une société publique à caractère industriel et commercial placée sous la tutelle du Ministère des Postes et Télécommunications.Elle est chargée d’assurer les services postaux, financiers et logistiques sur l’ensemble du territoire national, notamment :
+La distribution du courrier et des colis
+Les services de transfert d’argent et de comptes courants postaux
+La gestion des boîtes postales
+La messagerie express (EMS)
+La digitalisation progressive de ses services (Campost Money, e-Post, etc.).
+Malgré un réseau national étendu, la CAMPOST fait face à des défis structurels dans l’implémentation d’un système d’information intégré et performant.
+Description du système existant
+3.1. Processus de gestion des colis et courriers
+Actuellement, le traitement d’un colis se déroule de manière semi-annuelle :
+Le client se rend dans une agence postale.
+L’agent enregistre le colis dans le système EMS (Express Mail Service) ou sur un registre papier.
+Un reçu est généré avec un numéro de référence (non traçable en ligne).
+Le colis est transféré au centre de tri puis vers sa destination finale.
+À l’arrivée, le client est informé uniquement par appel téléphonique ou SMS manuel.
+3.2. Outils utilisés
+Système EMS (Express Mail Service) : application interne utilisée pour la gestion des colis, des factures et des clients.
+Systèmes financiers: Campost Money, Western Union, MoneyGram.
+Communication : SMS manuels, appels téléphoniques.
+Gestion documentaire : fichiers Excel et registres papier dans certaines agences.
+3.3. Architecture du système EMS
+Le système EMS gère :
+La création de fiches clients
+La facturation selon les poids et zones
+La gestion des agences et utilisateurs
+La génération de reçus et d’avoirs
+Le recouvrement manuel des paiements.
+Cependant, il ne permet pas :
+Le suivi en ligne des colis,
+L’automatisation des notifications,
+L’interopérabilité avec d’autres systèmes (paiement, web, mobile).
+Limites du système existant
+Absence de traçabilité en temps réel :Le client ne peut pas suivre son colis à distance ni recevoir d’alerte automatique.
+Processus majoritairement manuel :Beaucoup d’opérations sont saisies sur papier ou Excel, ce qui augmente les erreurs.
+Fragmentation des systèmes :Le système EMS, Campost Money et les applications internes ne sont pas intégrés.
+Paiement non digitalisé :Les paiements se font en agence, ce qui crée des files d’attente et des délais.
+Aucune interconnexion nationale :Les agences fonctionnent souvent de façon indépendante, sans base de données centralisée.
+Manque d’analyse de performance :Pas de tableaux de bord, statistiques ni rapports automatisés.
+Communication client limitée :Les clients ne reçoivent pas d’informations instantanées ou précises.
+Opportunités et besoins identifiés
+L’analyse du système existant montre la nécessité de :
+Digitaliser les processus postaux (suivi, facturation, paiements, notifications).
+Mettre en place une base de données centralisée accessible via le web et le mobile.
+Améliorer la communication client par des notifications automatiques (SMS, push).
+Intégrer un système de paiement numérique pour réduire le cash et fluidifier les opérations.
+Utiliser des technologies modernes : QR Code, GPS, IA, API, etc.
+Uniformiser le travail des agences pour un reportage global et un meilleur pilotage.
+Proposition d’évolution : vers SmartCAMPOST
+Face à ces limites, la solution envisagée est le développement d’un système intelligent appelé SmartCAMPOST, qui permettra de :
+Suivre les colis en temps réel grâce à des QR Codes et à la géolocalisation GPS,
+Automatiser les notifications client (SMS / app)
+Permettre le paiement digital via Campost Money, Orange Money et MTN Money
+Offrir une application mobile aux clients et agents
+Intégrer un module d’intelligence artificielle pour prédire les retards et optimiser les livraisons
+Fournir à la direction un tableau de bord analytique complet.
+
+Tableau comparatif : EMS vs SmartCAMPOST
+Système EMS actuel
+Système SmartCAMPOST proposé
+Saisie manuelle des colis
+Enregistrement assisté avec QR Code unique
+Pas de traçabilité en ligne
+Suivi temps réel (QR + GPS + timeline)
+Communication manuelle
+Notifications automatiques (SMS / App)
+Paiement physique au guichet
+Paiement numérique (Orange, MTN, CampostMoney)
+Systèmes non intégrés
+Base centralisée + APIs interopérables
+Aucune analyse de performance
+Tableau de bord analytique et rapports automatiques
+Sécurité limitée
+RBAC, audit immuable, chiffrement, webhooks signés
+
+
+Conclusion
+Le système existant à la CAMPOST, bien qu’opérationnel, demeure limité en matière de digitalisation, de traçabilité et d’interconnexion.La mise en œuvre d’une solution innovante telle que SmartCAMPOST constitue donc une réponse adaptée aux besoins actuels de modernisation, d’efficacité et de transparence.

@@ -1,0 +1,158 @@
+Phase 0 — Base solide (Jour 1)
+Objectif : avoir un socle propre et stable.
+À faire
+Installer & config :
+React Router
+Axios
+Tailwind
+ESLint/Prettier (optionnel mais conseillé)
+React Query (recommandé pour appels API + cache)
+Structure projet + conventions :
+services/ = appels backend
+types/ = DTO TS copiés depuis DTO Java
+pages/ = écrans
+components/ = réutilisables UI
+Environnement :
+.env : VITE_API_BASE_URL=http://localhost:8080
+api.ts : axios + interceptor JWT
+✅ Livrables
+App qui démarre sans erreurs
+Router OK
+Layouts vides (Admin/Staff/Agent/Courier/Client)
+
+Phase 1 — Internationalisation (FR/EN) (Jour 1–2)
+Objectif : tout le front supporte le bilingue dès le début.
+Tech i18n recommandé
+react-i18next + i18next
+À faire
+fichiers src/i18n/locales/fr.json, en.json
+bouton switch FR/EN dans Topbar
+langue sauvegardée en localStorage
+✅ Livrables
+Traductions fonctionnelles
+Tous les titres/menu/boutons passent en FR/EN
+
+Phase 2 — Auth réelle (Jour 2–3)
+Objectif : login connecté à Spring Boot et gestion JWT.
+Backend match
+POST /api/auth/login → AuthResponse { accessToken, user }
+login OTP optionnel (à ajouter après)
+reset password OTP (plus tard)
+À faire
+AuthContext + storage.ts (token/user)
+Login.tsx connecté
+PrivateRoute
+Redirections selon rôle :
+ADMIN/STAFF → Admin dashboard
+AGENT → Agent dashboard
+COURIER → Courier dashboard
+CLIENT → Client dashboard
+✅ Livrables
+Tu peux te connecter et rester connecté
+Token envoyé automatiquement sur toutes les requêtes
+
+Phase 3 — Module Parcels (core) (Jour 3–6)
+Objectif : pilier du système (création, suivi, statut, détail).
+Endpoints
+POST /api/parcels
+GET /api/parcels/me
+GET /api/parcels/{id}
+GET /api/parcels/tracking/{trackingRef}
+PATCH /api/parcels/{id}/status
+PATCH /api/parcels/{id}/accept
+PATCH /api/parcels/{id}/delivery-option
+PATCH /api/parcels/{id}/metadata
+Écrans
+Client :
+Mes colis (pagination Page<>)
+Détail colis
+Tracking (si rendu public dans SecurityConfig)
+Staff/Admin :
+Liste globale
+Détail + actions (accept/status/delivery option)
+✅ Livrables
+CRUD principal OK
+Pages avec pagination Spring Page<>
+
+Phase 4 — Timeline / Scan Events + QR (Jour 6–8)
+Objectif : traçabilité réelle (timeline visible + scan QR).
+Endpoints
+POST /api/scan-events
+GET /api/scan-events/parcel/{parcelId}
+UI
+ParcelTimeline (liste chronologique)
+QRGenerator (pour afficher/print le QR du trackingRef ou id)
+QRScanner (camera) : html5-qrcode (compatible React 19)
+✅ Livrables
+Scan QR crée un scan-event
+Timeline s’actualise après scan
+
+Phase 5 — Pickup module (Jour 8–10)
+Objectif : demandes de ramassage.
+Endpoints
+POST /api/pickups
+GET /api/pickups/me
+GET /api/pickups/courier/me
+GET /api/pickups
+POST /api/pickups/{pickupId}/assign-courier
+PATCH /api/pickups/{pickupId}/state
+GET /api/pickups/by-parcel/{parcelId}
+UI
+Client : créer pickup + voir mes pickups
+Staff/Admin/Agent : liste globale + assign courier
+Courier : “mes pickups” + update state
+✅ Livrables
+Flow pickup complet REQUESTED → ASSIGNED → COMPLETED
+
+Phase 6 — Delivery + OTP + Proof (Sprint 14) (Jour 10–12)
+Objectif : livraison sécurisée + preuve.
+Endpoints
+POST /api/delivery/otp/send
+POST /api/delivery/otp/verify
+POST /api/delivery/final
+UI
+Page “Final Delivery”
+entrer parcelId (ou scan QR)
+envoyer OTP au destinataire
+confirmer OTP
+ajouter preuve (photo url / signature / note)
+valider final delivery
+✅ Livrables
+Livraison finale met statut DELIVERED + scan event + proof + COD paid
+
+Phase 7 — Espace Client complet (Jour 12–14)
+Objectif : “client app” côté web.
+Pages
+Dashboard client (stats rapides)
+Mes colis + tracking
+Mes pickups
+Profil client (via /api/clients/**)
+✅ Livrables
+Un client peut tout faire : suivre, pickup, notifications (si dispo)
+
+Phase 8 — Admin/Staff dashboards + settings (Jour 14+)
+Objectif : management (agences, agents, analytics…).
+Selon controllers dans ton ZIP :
+Agency
+Agent
+Analytics
+Notifications
+Tariffs/Pricing
+Support/Refund/Compliance (si tu veux aller loin)
+✅ Livrables
+Dashboards par rôle
+Pages de gestion
+
+Recommandations techniques (pour que ça reste propre)
+✅ React Query pour toutes les calls (cache + loading + refetch)✅ Zod pour valider les forms (login, create parcel, pickup…)✅ UI kit minimal (Button/Input/Card/Modal) pour éviter duplications✅ Route Guards par rôle (pas juste authenticated)
+
+Ordre exact que je te propose pour coder (sans stress)
+i18n FR/EN
+Auth + token + routes privées
+Parcels (me + details + tracking)
+Timeline + scan-events
+QR generation + QR scan camera
+Pickups
+Delivery final + OTP
+Espace client complet
+Admin/Staff pages

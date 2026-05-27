@@ -1,0 +1,123 @@
+Requirement Gathering Phase for SmartCAMPOST
+1. Introduction
+The requirement gathering phase aims to identify, analyze, and document the functional and non-functional needs of all stakeholders involved in the SmartCAMPOST system.This process ensures that the proposed solution meets the operational realities of CAMPOST and the expectations of its users (clients, agents, and administrators).
+SmartCAMPOST is designed to digitalize parcel management, improve delivery efficiency, enhance transparency, and integrate intelligent tracking and payment features.
+2. Stakeholders Involved
+2.1 Customers (End Users)
+These are individuals or businesses who send and receive parcels using CAMPOST services.
+Needs and Expectations:
+Easy parcel registration (online or at the agency).
+Real-time parcel tracking via QR Code or tracking number.
+Notifications (SMS / push) at every stage of the parcel journey.
+Option to request home pickup or delivery using GPS-based geolocation.
+Secure digital payments (Orange Money, MTN Money, CAMPOST Money).
+Access to invoices, receipts, and parcel history in their personal account.
+Simple, bilingual (English/French) interface.
+User Devices:Android/iOS mobile app, or desktop web portal.
+2.2 Postal Agents (Operational Staff)
+These are CAMPOST employees who manage parcel collection, scanning, routing, and delivery.
+Needs and Expectations:
+Ability to scan and update parcel status using a smartphone (QR scanner).
+Access to assigned routes, tasks, and pickup/delivery lists.
+Geolocation tracking for pickup and delivery operations.
+Option to validate or correct customer parcel descriptions.
+Proof of pickup and delivery (photo, signature, timestamp).
+Offline mode (data synchronization when the network is available).
+Easy-to-use mobile interface with local language support.
+User Devices:CAMPOST-issued smartphones, tablets, or computers at agency counters.
+2.3 Administrators (Management and Supervisors)
+These are CAMPOST managers responsible for system configuration, monitoring, and performance analysis.
+Needs and Expectations:
+Centralized dashboard showing all parcels, agents, and transactions.
+Ability to monitor each parcel’s journey (map visualization).
+Manage users, agents, roles, and access permissions.
+Adjust tariffs and delivery fees based on weight and distance.
+Generate reports and analytics (revenues, performance, incidents).
+Receive alerts for delays, anomalies, or system issues.
+Manage financial records and ensure compliance with CAMPOST policies.
+Devices:Web-based admin panel (Vue.js + Spring Boot backend).
+3. Functional Requirements
+ID
+Requirement
+Description
+FR1
+User Registration and Login
+Users and agents log in using OTP (SMS verification).
+FR2
+Parcel Registration
+Users register parcels with descriptions, addresses, and photos.
+FR3
+QR Code Generation
+Each parcel is assigned a unique QR Code for tracking.
+FR4
+Parcel Scanning
+Agents scan QR Codes to update parcel status at every step.
+FR5
+Real-Time Tracking
+Clients view live updates and status changes.
+FR6
+Notifications
+Automatic SMS/push notifications sent for key events.
+FR7
+Payment Integration
+Supports Orange Money, MTN Money, and CAMPOST Money.
+FR8
+Admin Dashboard
+Displays real-time parcel metrics, revenues, and performance.
+FR9
+Route Optimization
+AI suggests the most efficient delivery routes.
+FR10
+Proof of Delivery
+Agent uploads photo/signature upon delivery completion.
+4. Non-Functional Requirements
+Type
+Requirement
+Performance
+System must handle at least 10,000 transactions per day.
+Availability
+99.5% uptime with redundancy and daily backups.
+Security
+End-to-end encryption (TLS), JWT authentication, audit logs.
+Scalability
+Cloud-ready architecture to support future expansion.
+Usability
+User-friendly, responsive UI accessible from low-end devices.
+Localization
+Bilingual (English/French) interface and date formats.
+Compliance
+Conform to BEAC/CEMAC payment and data protection standards.
+5. Use Case Summary
+Actor
+Use Case
+Goal
+Customer
+Register Parcel
+Create a parcel order and generate QR Code.
+Customer
+Track Parcel
+View current status and route of the parcel.
+Customer
+Pay Online
+Pay delivery fees through mobile money.
+Agent
+Scan Parcel
+Update status using QR Code at each stage.
+Agent
+Collect Parcel
+Pickup at client’s address with GPS validation.
+Agent
+Deliver Parcel
+Confirm delivery and upload proof (photo/signature).
+Admin
+Manage Users
+Create or deactivate users, assign roles.
+Admin
+View Dashboard
+Monitor all operations and system analytics.
+Admin
+Generate Reports
+Export revenue, delays, and performance data.
+6. Summary
+The requirement gathering phase establishes a clear understanding of what SmartCAMPOST must deliver.By aligning customer convenience, agent efficiency, and administrative control, the system aims to modernize CAMPOST’s operations while ensuring transparency, traceability, and financial accountability.
+This phase will serve as the foundation for the System Design Phase, where data models (UML diagrams), interfaces, and system architecture will be formally defined.

@@ -233,10 +233,6 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                     value: 'CASH_ON_DELIVERY',
                     child: Text(tr('cash_on_delivery')),
                   ),
-                  DropdownMenuItem(
-                    value: 'MOBILE_MONEY',
-                    child: Text(tr('mobile_money')),
-                  ),
                 ],
                 onChanged: (v) => setState(() => _paymentOption = v!),
               ),

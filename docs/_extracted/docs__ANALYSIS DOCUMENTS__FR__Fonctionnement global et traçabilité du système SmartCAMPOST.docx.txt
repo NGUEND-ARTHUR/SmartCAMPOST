@@ -1,0 +1,99 @@
+Fonctionnement global et traçabilité du système SmartCAMPOST
+Auteur : Nguend Arthur JohannInstitution : ICT University, Yaoundé – CamerounProjet : SmartCAMPOST – Système intelligent de suivi, collecte et livraison de colis basé sur le QR Code, la géolocalisation et l’IA
+1. Introduction générale
+Le projet SmartCAMPOST vise à moderniser la gestion et la traçabilité des colis au sein de la CAMPOST en combinant digitalisation, automatisation et intelligence artificielle.Il s’agit de permettre à chaque client, agent et responsable de suivre un colis en temps réel, depuis son enregistrement jusqu’à sa livraison ou son retrait, grâce à un QR Code unique et des notifications automatiques.
+Ce système remplace les processus manuels par des outils numériques simples et intuitifs.Il s’appuie sur la transparence, la rapidité et la fiabilité pour améliorer la satisfaction client et renforcer la confiance dans les services postaux camerounais.
+2. Acteurs et rôles
+Le tableau ci-dessous présente les principaux acteurs du système et leurs rôles respectifs :
+Acteur
+Rôle principal
+Actions clés
+Interaction avec le système
+Client
+Utilisateur du service
+Créer une demande, décrire le colis, suivre, payer, recevoir
+Application mobile / interface web
+Agent
+Employé CAMPOST
+Enregistrer, scanner, valider, livrer les colis
+Interface mobile ou poste de travail
+Administrateur
+Superviseur du réseau
+Gérer les opérations, les agents, les rapports et incidents
+Tableau de bord web
+Système SmartCAMPOST
+Cœur du dispositif
+Centraliser les données, envoyer notifications, générer preuves
+Base de données et moteur d’événements
+3. Cycle complet du colis
+Le traitement d’un colis dans SmartCAMPOST suit un cycle structuré.Chaque étape est enregistrée et validée par un scan du QR Code, garantissant une traçabilité totale.
+Étapes principales :
+Création de la demande ou dépôt du colis en agence.
+Validation de la description et génération du QR Code.
+Apposition de l’étiquette QR sur le colis.
+Prise en charge (collecte confirmée ou dépôt validé).
+Tri et transport (scans successifs dans les centres).
+Arrivée à l’agence de destination.
+Choix du mode de remise : retrait en agence ou livraison à domicile.
+Remise finale au destinataire avec validation OTP et preuve de livraison.
+Chaque étape est enregistrée dans la base de données avec :
+La date et l’heure précises
+Le lieu du scan
+L’identité de l’agent
+Le statut actuel du colis.
+4. Le QR Code et la traçabilité
+Le QR Code est l’élément central du système.Dès l’enregistrement du colis, le système génère un code QR unique lié à sa fiche dans la base de données.Ce QR Code est imprimé sur une étiquette autocollante et collé sur le colis.Il permet de suivre en toute transparence chaque manipulation du colis dans le réseau CAMPOST.
+Rôles du QR Code :
+Identifier de manière unique le colis.
+Enregistrer automatiquement les événements (lieu, date, agent, statut).
+Fournir une chronologie complète (timeline) visible par le client et les superviseurs.
+Réduire les pertes et erreurs humaines.
+Offrir une preuve numérique en cas de réclamation.
+À chaque scan du QR Code, le système met à jour le statut du colis :Créé → Pris en charge → En transit → Arrivé → Distribué → Livré.
+Cette time line est consultable en temps réel par le client via l’application mobile ou le site web.En cas de litige, CAMPOST peut retracer la dernière position connue, l’agent concerné et l’heure exacte du dernier scan.
+5. User Story complète : du dépôt à la livraison
+Le scénario ci-dessous illustre le parcours typique d’un colis SmartCAMPOST, de la création à la remise.
+Étape 1 : Dépôt ou collecte du colis
+Le client se rend à une agence CAMPOST ou demande une collecte à domicile.L’agent enregistre le colis, décrit son contenu (poids, valeur, nature) et génère une étiquette QR Code.Cette étiquette est imprimée et collée sur le colis.Le client reçoit un SMS contenant le numéro de suivi et un lien vers le portail de suivi.
+Étape 2 : Validation et tri
+Une fois le colis enregistré, il entre dans le circuit logistique.À chaque transfert (entrée ou sortie de centre), un agent scanne le QR Code, ce qui met à jour automatiquement la position et l’état du colis.Les responsables peuvent suivre en temps réel les colis présents dans leur zone.
+Étape 3 : Transit et arrivée à destination
+Lorsqu’un colis atteint l’agence de destination, le système envoie une notification au client :
+“Votre colis est arrivé à l’agence de Douala Bonanjo. Souhaitez-vous un retrait ou une livraison à domicile ?”
+Le client choisit l’option souhaitée dans l’application.S’il opte pour la livraison à domicile, les frais supplémentaires sont automatiquement calculés et payés avant expédition.
+Étape 4 : Livraison ou retrait
+Lors de la remise :
+Le client reçoit un code OTP (sécurisation de l’identité).
+L’agent scanne le QR Code et saisit l’OTP pour confirmer la livraison.
+Une preuve de livraison est enregistrée (photo, signature, heure, lieu).
+Le système clôture la transaction et envoie la facture numérique au client.
+
+6. Paiement, notifications et preuves
+Le paiement peut être effectué :
+Au moment du dépôt
+A la collecte à domicile
+Ou à la livraison, selon le type de service choisi.
+Chaque paiement génère un reçu numérique et une facture électronique.Le client reçoit un SMS ou une notification à chaque étape clé :
+Enregistrement confirmé,
+Colis pris en charge,
+En transit,
+Arrivé à destination,
+En cours de livraison,
+Livré / Retiré.
+Toutes les données (agent, lieu, heure) sont sauvegardées pour garantir la traçabilité complète du service.
+7. Rôle de l’intelligence artificielle (IA)
+L’IA intégrée à SmartCAMPOST permet d’améliorer la précision et la qualité de service en temps réel.Elle agit sur plusieurs plans :
+Prédiction des délais de livraison (ETA) : estimation du temps restant selon la distance, les conditions et les retards précédents.
+Optimisation des itinéraires : proposition de parcours plus efficaces pour les livreurs.
+Détection d’anomalies : identification automatique des colis en retard, non scannés ou mal orientés.
+Assistance client intelligente : un assistant intégré permet de répondre automatiquement à “Où est mon colis ?” en interrogeant la base de données de suivi.
+Cette couche intelligente permet à CAMPOST d’anticiper les problèmes, d’agir rapidement et d’améliorer l’expérience utilisateur.
+8. Synthèse : avantages du système SmartCAMPOST
+Traçabilité complète grâce aux QR Codes.
+Réduction des pertes et erreurs humaines.
+Communication automatisée avec le client à chaque étape.
+Paiements digitalisés et sécurisés.
+Amélioration de la satisfaction client et du professionnalisme perçu.
+Supervision centralisée et meilleure planification logistique.
+Analyse prédictive grâce à l’IA pour anticiper retards et anomalies.
+💡 En résumé :SmartCAMPOST transforme la poste camerounaise en un service postal moderne, intelligent et transparent.Grâce à la combinaison du QR Code, des notifications, du paiement numérique et de l’intelligence artificielle, CAMPOST devient capable d’assurer une traçabilité totale et une expérience client à la hauteur des standards internationaux.

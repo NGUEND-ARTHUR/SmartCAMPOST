@@ -1,0 +1,40 @@
+ICT University – Yaoundé, Cameroon
+Bachelor of Science in Software EngineeringSection: Software Development MethodologyAuthor: Nguend Arthur Johann
+Software Development Methodology – Project: Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and AI
+For the development of the SmartCAMPOST system, I use a hybrid methodology combining Merise for the analysis and design phase, and the Agile methodology for the development phase. This approach allows me to organize the project efficiently, maintain flexibility, and deliver a high-quality system even while working alone.
+1. Definition and General Overview
+A software development methodology is a structured process that guides developers in planning, designing, developing, testing, and deploying software systems efficiently and systematically. It defines the steps, tools, deliverables, and interactions throughout the project lifecycle. The main objectives of a methodology are to ensure organization, improve quality, facilitate control, and ensure that the final product meets user requirements. In simple terms, a methodology answers the question: “How do I develop this software from start to finish — step by step?”
+2. Analysis and Design Phase (Merise + UML)
+Before starting development, I conduct a detailed analysis and design of the system using the Merise method while integrating UML diagrams for a more complete and modern representation. This phase helps define data structures, processes, and system requirements for the SmartCAMPOST project.
+During this phase, I create:- The Conceptual Data Model (CDM) to identify entities and their relationships;- The Logical Data Model (LDM) to structure the data logically;- A Detailed Technical Plan (DTP) describing the database and system architecture;- UML diagrams, including:  • Use Case Diagram  • Class Diagram  • Sequence Diagram  • Activity Diagram
+These diagrams provide a clear view of the interactions between users (clients, agents, administrators) and the SmartCAMPOST system, as well as an accurate understanding of system behavior at each stage. This structured phase provides a strong foundation for planning Agile sprints while maintaining flexibility.
+3. Agile Development Phase
+For the implementation phase, I apply the Agile methodology, inspired by Scrum principles. Agile emphasizes iteration, continuous improvement, and adaptability, which are particularly useful for a solo project. The main stages of the Agile cycle are:
+- Product Backlog: list of features to be implemented, prioritized by importance.- Sprint Planning: defining the features to be developed in each sprint.- Sprint Execution: development and internal testing.- Sprint Review: evaluation and demonstration of completed features.- Sprint Retrospective: identifying improvements to apply in the next sprint.
+Example of Sprints for the SmartCAMPOST Project
+Sprint
+Duration
+Objective
+Deliverable
+Sprint 1
+1 week
+Database setup + login system
+Functional authentication module
+Sprint 2
+1 week
+Parcel tracking interface
+Parcel tracking and display module
+Sprint 3
+1 week
+Transaction and payment management
+Functional transaction and reporting system
+Sprint 4
+1 week
+Testing + documentation
+Fully tested and documented system
+
+This Agile process allows functional components to be delivered iteratively while maintaining the flexibility to adjust or fix issues at any stage.
+4. Benefits of Combining Merise, UML, and Agile
+By combining Merise for analysis, UML for modeling, and Agile for development, I can:- Establish a clear and structured design before coding;- Work iteratively and flexibly;- Adapt easily to changes;- Track progress effectively through short sprint cycles;- Produce complete and professional technical documentation.This hybrid approach ensures both organization, modularity, and innovation.
+5. Conclusion
+Using Merise, UML, and Agile provides a balanced and efficient approach for the SmartCAMPOST project. This methodology ensures that the system is well-designed, adaptable, and delivered progressively while meeting both functional and academic requirements. It is perfectly suited for a solo development environment where structure and flexibility are essential.

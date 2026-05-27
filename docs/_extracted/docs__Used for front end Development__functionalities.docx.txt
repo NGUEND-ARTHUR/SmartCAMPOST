@@ -1,0 +1,169 @@
+1) Authentication & OTP (JWT)
+Controller: AuthController (/api/auth)
+Client registration: POST /register
+Login with password: POST /login
+Login with OTP (2 steps)
+POST /login/otp/request
+POST /login/otp/confirm → returns JWT
+Generic OTP
+POST /send-otp
+POST /verify-otp
+Password reset (OTP flow)
+POST /password/reset/request
+POST /password/reset/confirm
+✅ So your backend supports: JWT auth + OTP auth + OTP password reset.
+2) Client module
+Controller: ClientController (/api/clients)
+My profile: GET /me
+Update my profile: PUT /me
+Update preferred language: PATCH /me/preferred-language
+Admin/staff access client: GET /{clientId}
+List clients: GET /
+✅ So: profile management + admin listing.
+3) Agency management
+Controller: AgencyController (/api/agencies)
+Create agency: POST /
+List agencies: GET /
+Get agency details: GET /{agencyId}
+Update agency: PUT /{agencyId}
+✅ So: CRUD-ish agencies (no delete endpoint seen).
+4) Staff management
+Controller: StaffController (/api/staff)
+Create staff: POST /
+Get staff: GET /{staffId}
+List staff: GET /
+Update staff status: PATCH /{staffId}/status
+Update staff role: PATCH /{staffId}/role
+✅ So: staff onboarding + lifecycle + internal roles (like STAFF/ADMIN/FINANCE/RISK conceptually).
+5) Agent management
+Controller: AgentController (/api/agents)
+Create agent: POST /
+Get agent: GET /{agentId}
+List agents: GET /
+Update agent status: PATCH /{agentId}/status
+Assign/change agency: PATCH /{agentId}/agency
+✅ So: agents are managed and linked to agencies.
+6) Courier management
+Controller: CourierController (/api/couriers)
+Create courier: POST /
+Get courier: GET /{courierId}
+List couriers: GET /
+Update courier status: PATCH /{courierId}/status
+Update courier vehicle: PATCH /{courierId}/vehicle
+✅ So: courier onboarding + operational state changes.
+7) Parcel (Shipping) module + tracking
+Controller: ParcelController (/api/parcels)
+Create parcel: POST /
+My parcels: GET /me
+Get parcel by ID: GET /{parcelId}
+Track by tracking reference: GET /tracking/{trackingRef}
+List parcels (global): GET /
+Update parcel status: PATCH /{parcelId}/status
+Accept parcel: PATCH /{parcelId}/accept
+Change delivery option: PATCH /{parcelId}/delivery-option
+Update parcel metadata: PATCH /{parcelId}/metadata
+✅ So: end-to-end parcel creation + tracking + lifecycle updates + delivery option updates.
+8) Scan events (parcel tracking history)
+Controller: ScanEventController (/api/scan-events)
+Create scan event: POST /
+Get scan history by parcel: GET /parcel/{parcelId}
+✅ So: tracking timeline/events are recorded (Agent/Staff/Admin typically).
+9) Pickup requests
+Controller: PickupRequestController (/api/pickups)
+Create pickup request: POST /
+Get pickup by id: GET /{pickupId}
+Get pickup by parcel: GET /by-parcel/{parcelId}
+Client: my pickups: GET /me
+Courier: my pickups: GET /courier/me
+List all pickups: GET /
+Assign courier: POST /{pickupId}/assign-courier
+Update pickup state: PATCH /{pickupId}/state
+✅ So: full pickup workflow (request → assign → update state).
+10) Delivery confirmation (OTP delivery)
+Controller: DeliveryController (/api/delivery)
+Send delivery OTP: POST /otp/send
+Verify delivery OTP: POST /otp/verify
+Final delivery action: POST /final
+✅ So: there is a final step delivery confirmation flow.
+11) Payments
+Controller: PaymentController (/api/payments)
+Init payment: POST /init
+Confirm payment: POST /confirm
+Get payment by id: GET /{paymentId}
+Get payments by parcel: GET /parcel/{parcelId}
+List payments (global): GET /
+✅ So: payment initiation + confirmation + lookup.
+12) Tariffs & quoting
+Controller: TariffController (/api/tariffs)
+Create tariff: POST /
+List tariffs: GET /
+Get tariff: GET /{tariffId}
+Update tariff: PUT /{tariffId}
+Delete tariff: DELETE /{tariffId}
+Quote tariff: POST /quote
+✅ So: full tariff CRUD + pricing quotation endpoint.
+13) Pricing details
+Controller: PricingDetailController (/api/pricing-details)
+Get latest/pricing detail for parcel: GET /parcel/{parcelId}
+Get all pricing details for parcel: GET /parcel/{parcelId}/all
+✅ So: pricing history per parcel exists.
+14) Notifications
+Controller: NotificationController (/api/notifications)
+Trigger notification manually: POST /trigger
+Get notification by id: GET /{id}
+List notifications: GET /
+Retry notification: POST /{id}/retry
+Notifications for parcel: GET /parcel/{parcelId}
+Notifications for pickup: GET /pickup/{pickupId}
+✅ So: notification tracking + retries + queries by parcel/pickup.
+15) Support / Ticketing
+Controller: SupportTicketController (/api/support/tickets)
+Create ticket: POST /
+Get ticket: GET /{ticketId}
+Client: my tickets: GET /me
+List all tickets: GET /
+Reply to ticket: POST /{ticketId}/reply
+Update ticket status: PATCH /{ticketId}/status
+✅ So: helpdesk workflow (open, reply, progress, resolve/close).
+16) Refunds / chargeback-like flow
+Controller: RefundController (/api/refunds)
+Create refund request: POST /
+Update refund status: PATCH /{refundId}/status
+Get refund: GET /{refundId}
+Refunds by payment: GET /payment/{paymentId}
+List refunds: GET /
+✅ So: refund lifecycle and finance-facing module.
+17) Compliance module (risk/compliance actions)
+Controller: ComplianceController (/api/compliance)
+List alerts: GET /alerts
+Get alert by id: GET /alerts/{id}
+Update alert: PATCH /alerts/{id}
+List reports: GET /reports
+Freeze account: POST /accounts/{userId}/freeze
+Unfreeze account: POST /accounts/{userId}/unfreeze
+✅ So: compliance review + user freeze/unfreeze exists here.
+18) Analytics / AI helpers
+Controller: AnalyticsController (/api/analytics)
+ETA prediction: GET /parcels/{parcelId}/eta
+Payment anomaly check: GET /payments/{paymentId}/anomaly
+✅ So: analytics endpoints exist (even if basic internally).
+19) Geolocation / routing
+Controller: GeolocationController (/api/geo)
+Geocode: POST /geocode
+Route + ETA: POST /route-eta
+✅ So: location services endpoints.
+20) Integration configuration
+Controller: IntegrationConfigController (/api/integrations)
+Create config: POST /
+Update config: PUT /{id}
+Get config: GET /{id}
+List configs: GET /
+✅ So: external integration settings management.
+21) USSD gateway
+Controller: UssdController (/api/ussd)
+Handle USSD request: POST /handle
+✅ So: there is a USSD entrypoint for telco flows.
+22) Dashboard summary
+Controller: DashboardController (/api/dashboard)
+Get summary: GET /summary
+✅ So: an overview endpoint exists (likely KPIs counts).

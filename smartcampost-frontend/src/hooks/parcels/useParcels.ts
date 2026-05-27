@@ -46,10 +46,10 @@ export function useParcel(id: string) {
   });
 }
 
-export function useParcelByTracking(trackingRef: string) {
+export function useTrackParcel(trackingRef: string) {
   return useQuery({
     queryKey: parcelKeys.tracking(trackingRef),
-    queryFn: () => parcelService.getByTracking(trackingRef),
+    queryFn: () => parcelService.trackByRef(trackingRef),
     enabled: !!trackingRef,
   });
 }

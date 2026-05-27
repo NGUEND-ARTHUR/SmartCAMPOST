@@ -1,0 +1,96 @@
+Proposition et Compréhension du Cahier de charges EMS facturation
+
+1. CONTEXTE ET JUSTIFICATION
+Dans le cadre de l’amélioration de ses produits et afin de répondre aux exigences liées à la tarification ainsi qu’au suivi des recettes, la CAMPOST s’est engagée dans la mise en place d’un système de gestion automatisé pour ses produits traditionnels tels que l’EMS, le courrier, les colis et les boîtes postales, dont le potentiel demeure élevé.
+Le premier module de ce système est dédié au service EMS.Une exploration du système existant, l’analyse du cahier des charges (DTR du projet DPMD) ainsi que des entretiens avec les équipes métiers ont permis de mettre en évidence :
+les manquements du système actuel,
+les besoins croissants exprimés par le personnel,
+et les fonctionnalités devant être prises en charge par le nouveau système.
+
+2. DESCRIPTION DE L’EXISTANT
+A. Pour les clients sous contrat
+Collecte des colis en entreprise, contre  bon de prise en charge listant les objets collectés.
+Retour de l’agent EMS à l’agence avec les colis et les bons signés des deux parties.
+Saisie manuelle des bons de prise en charge servant de base à la facturation.
+Paiement mensuel par abonnement, contre reçu.
+Limites : Saisie manuelle source d’erreurs, absence de suivi précis et de traçabilité.
+B. Pour les clients occasionnels
+Le client se rend à l’agence avec ses colis.
+Enregistrement manuel de ses informations dans un registre.
+Émission de la facture ou de la lettre de transport manuellement.
+Transmission des lettres aux agences régionales pour enregistrement.
+
+Limites : Procédure lourde, lente, génératrice de retards et d’erreurs.
+
+
+C. Critique de l’existant
+Absence de traçabilité et de suivi automatisé des colis (tracking) au niveau national.
+Pas de codes-barres EMS pour un suivi précis au niveau national.
+Manque de génération automatique de statistiques, rapports et historiques détaillés.
+Pas de plateforme web sécurisée permettant aux clients moraux de renseigner eux-mêmes leurs bons.
+Pas d’outil automatisé pour le traitement des recouvrements et le suivi des paiements.
+Pas de journal d’activité complet pour audit.
+
+3. AMÉLIORATIONS PROPOSÉES
+A. Pour les clients occasionnels (personnes physiques)
+Enregistrement direct dans le système.
+Génération automatique de la facture et de la lettre de transport.
+Automatisation complète du suivi, statistiques et traçabilité.
+
+B. Pour les clients sous contrat (personnes morales)
+Mise en place d’une plateforme web sécurisée : le client remplit son bon de prise en charge en ligne avec option possible ou pas d’ajout d’un accuser de réception, l’imprime et le signe avec l’agent EMS.
+Génération automatique des factures à partir du bon de prise en charge.
+Calcul tarifaire automatique (poids réel/volumétrique, zones) et des colis ou objet dont le poids est supérieur  au poids autorisé.
+Application éventuelle de remises et TVA.
+Production automatique de reçus, factures (PDF/Excel), accusés de réception.
+Fonctionnalité de blocage/déblocage de factures.
+Module de gestion des paiements et recouvrements (enregistrement automatique, suivi, états des arriérés).
+Génération de statistiques mensuelles et annuelles par client, établissement, région ou catégorie.
+
+
+
+
+
+
+4. FONCTIONNALITÉS DU NOUVEAU SYSTÈME
+4.1 Gestion des utilisateurs
+Création, modification, et désactivation de comptes.
+Authentification (connexion, déconnexion, réinitialisation du mot de passe).
+Gestion des rôles et permissions (administrateur suprême, administrateur fonctionnel, opérateur de saisie, opérateur de vérification).
+Attribution de droits d’accès (lecture, écriture, suppression, impression).
+
+4.2 Gestion des agences
+Création, modification, désactivation et consultation des agences EMS et bureau postal.
+Gestion des agences à multi-destinations (exemple : Tiko → TikoZ1, TikoZ2, TikoZ3).
+Insertion de tous les arrondissements du Cameroun et tous les pays du monde. 
+
+4.3 Gestion des clients
+Ajout, modification, consultation et impression des informations clients.
+Informations gérées : code client, raison sociale, type de client (occasionnel/sous contrat), modèle de facturation (centralisé à Yaoundé/Douala ou individuel), coordonnées, identifiants fiscaux et bancaires.
+Possibilité de préciser et modifier l’application de la TVA et de la remise.
+
+4.4 Facturation et paiements
+Création, modification et édition des factures.
+Déblocage ou ajustement de factures selon privilèges.
+Gestion des avoirs.
+Calcul automatique des montants selon les grilles tarifaires.
+Application des remises, accusés de réception et ajustement automatique des prix.
+Édition de bons de prise en charge pour les clients sous contrat et de fiches de transport pour les clients occasionnels.
+Gestion des paiements : enregistrement automatique, suivi des recouvrements et génération de reçus.
+
+
+
+
+4.5 Gestion des tarifs
+Définition et modification des tarifs selon : poids réel, poids volumétrique, zones d’origine et de destination.
+Algorithme de calcul fourni par les équipes EMS.
+
+4.6 Production de rapports et statistiques
+Génération de rapports par client, établissement, région, période ou catégorie.
+Suivi des factures, paiements, recouvrements et arriérés.
+Statistiques mensuelles et annuelles par type d’envoi (national, international).
+
+4.7 Suivi et traçabilité des envois
+Génération et lecture de codes-barres EMS au niveau national.
+Tracking des envois tout au long de la chaîne (acceptation, dépêches, livraison) avec possibilité d’émission de bulletin de vérification.
+Envoi automatique de SMS aux clients lors de l’arrivée de leurs colis.

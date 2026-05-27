@@ -1,0 +1,191 @@
+UI Sitemap + Menu Structure (Per Role) — SMARTCAMPOST (Web)
+Below is a clean, implementation-ready sitemap + sidebar menus for each role. It matches your modules, DB tables, and operations flow.
+1) Global App Structure (Top-level Sitemap)
+Public (no auth)
+/ Landing
+/auth/login
+/auth/login-otp
+/auth/register
+/auth/reset-password
+(optional UI only) /track (quick tracking entry screen)
+Authenticated (role-based)
+/client/*
+/agent/*
+/courier/*
+/staff/*
+/admin/*
+/finance/*
+/risk/*
+Shared UI conventions
+Top bar: Search (tracking ref), Notifications icon, Profile menu
+Global: Breadcrumbs + page title + role badge
+Common: “Quick Track” widget available everywhere
+2) CLIENT — Sidebar Menu + Routes
+Primary navigation
+Dashboard — /client/dashboard
+Create Parcel — /client/parcels/new
+My Parcels — /client/parcels
+Track Parcel — /client/track
+Pickups — /client/pickups
+Payments & Invoices — /client/payments
+Support Tickets — /client/support
+Addresses (Map) — /client/addresses
+Profile & Settings — /client/settings
+Recommended sub-pages
+Parcel detail: /client/parcels/:parcelId
+Change delivery option modal (from parcel detail)
+Pickup create: /client/pickups/new
+Ticket detail: /client/support/:ticketId
+Payment detail: /client/payments/:paymentId
+Invoice viewer/download: /client/invoices/:invoiceId
+Map placement (Client)
+Addresses CRUD page includes map picker
+Create Parcel includes route preview (sender → recipient)
+Parcel detail includes tracking map (read-only)
+3) AGENT — Sidebar Menu + Routes (Counter / Agency Ops)
+Primary navigation
+Dashboard — /agent/dashboard
+Register Parcel (Counter) — /agent/parcels/new
+Parcels — /agent/parcels
+Scan Console (QR) — /agent/scans
+Pickups (View) — /agent/pickups
+Delivery Assist (OTP tools) (optional) — /agent/delivery-tools
+Notifications (view only) — /agent/notifications
+Profile — /agent/profile
+Recommended sub-pages
+Parcel detail: /agent/parcels/:parcelId
+Scan create event flow: /agent/scans/new?parcelId=...
+Pickups list read-only: /agent/pickups (help desk visibility)
+Map placement (Agent)
+Parcel detail: show sender/recipient pins + agency marker
+Scan console: show agency location context
+4) COURIER — Sidebar Menu + Routes
+Primary navigation
+Dashboard — /courier/dashboard
+My Pickups — /courier/pickups
+My Deliveries — /courier/deliveries
+Route Map — /courier/map
+Scan Events — /courier/scans
+Profile — /courier/profile
+Recommended sub-pages
+Pickup detail: /courier/pickups/:pickupId
+Delivery detail: /courier/deliveries/:parcelId
+Delivery stepper: /courier/deliveries/:parcelId/confirm
+Proof capture (inside stepper)
+OTP send/verify (inside stepper)
+Map placement (Courier)
+Route Map: list of stops + route preview
+Pickup/Delivery detail: big “Navigate” CTA + map pin
+Confirmation stepper: map preview for destination confirmation
+5) STAFF — Sidebar Menu + Routes (Operations)
+STAFF is “operations staff”. ADMIN is “superuser”.They can share the same UI layout with extra menus unlocked for ADMIN.
+Primary navigation (STAFF)
+Ops Dashboard — /staff/dashboard
+Parcels Management — /staff/parcels
+Pickups Management — /staff/pickups
+Scan Logs — /staff/scans
+Delivery Monitoring — /staff/deliveries
+Payments (View/Admin) — /staff/payments
+Support Inbox — /staff/support
+Notifications — /staff/notifications
+Analytics — /staff/analytics
+Integrations (View) — /staff/integrations
+Profile — /staff/profile
+Recommended sub-pages
+Parcel detail (ops): /staff/parcels/:parcelId
+Assign courier modal (from pickup list)
+Support ticket detail: /staff/support/:ticketId
+Payment detail: /staff/payments/:paymentId
+Map placement (Staff)
+Parcel monitoring view includes route map
+Analytics view includes map overlays (optional)
+Investigations: map + geo logs
+6) ADMIN — Sidebar Menu + Routes (Superuser / System Admin)
+ADMIN inherits STAFF menus + adds “master data” and full CRUD.
+Primary navigation (ADMIN)
+Admin Dashboard — /admin/dashboard
+Parcels — /admin/parcels
+Pickups — /admin/pickups
+Scans — /admin/scans
+Deliveries — /admin/deliveries
+Payments — /admin/payments
+Support — /admin/support
+Notifications — /admin/notifications
+Analytics — /admin/analytics
+Admin-only system management
+Users & Accounts — /admin/accounts
+freeze/unfreeze user_account
+role assignment / entity links (entity_id)
+Agencies — /admin/agencies
+Staff — /admin/staff
+Agents — /admin/agents
+Couriers — /admin/couriers
+Tariffs & Pricing — /admin/tariffs
+Integrations — /admin/integrations
+USSD Sessions Monitor — /admin/ussd
+Map placement (Admin)
+Live monitoring map (optional but recommended)
+Risk/Compliance cross-view if admin has visibility
+7) FINANCE — Sidebar Menu + Routes
+Primary navigation
+Finance Dashboard — /finance/dashboard
+Payments — /finance/payments
+Invoices — /finance/invoices
+Refunds — /finance/refunds
+Reversals / Exceptions — /finance/exceptions
+Analytics (Finance) — /finance/analytics
+Profile — /finance/profile
+Recommended sub-pages
+Payment detail: /finance/payments/:paymentId
+Refund detail/process: /finance/refunds/:refundId
+Invoice detail/download: /finance/invoices/:invoiceId
+Map placement (Finance)
+Optional: show parcel route context in payment detail (fraud checking)
+8) RISK — Sidebar Menu + Routes (Compliance / AML)
+Primary navigation
+Risk Dashboard — /risk/dashboard
+Risk Alerts — /risk/alerts
+Alert Detail / Review — /risk/alerts/:riskAlertId
+Compliance Reports — /risk/compliance
+Generate Report — /risk/compliance/new
+Cases / Investigations (optional) — /risk/cases
+Integrations (View) — /risk/integrations
+Profile — /risk/profile
+Map placement (Risk)
+Alerts list can show “location badge”
+Alert detail: map + route log + anomaly explanation
+Compliance reporting: map snapshots (optional)
+9) Cross-cutting “Quick Actions” (Role-based shortcuts)
+Client Quick Actions
+Create Parcel
+Track Parcel
+Request Pickup
+Open Support Ticket
+Agent Quick Actions
+Register Parcel
+Scan Event
+Search Parcel (tracking_ref)
+Courier Quick Actions
+Start Pickup
+Confirm Delivery (OTP)
+Capture Proof
+Staff/Admin Quick Actions
+Update Parcel Status
+Assign Courier
+Resolve Ticket
+Send Notification
+Finance Quick Actions
+Verify Payment
+Create Refund
+Export invoices (future)
+Risk Quick Actions
+Review alert
+Mark UNDER_REVIEW / RESOLVED
+Generate compliance report
+10) Recommended “Menu Locking Rules” (Permissions)
+If role ≠ FINANCE, hide Refunds
+If role ≠ RISK, hide Risk Alerts / Compliance
+If role ≠ ADMIN, hide Master data CRUD (agencies, staff, agents, couriers, tariffs, integrations, ussd)
+AGENT sees only operational pages (counter + scans)
+COURIER sees only pickups/deliveries/route
+CLIENT sees only client self-service
