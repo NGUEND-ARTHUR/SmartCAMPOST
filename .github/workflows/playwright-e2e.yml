@@ -1,4 +1,4 @@
-proceedname: Playwright E2E (mocked)
+name: Playwright E2E (mocked)
 
 on:
   push:
@@ -38,9 +38,11 @@ jobs:
           npx --yes --prefix=smartcampost-frontend playwright install --with-deps
 
       - name: Run Playwright e2e (mocked pages)
+        working-directory: smartcampost-frontend
         run: |
-          cd smartcampost-frontend
-          ./node_modules/.bin/playwright test tests/e2e --project=chromium --reporter=list
+          echo "Listing playwright package in node_modules"
+          ls -la node_modules/@playwright || true
+          npx --yes playwright test tests/e2e --project=chromium --reporter=list
 
       - name: Upload Playwright report
         if: always()
