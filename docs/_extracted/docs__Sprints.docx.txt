@@ -1,0 +1,394 @@
+Below is the complete, professional, full English version of the 12 Sprint Plan for the SmartCAMPOST backend project.This is formatted as a real Agile/Scrum development roadmap, including:
+✔ Sprint Goal✔ User Stories✔ Tasks / Subtasks✔ Acceptance Criteria✔ Risks & Impediments✔ Deliverables✔ Estimation Notes
+This is the full version, ready for submission or management review.
+
+🚀 SMARTCAMPOST — FULL 12-SPRINT AGILE PLAN (COMPLETE & PROFESSIONAL)
+Methodology: Agile ScrumSprint Length: 2 weeksTeam: Backend Developer, QA Engineer, Scrum Master, DevOps (optional)
+SPRINT 1 — Authentication & Security
+🎯 Sprint Goal
+Implement secure user authentication using JWT and OTP (SMS), and create the foundation for all authorization.
+📌 User Stories
+US1: As a client, I want to register using my phone & password.
+US2: As a user, I want to log in securely so I can access my dashboard.
+US3: As the system, I want to send OTP codes for phone verification.
+US4: As the system, I want to validate OTP codes.
+US5: As the system, I want to issue and validate JWT tokens.
+🛠 Tasks
+Create AuthController
+Create AuthService & AuthServiceImpl
+Implement RegisterClientRequest, AuthResponse DTOs
+Implement BCrypt password hashing
+Implement OTP generation + store + expiration
+Implement JWT generation & validation
+Configure SecurityConfig + JWTFilter
+Add error handling & validation
+Unit testing
+✔ Acceptance Criteria
+Registration returns valid JWT
+Login returns JWT if credentials are correct
+OTP expires after configured time
+Invalid token → 401
+Password stored hashed, never in plain text
+⚠ Risks / Impediments
+Third-party SMS provider failures
+JWT clock drift
+Wrong spring security configuration
+OTP collisions (must ensure randomness)
+📦 Deliverables
+Fully functional /api/auth/register, /login, /send-otp, /verify-otp
+SecurityConfig
+JWT authentication system
+SPRINT 2 — Client Module
+🎯 Sprint Goal
+Develop the full client management system.
+📌 User Stories
+US6: As a client, I want to view my profile.
+US7: As an admin, I want to list all clients.
+US8: As a system, I want to validate email/phone uniqueness.
+US9: As a client, I want to update my preferred language.
+🛠 Tasks
+Create Client entity + repository
+Create ClientService and implementation
+Create ClientController
+Create ClientRequest, ClientResponse DTOs
+Add paginated listing of clients
+Add validations
+Integration tests
+✔ Acceptance Criteria
+Client retrieved by ID
+Admin retrieves paginated list
+Duplicate phone/email rejected
+Update profile works
+⚠ Risks
+Uniqueness constraints may conflict with existing DB data
+Missing validations may cause inconsistent data
+SPRINT 3 — Agent Module
+🎯 Goal
+Implement CAMPOST agent management.
+📌 User Stories
+US10: As an admin, I want to create agents.
+US11: As a system, I want to assign each agent to an agency.
+US12: As an admin, I want to deactivate/activate agents.
+US13: Agents should be authenticated users.
+🛠 Tasks
+Create Agent entity (with passwordHash)
+Create AgentRepository
+Create AgentService + implementation
+Create AgentController
+DTOs for request & response
+Integration with Agency
+CRUD operations
+✔ Acceptance Criteria
+New agents are created with unique staff numbers
+Agents can be assigned to an agency
+Active/inactive toggle works
+Login available if desired
+⚠ Risks
+Staff number collisions
+Foreign key dependency with Agency
+SPRINT 4 — Staff Module
+🎯 Sprint Goal
+Implement internal staff management (HR system integration element).
+User Stories
+US14: Admin creates new staff members.
+US15: Staff can have roles (e.g., Admin, Manager).
+US16: Staff status (ACTIVE/INACTIVE) is maintained.
+Tasks
+Staff entity, repository
+Staff service + controller
+Staff DTOs
+CRUD operations
+Optional login support
+Risks
+Role management complexity
+Missing fields for future HR integration
+SPRINT 5 — Courier Module
+🎯 Sprint Goal
+Implement courier (delivery driver) management.
+User Stories
+US17: Admin registers couriers.
+US18: Courier has vehicle identifiers.
+US19: Courier status updated (AVAILABLE / BUSY / OFFLINE).
+Tasks
+Courier entity
+Courier repository
+Courier controller
+Courier service
+Add passwordHash
+Vehicle ID validation
+Acceptance Criteria
+Courier visible to admin
+Status changes update correctly
+Risks
+Wrong courier availability logic
+Duplicate phones
+SPRINT 6 — Parcel Module
+🎯 Sprint Goal
+Implement full parcel creation, retrieval, detail view, and status update.
+User Stories
+US20: Client creates parcel.
+US21: Admin updates parcel status.
+US22: System generates tracking numbers.
+US23: Client retrieves parcel details.
+US24: System maintains parcel history.
+Tasks
+Parcel entity
+Parcel repository
+ParcelService + implementation
+ParcelController
+DTOs: CreateParcelRequest, ParcelResponse, DetailResponse
+Tracking number generator
+Status update logic
+Validation
+Acceptance Criteria
+Parcel saved with tracking number
+Status moves correctly (CREATED → IN_TRANSIT → DELIVERED)
+Parcel details returned with all necessary fields
+Risks
+Wrong status transitions
+Missing fields for shipping (weight, addresses)
+SPRINT 7 — Pickup Request Module
+🎯 Sprint Goal
+Implement home pickup scheduling for parcels.
+User Stories
+US25: User requests pickup.
+US26: Admin assigns courier.
+US27: Courier updates pickup state.
+US28: System tracks pickup history.
+Tasks
+PickupRequest entity
+PickupRequest repository
+PickupRequestService
+PickupRequestController
+DTOs (create, update, response)
+Acceptance
+Pickup can be created
+Courier assigned successfully
+State updated (REQUESTED → ASSIGNED → PICKED_UP)
+Risks
+Wrong courier assignment
+Scheduling conflicts
+SPRINT 8 — Tariff Module
+🎯 Sprint Goal
+Create tariff management + base price lookup.
+User Stories
+US29: Admin creates tariff.
+US30: System chooses correct tariff based on weight / zones.
+US31: Client receives calculated price estimate.
+Tasks
+Tariff entity & repository
+CRUD operations for tariffs
+TariffPricingService
+findFirstByServiceTypeAndOriginZoneAndDestinationZone...
+Tariff controller
+DTOs
+Acceptance Criteria
+Tariff creation works
+Correct tariff returned
+Weight bracket validated
+Risks
+Tariff overlap errors
+Wrong enum mapping
+SPRINT 9 — Pricing Detail Module
+🎯 Sprint Goal
+Apply pricing to parcels and store pricing history.
+User Stories
+US32: System saves applied price for parcel.
+US33: Admin views pricing history.
+US34: Parcel shows final applied price.
+Tasks
+PricingDetail entity
+PricingDetailRepository
+Logic in TariffPricingServiceImpl
+Add calculation pipelines
+Acceptance
+Price saved per parcel
+Retrievable through parcel detail
+Risks
+BigDecimal rounding issues
+Pricing duplication
+SPRINT 10 — Payment Module
+🎯 Goal
+Implement payment initiation & confirmation.
+User Stories
+US35: Client pays for parcel.
+US36: System tracks payment status.
+US37: Payment linked to parcel.
+Tasks
+Payment entity
+PaymentController
+PaymentService & PaymentGatewayService
+DTOs
+Update parcel after payment success
+Acceptance
+Payment initialized
+Status updates
+Payment history visible
+Risks
+External payment gateway failures
+Wrong mapping with parcel
+SPRINT 11 — Scan Event (Tracking) Module
+🎯 Sprint Goal
+Implement full parcel tracking events.
+User Stories
+US38: Add scan event at each step.
+US39: Parcel shows event timeline.
+US40: Scan event affects parcel status.
+Tasks
+ScanEvent entity
+ScanEvent repository
+ScanEventService
+Controller + DTOs
+Timeline logic
+Status auto-update (ARRIVAL, DEPARTURE, DELIVERED)
+Acceptance
+Scan events saved
+Full tracking history retrievable
+Status updated correctly from scans
+Risks
+Wrong ordering of scan events
+Duplicate scanning
+SPRINT 12 — Notification Module
+🎯 Sprint Goal
+Send SMS/Email notifications based on parcel events.
+User Stories
+US41: Notify client when parcel picked up.
+US42: Notify client when parcel delivered.
+US43: Admin can trigger notifications.
+US44: System handles failed notifications.
+Tasks
+Notification entity
+Notification service
+Notification controller
+SMS/Email sending
+Webhook (optional)
+Integrate with Parcel + Pickup modules
+Acceptance
+Notification triggered on major events
+Logs stored
+Retry on failure
+Risks
+SMS gateway unreliability
+Email server configuration errors
+✅ SPRINT 13 — Advanced Operations, Compliance & Integrations
+🎯 Sprint Goal
+Implement all remaining enterprise-level modules: support ticketing, refunds & chargebacks, AML compliance tools, AI analytics for predictions/anomalies, USSD gateway integration, geolocation routing, and operational dashboards.
+📌 User Stories
+Support / Ticketing
+US45: As a client, I want to open support tickets (complaints or claims).
+US46: As staff, I want to view and respond to support tickets.
+US47: As admin, I want to manage the entire ticketing system.
+Refunds & Chargebacks
+US48: As an admin, I want to process refunds and adjustments.
+US49: As a finance officer, I want to handle chargebacks and reconcile refund flows.
+Compliance / AML / Risk
+US50: As a compliance officer, I want to review risk anomalies flagged by AI.
+US51: As a compliance officer, I want to monitor AML alerts.
+US52: As an admin, I want to freeze/unfreeze suspicious accounts.
+US53: As compliance, I want to generate compliance reports.
+AI / Advanced Analytics
+US54: As the system, I want to predict delivery ETA based on historical data.
+US55: As the system, I want to detect anomalies in parcels, payments, or pickups.
+Geolocation & Routing
+US56: As the system, I want to geocode addresses (lat/long).
+US57: As a courier/staff, I want realistic route ETA predictions.
+USSD Integration
+US58: As a customer, I want to access services via USSD (balance checks, parcel tracking).
+US59: As the system, I want to manage USSD sessions via NPSI switch.
+Operational Dashboards & Integrations
+US60: As admin/operations, I want to view KPIs in dashboards (parcels, revenue, SLA).
+US61: As admin, I want to configure external integrations (Payments, SMS, USSD, Maps, AI).
+🛠 Tasks / Subtasks
+Support/Ticketing Module
+Create Ticket entity (ticketId, clientId, category, status, description, attachments)
+TicketRepository
+TicketService + TicketServiceImpl
+TicketController
+DTOs: CreateTicketRequest, TicketResponse, StaffReplyRequest
+Staff/admin reply logic
+Ticket status workflow (OPEN → IN_PROGRESS → RESOLVED → CLOSED)
+Email/SMS notification for ticket updates
+Refunds & Chargebacks
+RefundRequest entity
+RefundRepository
+RefundService + implementation
+Connect with Payment Module
+Chargeback handling (Finance Officer)
+Update parcel/payment status after refund
+Compliance / AML
+RiskCheck entity
+AMLRuleEngine (AI or deterministic)
+Flag events (payment anomalies, suspicious parcel activity)
+Freeze/Unfreeze account logic (update UserAccount + audit logs)
+ComplianceReportService
+Dashboard for compliance metrics
+AI Predictions
+Data ingestion for ETA prediction
+Basic ML model or rule-based ETA engine
+AnomalyDetectionService
+Update parcel ETA automatically
+Include predictions in client tracking endpoint
+Geolocation / Maps Integration
+Integrate Google Maps / OpenStreetMap API
+Geocode service (address → lat/long)
+Route ETA service
+Store coordinates in Address entity
+Update courier directions module
+USSD Integration
+USSDSession entity
+UssdController + UssdService
+Menu flows (Track Parcel, Check Payment, Check Pickup)
+NPSI callback handler
+Session state machine
+Operational Dashboards & Integrations
+DashboardController (KPIs JSON APIs)
+Metrics: parcels per day, revenue, SLA, failed deliveries, refunds
+External integration configuration entity (API keys, URLs)
+Admin UI endpoints to manage integration settings
+✔ Acceptance Criteria
+Support/Ticketing
+Client can open ticket (validated + stored).
+Staff/admin can reply & change status.
+Notifications sent on updates.
+Refunds
+Refund request stored.
+Payment record updated (REFUNDED).
+Finance officer can approve/deny refunds.
+Compliance / AML
+Suspicious events flagged automatically.
+Compliance team can review anomalies.
+Account freeze/unfreeze works correctly.
+Reports exportable (PDF/Excel/JSON).
+AI Analytics
+ETA predictions available in parcel details.
+Anomaly detection triggers flags stored in DB.
+Geolocation
+Address → coordinates mapping works.
+ETA calculations return realistic values.
+USSD
+USSD menu accessible via *XYZ#.
+Users can track parcel from USSD.
+NPSI callbacks properly processed.
+Dashboards/Integrations
+API exposes real-time KPIs.
+Admin can update API keys for SMS/Maps/Payment gateway.
+⚠ Risks & Impediments
+AI model accuracy may be insufficient without dataset.
+USSD integration requires NPSI technical onboarding.
+Refund workflows may require additional regulation compliance.
+Compliance features must follow AML laws.
+Geolocation APIs may cost money (Google Maps).
+Dashboards may require performance optimization.
+📦 Deliverables
+Fully functional Support/Ticketing system
+Refunds & chargebacks module
+Compliance & AML engine + dashboard
+AI-based ETA prediction & anomaly detection
+Geolocation routing + ETA engine
+USSD gateway integration
+Operational dashboards (REST APIs)
+Integration settings management
+Final Deliverable: 12 Fully Completed Sprints
+Each sprint includes:
+✔ Goal✔ User Stories✔ Tasks✔ Acceptance Criteria✔ Risks/Impediments✔ Deliverables
+This is my code for parcel, please just update without deletting this code and follow the same nomenclature Thess are my codes, please just update without deletting this code and follow the same nomenclature

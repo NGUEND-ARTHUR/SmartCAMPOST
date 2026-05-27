@@ -1,0 +1,69 @@
+Analyse du Système Existant et Perspectives d’Amélioration : Du Système EMS vers SmartCAMPOST
+Auteur : Nguend Arthur JohannÉcole : ICT University, Yaoundé – CamerounProjet : Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and AI
+1. Introduction générale
+Le système EMS (Express Mail Service) actuellement utilisé par la CAMPOST permet la gestion de l’activité postale nationale et internationale à travers une série de modules administratifs.Cependant, il présente plusieurs limitations liées à l’absence d’automatisation, de connectivité entre les agences et de traçabilité numérique en temps réel.
+Cette analyse a pour objectif d’étudier le système EMS existant, d’identifier ses limites et d’introduire la vision du nouveau système intelligent SmartCAMPOST, qui intègre la technologie du QR Code, la géolocalisation GPS, les paiements numériques, et l’intelligence artificielle (IA) afin d’améliorer la qualité et la rapidité du service postal.
+2. Description du système EMS existant
+Le système EMS actuel gère plusieurs aspects de l’activité postale, notamment : les agences postales, les clients, la facturation, les tarifs et les utilisateurs.Il fonctionne essentiellement en mode semi-manuel, avec peu d’intégration numérique.
+Les principaux modules du système EMS sont :
+Agences EMS : gestion des agences postales et des postes de travail.
+Tarifs : gestion des tranches tarifaires selon le poids et la zone géographique.
+Types de clients : classification des clients (abonné, occasionnel, administratif).
+Utilisateurs et groupes : gestion des droits d’accès et des profils utilisateurs.
+Clients : enregistrement et mise à jour des informations clients.
+Destinations : définition des zones et destinations EMS.
+Facturation : création et édition de factures et avoirs.
+Recouvrement : suivi des paiements et apurement manuel des factures.
+3. Problèmes et limites identifiées
+L’analyse des documents officiels fournis par la CAMPOST révèle plusieurs insuffisances majeures :
+❌ Absence de système de suivi automatisé des colis (pas de code-barres ni QR Code).
+❌ Aucune interconnexion entre les agences postales régionales.
+❌ Pas de plateforme client pour le suivi en ligne des envois.
+❌ Facturation et paiements réalisés manuellement sans intégration numérique.
+❌ Absence d’audit et de journalisation des opérations.
+❌ Manque de statistiques et d’indicateurs de performance.
+❌ Faible satisfaction client due aux retards et au manque de transparence.
+4. Analyse fonctionnelle et besoins exprimés
+L’évolution vers un système numérique intelligent vise à répondre à plusieurs besoins exprimés par la CAMPOST et ses utilisateurs :
+✅ Suivi en temps réel des colis via QR Code et notifications automatiques (SMS, Push).
+✅ Interconnexion nationale entre les agences et les points de collecte.
+✅ Paiement en ligne intégré via CAMPOST Money, Orange Money et MTN Mobile Money.
+✅ Génération automatique de factures électroniques et reçus numériques.
+✅ Centralisation des données et accès à distance via web et mobile.
+✅ Module d’IA pour prédire les délais de livraison et détecter les anomalies.
+✅ Tableau de bord analytique pour la direction (statistiques, performances, revenus, satisfaction).
+5. Comparaison : EMS actuel vs SmartCAMPOST
+Système EMS Actuel
+Système SmartCAMPOST (Proposé)
+Système principalement manuel, sans automatisation
+Système entièrement numérique et interconnecté
+Absence de traçabilité des colis
+Suivi automatisé par QR Code et GPS
+Pas de plateforme client
+Application mobile et web pour suivi et paiements
+Paiement et facturation manuels
+Paiement digital intégré avec facture PDF
+Pas de statistiques ni d’analyses
+Tableau de bord intelligent et rapports automatiques
+Aucune IA intégrée
+Module IA pour prédiction et détection d’anomalies
+Pas de notifications automatiques
+Notifications SMS/Push à chaque étape du colis
+Gestion isolée par agence
+Base de données centralisée et synchronisée
+
+6. Vision du système cible (SmartCAMPOST)
+Le futur système SmartCAMPOST repose sur une architecture moderne composée de trois interfaces principales :
+Application mobile (Flutter) : pour les clients et les agents de terrain.
+Application web (Vue.js) : pour les clients, agents et administrateurs.
+API backend (Spring Boot + PostgreSQL) : pour la gestion centralisée des données et services.
+Chaque colis est identifié par un QR Code unique, scanné à chaque étape de son parcours.Les données (statut, localisation, temps) sont enregistrées et synchronisées en temps réel.Le client est informé automatiquement à chaque changement de statut via SMS ou notification mobile.
+Le module d’Intelligence Artificielle (IA) apporte une valeur ajoutée majeure :
+Prédiction des délais de livraison (ETA),
+Optimisation des tournées des agents de collecte et livraison,
+Détection d’anomalies dans la chaîne logistique.
+7. Synthèse de la phase d’analyse
+L’étude du système EMS actuel met en évidence la nécessité d’une transformation numérique complète du service postal camerounais.Le projet SmartCAMPOST s’inscrit dans cette dynamique en proposant un système intelligent, traçable et interconnecté, capable de :
+répondre aux attentes des clients,
+améliorer la performance interne,
+et aligner la CAMPOST avec les standards postaux internationaux modernes.

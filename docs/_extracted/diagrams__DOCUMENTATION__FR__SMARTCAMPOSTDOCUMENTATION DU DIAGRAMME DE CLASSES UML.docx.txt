@@ -1,0 +1,441 @@
+SMARTCAMPOSTDOCUMENTATION DU DIAGRAMME DE CLASSES UML
+1. Introduction
+Le diagramme de classes UML est l’un des outils fondamentaux de la conception orientée objet.Il permet de représenter la structure statique du système SmartCAMPOST, en identifiant toutes les classes, leurs attributs, leurs méthodes (opérations) ainsi que les relations existant entre elles.
+Ce diagramme constitue le lien entre le modèle logique de données (MLD) et la modélisation objet du système.Il assure la cohérence entre la base de données, la logique métier et les fonctionnalités prévues dans les cas d’utilisation.
+
+2. Objectifs du diagramme de classes
+Les principaux objectifs du diagramme de classes sont :
+Identifier les entités métiers principales du système SmartCAMPOST ;
+Définir les relations et dépendances entre ces entités ;
+Déterminer les attributs et comportements (méthodes) de chaque classe ;
+Préparer la phase de programmation orientée objet (Java, Dart, etc.) ;
+Garantir la cohérence entre les données et les fonctionnalités décrites dans le système.
+
+3. Aperçu général du système SmartCAMPOST
+Le système SmartCAMPOST vise à moderniser la gestion des envois postaux de la CAMPOST grâce à des fonctionnalités intelligentes.Il permet aux clients de :
+Créer et suivre leurs envois de colis,
+Effectuer des paiements numériques,
+Générer un code QR pour le suivi,
+Recevoir des notifications (SMS ou push),
+Demander une collecte à domicile.
+Les agents et coursiers peuvent quant à eux :
+Enregistrer les colis à l’agence,
+Scanner les codes QR pour mettre à jour les statuts,
+Livrer les colis,
+Capturer les preuves de livraison,
+Gérer les paiements et les factures.
+
+Le diagramme de classes représente la structure technique de ces interactions et des entités du système.
+
+4. Description des classes principales
+4.1 Classe : Client
+Attribut
+Type
+Description
+clientId
+UUID
+Identifiant unique du client
+fullName
+String
+Nom complet du client
+phone
+String
+Numéro de téléphone (utilisé pour la connexion et les OTP)
+email
+String?
+Adresse email facultative
+preferredLanguage
+String?
+Langue préférée (FR, EN)
+createdAt
+DateTime
+Date de création du compte
+
+Méthodes principales :
+addAddress(Address) → Ajoute une nouvelle adresse.
+removeAddress(UUID) → Supprime une adresse enregistrée.
+chooseDeliveryOption(Parcel, option) → Choisit un mode de livraison.
+subscribeToNotifications(Parcel, channel) → Active les notifications SMS/push.
+
+Associations :
+1 Client → 0..* Adresse
+1 Client → 0..* Colis
+1 Client → 0..* Notification
+
+4.2 Classe : Adresse
+Attribut
+Type
+Description
+addressId
+UUID
+Identifiant unique de l’adresse
+label
+String
+Libellé de l’adresse (ex. : Domicile, Bureau)
+city
+String
+Ville
+region
+String
+Région
+country
+String
+Pays
+latitude
+Decimal(9,6)?
+Latitude géographique
+longitude
+Decimal(9,6)?
+Longitude géographique
+
+Associations :
+0..1 Client → 0..* Adresse
+Utilisée comme adresse d’expéditeur et de destinataire pour chaque colis.
+
+4.3 Classe : Colis (Parcel)
+Attribut
+Type
+Description
+parcelId
+UUID
+Identifiant unique du colis
+trackingRef
+String
+Référence de suivi (utilisée pour le QR Code)
+weightKg
+Decimal
+Poids du colis en kilogrammes
+dimensions
+String?
+Dimensions (L×l×H)
+declaredValue
+Decimal?
+Valeur déclarée du colis
+isFragile
+Boolean
+Indique si le colis est fragile
+serviceType
+Enum
+Type de service (Standard / Express)
+deliveryOption
+Enum
+Option de livraison (Agence / Domicile)
+status
+Enum
+État du colis (Créé, En transit, Livré, etc.)
+createdAt
+DateTime
+Date de création
+
+Méthodes principales :
+generateTrackingRef() → Génère une référence de suivi.
+generateQrPayload() → Génère le contenu du QR Code.
+addScanEvent(event) → Ajoute un événement de suivi.
+markDelivered(pod) → Marque un colis comme livré.
+addPayment(payment) → Ajoute un paiement associé.
+quote(tariffEngine) → Calcule le tarif.
+currentETA(analyticsService) → Estime la date de livraison.
+
+Associations :
+1 Colis → 1 Adresse expéditeur
+1 Colis → 1 Adresse destinataire
+1 Colis → 0..1 Demande de collecte
+1 Colis → 0..* Événement de scan
+1 Colis → 0..1 Preuve de livraison
+1 Colis → 0..* Paiement
+1 Colis → 0..* Notification
+1 Colis → 0..* Détail tarifaire
+
+4.4 Classe : DemandeCollecte (PickupRequest)
+Attribut
+Type
+Description
+pickupId
+UUID
+Identifiant de la demande
+requestedDate
+Date
+Date de collecte souhaitée
+timeWindow
+String
+Créneau horaire (ex. : 8h-12h)
+state
+Enum
+État (Demandée, Assignée, Terminée, Annulée)
+comment
+String?
+Commentaire optionnel
+
+Méthodes :
+assignTo(Courier) → Assigne la collecte à un coursier.
+complete() → Marque comme terminée.
+cancel(reason) → Annule la collecte.
+
+4.5 Classe : ÉvénementScan (ScanEvent)
+Attribut
+Type
+Description
+scanId
+UUID
+Identifiant de l’événement
+eventType
+Enum
+Type d’événement (CREATED, IN_TRANSIT, DELIVERED, etc.)
+timestamp
+DateTime
+Date et heure du scan
+locationNote
+String?
+Note de localisation
+
+Associations :
+1 Colis → 0..* ÉvénementScan
+0..1 Agence → 0..* ÉvénementScan
+0..1 Agent → 0..* ÉvénementScan
+
+4.6 Classe : PreuveLivraison (DeliveryProof)
+Attribut
+Type
+Description
+podId
+UUID
+Identifiant de la preuve
+proofType
+Enum
+Type (Signature, Photo, OTP)
+timestamp
+DateTime
+Date de capture
+details
+String?
+Détails de la preuve (nom, photo, code OTP)
+
+Association :
+1 Colis → 0..1 PreuveLivraison (composition)
+
+4.7 Classe : Paiement
+Attribut
+Type
+Description
+paymentId
+UUID
+Identifiant du paiement
+amount
+Decimal
+Montant payé
+currency
+String
+Devise (XAF)
+method
+Enum
+Méthode (Digital / Cash)
+status
+Enum
+Statut (INIT, PAID, FAILED)
+timestamp
+DateTime
+Date et heure du paiement
+externalRef
+String?
+Référence externe du paiement
+
+Méthodes :
+initiate(provider)
+confirm(success, ref)
+refund(amount)
+
+Associations :
+1 Colis → 0..* Paiement
+1 Paiement → 0..1 Facture
+
+4.8 Classe : Facture
+Attribut
+Type
+Description
+invoiceId
+UUID
+Identifiant unique
+invoiceNumber
+String
+Numéro de facture
+totalAmount
+Decimal
+Montant total
+issuedAt
+DateTime
+Date d’émission
+pdfLink
+String?
+Lien du fichier PDF
+
+Association :
+1 Paiement → 0..1 Facture
+
+4.9 Classe : Notification
+Attribut
+Type
+Description
+notifId
+UUID
+Identifiant de la notification
+channel
+Enum
+Type (SMS / PUSH)
+message
+String
+Contenu du message
+timestamp
+DateTime
+Date d’envoi
+status
+Enum
+Statut (SENT / FAILED)
+
+Méthode :
+send(gateway)
+Associations :
+1 Colis → 0..* Notification
+1 Client → 0..* Notification
+
+4.10 Classe : Tarif (Tariff)
+Attribut
+Type
+Description
+tariffId
+UUID
+Identifiant du tarif
+serviceType
+Enum
+Type de service
+originZone
+String
+Zone d’origine
+destinationZone
+String
+Zone de destination
+weightBracket
+String
+Tranche de poids
+price
+Decimal
+Prix correspondant
+
+4.11 Classe : DétailTarifaire (PricingDetail)
+Attribut
+Type
+Description
+pricingDetailId
+UUID
+Identifiant du détail
+appliedPrice
+Decimal
+Prix appliqué
+appliedAt
+DateTime
+Date du calcul
+
+Associations :
+1 Tarif → 0..* DétailTarifaire
+1 Colis → 0..* DétailTarifaire
+
+4.12 Classe : Agence
+Attribut
+Type
+Description
+agencyId
+UUID
+Identifiant de l’agence
+agencyName
+String
+Nom
+agencyCode
+String
+Code unique
+city
+String
+Ville
+region
+String
+Région
+
+4.13 Classe : Personnel (Staff)
+Attribut
+Type
+Description
+staffId
+UUID
+Identifiant du personnel
+fullName
+String
+Nom complet
+phone
+String
+Numéro de contact
+status
+Enum
+Actif / Inactif / Suspendu
+createdAt
+DateTime
+Date d’enregistrement
+
+Sous-classes :
+Agent → Enregistre et livre les colis à l’agence.
+Coursier → Effectue les collectes et les livraisons à domicile.
+
+5. Relations principales
+Relation
+Type UML
+Multiplicité
+Client – Adresse
+Agrégation
+1 → 0..*
+Client – Colis
+Association
+1 → 0..*
+Colis – Adresse (expéditeur)
+Composition
+1 → 1
+Colis – Adresse (destinataire)
+Composition
+1 → 1
+Colis – DemandeCollecte
+Association
+1 → 0..1
+Colis – ÉvénementScan
+Association
+1 → 0..*
+Colis – PreuveLivraison
+Composition
+1 → 0..1
+Colis – Paiement
+Association
+1 → 0..*
+Paiement – Facture
+Association
+1 → 0..1
+Colis – Notification
+Association
+1 → 0..*
+Client – Notification
+Association
+1 → 0..*
+Tarif – DétailTarifaire
+Association
+1 → 0..*
+Colis – DétailTarifaire
+Association
+1 → 0..*
+Personnel → Agent/Coursier
+Héritage
+Généralisation
+
+6. Justification de conception
+Le modèle respecte les principes de la conception orientée objet.
+Chaque classe correspond à une entité réelle du domaine postal.
+Les énumérations garantissent la cohérence des statuts et types.
+Les compositions (Colis → Preuve, Colis → Scan) traduisent une dépendance forte du cycle de vie.
+Les associations représentent les liens logiques (Client, Paiement, Notification).
+Les méthodes encapsulent les règles métiers principales (création, paiement, livraison).
+
+7. Conclusion
+Le diagramme de classes du système SmartCAMPOST offre une vue claire et complète de la structure du système.Il modélise les entités principales, leurs attributs, leurs relations, et les règles de gestion essentielles.Ce modèle constitue la base de référence pour le développement des modules applicatifs et garantit la traçabilité entre les exigences fonctionnelles et la conception technique.

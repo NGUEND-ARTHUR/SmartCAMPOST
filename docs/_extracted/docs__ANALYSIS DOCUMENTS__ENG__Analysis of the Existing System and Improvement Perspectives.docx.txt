@@ -1,0 +1,69 @@
+Analysis of the Existing System and Improvement Perspectives: From the EMS System to SmartCAMPOST
+Author: Nguend Arthur JohannInstitution: ICT University, Yaoundé – CameroonProject: Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and AI
+1. General Introduction
+The current EMS (Express Mail Service) system used by CAMPOST handles national and international postal operations through several administrative modules.However, it presents significant limitations due to the lack of automation, absence of interconnection between agencies, and no real-time digital tracking.
+This analysis aims to study the existing EMS system, identify its weaknesses, and introduce the vision of the new intelligent system SmartCAMPOST, which integrates QR Code technology, GPS geolocation, digital payments, and Artificial Intelligence (AI) to enhance service quality, speed, and customer satisfaction.
+2. Description of the Existing EMS System
+The current EMS system manages multiple aspects of postal operations, including agencies, clients, billing, tariffs, and users.It operates in a semi-manual mode with very limited digital integration.
+Main Modules of the EMS System:
+EMS Agencies: manage postal offices and workstations.
+Tariffs: manage weight and zone-based pricing.
+Client Types: categorize clients (subscribed, occasional, administrative).
+Users and Groups: manage user access rights and security roles.
+Clients: register and update client data.
+Destinations: define postal zones and destinations.
+Billing: create and edit invoices and credit notes.
+Recovery: monitor payments and manually clear invoices.
+3. Identified Problems and Limitations
+The analysis of official CAMPOST documentation highlights several key shortcomings:
+❌ No automated parcel tracking (no barcode or QR Code system).
+❌ No interconnection between regional postal agencies.
+❌ No customer platform for online tracking.
+❌ Manual billing and payment processes without digital integration.
+❌ Lack of audit logs or activity tracking.
+❌ No statistical or analytical reporting tools.
+❌ Low customer satisfaction due to delivery delays and lack of transparency.
+4. Functional Analysis and Identified Needs
+The transition to a smart digital system aims to meet the operational and customer needs expressed by CAMPOST and its users:
+✅ Real-time parcel tracking using QR Code and automatic notifications (SMS, Push).
+✅ National interconnection between agencies and collection points.
+✅ Integrated digital payment system (CAMPOST Money, Orange Money, MTN Mobile Money).
+✅ Automatic generation of digital invoices and receipts.
+✅ Centralized database accessible via both web and mobile.
+✅ AI module to predict delivery times and detect anomalies.
+✅ Analytical dashboard for management (statistics, performance, revenue, satisfaction).
+5. Comparison: Current EMS vs Proposed SmartCAMPOST
+Current EMS System
+Proposed SmartCAMPOST System
+Mainly manual operations without automation
+Fully digital and interconnected system
+No parcel tracking mechanism
+Automated tracking using QR Code and GPS
+No client platform
+Web and mobile app for clients (tracking, payments)
+Manual billing and payment
+Integrated digital payment system with PDF invoices
+No reporting or analytics
+Intelligent dashboard and automated reports
+No AI integration
+AI module for prediction and anomaly detection
+No automatic notifications
+SMS/Push notifications at each parcel stage
+Isolated agency operations
+Centralized and synchronized database
+
+6. Vision of the Target System (SmartCAMPOST)
+The future SmartCAMPOST system will rely on a modern architecture composed of three main interfaces:
+Mobile Application (Flutter): for clients and field agents.
+Web Application (Vue.js): for clients, agents, and administrators.
+Backend API (Spring Boot + PostgreSQL): for centralized data and process management.
+Each parcel is identified by a unique QR Code, scanned at every stage of its journey.The data (status, location, time) are recorded and synchronized in real time.The client automatically receives SMS or mobile notifications for each status update.
+The Artificial Intelligence (AI) module adds significant value:
+Predicts Estimated Delivery Time (ETA),
+Optimizes agent collection and delivery routes,
+Detects logistical anomalies in real time.
+7. Summary of the Analysis Phase
+The study of the current EMS system highlights the urgent need for a complete digital transformation of Cameroon’s postal service.The SmartCAMPOST project embodies this vision by proposing an intelligent, traceable, and interconnected system capable of:
+Meeting customer expectations,
+Enhancing internal performance,
+Aligning CAMPOST with modern international postal standards.
