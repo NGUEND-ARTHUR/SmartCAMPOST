@@ -30,12 +30,16 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
+        env:
+          NODE_ENV: development
         run: |
           npm ci --prefix smartcampost-frontend
 
       - name: Install Playwright browsers
+        working-directory: smartcampost-frontend
         run: |
-          npx --yes --prefix=smartcampost-frontend playwright install --with-deps
+          echo "Ensuring Playwright CLI resolves to frontend node_modules"
+          npm exec --yes playwright install --with-deps
 
       - name: Run Playwright e2e (mocked pages)
         working-directory: smartcampost-frontend
