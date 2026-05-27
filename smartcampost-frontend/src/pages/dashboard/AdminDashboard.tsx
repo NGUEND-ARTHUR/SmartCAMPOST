@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardSummary } from "@/hooks";
 import { getErrorMessage } from "@/lib/errorHandler";
 import useScanSSE from "@/hooks/useScanSSE";
+import useAiSSE from "@/hooks/useAiSSE";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -14,12 +15,16 @@ export default function AdminDashboard() {
   const metrics = data?.metrics ?? {};
 
   const [liveScans, setLiveScans] = useState<any[]>([]);
+  const [liveAi, setLiveAi] = useState<any[]>([]);
 
   const onScanEvent = useCallback((evt: any) => {
     setLiveScans((prev) => [evt, ...prev].slice(0, 10));
   }, []);
 
   useScanSSE(onScanEvent);
+  useAiSSE((evt: any) => {
+    setLiveAi((prev) => [evt, ...prev].slice(0, 10));
+  });
 
   const normalizedLiveScans = useMemo(() => {
     return liveScans.map((e) => {
@@ -175,6 +180,27 @@ export default function AdminDashboard() {
                       {e.timestamp
                         ? new Date(e.timestamp).toLocaleTimeString()
                         : ""}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Runtime Events</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {liveAi.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No AI events yet</div>
+            ) : (
+              <div className="space-y-2">
+                {liveAi.map((e, idx) => (
+                  <div key={`${e?.type ?? "ai"}-${idx}`} className="text-sm">
+                    <div className="font-medium">{e?.type ?? "ai"}</div>
+                    <div className="text-muted-foreground truncate max-w-xl">
+                      {JSON.stringify(e?.payload ?? e)}
                     </div>
                   </div>
                 ))}

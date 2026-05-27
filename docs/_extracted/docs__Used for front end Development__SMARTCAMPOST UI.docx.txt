@@ -1,0 +1,861 @@
+SMARTCAMPOST — UI WEB SPEC (100% basé sur TON backend)
+1) Rôles & accès (basé sur SecurityConfig)
+Rôles détectés (logique d’accès)
+CLIENT
+AGENT
+COURIER
+STAFF
+ADMIN (vu dans les règles d’accès)
+FINANCE (module refunds)
+RISK (module compliance)
+Ton enum UserRole expose : CLIENT, AGENT, STAFF, COURIER mais la sécurité mentionne aussi ADMIN/FINANCE/RISK. Donc UI doit prévoir ces profils “staff avancés” (au minimum dans le backoffice).
+Règles globales
+Tout ce qui est /api/** est protégé sauf endpoints auth + /api/ussd/**.
+Après login, le backend renvoie role dans AuthResponse, donc redirection automatique par rôle (pas besoin de demander “quel rôle” sur l’écran login).
+2) Auth UI (basé sur /api/auth/**)
+Endpoints réels
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/send-otp
+POST /api/auth/verify-otp
+POST /api/auth/login/otp/request
+POST /api/auth/login/otp/confirm
+POST /api/auth/password/reset/request
+POST /api/auth/password/reset/confirm
+Pages UI à générer
+A. Landing (Public)
+CTA : Login / Register
+Champ rapide “Track parcel” (si tu le gardes côté UI même si endpoint public tracking n’est pas encore visible ici)
+B. Login (Password)
+phone/email + password
+bouton “Login”
+lien “Login with OTP”
+lien “Forgot password”
+C. Login with OTP (2 étapes)
+Step 1: saisir numéro → appelle /login/otp/request
+Step 2: saisir OTP → appelle /login/otp/confirm
+Si ok → reçoit AuthResponse { role, accessToken } → redirect automatique
+D. Register
+Form register (client pour l’instant, car le service expose registerClient)
+Option d’OTP vérification (si ton flow l’utilise)
+E. Reset Password (2 étapes)
+request OTP /password/reset/request
+confirm reset /password/reset/confirm
+Comportement UI obligatoire
+Stocker accessToken + role
+Route protection + layout par rôle
+Redirection automatique selon role
+3) Layout & Routing UI (Web)
+Routes publiques
+/ Landing
+/auth/login
+/auth/login-otp
+/auth/register
+/auth/reset-password
+Routes privées (avec Layout par rôle)
+/client/*
+/agent/*
+/courier/*
+/staff/*
+/admin/*
+/finance/*
+/risk/*
+Important : même si certaines pages partagent des composants, chaque rôle doit avoir son menu & dashboard.
+4) Modules backend → Pages UI (mapping direct)
+4.1 Parcels (cœur du système)
+Endpoints détectés (principaux)
+/api/parcels/** (auth required)
+Statuts Parcels (enum ParcelStatus)
+CREATED
+ACCEPTED
+IN_TRANSIT
+ARRIVED_HUB
+OUT_FOR_DELIVERY
+DELIVERED
+RETURNED
+CANCELLED
+Pages UI (Client)
+Client Dashboard
+cards: total in transit / delivered / returned
+“Create Parcel”
+“My Parcels” table (filters: status/date)
+Create Parcel
+champs: serviceType (STANDARD/EXPRESS), deliveryOption (AGENCY/HOME), paymentOption (PREPAID/COD),
+optionnels: photoUrl, descriptionComment
+validation + preview prix (si endpoint pricing dispo)
+Parcel Details
+status badge
+timeline (scan events)
+metadata: photo + comment
+actions selon état (ex: cancel si autorisé)
+Change Delivery Option Modal
+champ newDeliveryOption
+champ additionalAmount (optionnel)
+Pages UI (Agent/Staff/Admin)
+Parcels Management (table avancée)
+filtres : status, date, agence, courier
+action: update status
+Parcel Details (ops view)
+timeline + scan history
+payment history
+delivery proof (si livré)
+4.2 Pickups (Sprint pickup)
+Endpoints
+/api/pickups/** (auth required)
+States (enum PickupRequestState)
+REQUESTED → ASSIGNED → COMPLETED
+CANCELLED
+Pages UI
+CLIENT:
+Create Pickup Request
+My Pickup Requests (liste + status)
+STAFF/ADMIN:
+All Pickups
+Assign Courier to Pickup (modal assign)
+COURIER:
+My Pickups
+Update Pickup State (button stepper)
+4.3 Delivery (OTP + Proof + final delivery)
+Endpoints
+POST /api/delivery/otp/send
+POST /api/delivery/otp/verify
+POST /api/delivery/final
+DTOs clés
+DeliveryOtpSendRequest { parcelId, phoneNumber }
+DeliveryOtpVerificationRequest { parcelId, otpCode }
+DeliveryProofRequest { parcelId, courierId, proofType, details }
+FinalDeliveryRequest { otp, proof }
+Pages UI (Courier)
+Delivery Workflow (Stepper 3 étapes)
+Step 1: Send OTP
+Step 2: Verify OTP
+Step 3: Capture Proof (photo/signature/otp) + Final submit
+Delivery Proof Capture
+proofType selector: SIGNATURE/PHOTO/OTP (selon enum DeliveryProofType)
+champ “details” (url/hash/description)
+Success Screen
+statut final = DELIVERED
+bouton “Back to route list”
+Ton DeliveryController marque aussi les paiements COD comme payés au moment de la livraison (“markCodAsPaid”) → UI doit afficher “COD Paid ✅” si applicable.
+4.4 Scan Events (Timeline)
+Endpoint
+/api/scan-events/** accessible à ADMIN/STAFF/AGENT
+Enum ScanEventType
+CREATED, AT_ORIGIN_AGENCY, IN_TRANSIT, ARRIVED_HUB, DEPARTED_HUB, ARRIVED_DESTINATION, OUT_FOR_DELIVERY, DELIVERED, RETURNED
+Pages UI
+Scan Console (Agent/Staff)
+QR input (cam placeholder web)
+affichage parcel summary
+bouton “Create Scan Event” (selon contexte)
+Timeline Component
+list events, badge type, timestamp, location, actor
+4.5 Payments
+Endpoints
+/api/payments/** (auth required)
+Enums
+PaymentMethod: CASH, MOBILE_MONEY, CARD
+PaymentStatus: INIT, PENDING, SUCCESS, FAILED, CANCELLED
+PaymentOption: PREPAID, COD
+Pages UI
+CLIENT:
+Payments History
+Invoice/Receipt detail
+STAFF/FINANCE:
+Payments Admin Table
+Payment Detail
+4.6 Notifications
+Endpoints
+/api/notifications/** role ADMIN/STAFF
+Enums
+Channel: SMS, EMAIL, PUSH
+Status: PENDING, SENT, FAILED
+Type: (selon ton enum)
+Pages UI
+Notification Templates
+Send test
+Logs table
+4.7 Refunds / Compliance / Risk
+Endpoints
+/api/refunds/** pour ADMIN/FINANCE/STAFF
+/api/compliance/** pour ADMIN/RISK/STAFF
+Pages UI
+FINANCE:
+Refund list + detail + actions
+RISK:
+compliance dashboard + incidents + severity badge
+4.8 Analytics
+Endpoints
+GET /api/analytics/parcels/{parcelId}/eta
+GET /api/analytics/payments/{paymentId}/anomalyAccessible ADMIN/STAFF
+Pages UI
+Admin/Staff dashboard:
+ETA panel (par parcel)
+Anomaly panel (par payment)
+cards + charts placeholders
+5) UI Components “obligatoires” (réutilisables)
+AuthGuard + RoleGuard
+AppLayout(role) + Sidebar(role)
+StatusBadge (ParcelStatus / PaymentStatus / PickupState)
+ParcelTimeline (ScanEventType)
+StepFlowDelivery (OTP → Proof → Final)
+DataTable (filters, search, pagination)
+ModalAssignCourier
+Toast + ErrorBanner (API errors)
+EmptyState + SkeletonLoader
+6) Le prompt prêt à coller (Figma AI / v0 / générateur UI)
+ “Generate a complete React + TypeScript + TailwindCSS web UI for SmartCAMPOST based strictly on these backend constraints:Auth endpoints: /api/auth/register, /api/auth/login, /api/auth/login/otp/request, /api/auth/login/otp/confirm, /api/auth/password/reset/request, /api/auth/password/reset/confirm. AuthResponse includes role + accessToken.Roles & routing: CLIENT → /client, AGENT → /agent, COURIER → /courier, STAFF → /staff, ADMIN → /admin, FINANCE → /finance, RISK → /risk.Parcel statuses: CREATED, ACCEPTED, IN_TRANSIT, ARRIVED_HUB, OUT_FOR_DELIVERY, DELIVERED, RETURNED, CANCELLED.Pickup states: REQUESTED, ASSIGNED, COMPLETED, CANCELLED.Delivery workflow: POST /api/delivery/otp/send, POST /api/delivery/otp/verify, POST /api/delivery/final using DTOs {parcelId, phoneNumber}, {parcelId, otpCode}, and proof {parcelId, courierId, proofType, details}.Scan events types: CREATED, AT_ORIGIN_AGENCY, IN_TRANSIT, ARRIVED_HUB, DEPARTED_HUB, ARRIVED_DESTINATION, OUT_FOR_DELIVERY, DELIVERED, RETURNED.Payments: method CASH/MOBILE_MONEY/CARD, status INIT/PENDING/SUCCESS/FAILED/CANCELLED, option PREPAID/COD.Create all pages: Landing, Login, OTP Login, Register, Reset Password; role-based dashboards; parcels list/detail/create; pickup request flows; courier delivery stepper; scan console; payments tables; notification logs; refunds/compliance pages; analytics panels for ETA and anomaly.Include a clean enterprise dashboard design system, reusable components, and route protection.”
+Parfait 👍Je vais répondre très clairement en deux parties :
+📘 LIVRABLE 1 — TABLE COMPLÈTE : ENDPOINTS → PAGES UI
+🔐 AUTH
+Endpoint
+Méthode
+Rôle
+Page UI
+/api/auth/login
+POST
+Public
+Login
+/api/auth/login/otp/request
+POST
+Public
+Login OTP – Step 1
+/api/auth/login/otp/confirm
+POST
+Public
+Login OTP – Step 2
+/api/auth/register
+POST
+Public
+Register
+/api/auth/password/reset/request
+POST
+Public
+Reset Password – Request
+/api/auth/password/reset/confirm
+POST
+Public
+Reset Password – Confirm
+
+📦 PARCELS
+Endpoint
+Méthode
+Rôle
+Page UI
+/api/parcels
+POST
+CLIENT
+Create Parcel
+/api/parcels/me
+GET
+CLIENT
+My Parcels
+/api/parcels/{id}
+GET
+All auth
+Parcel Detail
+/api/parcels/{id}/status
+PATCH
+AGENT/STAFF
+Update Status
+/api/parcels/{id}/delivery-option
+PATCH
+CLIENT
+Change Delivery Option
+
+🚚 PICKUPS
+Endpoint
+Méthode
+Rôle
+Page UI
+/api/pickups
+POST
+CLIENT
+Create Pickup
+/api/pickups/me
+GET
+CLIENT
+My Pickups
+/api/pickups
+GET
+STAFF/ADMIN
+All Pickups
+/api/pickups/{id}/assign-courier
+POST
+STAFF
+Assign Courier
+/api/pickups/{id}/state
+PATCH
+COURIER
+Update Pickup State
+
+📦 DELIVERY
+Endpoint
+Méthode
+Rôle
+Page UI
+/api/delivery/otp/send
+POST
+COURIER
+Send OTP
+/api/delivery/otp/verify
+POST
+COURIER
+Verify OTP
+/api/delivery/final
+POST
+COURIER
+Final Delivery
+
+💰 PAYMENTS
+Endpoint
+Méthode
+Rôle
+Page UI
+/api/payments/me
+GET
+CLIENT
+My Payments
+/api/payments
+GET
+STAFF/FINANCE
+Payments Admin
+/api/payments/{id}
+GET
+STAFF/FINANCE
+Payment Detail
+
+📘 LIVRABLE 2 — USER JOURNEYS PAR RÔLE
+👤 CLIENT
+Landing → Login/Register
+Dashboard
+Create Parcel
+Choose delivery option
+Pay (PREPAID / COD)
+Track parcel (timeline)
+Request Pickup (optionnel)
+Receive OTP (delivery)
+View receipt / invoice
+🧑‍💼 AGENT
+Login
+Dashboard (today parcels)
+Register parcel at counter
+Scan parcel (acceptance)
+Update parcel status
+Release parcel (OTP)
+🚴 COURIER
+Login
+View assigned pickups/deliveries
+Navigate route
+Scan parcel
+Send OTP
+Verify OTP
+Capture proof
+Confirm delivery
+🧑‍💻 STAFF / ADMIN
+Login
+Global dashboard
+View all parcels
+Assign couriers
+Manage pickups
+View scan logs
+Handle disputes / refunds
+Analytics & alerts
+📘 LIVRABLE 3 — WIREFRAME TEXTUEL PAR ÉCRAN
+🧾 CREATE PARCEL (CLIENT)
+Fields
+Service Type (STANDARD / EXPRESS)
+Delivery Option (AGENCY / HOME)
+Payment Option (PREPAID / COD)
+Parcel Description
+Weight
+Declared Value
+Fragility Level
+Destination Agency
+Optional Photo Upload
+Comment
+Actions
+Preview Price
+Submit
+States
+loading
+validation error
+success
+api error
+🚚 DELIVERY WORKFLOW (COURIER)
+Step 1
+Parcel summary
+Button: Send OTP
+Step 2
+OTP input (6 digits)
+Button: Verify OTP
+Step 3
+Proof Type (SIGNATURE / PHOTO)
+Capture
+Confirm Delivery
+📦 PARCEL DETAIL
+Sections
+Header (Parcel ID + Status Badge)
+Timeline (scan events)
+Payment info
+Delivery proof
+Actions (contextual)
+📘 LIVRABLE 4 — COMPOSANTS + STATES + PERMISSIONS
+🔹 COMPONENTS
+AuthGuard
+RoleGuard
+ParcelTimeline
+StatusBadge
+QRScanner
+OTPInput
+DeliveryStepper
+DataTable
+AssignCourierModal
+🔹 STATES (GLOBAL)
+loading
+empty
+error
+success
+forbidden (403)
+not found (404)
+🔹 PERMISSIONS (EXTRAIT)
+Action
+CLIENT
+AGENT
+COURIER
+STAFF
+ADMIN
+Create Parcel
+✅
+❌
+❌
+❌
+❌
+Update Status
+❌
+✅
+❌
+✅
+✅
+Assign Courier
+❌
+❌
+❌
+✅
+✅
+Final Delivery
+❌
+❌
+✅
+❌
+❌
+1) TABLE COMPLÈTE : MODULES / ENDPOINTS → PAGES UI (DB-based)
+Note : ici je mappe les pages UI nécessaires d’après ton schéma.Même si certains endpoints ne sont pas encore codés dans ton backend, ces pages sont obligatoires pour gérer les tables.
+A) AUTH / ACCOUNTS (tables: user_account, otp_code, client, staff, agent, courier)
+Pages
+Public: Landing, Login (password), Login OTP, Register Client, Reset Password
+Admin/Staff: Accounts Management (freeze/unfreeze), OTP Logs (optionnel)
+Champs clés à refléter
+user_account.phone, password_hash, role, entity_id, frozen
+otp_code.phone, code, purpose, expires_at, used
+B) CLIENT & ADDRESS (tables: client, address)
+Pages
+Client Profile (infos + langue)
+Address Book (CRUD)
+Champs
+Client: full_name, phone, email, preferred_language
+Address: label, street, city, region, country, latitude, longitude
+C) AGENCY / STAFF / AGENT / COURIER (tables: agency, staff, agent, courier)
+Pages
+Admin: Agencies CRUD
+Admin: Staff CRUD (status, hired/terminated)
+Admin: Agents CRUD (link staff + agency)
+Admin: Couriers CRUD (status, vehicle)
+Champs
+Agency: agency_name, agency_code, city, region, country
+Staff: full_name, role, email, phone, status, hired_at, terminated_at
+Agent: agency_id, staff_id, staff_number, full_name, phone, status
+Courier: full_name, phone, vehicle_id, status
+D) PARCELS (table: parcel)
+Pages
+Client: Create Shipment
+Client: My Parcels (list/filter)
+Client: Parcel Detail (timeline + payment + proof)
+Staff/Admin: Parcels Management (table avancée)
+Staff/Agent: Change Status (via scan/ops)
+Champs UI à prendre en compte
+Parcel:tracking_ref (readonly après création)client_id (auto du token)sender_address_id, recipient_address_id (obligatoires)origin_agency_id, destination_agency_idweight, dimensions, declared_value, is_fragileservice_type, delivery_option, payment_option, statusphoto_url, description_commentexpected_delivery_at (readonly, calculable)
+E) PICKUPS (table: pickup_request)
+Pages
+Client: Request Pickup (date + window + comment)
+Client: My Pickups
+Staff/Admin: Pickups List + assign courier
+Courier: My Pickups + update state
+Champs
+parcel_id (1 pickup par parcel)
+requested_date, time_window, state, comment, courier_id
+F) TRACKING / TIMELINE (table: scan_event)
+Pages
+Public Tracking (si exposé)
+Parcel Detail → Timeline
+Staff/Agent: Scan Console (create scan event)
+Champs
+parcel_id, agency_id, agent_id, event_type, timestamp, location_note
+G) DELIVERY CONFIRMATION (tables: delivery_otp, delivery_proof)
+Pages (Courier)
+Delivery Stepper: Send OTP → Verify OTP → Capture Proof → Confirm
+Proof Viewer (dans Parcel Detail)
+Champs
+delivery_otp: phone_number, otp_code, expires_at, consumed
+delivery_proof: proof_type, timestamp, details
+H) PAYMENTS & INVOICE (tables: payment, invoice)
+Pages
+Client: Payments list + Payment detail
+Client: Invoice download screen
+Finance/Staff/Admin: Payments admin table + refunds shortcuts
+Champs
+Payment: parcel_id, amount, currency, method, status, reversed, external_ref
+Invoice: invoice_number, total_amount, issued_at, pdf_link
+I) NOTIFICATIONS (table: notification)
+Pages
+Admin/Staff: Notification Logs + Template Editor
+Parcel Detail: Notification history (filtered by parcel)
+Champs
+parcel_id, pickup_id, recipient_phone/email, channel, type, status
+subject, message, retry_count, error_message, created_at, sent_at
+J) TARIFF & PRICING (tables: tariff, pricing_detail)
+Pages
+Admin: Tariff CRUD + Tariff Lookup tool
+Parcel Create: Pricing preview (shows applied tariff)
+Parcel Detail: Pricing history
+Champs
+Tariff: service_type, origin_zone, destination_zone, weight_bracket, price
+Pricing detail: parcel_id, tariff_id, applied_price, applied_at
+K) SUPPORT (table: support_ticket)
+Pages
+Client: Create Ticket + Ticket list + Ticket detail
+Staff: Ticket inbox + assign staff + update status
+Champs
+subject, description, category, status, priority
+links: client_id, parcel_id, assigned_staff_id
+L) REFUNDS (table: refund_adjustment)
+Pages
+Finance: Refund requests list + detail + approve/reject/process
+Champs
+payment_id, type, status, amount, reason, processed_at, processed_by_staff_id
+M) RISK / COMPLIANCE (tables: risk_alert, compliance_report)
+Pages
+Risk dashboard: alerts list + review + resolve/dismiss
+Compliance reports: generate/send/archive
+Champs
+Risk: alert_type, severity, status, resolved, description, reviewed_by_staff_id
+Compliance: period_start, period_end, status, file_url
+N) INTEGRATIONS (table: integration_config)
+Pages
+Admin: Integrations list + edit (SMS/Payment/USSD/Maps)
+Champs
+integration_type, provider_name, base_url, api_key, active
+O) USSD (table: ussd_session)
+Pages
+Admin/Staff: USSD Sessions monitor (debug/ops)
+Champs
+session_ref, phone, state, current_menu, last_input, active, last_interaction_at
+2) USER JOURNEYS PAR RÔLE (DB-exact)
+CLIENT
+Register (client table) + create user_account (role CLIENT, entity_id=client_id)
+Add Address book (optional mais recommandé)
+Create Parcel
+choisir sender_address & recipient_address
+saisir weight, fragile, service_type, delivery_option, payment_option
+(Optionnel) Request Pickup (si delivery_option=HOME ou si pickup service)
+Follow Timeline (scan_event) + notifications
+Pay (payment) → receive invoice
+Delivery confirmation: OTP + proof stored
+Support: create ticket linked to parcel
+AGENT (counter/agency)
+Login → Agent dashboard (parcels today, scans)
+Register parcel / verify details (parcels)
+Scan events (scan_event) for acceptance, origin, etc.
+(Optionnel) assist pickup release / agency pickup flows
+COURIER
+Login → My pickups / My deliveries
+Pickup: update pickup_request state
+Delivery:
+send OTP → verify OTP (delivery_otp)
+capture proof (delivery_proof)
+set parcel status DELIVERED
+STAFF/ADMIN/FINANCE/RISK
+STAFF/ADMIN:
+manage agencies/staff/agents/couriers
+manage parcels + scan console
+notifications logs/templates
+support inbox
+integrations
+FINANCE:
+payments monitor, reversed flags, refund_adjustment processing
+RISK:
+risk_alert queue, review, resolve/dismiss, compliance reports
+3) WIREFRAMES TEXTUELS PAR ÉCRAN (avec champs DB)
+Je te mets les écrans clés (les autres CRUD admin suivent la même structure table/form/detail).
+3.1 Register Client
+Form
+Full name (client.full_name)
+Phone (client.phone)
+Email (optional) (client.email)
+Preferred language (FR/EN) (client.preferred_language)
+Password (user_account.password_hash / client.password_hash selon ton implémentation)
+States
+loading / error / success
+inline validation: phone unique, email unique
+3.2 Address Book (Client)
+List
+Cards/table: label, city, region, country
+Actions: Add / Edit / Delete
+Add/Edit Address Form
+Label (Home/Office/Other) (address.label)
+Street (address.street)
+City (address.city)
+Region (address.region)
+Country (address.country, default Cameroon)
+Map picker (optional) → lat/lng (address.latitude/longitude)
+3.3 Create Parcel (Client) — Version DB correcte
+Step 1: Parties & Addresses
+Sender address (select from Address Book) (sender_address_id)
+Recipient address (select or “create new”) (recipient_address_id)
+Step 2: Parcel details
+Weight (kg) (weight)
+Dimensions (L×W×H) (dimensions)
+Declared value (declared_value)
+Fragile toggle (is_fragile)
+Photo upload → photo_url (photo_url)
+Comment (description_comment)
+Step 3: Service
+Service type: STANDARD/EXPRESS (service_type)
+Delivery option: AGENCY/HOME (delivery_option)
+Origin agency (optional) (origin_agency_id)
+Destination agency (optional) (destination_agency_id)
+Step 4: Payment
+Payment option: PREPAID/COD (payment_option)
+Pricing preview (tariff lookup) → shows: tariff + price
+Submit
+States
+draft / loading / invalid
+success → redirect Parcel Detail
+error (tariff not found, invalid addresses, etc.)
+3.4 Parcel List (Client)
+Filters
+tracking_ref search
+status dropdown
+date range
+Table
+tracking_ref
+status badge
+created_at
+delivery_option, service_type
+action: View
+3.5 Parcel Detail (Client / Staff)
+Header
+Tracking ref + Status badge + created_at
+expected_delivery_at (if exists)
+Tabs
+Timeline (scan_event list)
+event_type badge
+timestamp
+agency/agent (if present)
+location_note
+Payment
+payment list for parcel
+invoice link if exists
+reversed flag badge
+Delivery proof
+proof_type + timestamp + details
+“No proof” empty state
+Notifications
+channel/type/status + subject + sent_at
+Support
+tickets linked to parcel (create new)
+3.6 Request Pickup (Client)
+Form
+Select parcel (only those without pickup_request) (uq_pickup_parcel)
+requested_date (requested_date)
+time_window (time_window)
+comment (comment)
+States
+loading / success / error (pickup already exists)
+3.7 Pickups Management (Staff/Admin)
+Table
+parcel tracking_ref
+client name/phone
+state badge
+requested_date + time_window
+courier assigned
+actions: Assign courier / View
+Assign courier modal
+courier dropdown (only AVAILABLE)
+confirm → sets courier_id & state=ASSIGNED
+3.8 Delivery Workflow (Courier)
+Stepper
+Send OTP
+phone_number (delivery_otp.phone_number)
+button “Send”
+Verify OTP
+6-digit input (otp_code)
+validate not expired, not consumed
+Proof
+proof_type (SIGNATURE/PHOTO/OTP)
+details (signature image URL / photo URL / “OTP Verified”)
+confirm → creates delivery_proof + sets parcel.status=DELIVERED
+States
+otp expired / otp consumed / wrong otp
+upload proof failed
+final success screen
+3.9 Payments Admin (Finance/Staff)
+Table
+payment_id
+parcel tracking_ref
+amount + currency
+method
+status
+reversed badge
+external_ref
+action: open detail / create refund_adjustment
+3.10 Refund Processing (Finance)
+Refund list
+payment link
+type
+status
+amount
+created_at
+Detail
+reason
+actions by status:
+approve / reject
+processed (sets processed_at & processed_by_staff_id)
+3.11 Risk Alerts (Risk/Admin)
+Table
+alert_type, severity, status, resolved
+parcel/payment links
+reviewed_by_staff
+actions: mark UNDER_REVIEW, RESOLVED, DISMISSED
+3.12 Support Tickets (Client + Staff)
+Client:
+create ticket (subject, description, category, priority)
+link parcel optionalStaff:
+inbox filters: status/priority/category
+assign staff, update status, close
+4) COMPOSANTS + STATES + PERMISSIONS (DB-aware)
+4.1 Composants (reusables)
+RoleLayout(role) + Sidebar(role)
+ProtectedRoute + RoleGate
+DataTable (filters/pagination)
+StatusBadge (ParcelStatus, PaymentStatus, TicketStatus, RefundStatus, RiskStatus, PickupState)
+Timeline (scan_event)
+AddressPicker (select + create inline)
+TariffQuotePanel (shows matched tariff + weight bracket)
+OTPInput + OTPCountdown
+ProofCapture (signature pad/photo upload)
+ConfirmModal (danger actions)
+EmptyState, Skeleton, ErrorBanner, Toast
+4.2 States globaux
+idle / loading / success / error
+empty
+forbidden (403)
+notFound (404)
+conflict (409) important: pickup unique parcel, phone unique, email unique
+frozenAccount (user_account.frozen)
+4.3 Permissions matrix (alignée aux tables)
+Action
+CLIENT
+AGENT
+COURIER
+STAFF
+ADMIN
+FINANCE
+RISK
+Create Address
+✅
+❌
+❌
+❌
+❌
+❌
+❌
+Create Parcel
+✅
+✅ (counter)
+❌
+✅
+✅
+❌
+❌
+Create Scan Event
+❌
+✅
+✅ (out/delivered)
+✅
+✅
+❌
+❌
+Request Pickup
+✅
+❌
+❌
+❌
+❌
+❌
+❌
+Assign Courier
+❌
+❌
+❌
+✅
+✅
+❌
+❌
+Delivery OTP/Proof
+❌
+❌
+✅
+❌
+❌
+❌
+❌
+Payments view (self)
+✅
+❌
+❌
+❌
+❌
+❌
+❌
+Payments admin
+❌
+❌
+❌
+✅
+✅
+✅
+❌
+Refund processing
+❌
+❌
+❌
+❌
+✅
+✅
+❌
+Risk alerts review
+❌
+❌
+❌
+✅
+✅
+❌
+✅
+Freeze account
+❌
+❌
+❌
+✅
+✅
+❌
+❌

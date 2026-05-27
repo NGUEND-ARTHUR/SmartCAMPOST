@@ -22,8 +22,8 @@ class DeliveryService {
       data: {
         'parcelId': parcelId,
         'phoneNumber': phoneNumber,
-        'latitude': ?latitude,
-        'longitude': ?longitude,
+        'latitude': latitude,
+        'longitude': longitude,
       },
     );
   }
@@ -39,8 +39,8 @@ class DeliveryService {
       data: {
         'parcelId': parcelId,
         'otpCode': otpCode,
-        'latitude': ?latitude,
-        'longitude': ?longitude,
+        'latitude': latitude,
+        'longitude': longitude,
       },
     );
   }
@@ -58,11 +58,11 @@ class DeliveryService {
   }) async {
     await _api.post(
       '/delivery/$parcelId/failed',
-      queryParameters: {
+      data: {
         'reason': reason,
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'notes': ?notes,
+        'latitude': latitude,
+        'longitude': longitude,
+        if (notes != null) 'notes': notes,
       },
     );
   }

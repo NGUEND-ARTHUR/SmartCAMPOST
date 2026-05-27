@@ -3,7 +3,6 @@ package com.smartcampost.backend.service.impl;
 import com.smartcampost.backend.dto.dashboard.DashboardSummaryResponse;
 import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
-import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.Payment;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
@@ -13,6 +12,7 @@ import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.repository.ClientRepository;
 import com.smartcampost.backend.repository.IntegrationConfigRepository;
 import com.smartcampost.backend.model.enums.IntegrationType;
+import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -69,10 +69,8 @@ public class DashboardServiceImpl implements DashboardService {
             metrics.put("totalRiskAlerts", totalRiskAlerts);
             metrics.put("totalRevenue", totalRevenue);
 
-            // === NEW: activeUsers (not frozen) ===
-            long activeUsers = userAccountRepository.findAll().stream()
-                .filter(u -> u.getFrozen() != null && !u.getFrozen())
-                .count();
+            // activeUsers: use countBy query instead of findAll().stream()
+            long activeUsers = userAccountRepository.countByFrozenFalseOrFrozenNull();
             metrics.put("activeUsers", activeUsers);
 
             // === NEW: registeredClients ===
@@ -82,19 +80,14 @@ public class DashboardServiceImpl implements DashboardService {
             // ===============================
             // Delivered parcels metric
             // ===============================
+            // ✅ FIX: Use COUNT query - avoids memory bomb
             try {
-                List<Parcel> parcels = parcelRepository.findAll();
-                long delivered = parcels.stream()
-                        .filter(p -> p.getStatus() != null && p.getStatus().name().contains("DELIVERED"))
-                        .count();
-
-                metrics.put("deliveredParcels", delivered);
-
-            } catch (Exception ex) {
-                throw new ConflictException(
-                        "Failed to compute delivery statistics",
-                        ErrorCode.ANALYTICS_ERROR
+                long delivered = parcelRepository.countByStatusIn(
+                    List.of(ParcelStatus.DELIVERED)
                 );
+                metrics.put("deliveredParcels", delivered);
+            } catch (Exception ex) {
+                metrics.put("deliveredParcels", 0L);
             }
 
             // ===============================

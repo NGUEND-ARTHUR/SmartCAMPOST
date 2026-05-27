@@ -1,0 +1,139 @@
+SmartCAMPOST Fonctionnement détaillé 
+Sous-titre : De l’enregistrement au retrait/livraison, traçabilité par QR Code, notifications, paiement et IA
+1) Vue d’ensemble
+SmartCAMPOST est un système qui rend chaque colis traçable de bout en bout.À chaque étape (enregistrement, collecte, tri, transport, arrivée, distribution, retrait/livraison), une action courte est réalisée par un acteur (client, agent, guichet, livreur). Cette action génère un événement horodaté et, le plus souvent, un scan du QR Code du colis.Résultat : le client voit l’historique complet et reçoit des notifications ; CAMPOST contrôle l’avancement, détecte les retards et preuve chaque remise.
+2) Acteurs & canaux 
+Client : crée une demande, décrit le colis, suit son statut, paie, choisit retrait en agence ou livraison à domicile, reçoit des notifications, présente un OTP au moment de la remise.
+Agent de guichet : enregistre les colis déposés en agence, valide la description, pèse et tarifie, génère et colle l’étiquette QR, émet le reçu.
+Agent de collecte : récupère les colis à domicile, valide la description, appose le QR s’il n’existe pas encore, déclenche les premiers statuts.
+Agent de tri/transport : scanne à l’entrée/sortie des centres et lors des transferts.
+Livreur : scanne en départ et en remise, vérifie l’identité (OTP), collecte paiement si nécessaire, prend photo/signature (preuve).
+Administrateur/Superviseur : visualise tout le réseau en temps réel, gère incidents et litiges, consulte les rapports.
+3) Principe de traçabilité par QR Code
+3.1. Quand le QR est-il créé ?
+Pré-enregistrement (optionnel) : si le client fait une demande de collecte, un QR temporaire (numérique) peut être généré pour identifier la commande avant la prise en charge.
+Enregistrement officiel (obligatoire) : au dépôt en agence ou lors de la collecte à domicile, l’agent crée le QR Code définitif et imprime l’étiquette (papier autocollant) à coller sur le colis.
+3.2. Que contient le QR ?
+Un identifiant unique du colis (ex : CAM-2025-000123), plus éventuellement un code court lisible.
+Ce QR ne contient pas de données sensibles ; il pointe vers la fiche du colis dans le système (sécurité → accès contrôlé).
+3.3. Comment le QR assure la traçabilité ?
+À chaque étape, un acteur scanne le QR → le système enregistre : qui, où, quand, quoi (type d’étape), et éventuellement preuve (photo, signature).
+Le time line du colis est alors mise à jour et visible côté client et côté CAMPOST.
+En cas de perte ou d’erreur de routage, l’historique des scans permet de localiser la dernière position connue et qui l’a manipulé.
+3.4. Faut-il l’imprimer ?
+Oui. L’étiquette QR doit être imprimée et collée physiquement sur le colis (lisible et résistante).
+Pour les demandes de collecte, l’agent peut imprimer sur place (imprimante portable) ou utiliser une étiquette pré-numérotée et associer le colis à l’ID via scan.
+4) Cycle de vie (états standards d’un colis)
+Créé (fiche ouverte, en attente de prise en charge)
+Accepté (description validée, QR collé, prêt à partir)
+Pris en charge (collecte réalisée ou dépôt finalisé)
+Au centre d’origine (scan à l’entrée du premier centre)
+En transit (transfert entre centres/hubs)
+Arrivé au hub (scan arrivée) → Reparti du hub (scan départ)
+Arrivé à l’agence de destination (scan arrivée)
+Sorti en distribution (scan départ livreur)
+Livré (preuve OTP + signature/photo) ou Retiré en agence (OTP + scan)
+Retour à l’expéditeur (si non distribué après délai)
+Chaque transition est déclenchée par un scan + horodatage + acteur identifié.
+5) User Stories (parcours complets)
+5.1. Dépôt en agence (parcours classique)
+En tant que Client, je viens en agence avec mon colis.
+L’agent me pose 5 questions : contenu (catégorie), poids/dimensions, valeur déclarée, fragilité, destination/retrait-domicile.
+L’agent pèse et valide ma description ; il calcule le tarif et me le présente.
+Après mon accord, il génère le QR, imprime l’étiquette et la colle sur le colis.
+Je paye (maintenant ou à la remise selon le mode choisi) et je reçois un reçu + un SMS avec mon numéro de suivi.
+Je peux suivre mon colis à tout moment. À chaque étape (tri, transit, arrivée, distribution), je reçois une notification.
+À l’arrivée à destination, je choisis retrait en agence (gratuit) ou livraison à domicile (surcoût visible).
+En tant qu’Agent de guichet, je :
+Valide/corrige la description et le poids (réduisant les litiges),
+Génère et colle l’étiquette QR,
+Enregistre le paiement (ou note le mode),
+Déclenche le premier statut officiel du colis (Accepté).
+5.2. Collecte à domicile (pickup)
+En tant que Client, je préfère qu’on vienne récupérer le colis chez moi.
+Je remplis une demande : description, photo du colis, adresse précise, créneau horaire souhaité.
+Je reçois une confirmation de rendez-vous, avec un QR temporaire dans mon téléphone (utile si l’agent a besoin de l’identifier vite).
+L’agent arrive, vérifie/complète la description, pèse si possible, génère et colle l’étiquette QR définitive (si non collée), puis prend en charge le colis.
+Je reçois un SMS “Colis pris en charge” avec le numéro de suivi.
+Le reste du parcours est identique : tri, transit, arrivée, distribution.
+En tant qu’Agent de collecte, je :
+Vois mes demandes planifiées,
+Scanne le QR (temporaire ou définitif),
+Appose l’étiquette si nécessaire,
+Valide la prise en charge (preuve GPS + heure).
+5.3. Transport, tri et distribution (middle & last mile)
+En tant qu’Agent de tri/transport, je :
+Scanne les colis à l’entrée/sortie des centres,
+Déclenche automatiquement “En transit”, “Arrivé au hub”, “Reparti du hub”, “Arrivé agence destination”.
+En cas d’incident/délai, je pose un motif (météo, panne, vérif sécurité).
+En tant que Client, je :
+Reçois des notifications clés (départ/arrivée/transit).
+À l’arrivée à l’agence de destination, je choisis entre retrait en agence ou livraison à domicile (avec affichage du coût).
+S’il y a livraison à domicile, je choisis un créneau.
+En tant que Livreur, je :
+Scanne “Sorti en distribution”,
+Au point de remise : je vérifie l’OTP reçu par le destinataire, je peux demander signature et prendre photo si nécessaire,
+Je termine par un scan de remise → statut Livré (ou Retiré si en agence).
+6) Focalisation sur la traçabilité par QR Code
+6.1. Étapes où le QR est scanné (minimum conseillé)
+Acceptation (en agence / à la collecte)
+Entrée dans le centre d’origine
+Sortie du centre d’origine
+Arrivée au hub de transit
+Sortie du hub
+Arrivée à l’agence de destination
+Sortie en distribution (livreur)
+Remise au destinataire (ou retrait en agence)
+6.2. Preuves associées aux scans
+Qui a scanné (agent/guichet/livreur)
+Où (agence/hub + localisation)
+Quand (horodatage précis)
+Quoi (type d’événement : arrivée, départ, remise, etc.)
+Optionnel : photo du colis, signature du destinataire, OTP validé
+6.3. Résilience et anti-erreurs
+Si le réseau est faible : l’agent scanne en mode hors-ligne, les événements sont mémorisés et rejoués dès le retour réseau → zéro perte de traçabilité.
+Si un scan est manqué, le système détecte un écart (trop long sans événement) et alerte l’agence.
+7) Paiement (quand et comment, sans détail technique)
+Moments possibles :
+À l’enregistrement (dépôt agence)
+À la collecte (si pickup)
+Au choix de livraison à domicile à destination (surcoût)
+À la remise (contre-remboursement)
+Principes :
+Le client voit toujours le montant (frais + options) avant de confirmer.
+Chaque paiement génère une preuve : reçu numérique + facture téléchargeable.
+En cas d’échec : proposition d’alternative (autre moyen, espèces en agence).
+8) Notifications (simplicité et transparence)
+Confirmation d’enregistrement (numéro de suivi)
+Pris en charge / Collecté
+En transit (optionnel selon politique)
+Arrivé agence destination (choix : retrait vs. Domicile)
+Sorti en distribution
+Livré / Retiré + reçu/facture
+Relances automatiques en cas de colis non retiré
+9) Rôle de l’IA
+ETA (heure/jour estimé d’arrivée) : calculé à partir des distances, temps moyens, historiques de retards, saisonnalité.
+Optimisation des tournées : ordre conseillé pour les livreurs selon adresses, créneaux, contraintes.
+Détection d’anomalies :
+Retards anormaux entre deux scans,
+Incohérences de parcours (trajets imprévus),
+Risque (poids/valeur vs. Itinéraire/fréquence d’incidents).
+Assistant client : réponse instantanée “où est mon colis ?”, basée sur l’historique des scans.
+10) Gestion des exceptions
+Échec de livraison (destinataire absent) : reprogrammation, dépôt agence, ou retour expéditeur après délai.
+Adresse introuvable : lien pour corriger la localisation ou basculer vers retrait en agence.
+Colis non retiré : relances automatiques, frais éventuels, retour.
+Réclamation : le client ouvre un ticket, l’administrateur consulte la time line (scans + preuves) et tranche rapidement.
+11) Journalisation & preuve
+Chaque action critique (scan, remise, paiement) est journalisée et non modifiable (piste d’audit).
+Les preuves (signature, photo, OTP validé) s’attachent à l’événement final de remise.
+L’historique (time line) est visible par le client, consultable par CAMPOST (support et litiges).
+12) User story récapitulative (du dépôt au retrait)
+En tant que client, je dépose mon colis en agence. L’agent valide la description, colle un QR et me remet un reçu.En tant que système, j’envoie un SMS avec le numéro de suivi.En tant qu’agent de tri, je scanne le QR à l’entrée et à la sortie du centre ; le statut s’actualise.En tant que système, je notifie l’arrivée à destination et je propose retrait ou livraison domicile.En tant que client, je choisis retrait et je me présente au guichet.En tant qu’agent, je scanne le QR, le système envoie un OTP sur le téléphone du destinataire, je compare l’OTP, je remets le colis.En tant que système, je passe le statut à “Retiré”, j’enregistre la preuve et j’envoie la facture.Résultat : le client voit toute la time line et CAMPOST dispose de preuves en cas de litige.
+13) Glossaire
+QR Code : code visuel contenant un identifiant unique du colis.
+OTP : code de vérification à usage unique envoyé au destinataire pour sécuriser la remise.
+Time line : historique chronologique des événements du colis (scans, paiements, preuves).
+ETA : estimation de la date/heure d’arrivée.
+Pickup : collecte du colis au domicile de l’expéditeur.
+Last mile : dernier tronçon de livraison, de l’agence destination au destinataire.

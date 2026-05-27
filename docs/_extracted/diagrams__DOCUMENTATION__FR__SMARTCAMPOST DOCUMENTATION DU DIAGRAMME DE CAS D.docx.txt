@@ -1,0 +1,197 @@
+SMARTCAMPOST DOCUMENTATION DU DIAGRAMME DE CAS D’UTILISATION
+1. Introduction
+Le diagramme de cas d’utilisation du système SmartCAMPOST illustre les interactions entre les acteurs externes (utilisateurs et systèmes) et le système.Il permet de visualiser les différents types d’utilisateurs — clients, agents, coursiers, administrateurs, et systèmes externes — ainsi que les services qu’ils utilisent ou exécutent.Ce modèle définit également la portée fonctionnelle du système, ses principales fonctionnalités et les relations entre les acteurs et les cas d’utilisation.
+
+2. Objectifs du diagramme de cas d’utilisation
+Les principaux objectifs de ce diagramme sont :
+Identifier qui interagit avec le système (les acteurs).
+Définir ce que fait chaque acteur (les cas d’utilisation).
+Représenter les relations et dépendances entre les cas d’utilisation.
+Donner une vue fonctionnelle claire du système avant la conception technique.
+
+3. Description des acteurs
+Acteur
+Description
+Client
+Utilisateur principal du système. Il peut envoyer ou recevoir des colis, demander une collecte, effectuer un paiement, suivre un envoi, et recevoir des notifications.
+Personnel (Staff)
+Représente tous les employés de la poste autorisés à effectuer des opérations (agents et coursiers).
+Agent
+Employé CAMPOST travaillant à une agence. Il enregistre les colis, scanne les QR Codes, met à jour les statuts et aide les clients.
+Coursier
+Employé responsable de la collecte et de la livraison des colis à domicile.
+Administrateur
+Gère les utilisateurs, les agences, les tarifs, les zones, et configure les intégrations (paiement, SMS, rapports).
+Agent Financier
+Gère les transactions financières, valide les paiements, concilie les soldes et vérifie les factures.
+Agent de Conformité
+Surveille les alertes de risque ou de blanchiment (AML/CFT), vérifie les anomalies et bloque les comptes suspects.
+Fournisseur de Paiement
+Système externe (Orange Money, MTN MoMo, CAMPOST Money) chargé du traitement des paiements et des retours (callbacks).
+Passerelle SMS/Push
+Système externe responsable de l’envoi des OTP et des notifications de suivi.
+Service de Géolocalisation
+API externe utilisée pour valider les adresses et calculer les itinéraires.
+Service IA/Analytique
+Module externe d’intelligence artificielle qui prédit les délais de livraison et détecte les anomalies.
+Passerelle NPSI (#237)
+Système national d’agrégation USSD permettant aux utilisateurs de téléphones basiques d’accéder au service.
+
+Hiérarchie d’acteurs
+Personnel (Staff)
+ ├── Agent
+ └── Coursier
+Les agents et coursiers héritent des permissions du personnel général mais ont des tâches opérationnelles spécifiques.
+
+4. Liste des cas d’utilisation
+Cas d’utilisation du Client
+Cas d’utilisation
+Description
+Créer un compte
+Le client crée un nouveau compte SmartCAMPOST.
+Vérifier le téléphone par OTP
+Vérifie l’identité du client lors de l’inscription. (inclus dans Créer un compte)
+S’authentifier (Connexion)
+Permet au client de se connecter via numéro et mot de passe.
+Gérer son profil
+Mise à jour des informations personnelles et préférences (langue, adresse, contact).
+Créer une demande d’envoi de colis
+Le client enregistre un colis à envoyer.
+Décrire le colis
+Saisie du poids, dimensions, valeur, fragilité. (inclus dans Créer un envoi)
+Saisir les adresses expéditeur/destinataire
+Choix ou ajout d’adresses. (inclus dans Créer un envoi)
+Obtenir un devis tarifaire
+Calcul automatique du coût selon le poids et la zone. (inclus dans Créer un envoi)
+Générer une référence de suivi
+Génération du numéro de suivi unique. (inclus dans Créer un envoi)
+Générer une étiquette QR
+Option permettant d’imprimer le QR Code à domicile. (étend Créer un envoi)
+Demander une collecte à domicile
+Le client demande le ramassage du colis chez lui.
+Valider l’adresse de collecte (GPS)
+Vérifie la position de collecte. (inclus dans Demande de collecte)
+Planifier un créneau de collecte
+Choisit la date et l’heure de collecte. (inclus dans Demande de collecte)
+Choisir le mode de livraison (Agence ou Domicile)
+Le client choisit comment le colis sera remis.
+Payer le supplément de livraison
+Appliqué uniquement si le client choisit la livraison à domicile. (étend Choisir mode de livraison)
+Effectuer le paiement du service
+Le client paie pour l’envoi.
+Initier le paiement
+Lancement du paiement via Orange/MTN/CAMPOST Money. (inclus dans Payer)
+Vérifier le résultat du paiement
+Confirme le succès ou l’échec. (inclus dans Payer)
+Émettre une facture
+Génère la facture numérique. (inclus dans Payer)
+Suivre un colis
+Permet de suivre le statut du colis en temps réel.
+Afficher l’historique de suivi
+Montre tous les événements du colis. (inclus dans Suivre colis)
+S’abonner aux notifications
+Recevoir les SMS ou notifications push. (étend Suivre colis)
+Télécharger la facture ou le reçu
+Permet d’obtenir le document PDF.
+Soumettre une réclamation
+Le client peut signaler un problème.
+
+Cas d’utilisation de l’Agent
+Cas d’utilisation
+Description
+Enregistrer un colis à l’agence
+L’agent crée un envoi pour un client présent physiquement.
+Peser et classer le colis
+Détermine la catégorie de service. (inclus dans Enregistrer colis)
+Générer la référence de suivi
+Crée l’ID unique. (inclus dans Enregistrer colis)
+Imprimer et coller le QR Code
+Étiquette collée sur le colis. (inclus dans Enregistrer colis)
+Encaisser le paiement au guichet
+Si le client paie sur place. (étend Enregistrer colis)
+Émettre la facture
+Génère la facture papier ou numérique. (inclus dans Enregistrer colis)
+Valider la description du colis
+Confirme les données fournies par le client.
+Scanner le colis
+Scanne le QR Code pour enregistrer chaque étape.
+Valider le QR / Référence
+Vérifie l’authenticité du colis. (inclus dans Scanner colis)
+Mettre à jour le statut du colis
+Change le statut (En transit, Arrivé, Livré…). (inclus dans Scanner colis)
+Recevoir un colis à l’agence de destination
+Confirme l’arrivée du colis.
+Remettre le colis au client
+Livraison au comptoir.
+Capturer la preuve de livraison (POD)
+Signature, photo ou OTP. (inclus dans Remise colis)
+Gérer la file des collectes
+Assigner les collectes aux coursiers.
+Résoudre les exceptions
+Gère les colis endommagés ou erronés.
+
+Cas d’utilisation du Coursier
+Accepter une tâche de collecte
+Se rendre à l’adresse de collecte (GPS) (inclus)
+Scanner et confirmer la collecte (inclus)
+Livraison en cours (Out-for-delivery)
+Naviguer vers l’adresse de livraison (inclus)
+Collecter le paiement à la livraison (étend)
+Capturer la preuve de livraison (inclus)
+
+Cas d’utilisation de l’Administrateur
+Gérer les utilisateurs et rôles
+Gérer les agences
+Gérer les tarifs et zones
+Gérer les services et intégrations (paiement, SMS, NPSI)
+Configurer les modèles de notifications
+Visualiser les rapports et tableaux de bord
+Gérer les remboursements et ajustements
+
+Cas d’utilisation de l’Agent Financier
+Concilier les paiements
+Auditer les factures et frais
+Exporter les rapports de règlements
+Gérer les remboursements ou litiges
+
+Cas d’utilisation de l’Agent de Conformité
+Surveiller les alertes de risque ou blanchiment
+«include» Vérifier les anomalies (IA)
+Bloquer ou débloquer des comptes
+Générer les rapports de conformité
+
+Cas d’utilisation des Systèmes Externes
+Système
+Cas d’utilisation
+Fournisseur de paiement
+Traiter le paiement, envoyer la notification de résultat
+Passerelle SMS
+Envoyer OTP, envoyer notification
+Service de géolocalisation
+Géocoder adresse, calculer itinéraire
+Service IA/Analytique
+Prédire la date de livraison, détecter une anomalie
+NPSI Switch (#237)
+Exposer le menu USSD, router les sessions
+
+5. Relations entre cas d’utilisation
+Relations d’inclusion (include)
+Créer compte → Vérifier téléphone par OTP
+Créer envoi → Décrire colis, Ajouter adresses, Calculer tarif, Générer référence
+Payer → Initier paiement, Vérifier paiement, Émettre facture
+Scanner colis → Valider QR, Mettre à jour statut
+Remettre colis → Capturer preuve de livraison
+Livraison en cours → Naviguer vers adresse, Capturer preuve
+
+Relations d’extension (extend)
+Créer envoi ← Générer étiquette QR
+Choisir mode de livraison ← Payer supplément domicile
+Suivre colis ← S’abonner notifications
+Enregistrement guichet ← Encaisser paiement
+Livraison ← Collecter paiement (si COD)
+
+Relations de généralisation
+Personnel → Agent, Coursier
+
+6. Conclusion
+Le diagramme de cas d’utilisation de SmartCAMPOST offre une vue d’ensemble complète des interactions entre les utilisateurs, le personnel et les systèmes externes.Il met en évidence le parcours client depuis la création du colis jusqu’à sa livraison, tout en intégrant les processus internes (paiement, validation, IA, notifications).Ce modèle fonctionnel constitue la base pour la modélisation UML suivante (diagrammes de séquence, d’activités et de classes).

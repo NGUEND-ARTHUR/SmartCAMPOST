@@ -48,6 +48,7 @@ import {
   FinanceDashboard,
   RiskDashboard,
 } from "./pages/dashboard";
+import ApprovalsPage from "./pages/admin/ApprovalsPage";
 import { ScanConsole } from "./pages/scan";
 import { ParcelManagement } from "./pages/parcels";
 import { PickupsManagement } from "./pages/pickups";
@@ -220,6 +221,7 @@ function App() {
             <Route path="risk/create" element={<CreateRiskPage />} />
             {/* Self-Healing System (SPEC SECTION 15) */}
             <Route path="self-healing" element={<SelfHealingDashboard />} />
+            <Route path="approvals" element={<ApprovalsPage />} />
           </Route>
 
           <Route
