@@ -38,19 +38,15 @@ jobs:
       - name: Install Playwright browsers
         working-directory: smartcampost-frontend
         run: |
-          echo "Ensuring Playwright CLI resolves to frontend node_modules"
-          npm exec --yes playwright install --with-deps
+          echo "Ensuring Playwright CLI resolves to frontend node_modules (using npx --prefix)"
+          npx --yes --prefix=smartcampost-frontend playwright install --with-deps
 
       - name: Run Playwright e2e (mocked pages)
-        working-directory: smartcampost-frontend
         run: |
-          echo "Listing playwright package in node_modules"
-          ls -la node_modules/@playwright || true
-          echo "cwd: $(pwd)"
-          echo "node version: $(node -v)"
-          echo "ls node_modules top-level"
-          ls -la node_modules || true
-          ./node_modules/.bin/playwright test tests/e2e --project=chromium --reporter=list,html
+          echo "Debug: show Node cwd and resolve of @playwright/test"
+          node -e "console.log('cwd: '+process.cwd()); try { console.log('resolve:', require.resolve('@playwright/test')); } catch(e) { console.error('resolve-error', e.message); process.exitCode=0 }"
+          echo "Run Playwright tests via npx --prefix to ensure frontend package resolution"
+          npx --yes --prefix=smartcampost-frontend playwright test smartcampost-frontend/tests/e2e --config=smartcampost-frontend/playwright.config.ts --project=chromium --reporter=list,html
 
       - name: Upload Playwright report
         if: always()
