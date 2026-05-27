@@ -41,6 +41,11 @@ jobs:
           echo "Ensuring Playwright CLI resolves to frontend node_modules (using npx --prefix)"
           npx --yes --prefix=smartcampost-frontend playwright install --with-deps
 
+      - name: Install @playwright/test at repo root (temporary shim)
+        run: |
+          echo "Installing @playwright/test at repo root (no-save) to satisfy Playwright ESM loader"
+          npm install --no-save @playwright/test@latest
+
       - name: Run Playwright e2e (mocked pages)
         working-directory: smartcampost-frontend
         run: |
