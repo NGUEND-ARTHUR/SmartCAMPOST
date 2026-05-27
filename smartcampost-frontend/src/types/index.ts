@@ -174,11 +174,12 @@ export interface SupportTicket {
 
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 export type TicketCategory =
-  | "DELIVERY"
-  | "PAYMENT"
-  | "DAMAGED"
-  | "LOST"
-  | "OTHER";
+  | "DELIVERY_ISSUE"
+  | "PAYMENT_ISSUE"
+  | "DAMAGED_GOODS"
+  | "LOST_PARCEL"
+  | "TECHNICAL_SUPPORT"
+  | "GENERAL_INQUIRY";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 // --------------------------------------------------

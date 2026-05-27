@@ -1,0 +1,111 @@
+Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, AI, and Digital Payments
+Author: Nguend Arthur JohannInstitution: ICT University, Yaoundé, Cameroon
+Functional and Technical Overview (Web & Mobile)
+1. Introduction
+SmartCAMPOST is an intelligent, integrated postal management system designed to modernize the operations of CAMPOST. It digitalizes the complete lifecycle of parcel handling—registration, collection, tracking, payment, routing, and delivery.
+Each parcel is assigned a unique QR Code, which guarantees end-to-end traceability within the postal network. The backend is built using Spring Boot, offering REST APIs for mobile and web clients, while GPS-assisted addresses, AI-enhanced analytics, and digital payment workflows strengthen operational transparency and customer satisfaction.
+This document provides a detailed functional and technical description of the SmartCAMPOST system, covering QR-based tracking, home pickup, delivery, payment flow, the web/mobile ecosystem, and the intelligent analytics module.
+2. Overview of the Web & Mobile Interfaces
+SmartCAMPOST consists of three major layers:
+Flutter Mobile App — for clients and field agents
+Vue.js Web Application — for clients, agents, and administrators
+Spring Boot Backend — main logic, APIs, security, tracking, payments, notifications, AI services
+2.1 Client Web Portal
+The web portal provides customers with a complete digital interface to manage parcel operations:
+OTP-based registration and authentication
+Creating new parcel records (content, weight, value, fragility, sender/recipient addresses)
+Receiving a system-generated tracking number and QR Code (printable label)
+Submitting home pickup requests linked to precise GPS coordinates
+Viewing parcel timeline and real-time status updates
+Paying digitally using supported mobile money methods (MOBILE_MONEY, CASH, CARD)
+Selecting delivery mode: agency pickup or home delivery
+Note: Photo upload is optional at UI level; backend currently handles core parcel fields.
+2.2 Agent Web & Mobile Interfaces
+Agents are responsible for scanning, validating, transporting, and delivering parcels using a simplified interface:
+Parcel registration in agency
+QR Code scanning via camera or scanner
+Updating parcel states through Scan Events
+Pickup handling (REQUESTED → ASSIGNED → COMPLETED)
+Delivery completion with OTP verification and proof of delivery
+Viewing daily workload and operational timeline
+GPS coordinates are stored within client addresses and may be used for routing and assignments.
+2.3 Administrator Dashboard
+The admin interface provides centralized supervision:
+Viewing all parcels, agents, clients, couriers, and transactions
+Managing tariffs, agencies, users, and pricing rules
+Accessing parcel scan history and delivery proofs
+Monitoring notifications, payments, and refunds
+Note: Analytical dashboards and maps are designed but partially implemented, depending on frontend integration.
+3. Parcel Tracking Using QR Code
+Each parcel receives a trackingRef (e.g., “CAM-2025-123456”), which is encoded into a QR Code printed and attached to the parcel.
+Tracking Process
+Parcel registered → trackingRef generated in backend
+QR Code printed via front-end using trackingRef
+At each handling stage, an agent scans the QR code
+Backend records a ScanEvent (time, location, agent, event type)
+Status auto-updates according to event type
+Notifications sent automatically to the client
+The parcel timeline includes all scan events, payments, pickup actions, and delivery proof.
+4. Parcel Collection and Home Delivery (GPS-Assisted)
+The system supports both agency drop-off and home pickup:
+Pickup Workflow
+Client submits request (address, date, time window)
+Backend assigns a courier/agent (manual or automatic)
+Agent confirms pickup via QR scan
+Parcel enters the transport workflow
+Home Delivery
+Activated once the parcel reaches its destination agency
+Courier scans at "OUT_FOR_DELIVERY"
+Delivery verified using OTP and optional proof (signature/photo)
+GPS coordinates stored in addresses allow proximity matching and routing.
+5. Integrated Digital Payment System
+SmartCAMPOST supports multiple payment workflows:
+Payment at registration
+Payment during pickup
+Payment at delivery (CASH or MOBILE_MONEY)
+Payment for optional home delivery charges
+Backend Payment Logic
+Payment entity manages amount, method, status
+Invoice entity generates PDF receipts
+Payment gateway service provides mobile money integration point
+Idempotent operations prevent duplicate charges
+Notifications and receipts are automatically sent
+6. Artificial Intelligence (AI) Module
+AI enhances automation and reliability through:
+ETA Prediction
+Based on parcel creation time and known transit durations
+Implemented in AnalyticsServiceImpl
+Anomaly Detection
+Detects abnormal payment amounts or delays
+Implemented in checkPaymentAnomaly()
+Future Integrations (Supported by architecture)
+Route optimization for couriers
+Intelligent chatbot for "Where is my parcel?" queries
+AI services can be extended via microservices or Python-based models.
+7. Security, Roles, and Logging
+SmartCAMPOST uses a robust security stack:
+Roles: CLIENT, AGENT, STAFF, COURIER
+Authentication: OTP + JWT
+Authorization: Spring Security route protection
+Logging: all scan events, payments, and state transitions saved
+Integrity: audit trails and immutable history
+Asynchronous tasks (notifications, retries) are supported through internal services.
+8. Core API Endpoints
+Correct endpoint style (no /v1 unless added manually):
+POST /api/auth/login
+POST /api/auth/send-otp
+POST /api/parcels
+POST /api/parcels/{id}/scan
+POST /api/parcels/{id}/label
+POST /api/pickups
+POST /api/payments/init
+POST /api/payments/confirm
+POST /api/notifications/send
+9. Key Advantages
+Real-time tracking and detailed parcel history
+Full digitalization of postal workflow
+Secure payments, automatic invoices
+End-to-end QR Code traceability
+AI-enhanced reliability and transparency
+Bilingual UX (EN/FR)
+Strong audit and compliance structure

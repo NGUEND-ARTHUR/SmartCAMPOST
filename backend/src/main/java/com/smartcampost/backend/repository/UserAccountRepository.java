@@ -20,6 +20,9 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     Optional<UserAccount> findByGoogleId(String googleId);
 
+    // ✅ FIX: count active users without loading all into memory
+    long countByFrozenFalseOrFrozenNull();
+
     // ✅ NEW: used to fetch the account linked to a Staff/Agent/Courier entity by entityId
     Optional<UserAccount> findFirstByEntityId(UUID entityId);
 

@@ -1,0 +1,380 @@
+📦 SMARTCAMPOST – Intelligent Postal Tracking, Pickup & Delivery System (Full Web Application UI)
+Author: Nguend Arthur Johann – ICT University, YaoundéProject: SmartCAMPOST – QR-Based Tracking + Geolocation + AI Logistics PlatformGoal: Generate the complete UI/UX for all SmartCAMPOST applications using a clean, modern, enterprise-grade web interface, ready to be implemented using React + TypeScript + TailwindCSS.
+🔷 1. Global Concept of the System
+SmartCAMPOST is a national-scale intelligent logistics system used by CAMPOST.It enables end-to-end parcel traceability using:
+Unique QR Codes
+Scans at every operational step
+A full timeline of events
+OTP verification at pickup/delivery
+Geolocation for agents & couriers
+AI modules for ETA prediction, route optimization, anomaly detection
+Digital payments
+The platform includes four different user interfaces:
+Client Portal
+Agency/Counter Agent Interface
+Courier/Delivery Interface
+Admin & Supervisor Dashboard
+Generate UI screens for each user type, unified by a clean and consistent design system.
+🔷 2. Actors & Behaviors to Represent
+1. CLIENT (Sender / Receiver)
+Uses web portal to:
+Create shipment or pickup requests
+Describe parcel (content, weight, fragility, declared value)
+Choose delivery mode (agency pickup or home delivery)
+Track real-time parcel status & timeline
+Pay service fees (credit card, Mobile Money, COD)
+Receive notifications (SMS/email)
+Verify identity via OTP
+View receipts, invoices, support tickets
+2. AGENCY / COUNTER AGENT
+Uses desktop or tablet:
+Register parcels dropped in agency
+Validate description and weight
+Calculate tariff
+Generate & print QR label
+Accept payment
+Scan parcels for:
+Acceptance
+Arrival / departure in agency
+Pickup release (OTP)
+3. PICKUP AGENT (Home Collection)
+Uses mobile UI:
+View scheduled pickup routes
+Navigate to client location
+Scan temporary or final QR code
+Validate parcel information
+Confirm collection with GPS position
+4. SORTING / HUB AGENT
+Uses desktop or rugged mobile device:
+Scan parcels at:
+Entry origin center
+Exit origin
+Arrival hub
+Departure hub
+Arrival destination agency
+Manage “bags” or bulk scans
+Handle incidents and transit delays
+5. COURIER / DELIVERY AGENT
+Uses mobile UI:
+See delivery route list + optimized route map
+Scan “OUT_FOR_DELIVERY”
+At delivery:
+Trigger OTP to client
+Enter OTP code
+Upload signature/photo
+Mark “DELIVERED” or “FAILED DELIVERY”
+6. ADMIN / SUPERVISOR
+Uses web dashboard:
+Global KPIs, heatmaps, statistics
+Delay anomalies and risk alerts
+Staff, roles, agencies, couriers
+Tariffs & pricing
+Payments & invoices
+Notifications & templates
+Support tickets & dispute resolution
+AI analytics (ETA performance, route optimization results)
+🔷 3. Parcel Lifecycle – States to Visualize
+Statuses to represent visually (badges, timeline, filters):
+CREATED
+ACCEPTED
+TAKEN_IN_CHARGE
+AT_ORIGIN_CENTER
+IN_TRANSIT
+ARRIVED_HUB
+DEPARTED_HUB
+ARRIVED_DEST_AGENCY
+OUT_FOR_DELIVERY
+DELIVERED
+PICKED_UP_AT_AGENCY
+RETURNED_TO_SENDER
+Each status corresponds to a QR scan event.
+Timeline must show:
+Timestamp
+Location
+Agent identity
+Event type
+Optional proof (photo, signature, OTP)
+🔷 4. Pages to Generate for Each Application
+A. CLIENT WEB PORTAL (Full UI)
+1. Public Landing Page
+Modern, postal-themed hero section
+“Track your parcel” search bar
+Features overview: QR tracking, AI ETA, home pickup
+Links to login/register
+2. Public Parcel Tracking Page
+Tracking number input
+Parcel status header
+Full timeline (vertical stepper)
+Map integration placeholder
+Support contact
+3. Client Dashboard
+Parcels in progress
+Delivered parcels
+Pickup requests
+Notifications
+Quick actions (New Shipment, Request Pickup)
+4. Create Shipment Page
+Form includes:
+Content category
+Weight & dimensions
+Value declared
+Fragility level
+Destination
+Delivery mode
+Tariff preview
+Payment summary
+5. Pickup Request Page
+Address map picker
+Time slot selection
+Parcel photo upload
+6. Parcel Detail Page
+Full timeline
+Payment history
+Notification history
+Delivery proofs
+Current location
+7. Payments Page
+List of transactions
+Receipts & invoices
+Payment status badges
+8. Client Profile
+Personal info
+Address book
+Language preferences
+Security settings
+9. Support Tickets
+Create ticket
+Ticket conversation / messages
+Ticket status
+B. AGENT / COUNTER INTERFACE (Desktop Web UI)
+1. Agent Dashboard
+Parcels registered today
+Pending payments
+Incoming pickups
+Alerts
+2. New Parcel Registration
+Parcel description form
+Weight entry
+Tariff calculation
+QR code preview
+Print label UI
+Payment capture UI
+Generate receipt
+3. Scan Parcel (Accept / Release)
+QR scan window
+Status update UI
+OTP verification input
+Proof capture (signature or photo placeholder)
+4. Parcel Management List
+Filters: status, agency, date
+Table view with quick actions
+C. DELIVERY & PICKUP AGENT MOBILE UI
+1. Daily Route List
+List of parcels with addresses
+Priority indicators
+AI-optimized route order
+2. Map View
+Route visualization
+Current agent position
+Parcel stops
+3. Pickup Workflow
+Scan code
+Validate info
+Confirm pickup (GPS + timestamp)
+4. Delivery Workflow
+Scan “out for delivery”
+OTP input screen
+Photo & signature capture screen
+Delivery confirmation
+5. Failed Delivery Report
+Reason selection
+Optional image upload
+Automatic status update
+D. ADMIN & SUPERVISOR DASHBOARD (Web UI)
+1. Global Dashboard
+Widgets:
+Parcels today
+Delivered
+Delayed
+In transit
+Revenue
+Pickup requests
+AI alertsCharts:
+Volume by day
+Delay trends
+Delivery success rateMaps:
+Network map of agencies/hubs
+Heatmap of delays
+2. Parcels Management
+Full parcel list (advanced filters)
+Parcel detail page
+Timeline + scan history
+Payment history
+Delivery proofs
+Open tickets
+3. Agencies Management
+Agency list
+Agency detail page
+Staff assigned
+KPIs for each agency
+4. Staff & Roles
+Staff CRUD
+Role assignment
+Permissions matrix
+5. Couriers Management
+Courier list
+Route history
+Performance metrics
+6. Tariffs & Pricing
+Tariff table
+Tariff creation/edit form
+Price calculator tool
+7. Payments
+Payments table
+Payment detail
+Refund processing
+8. Notifications
+Template editor (SMS, email)
+Send test notification
+Notification logs
+9. Support & Disputes
+Ticket list
+Ticket detail view
+Related parcel timeline
+Actions log
+10. AI Analytics Module
+ETA predictions vs real data
+Anomaly detection list
+Route optimization results
+Predictive graphs
+🔷 5. Design System to Generate
+Colors
+Primary: Slate blue / Navy
+Accent: Amber or Yellow
+Success: Green
+Warning: Orange
+Error: Red
+Background: Neutral / White
+Typography
+Clean, modern sans-serif (Inter, SF Pro, Roboto, Poppins)
+Headings bold, body regular
+Components
+Generate reusable components:
+Buttons (primary, secondary, soft, ghost)
+Inputs, selects, toggles, OTP input
+Tables with filters
+QR scan window
+Status badges
+Timeline component
+Analytics cards
+Modals, drawers
+Stepper for delivery flow
+Tabs, accordions, dropdowns
+🔷 SECTION QR CODE – VERSION PRO POUR FIGMA AI
+1. QR Code Generation (Agent UI)
+When registering a parcel:
+The system generates a unique Parcel ID (ex: CAM-2025-000123)
+A QR code is automatically generated from this identifier
+The UI must show:
+QR preview
+Print button
+Label layout preview (small sticker + large label versions)
+Option to re-generate label
+Provide a “Print Label” modal with:
+Label size (Small, Medium, Large)
+Toggle: Include human-readable ID
+Agency stamp placeholder
+2. QR Code Scanning UI (Agents, Couriers, Hubs)
+Create a full scanning interface for:
+Counter agents (ACCEPT step)
+Pickup agents (COLLECT step)
+Hub sorting agents (ARRIVAL, DEPARTURE)
+Delivery agents (OUT_FOR_DELIVERY, DELIVERED)
+Agency release (PICKED_UP_AT_AGENCY)
+Scanning interface must include:
+Live camera preview
+Flashlight toggle
+“Scan successful” animation
+Parcel summary card (status, sender, destination)
+Next action button depending on context
+Error state (Invalid QR, Not assigned to you, Already scanned)
+3. QR Code Timeline Events
+Each scan updates the parcel timeline.
+UI must show:
+Event type badge
+Time & date
+Agent identity
+Location (agency/hub + map icon)
+Optional proof (signature/photo/OTP)
+Device used (mobile scanner, desktop camera)
+Provide timeline components that the developer can reuse.
+4. QR Code for Pickup Requests (Temporary QR)
+For home pickup:
+Before the agent arrives, the user receives a temporary QR code
+It is used by the pickup agent to:
+Identify the request
+Confirm they are scanning the correct parcel
+Link temporary QR → final parcel QR
+UI must include:
+Temporary QR display screen for clients
+“Show QR to the pickup agent”
+Countdown validity timer
+Replace with final QR after validation
+5. QR Code on Receipts and Invoices
+Every payment and shipment confirmation generates a receipt containing:
+Parcel ID
+QR Code for quick verification
+Link to public tracking
+Download PDF button
+Figma must generate:
+Digital receipt layout
+Printable receipt layout
+6. QR Code Verification Page (Public Access)
+A public screen that appears when scanning a shipment QR code using a phone camera.
+This page must show:
+Parcel ID
+Current status
+Timeline summary
+Delivery options (if applicable)
+Contact support
+This is the screen used by:
+Clients
+Agents
+Other CAMPOST staff
+7. OTP + QR Delivery Validation Workflow
+At delivery, the courier must:
+Scan QR
+Trigger OTP to the client
+Enter OTP
+Capture signature/photo
+Confirm delivery
+The UI must include:
+“Send OTP” button
+OTP input (6-digit)
+Signature pad
+Camera interface for proof photo
+Delivery confirmation success screen
+8. QR Code Sharing & Download by Client
+Clients can:
+Download QR code
+Share QR code via WhatsApp
+Save QR as image
+Add QR to Apple Wallet / Google Wallet (optional future upgrade)
+UI includes:
+Share sheet
+Download icon
+Preview modal
+9. Admin – QR Code Management Tools
+Admin interface must include:
+Logs of all scans
+Agent activity map
+“Suspicious scan detection” (AI-based)
+Ability to deactivate or regenerate QR codes in case of damage
+QR fraud detection alerts
+UI screens:
+Scan logs table
+Suspicious event details
+QR regeneration form
+🔷 6. Final Instruction for Figma AI
+“Based on all the descriptions above, generate a complete UI/UX system for SmartCAMPOST, including the Client Web Portal, Agency Interface, Delivery Agent Mobile UI, and Admin Dashboard. Use a clean, modern, data-centric design that can be easily implemented with React + TypeScript + TailwindCSS. Include all screens, components, layouts, and a full design system.”
+Generate all QR Code–related screens, workflows, and components described above, including: QR generation, printing, scanning interfaces, temporary QR, OTP delivery validation, tracking page from QR, receipts with QR, scan logs, and fraud detection tools. The design must be clean, modern, and optimized for use with React + TypeScript + TailwindCSS.

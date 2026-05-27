@@ -1,0 +1,87 @@
+Design and Implementation of SmartCAMPOST : Système intelligent de suivi, collecte et livraison de colis utilisant le QR Code, le GPS, l’IA et le Paiement numérique
+Auteur : Nguend Arthur Johann — ICT University, Yaoundé, Cameroun
+Document explicatif du fonctionnement (Web & Mobile) – Version FR
+1. Introduction
+SmartCAMPOST est une application web et mobile qui digitalise de bout en bout le processus postal de la CAMPOST : envoi, collecte, suivi, notification, paiement et livraison. Le cœur du système repose sur un identifiant unique par colis, matérialisé par un QR Code, et sur une base de données centralisée gérée par un backend Spring Boot.
+Ce document décrit: 
+Le fonctionnement du suivi par QR Code
+La collecte et la livraison (GPS) 
+Le paiement numérique 
+Le rôle des interfaces web et mobiles (client et agent) 
+Le module d’Intelligence Artificielle (IA)
+2. Vue d’ensemble des interfaces (Web & Mobile)
+Le système comprend trois applications principales :
+• Application Web (Vue.js) : portail Client et Tableau de bord Administrateur.
+• Application Mobile (Flutter) : application Client (suivi, paiement) et application Agent (scan, collecte, livraison).
+• API Backend (Spring Boot) : expose des services REST sécurisés (authentification OTP, gestion colis, paiement, notifications, IA).
+2.1 Portail Web Client (Vue.js)
+Fonctionnalités clés pour le client accessible via navigateur (desktop/mobile) :
+• Création de compte / Connexion OTP.
+• Enregistrement d’un colis : description, adresses, valeur, options (fragile), téléversement de photo.
+• Génération et téléchargement de l’étiquette (QR Code) au format PDF si dépôt en agence.
+• Demande de collecte à domicile (adresse + créneau ; carte avec géolocalisation).
+• Suivi en temps réel : time line des statuts, position approximative (si autorisée).
+• Paiement en ligne (Orange Money, MTN Mobile Money, CAMPOST Money).
+• Choix du mode de livraison à l’arrivée (retrait en agence / livraison à domicile avec devis).
+• Téléchargement des reçus et factures (PDF).
+2.2 Portail Web Agent (Vue.js)
+En complément de l’application mobile Agent, un portail web permet aux agents de bureau/de dépôt de traiter des volumes importants :
+• Enregistrement de colis au guichet avec imprimante d’étiquettes (QR Code).
+• Validation/correction de la description fournie par le client (poids, type, photo).
+• Scan via webcam/lecteur QR code pour mise à jour de statut (départ, transit, arrivée, livré).
+• Gestion des tournées de collecte et de livraison (listes, priorités, cartes).
+• Clôture journalière, éditions des reçus/manifestes, export CSV/PDF.
+2.3 Tableau de bord Administrateur (Web)
+• Supervision temps réel des colis, agents et paiements (cartes, graphiques, tableaux).
+• Gestion des utilisateurs, agences, tarifs, zones de livraison.
+• Rapports et KPI (délais, incidents, revenus, taux de livraison).
+3. Suivi et traçabilité par QR Code
+Workflow :
+1) Enregistrement : création d’un ID colis et génération serveur d’un QR Code unique (bibliothèque ZXing).
+2) Étiquette : impression (PDF/thermique) et collage sur le colis.
+3) Scan agent : à chaque étape, l’agent scanne le QR (mobile ou web) → API /parcels/{id}/scan avec {statut, GPS, horodatage}.
+4) Persistances : enregistrement dans la base (journal d’événements), traçabilité complète (qui, où, quand).
+5) Notifications : SMS/push envoyés automatiquement (événements majeurs).
+6) Consultation : le client voit la time line et les justificatifs (photos, signature POD).
+4. Collecte et Livraison à Domicile (GPS)
+• Demande de collecte (web/mobile client) : adresse, créneau, infos colis → création d’une mission.
+• Affectation : l’agent le plus proche/la bonne agence reçoit la mission (vue tournée).
+• Preuve de prise en charge : scan QR + photo + note optionnelle.
+• Livraison : à l’arrivée, scan final + signature/photo (Proof of Delivery).
+• Changement de mode : à l’arrivée en agence, le client peut basculer vers livraison à domicile (devis et paiement additionnel).
+5. Paiement Numérique Intégré
+• Méthodes : Orange Money, MTN Mobile Money, CAMPOST Money.
+• Processus : création d’une intention de paiement (backend), redirection ou STK push, webhook signé → mise à jour du statut et émission d’une facture PDF.
+• Sécurité : vérification des signatures, idempotency key, chiffrement TLS, journaux d’audit.
+• Tarification : calcul du tarif selon poids/distance/option (livraison domicile), taxes, remises promotionnelles (si configurées).
+6. Module d’Intelligence Artificielle (IA)
+Objectif : améliorer la précision, la vitesse et la qualité de service via des prédictions et des recommandations.
+Fonctionnalités IA :
+• Prédiction d’Heure d’Arrivée (ETA) : estimer la date/heure probable de livraison selon distance, historique de trajets, périodes de pointe.
+• Optimisation de tournée : suggérer l’ordre de collecte/livraison le plus efficace (heuristiques + API de routage ; version ML ultérieure).
+• Détection d’anomalies : alerter sur colis bloqué, scans incohérents, trajets non plausibles (surveillance des événements).
+• Assistant conversationnel : répondre aux questions fréquentes (« Où est mon colis ? ») en s’appuyant sur le time line et les statuts.
+Données utilisées : événements de scan (statut, temps), distances itinéraires, historiques par trajet/zone, fenêtres horaires, météo (optionnel).
+Déploiement : service IA côté serveur (microservice Spring Boot dédié ou service Python), exposé via API interne sécurisée ; inférence synchrone pour ETA, asynchrone pour optimisation.
+Respect de la vie privée : agrégation/anonymisation pour les modèles ; aucune donnée sensible dans les logs ; conformité locale (CEMAC/BEAC).
+7. Sécurité, Rôles et Journalisation
+• Rôles : CLIENT, AGENT, ADMIN avec contrôles d’accès Spring Security (@PreAuthorize).
+• Authentification : OTP (SMS) + tokens JWT de courte durée ; liaison d’appareil côté mobile.
+• Journalisation : audit log immuable (toutes les transitions de statut et paiements).
+• Résilience : files de messages pour notifications/webhooks, retries, idempotence, sauvegardes planifiées.
+8. Principales API (exemples v1)
+POST /api/v1/auth/login-otp  — Demander un OTP
+POST /api/v1/auth/verify-otp — Vérifier OTP et émettre JWT
+POST /api/v1/parcels — Créer un colis (client ou agent)
+POST /api/v1/parcels/{id}/label — Générer l’étiquette QR (PNG/PDF)
+POST /api/v1/parcels/{id}/scan — Déclarer un scan (statut + GPS)
+POST /api/v1/pickups — Demander une collecte
+POST /api/v1/deliveries/{id}/proof — Preuve de livraison (photo/signature)
+POST /api/v1/payments/intents — Créer une intention de paiement
+POST /api/v1/webhooks/payment — Réception et validation du webhook paiement
+9. Bénéfices clés
+• Transparence totale : statuts et historique visibles par le client et l’admin.
+• Rapidité et fiabilité : scans QR + notifications en temps réel.
+• Accessibilité : web et mobile, multilingue (FR/EN).
+• Optimisation : IA pour ETA, tournées et détection d’anomalies.
+• Conformité : paiements tracés, journaux d’audit, sécurité renforcée.
