@@ -39,7 +39,8 @@ jobs:
 
       - name: Run Playwright e2e (mocked pages)
         run: |
-          node -e "process.chdir('smartcampost-frontend'); require('child_process').spawnSync('npx',['playwright','test','tests/e2e','--project=chromium','--reporter=list'],{stdio:'inherit'});"
+          cd smartcampost-frontend
+          ./node_modules/.bin/playwright test tests/e2e --project=chromium --reporter=list
 
       - name: Upload Playwright report
         if: always()
