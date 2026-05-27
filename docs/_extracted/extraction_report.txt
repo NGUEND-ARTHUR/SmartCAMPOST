@@ -1,0 +1,6 @@
+DOCX files: 42
+PDF files: 16
+DOC files: 1
+
+Errors:
+DOCX: c:\Users\Nguend Arthur Johann\Desktop\SmartCAMPOST\docs\~$prints.docx -> File is not a zip file

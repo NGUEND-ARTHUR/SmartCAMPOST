@@ -1,0 +1,112 @@
+SmartCAMPOST – Modèle Logique de Données (MLD)
+Conception et Implémentation de SmartCAMPOST : Un Système Intelligent de Suivi, Collecte et Livraison de Colis utilisant le QR Code, le GPS et l’IAPréparé par : Nguend Arthur Johann
+1. Introduction au Modèle Logique de Données
+Le Modèle Logique de Données (MLD), également appelé Logical Data Model (LDM), représente la structure logique des données utilisées dans le système SmartCAMPOST.Il constitue une passerelle entre le Modèle Conceptuel de Données (MCD) et le Modèle Physique de Données (MPD).
+Le MLD définit toutes les entités, attributs, relations et contraintes nécessaires pour construire une base de données cohérente, normalisée et évolutive.Son objectif principal est de garantir que la conception des données soutienne toutes les règles métier de SmartCAMPOST : le suivi, la collecte, le paiement et la livraison des colis, tout en assurant l’intégrité référentielle et la normalisation.
+2. Vue d’ensemble du Modèle Logique de SmartCAMPOST
+Le Modèle Logique de Données de SmartCAMPOST décrit l’architecture de données essentielle qui permet le suivi, la distribution et la gestion logistique des colis.Il est composé de treize entités principales :
+CLIENT, ADRESSE, AGENCE, AGENT, COLIS, DEMANDE_COLLECTE, EVENEMENT_SCAN, PREUVE_LIVRAISON, PAIEMENT, FACTURE, NOTIFICATION, TARIF, et DETAIL_TARIFICATION.
+Chaque entité correspond à un élément réel du processus opérationnel de la CAMPOST, garantissant une coordination fluide entre les clients, les agents, les agences et les services financiers.
+3. Description des Entités
+• CLIENT
+Représente les clients enregistrés dans le système qui envoient ou reçoivent des colis.
+• ADRESSE
+Contient les adresses de l’expéditeur et du destinataire, liées aux clients ou aux colis.
+• AGENCE
+Représente une agence physique de la CAMPOST où les colis sont enregistrés, scannés, reçus ou expédiés.
+• AGENT
+Représente les employés de la CAMPOST responsables du scan, du tri, de la livraison et des opérations.
+• COLIS
+Entité centrale représentant un colis physique avec les informations de l’expéditeur, du destinataire et du suivi.
+• DEMANDE_COLLECTE
+Représente une demande d’un client pour la collecte d’un colis à domicile.
+• EVENEMENT_SCAN
+Enregistre les mouvements des colis dans les agences et les points de transit avec date, heure et localisation.
+• PREUVE_LIVRAISON
+Capture la preuve de livraison d’un colis (photo, signature ou code OTP).
+• PAIEMENT
+Enregistre les transactions financières liées aux services de livraison de colis.
+• FACTURE
+Documente les informations de facturation générées après un paiement réussi.
+• NOTIFICATION
+Représente les alertes et mises à jour envoyées aux clients par SMS ou via des notifications push.
+• TARIF
+Définit les règles tarifaires selon le type de service, la zone d’origine, la destination et le poids.
+• DETAIL_TARIFICATION
+Table associative reliant chaque colis au tarif appliqué lors de la facturation ou de la cotation.
+4. Description des Relations
+Relation
+Cardinalité
+Description
+CLIENT → COLIS
+1 → N
+Chaque client peut envoyer plusieurs colis.
+CLIENT → ADRESSE
+1 → N
+Un client peut enregistrer plusieurs adresses.
+COLIS → ADRESSE (Expéditeur/Destinataire)
+1 → 1
+Chaque colis possède une adresse d’expéditeur et une adresse de destinataire.
+COLIS → DEMANDE_COLLECTE
+1 → 0..1
+Un colis peut être associé à une demande de collecte.
+COLIS → EVENEMENT_SCAN
+1 → N
+Un colis peut générer plusieurs événements de scan.
+AGENCE → EVENEMENT_SCAN
+0..1 → N
+Une agence peut enregistrer plusieurs événements de scan.
+AGENT → EVENEMENT_SCAN
+0..1 → N
+Un agent peut effectuer plusieurs opérations de scan.
+COLIS → PREUVE_LIVRAISON
+1 → 0..1
+Un colis peut avoir une seule preuve de livraison.
+COLIS → PAIEMENT
+1 → N
+Un colis peut être associé à plusieurs paiements.
+PAIEMENT → FACTURE
+1 → 0..1
+Chaque paiement peut générer une seule facture.
+COLIS → NOTIFICATION
+1 → N
+Un colis peut générer plusieurs notifications.
+CLIENT → NOTIFICATION
+1 → N
+Un client peut recevoir plusieurs notifications.
+TARIF → DETAIL_TARIFICATION
+1 → N
+Chaque tarif peut être appliqué à plusieurs colis.
+COLIS → DETAIL_TARIFICATION
+1 → N
+Chaque colis peut avoir plusieurs détails de tarification.
+
+5. Notes et Actions Référentielles
+Dans le diagramme de Modèle de Données de StarUML, les actions référentielles telles que ON UPDATE ou ON DELETE ne peuvent pas être appliquées directement.Pour pallier cette limitation, de courtes notes ont été ajoutées à côté des entités afin de documenter ces comportements explicitement.
+Ces notes précisent comment les mises à jour ou suppressions d’un enregistrement parent affectent les enregistrements enfants.Elles garantissent la cohérence et l’intégrité des données et servent de référence lors de la mise en œuvre de la base de données.
+Actions référentielles courantes :
+ON UPDATE CASCADE – Lorsqu’un enregistrement parent est modifié, les clés étrangères des enregistrements enfants sont automatiquement mises à jour.
+ON DELETE CASCADE – Lorsqu’un enregistrement parent est supprimé, tous les enregistrements enfants sont supprimés.
+ON DELETE RESTRICT – Empêche la suppression d’un enregistrement parent s’il existe des enfants liés.
+ON DELETE SET NULL – Attribue une valeur NULL à la clé étrangère lorsqu’un parent est supprimé.
+Application dans SmartCAMPOST :
+ON UPDATE CASCADE est appliqué pour maintenir la synchronisation entre les entités parentes et enfants.
+ON DELETE CASCADE est utilisé pour des entités comme COLIS → EVENEMENT_SCAN ou COLIS → PAIEMENT afin d’assurer le nettoyage automatique des données.
+ON DELETE RESTRICT est utilisé pour CLIENT → COLIS afin de préserver l’historique des transactions.
+Les notes sont reliées visuellement aux entités via des liens de note (Note Links) dans StarUML, ce qui permet une documentation claire et complète du comportement référentiel.
+6. Intégrité et Normalisation des Données
+Le MLD de SmartCAMPOST garantit une forte intégrité des données grâce à :
+Clés primaires (PK) : Chaque table dispose d’un identifiant unique (UUID).
+Clés étrangères (FK) : Garantissent les liens valides entre les entités.
+Contraintes d’unicité (UQ) : Empêchent les doublons sur des champs comme le numéro de suivi, le matricule de l’agent ou le numéro de facture.
+Contraintes NOT NULL : Assurent que les champs obligatoires contiennent toujours des valeurs valides.
+Le modèle respecte la Troisième Forme Normale (3FN) :
+Élimine la redondance des données.
+Garantit que chaque attribut non clé dépend uniquement de la clé primaire.
+Améliore la cohérence et l’efficacité lors des mises à jour.
+Grâce à cette normalisation, le système SmartCAMPOST reste rapide, cohérent et facilement maintenable.
+7. Conclusion
+Le Modèle Logique de Données (MLD) de SmartCAMPOST constitue la base de la structure de la base de données du système logistique numérique de la CAMPOST.Il intègre l’ensemble du cycle de vie d’un colis — de la collecte au suivi, jusqu’au paiement et à la livraison — tout en maintenant une intégrité référentielle et une conception normalisée.
+L’utilisation de notes explicatives dans StarUML complète le diagramme en décrivant les règles de comportement des clés étrangères, telles que ON UPDATE CASCADE et ON DELETE CASCADE.Cela rend le modèle à la fois techniquement précis et compréhensible pour les développeurs et administrateurs de base de données.
+Ce MLD constitue le plan directeur pour la phase d’implémentation de la base de données, garantissant que SmartCAMPOST demeure fiable, évolutif et cohérent à travers tous ses services.
+In the Conceptual and Logical Data Models, the Artificial Intelligence (AI) and QR Code functionalities do not appear directly because they do not represent storage entities but rather functional processes applied to the system’s data.The QR Code is generated from the TrackingRef field in the PARCEL table, while AI relies on tracking data such as SCAN_EVENT, PAYMENT, and AGENCY  to produce external analyses and predictive insights.

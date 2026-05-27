@@ -1,0 +1,22 @@
+appId: com.smartcampost.mobile
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "Se connecter"
+    optional: true
+- waitForAnimationToEnd
+- inputText:
+    text: "client@test.cm"
+- tapOn:
+    text: "Mot de passe"
+    optional: true
+- inputText:
+    text: "Test@2024"
+- tapOn:
+    text: "Connexion"
+- waitForAnimationToEnd
+- takeScreenshot: "client-login-success"
+- assertNotVisible:
+    text: "Connexion"

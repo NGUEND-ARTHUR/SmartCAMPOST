@@ -1,0 +1,1163 @@
+Faculty of Information and Communication 
+Technology 
+ICT Department 
+ 
+ 
+ 
+Guidelines for Writing Bachelor’s Final Year 
+Projects/Dissertations 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+July 2023
+
+ 
+1 
+ 
+Table of Contents 
+ 
+1. Introduction ...............................................................................................................................3 
+1.1. Purpose of the Guidelines ................................................................................................3 
+1.2. Dissertation Supervision and Evaluation ...........................................................................4 
+1.3. Academic Integrity and Avoiding Plagiarism .....................................................................4 
+2. Guidelines for Writing .................................................................................................................5 
+2.1. Referencing Style .............................................................................................................5 
+2.2. Formatting ......................................................................................................................5 
+2.3. Words’ Count ..................................................................................................................6 
+2.4. Structure of the Dissertation ............................................................................................6 
+2.5. Title Page ........................................................................................................................7 
+2.5.1. Effective Topic ....................................................................................................................... 7 
+2.6. Abstract ..........................................................................................................................7 
+2.7. Acknowledgments ...........................................................................................................8 
+2.8. Table of Contents ............................................................................................................8 
+2.9. List of Figures and List of Tables .......................................................................................9 
+2.10. Chapter 1: Introduction ...................................................................................................9 
+2.10.1. Background to the Problem ................................................................................................ 10 
+2.10.2. Problem Statement ............................................................................................................. 10 
+2.10.3. Objectives ............................................................................................................................ 11 
+2.10.4. Research Hypotheses or Research Questions? ................................................................... 14 
+2.10.5. Scope of Research ............................................................................................................... 16 
+2.10.6. Significance of the Study ..................................................................................................... 16 
+2.10.7. Limitations of the Study ...................................................................................................... 16 
+2.10.8. Organization of the Study ................................................................................................... 17 
+2.11. Chapter 2: Literature Review .......................................................................................... 18 
+2.11.1. What is Literature Review? ................................................................................................. 18 
+2.11.2. Use of Literature Review ..................................................................................................... 19 
+2.11.3. Sources of Literature to Review .......................................................................................... 20 
+2.11.4. Questions you need to ask yourself .................................................................................... 21 
+2.11.5. Paraphrasing ....................................................................................................................... 21 
+
+ 
+2 
+ 
+2.11.6. Direct Quotation ................................................................................................................. 22 
+2.12. Chapter 3: Methodology ................................................................................................ 24 
+2.12.1. Data/Requirements Gathering ............................................................................................ 25 
+2.12.2. Population and Sample ....................................................................................................... 25 
+2.12.3. Quantitative Analysis .......................................................................................................... 26 
+2.12.4. Processes, Methods, Techniques, and Tools ...................................................................... 26 
+2.13. Chapter 4: Analysis, Design, Implementation, and Findings ............................................. 27 
+2.14. Chapter 5: Summary, Conclusions, Discussion, and Recommendations ............................ 28 
+2.15. References .................................................................................................................... 30 
+2.15.1. Referencing a Book ............................................................................................................. 31 
+2.15.2. Referencing a Journal .......................................................................................................... 33 
+2.15.3. Referencing Internet Documents ........................................................................................ 34 
+2.16. Annexes ........................................................................................................................ 35 
+2.16.1. Cover Page .......................................................................................................................... 35 
+2.16.2. Declaration .......................................................................................................................... 36 
+2.16.3. Certification ......................................................................................................................... 36 
+2.14.4. Faculty Approval ..................................................................................................................... 37 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+3 
+ 
+1. Introduction 
+ 
+The policies, format and style requirements in this manual reflect The ICT Department of 
+The ICT University’s standards for scholarship and quality of work. It is the student’s 
+responsibility to follow and meet the requirements when writing a final year 
+dissertation/project. The guidelines are reviewed and updated periodically to reflect the 
+dynamic nature of scholarship. Students should not follow the format of a previously 
+written dissertation, nor should they rely on a former version of this manual. If 
+clarifications are needed, students should consult with the ICT Department. 
+Dissertations that do not fully comply with the guidelines will not be accepted. 
+1.1. Purpose of the Guidelines 
+ 
+The purpose of dissertation is for a student to demonstrate competence while producing 
+original research, investigating a scholarly topic, or producing a creative work. The 
+dissertation should include full documentation, development, and execution of an 
+approved research, scholarly, or creative topic, and complete a final document in a 
+manner that can be understood by both an individual knowledgeable in the topic and an 
+individual whose advanced training is in another discipline. A dissertation is the 
+culmination of an undergraduate student's career, and it represents original scholarly 
+research and writing. It is a contribution to knowledge and will be available to other 
+scholars through the ICT University Library and even international journals. Its content 
+and style reflect on the author, the faculty members who have guided the research, and 
+The ICT University. Hence, these guidelines have been developed to ensure high, 
+professional, and ethical standards for research writing at The ICT University. 
+ 
+ 
+
+ 
+4 
+ 
+1.2. Dissertation Supervision and Evaluation 
+ 
+Every student carrying out a final year dissertation is allocated a supervisor. The role of 
+the supervisor is to guide the student through the research and writing process by 
+providing suggestions and feedback as to the contents, direction, timeline, style, citations, 
+and other aspects of the research. Each dissertation will be presented before a panel 
+composed of the supervisor and two other lecturers of the Department. Even though the 
+supervisor’s recommendations may have significant impact on the dissertation’s final 
+form, it is the student who is ultimately responsible for the content and style of the 
+dissertation. 
+1.3. Academic Integrity and Avoiding Plagiarism 
+ 
+As a student you are expected to cooperate in the learning process throughout your 
+programme of study by completing assignments of various kinds that are the product of 
+your own study or research. Plagiarism by any students is a serious offence: it can lead 
+to your deregistration from the University. There are three main types of plagiarism:  
+ Direct copying of text from a book, article, fellow student's essay, handout, thesis, 
+web page or other source without proper acknowledgement.  
+ Claiming individual ideas derived from a book, article etc. as one's own, and 
+incorporating them into one's work without acknowledging the source of these 
+ideas.  
+ Overly depending on the work of one or more others without proper 
+acknowledgement of the source, by constructing an essay, project etc. by 
+extracting large sections of text from another source, and merely linking these 
+together with a few of one's own sentences.  
+Thus, the University’s definition of plagiarism is the use of someone else’s language, ideas, 
+or other material without making the source(s) evident in situations where there is a 
+legitimate expectation of original work. Plagiarism does not occur when efforts to 
+
+ 
+5 
+ 
+promptly identify sources by making source use apparent to the audience of the 
+submitted material are obvious. Plagiarism may not necessarily include mistakes in 
+citation style. In summary, plagiarism is the act of representing another's work or ideas 
+as one's own without appropriate acknowledgement or referencing. Do not do it. Where 
+suspected plagiarism is discovered at the pre-submission stage, the ICT Department and 
+shall deal with the matter internally in the first instance. In such a case, a meeting with 
+the student is convened, the maximum penalty shall normally be a requirement to re-
+draft the relevant section(s) of the dissertation to the satisfaction of the supervisor. 
+2. Guidelines for Writing 
+ 
+The following information presents guidelines for preparing and writing final year 
+dissertations. 
+2.1. Referencing Style 
+ 
+The American Psychological Association (APA) Style should be consulted for all questions 
+pertaining to citations and referencing (paraphrasing, direct quotation, and entries of the 
+list of references). 
+2.2. Formatting 
+ 
+Formatting counts. Below is the required formatting for the dissertation: 
+Font: Times New Roman 
+Size: 12 
+Line Spacing: 1.5 
+Text Alignment: Justify 
+ 
+ 
+
+ 
+6 
+ 
+2.3. Words’ Count 
+ 
+The minimum number of words of dissertation is 20,000 words. 
+2.4. Structure of the Dissertation 
+ 
+Preceding the main body of the report are several pages containing the preliminary 
+material. The following lists the elements (in order) that comprise the preliminary 
+material.  
+Please note that page numbers for preliminary material are written in small Roman 
+numerals (e.g., i, ii, iii, etc.). For the main body of the paper, all pages are numbered with 
+Arabic numerals (e.g. 1, 2, 3, etc.). 
+The complete structure of the dissertation is the following: 
+  
+Title Page 
+Declaration 
+Certification 
+Dedication 
+Acknowledgments 
+Faculty Approval 
+Abstract 
+Table of Contents 
+List of Tables 
+List of Figures 
+List of Acronyms and Abbreviations 
+Chapter 1 
+Chapter 2 
+Chapter 3 
+
+ 
+7 
+ 
+Chapter 4 
+Chapter 5 
+2.5. Title Page 
+ 
+We have a Faculty/Department standard title page form you are required to follow. 
+Include the title, author, supervisor, place, and date. The Title Page is the first page of the 
+manuscript. It is considered page “i”, but the number does not appear on the page. Please 
+see the sample of the title page in the annexes. 
+2.5.1. Effective Topic 
+ 
+Selecting a topic or question worthy of investigation for dissertation is one of the most 
+significant aspects of undergraduate education. Students should choose a topic with 
+thoughtful consideration and in consultation with a supervisor. This topic should then be 
+validated by the Department. Effective topic is:  
+ Accurate, unambiguous, specific and (when possible) complete 
+ As short as possible  
+ Enticing and interesting 
+Please note: Studies that investigate on the effect of an independent variable on a 
+dependent one are not accepted by the Department/Faculty. Applied topics (that solve 
+problems in the community) are highly encouraged. 
+ 
+2.6. Abstract 
+ 
+As Elsevier publication wisely stated: the abstract is your chance to describe your research 
+in a limited number of words: use those words wisely. Together, the title and abstract 
+should fully represent your dissertation/article. A well written abstract will help readers 
+understand what your dissertation is about and whether it’s interesting or useful for 
+them. It will also help improve visibility through abstracting and indexing. The abstract 
+
+ 
+8 
+ 
+should summarize the problem or objective of your research, and its method, results, and 
+conclusions.  
+Thus, briefly state the (1) a short statement of the problem or area(s) of investigation, 
+(2) a brief discussion of the methods and procedures used in gathering data or 
+information/methodology, (3) A summary of findings/key results, and (4) 
+Recommendations/conclusions. Generally, abstracts are between 100 and 400 words.  
+Importantly, don’t promise more than your article delivers. Many authors write the 
+abstract last, so it reflects the content accurately. But it can also be helpful to write it 
+first, to help you focus your thoughts and give you a good starting point for the 
+dissertation. 
+ 
+2.7. Acknowledgments 
+ 
+This page is for the author to express professional and/or personal indebtedness. 
+Permission(s) to use previously copyrighted materials, receipt of grant funds, recognition 
+of “readers”, etc. is acknowledged on this page. Students must be consistent with the use 
+of the third ("the author") or first person throughout. This page is optional, but if included, 
+it is paginated (lower case Roman numerals) and listed in the Table of Contents 
+ 
+2.8. Table of Contents 
+ 
+The table of contents is a topic outline of the manuscript. It functions as an index to the 
+work and must fully and accurately reflect the organization of the manuscript. It is highly 
+recommended that students using the “Automatic Table of Contents” feature in 
+Microsoft Word wait until all final edits to all parts of the manuscript are complete. All 
+chapter divisions and subsections must be included in the Table of Contents (TOC) and 
+labelled exactly as they appear in the text. 
+
+ 
+9 
+ 
+ 
+2.9. List of Figures and List of Tables 
+ 
+ A FIGURE is a graphic illustration (chart, graph, diagram, photo, map or plate). Figures 
+may be professionally prepared or drawn by the author. In either case, 11 they must be 
+of letter-quality print. Include the figure numbers, figure titles, and page numbers. A 
+TABLE is a columnar arrangement of information organized to save space and convey 
+relationships briefly. Include the table numbers, table titles, and page numbers. The List 
+of Tables and the List of Figures (if any) appear as individual pages. A List of Tables/Figures 
+is necessary even if there is only one table or figure. 
+ 
+2.10. Chapter 1: Introduction 
+ 
+Chapter 1, which introduces the study and states the focus of the study, begins with 
+background information regarding the problem under investigation. The Introduction 
+should provide readers with a brief summary of literature and research related to the 
+problem being investigated, and should lead up to the statement of the problem. In 
+general, the Introduction begins with a broader perspective of the problem and becomes 
+narrower as the Introduction proceeds. This section may be divided into two separate 
+sections, the Introduction and a separate section describing the background of the 
+problem. The Introduction narrows the focus of the study and provides a brief rationale 
+for why the particular study is worth pursuing. Generally, the introductory section of 
+Chapter 1 consists of about three to six pages, but may vary considerably depending on 
+the nature of the study. The Introduction (and Background of the Problem) section(s) are 
+normally expanded in Chapter 2 (Review of Related Literature). 
+ 
+ 
+
+ 
+10 
+ 
+2.10.1.  Background to the Problem 
+ 
+ It provides the rationale/ justification of the study 
+ Gives evidence and conditions of existing situation to make the reader feel the 
+urgency of the problem and the need to solve it. 
+However; 
+ Try to capture the thrust of your research within first sentence 
+ Avoid circular reasoning (turning around, repeating the same thing again 
+and again) 
+2.10.2.  Problem Statement 
+ 
+ The statement of the problem is the focal point of your research.  
+ It is just one sentence (with several paragraphs of elaboration) that explains 
+something that needs close attention. 
+ The main function of formulating a research problem is to decide what you want 
+to find out about. 
+ It is extremely important to evaluate the research problem in the light of your 
+financial resources at your disposal, the time available and your supervisor’s 
+knowledge and expertise in your field of study. 
+ Also ask yourself whether you have sufficient knowledge of computers and 
+software if you plan to use them 
+Why is it important to state and define the problem well? 
+Because a clear statement of the problem: 
+o Is the foundation for the further development of the dissertation; 
+o Makes it easier to find information and reports of similar studies from 
+which your own study design can benefit; 
+
+ 
+11 
+ 
+o Enables the researcher to systematically point out why the proposed 
+research on the problem should be undertaken and what you hope to 
+achieve with the study. 
+Points that need to be considered for justifying the selected research problem: 
+A problem selected to be studied has to be justified in terms of its: 
+o Being a current and existing problem which needs solution. 
+o Being a widely spread problem affecting a target population. 
+o Being a problem which concerns the planners, policy makers and the 
+communities at large. 
+Information included in the problem statement: 
+1. A more detailed description of the nature of the problem 
+o basic description of the research problem 
+o the discrepancy between what is and what should be (the gap) 
+o its size, distribution, and severity (who is affected, where, since 
+when, etc.) 
+2. A brief description of any solutions that have been tried in the past, how well 
+they have worked, and why further research is needed. 
+3. A description of the type of information expected to result from the research 
+project and how this information will be used to help solve the problem. 
+ 
+2.10.3.  Objectives 
+ 
+Objectives are the goals you set out to attain in your study. 
+Since these objectives inform the reader of what you want to achieve through the study, 
+it is extremely important to word them clearly and specifically. 
+Objectives should be listed under two headings; 
+ General objective (a single) 
+ Specific Objectives (maximum of 4) 
+
+ 
+12 
+ 
+General Objective 
+ Refers to the general intention of the research. 
+ Should clearly spell out what the project is supposed to accomplish. 
+ The general objective should be closely related to the statement of the 
+problem. For example, if the problem identified is low utilization of computers 
+in rural areas, the general objective of the study could be ‘To examine the 
+reasons for the low utilization of computers in rural areas’. 
+ If we break down this general objective into smaller and logically connected 
+parts, then we get specific objectives. 
+Specific Objectives 
+ These spell out how the general objective of our research study is going to be 
+achieved. 
+ Unlike the general objectives, the specific objectives are more specific and are 
+related to the research problem situation.  
+ Specific objectives should be numerically listed. 
+  Advisably not more than four in number. 
+Example: 
+ If our general objective is “To examine the reasons for the low utilization of 
+computers resources in rural areas” 
+ Then our specific objectives for this study would be; 
+o To establish the level/magnitude of low utilization of computers amongst 
+people leaving in rural areas. 
+o To determine the reasons for the low utilization of computer resources in 
+rural areas. 
+o To find out the relationship between computers and socio-cultural 
+backgrounds amongst people. 
+ 
+
+ 
+13 
+ 
+Formulation of research objectives 
+The formulation of objectives will help us to: 
+ Focus on the study (narrowing it down to essentials) 
+ Avoid collection of data that are not strictly necessary for 
+understanding and solving the identified problem 
+ Organize the study in clearly defined parts 
+How should specific objectives be stated? 
+We have to make sure that our objectives: 
+ Cover the different aspects of the problem and  arranged in a logical 
+sequence 
+ Are clearly expressed in measurable terms 
+ Are realistic considering local conditions 
+ Meet the purpose of the study 
+ Use action verbs that are specific enough to be measured 
+Examples of action verbs are: 
+ to determine 
+ to compare 
+ to verify 
+ to calculate 
+ to describe 
+ to find out 
+ to establish 
+Avoid the use of vague non-action verbs such as; 
+ to appreciate 
+ to understand 
+ to study 
+
+ 
+14 
+ 
+Characteristics of Specific Objectives 
+ 
+ 
+Research specific objectives must be SMART, i.e.: 
+ Specific – What do you want to do or achieve? 
+ Measurable – How will you measure or determine whether you 
+have achieved the objectives? 
+ Achievable – Given the resources you have, are the set objectives 
+attainable or realistic? 
+ Relevant – Will the set objectives lead to the desired end result or 
+goal? 
+ Time bound – When will these objectives be accomplished within a 
+given time frame? 
+2.10.4.  Research Hypotheses or Research Questions? 
+ 
+ Both can’t be used. You have to choose either hypotheses or questions 
+ Questions are real questions with question marks? 
+ Hypotheses are assumptions  
+ Hypotheses are preferably used when a relationship involving two or more 
+variables in a given research needs to be tested 
+ In applied research, research questions are preferred (though a good applied 
+research involves statistical/variable analysis) 
+ It is up to you and your supervisor to choose! 
+ 
+ 
+
+
+ 
+15 
+ 
+What is a Hypothesis? 
+ A hypothesis represents a belief that a researcher possesses before conducting a 
+satisfactory number of experiments that could potentially disprove that belief.  
+ For example, you open your refrigerator at home and are greeted with a horrible 
+sour smell. You decide that the milk must have gone bad. This is your hypothesis.  
+ It is based on the phenomena you are observing right now (sour smell) as well as 
+knowledge from past experience (bad milk has a sour smell).  
+ You test your hypothesis by opening the container of milk and smelling it. You 
+find that the milk doesn't smell sour after all, so you must come up with another 
+hypothesis (maybe it is the leftover from last week!). 
+Process of Testing Hypotheses 
+ 
+The formulation of a hypothesis provides a study with focus. It tells you what specific 
+aspects of a research problem to investigate and tells u what data to collect and what not 
+to collect. 
+Types of Hypotheses 
+There are generally two competing types of hypotheses, i.e. the alternative hypothesis 
+and the null hypothesis. 
+• Alternative hypothesis 
+– It is what the researcher actually believes or assumes. 
+– E.g. Class attendance affects a student’s performance. 
+• A null hypothesis  
+– It is often the reverse of what the researcher assumes. 
+– E.g. Class attendance does not affect a student’s performance. 
+
+
+ 
+16 
+ 
+2.10.5.  Scope of Research 
+ 
+The scope sets the boundary of your research study. 
+The "scope" section is where you list what you are doing and you also list something 
+explicitly that you are not doing because it is outside the bounds of the project. 
+For example, you may be doing a research about high school students. You the 
+researcher might know what you mean by "high school”, but some people reading your 
+work may have different interpretations. Don't assume too much about your readers. 
+Therefore, the scope in this study would be: 
+Example scope: In this study we shall gather statistics about high school students enrolled 
+in public and private high schools. We will not study students in alternative educational 
+settings such as juvenile detention facilities. 
+2.10.6.  Significance of the Study 
+ 
+ Refers to relevance of the study in terms of academic contributions and 
+practical use.  
+ It justifies the reason for your study and makes the purpose worth pursuing. 
+ The significance of the study answers the questions: 
+o  Why is your study important? 
+o To whom is it important? 
+o  What benefit(s) will occur if your study is done?  
+2.10.7.  Limitations of the Study 
+ 
+Limitations are factors, usually beyond the researcher's control, that may affect the 
+results of the study or how the results are interpreted. Stating limitations of the study 
+may be very useful for readers because they provide a method to acknowledge possible 
+errors or difficulties in interpreting results of the study. Limitations that are not readily 
+apparent at the start of the research project may develop or become apparent as the 
+
+ 
+17 
+ 
+study progresses. In any case, limitations should not be considered alibis or excuses; they 
+are simply factors or conditions that help the reader get a truer sense of what the study 
+results mean and how widely they can be generalized. While all studies have some 
+inherent limitations, you should address only those that may have a significant effect on 
+your particular study. 
+Examples of frequently encountered limitations might include the following:  
+1. Due to the small/unique sample available for the study, results may not be 
+generalizable beyond the specific population from which the sample was drawn. 
+ 2. Due to the failure of sample respondents to answer with candor, results might not 
+accurately reflect the opinions of all members of the included population.  
+3. Due to the length of the study, a significant number of respondents available in the 
+preliminary testing may be unavailable or unwilling to participate in the final stage of 
+testing.  
+Although stating limitations of the study assists the reader in understanding some of the 
+inherent problems encountered by the researcher, it is also important for the researcher 
+to design and conduct the study in a manner that precludes having such numerous or 
+severe limitations that any results of the study are essentially useless. Research designs 
+that control or account for the unwanted influence of extraneous variables help assure 
+that the study results are both valid and reliable – thus keeping limitations of the study 
+to a reasonable number and scope. (Note: While this section is optional, almost all 
+dissertations include a limitations section. Not including this section implies that your 
+study has accounted for all (or nearly all) variables, is generalizable to all populations, and 
+could be replicated accurately under all conditions.) 
+2.10.8.  Organization of the Study 
+ 
+The final section in Chapter 1 summarizes the contents of each of the chapters that will 
+comprise the study. This permits readers to know what information will be found in each 
+
+ 
+18 
+ 
+chapter and facilitates finding specific information without searching through the 
+dissertation page by page to do so. This section also provides a logical transition into the 
+next chapter of the dissertation. The following presents an example of this section: 
+Chapter 1 has presented the introduction, statement of the problem, research questions, 
+significance of the study, definition of terms, and limitations of the study. Chapter 2 
+contains the review of related literature and research related to the problem being 
+investigated (be specific – summarize the actual contents of the review). The 
+methodology and 8 procedures used to gather data for the study are presented in Chapter 
+3. The results of analyses and findings to emerge from the study are (will be) contained in 
+Chapter 4. Chapter 5 contains (will contain) a summary of the study and findings, 
+conclusions drawn from the findings, a discussion, and recommendations for further 
+study. 
+2.11. Chapter 2: Literature Review 
+ 
+The purpose of Chapter 2 is to provide the reader with a comprehensive review of the 
+literature related to the problem under investigation. The review of related literature 
+should greatly expand upon the introduction and background information presented in 
+Chapter 1. This chapter may contain theories and models relevant to the problem, a 
+historical overview of the problem, current trends related to the problem, and significant 
+research data published about the problem 
+2.11.1.  What is Literature Review? 
+ 
+ A summary and explanation of key studies relevant to a proposed project. 
+ It is an account of what has been published on a topic by accredited scholars 
+and researchers. 
+ While reviewing a literature, all what is known about the study topic should be 
+summarized with the relevant references. This review should answer; 
+o How much is known? 
+
+ 
+19 
+ 
+o What is not known? 
+o What should be done based on what is lacking? 
+In other words, the literature review should bring out the research gap. 
+2.11.2.  Use of Literature Review 
+ 
+ Brings clarity and focus to your research problem. It increases your knowledge on 
+the problem you want to study and this may assist you in refining your "statement 
+of the problem". (it is the reason why it is advocated by many scholars to start 
+with this chapter instead of chapter 1) 
+ Improves your methodology. Going through the literature acquaints you with the 
+methodologies that have been used by others to find answers to research 
+problems similar to the one you are investigating.  
+o It tells you if others have used procedures and methods similar to the ones 
+you are proposing, if these methods have worked well for them and what 
+problems they have faced with them. 
+o By becoming aware of any problems and pitfalls, you will be better 
+positioned to select a methodology that is capable of providing valid 
+answers to your research questions. 
+ Broaden your knowledge base in your research area. The most important function 
+of the literature review is to ensure you read widely around the subject area in 
+which you intend to conduct your research study. 
+o It is important that you know what other researchers have found in regards 
+to the same or similar question, what theories have been put forward and 
+what gaps exist in the relevant body of knowledge.  
+ It prevents you from duplicating work that has been done before. 
+ 
+ 
+
+ 
+20 
+ 
+2.11.3.  Sources of Literature to Review 
+ 
+ Internet: the fastest-growing source of information is on the Internet. It is 
+impossible to characterize the information available but here are some hints about 
+using electronic sources:  
+o bear in mind that anyone can post information on the Internet so the quality 
+may not be reliable. 
+o the information you find may be intended for a general audience and so not 
+be suitable for inclusion in your literature review (information for a general 
+audience is usually less detailed) 
+ Journal articles:  These are good especially for up-to-date information. They are 
+frequently used in literature reviews because they offer a relatively concise, up-to-
+date format for research. 
+ Books:  Books tend to be less up-to-date as it takes longer for a book to be 
+published than for a journal article. But, they do offer a good starting point from 
+which to find more detailed sources.  
+ Government/corporate reports: many government departments and 
+corporations carry out research. Their published findings can provide a useful 
+source of information, depending on your field of study. 
+ Newspapers: Often newspapers are more helpful as providers of information 
+about recent trends, discoveries or changes, e.g. announcing changes in 
+government policy, but you should then search for more detailed information in 
+other sources. 
+ Dissertations, project reports: these can be useful sources of information. 
+However there are disadvantages: 
+o they can be difficult to obtain since they are not published, but are generally 
+only available from the library shelf. 
+
+ 
+21 
+ 
+o the student who carried out the research may not be an experienced 
+researcher and therefore you might have to treat their findings with more 
+caution than published research.  
+ Conference proceedings: these can be useful in providing the latest research, or 
+research that has not been published.  
+ Magazines: magazines intended for a general audience are unlikely to be useful in 
+providing the sort of information you need. Specialized magazines may be more 
+useful (for example business magazines for management students). 
+ Monographs: (formal piece of writing or handbook on a subject). 
+2.11.4.  Questions you need to ask yourself  
+ 
+ What has been done in your field of research?  
+ What principles of selection are you going to use?  
+ How are you going to order your discussion? sequential, thematic, or a 
+combination? 
+  What section headings will you use?  
+ How do the various studies relate to each other? What precise contribution do 
+they make to the field?  
+ What are their limitations?  
+ How does your own research fit into what has already been done?  
+2.11.5.  Paraphrasing  
+ 
+ Is the most commonly used format when writing in-text citations in Literature 
+Review (and even in the entire dissertation) 
+ It means putting someone else's words into your own words but still saying the 
+same thing.  
+
+ 
+22 
+ 
+ When you paraphrase from one of your sources, you must recognize where it 
+came from. 
+ When paraphrasing using the APA style, the researcher is not required to include 
+page numbers in the in-text citation.  
+ You only need cite the author’s last name and date of publication. 
+E.g.  
+o Pondi (2018) believes that the population of Northern Cameroon 
+has increased by 12% since 2008 
+OR  
+o The population of Northern Cameroon has increased by 12% since 
+2008. (Pondi, 2018).  
+ However, in cases where words are difficult to paraphrase, we can use direct 
+quoting… 
+2.11.6.  Direct Quotation 
+ 
+ A direct quotation is one in which you copy an author's words directly from the 
+text and use that exact wording in your essay. 
+ If you are quoting directly from a source, APA style sets out 2 formats:  
+o one for quotes less than 40 words and  
+o another for quotes for 40 words or more.  
+ If your quote is less than 40 words type it in text with double quotation marks. 
+Several methods are acceptable. 
+ Example Method 1:  
+o Isoh (2018) stated that "the effect of light deprivation on laboratory mice 
+was significant" (p.21). 
+ Example Method 2: 
+o "The effect of light deprivation on laboratory mice was significant" (Isoh, 
+2018, p.21). 
+
+ 
+23 
+ 
+ Example Method 3: 
+o He stated, that "the effect of light deprivation on laboratory mice was 
+significant" (Isoh, 2018, p.21), however, no other experiments have been 
+done this year… 
+ If your quote is 40 words or greater take a new line and indent the quote to 
+separate it from the main text (in this case you do not require quotation marks).  
+ Example: 
+In fact, Ziraba (2017, p. 33) suggests that schemata  
+truly are the building blocks of 
+cognition. They are the fundamental  
+elements upon which all information  
+processing depends. Schemata are  
+employed in the process of interpreting 
+data….. 
+ When referencing the quote, include the page number from which it was taken 
+and always ensure that the grammar of the quote is consistent with the grammar 
+of your sentence. 
+When use Direct Quotation? 
+In cases where you have to highlight: 
+• Author's definitions of important terms. 
+• Assumptions underlying the author's choice of words. 
+• Particularly illustrative examples of an author's specific view, difficult to 
+paraphrase. 
+• Particularly well-expressed opinions, revealing insights which a paraphrase could 
+not capture. 
+Number of Authors of In-text Citations (Paraphrasing & Direct Quotation) 
+ Two authors. Use both names each time you quote from the source.  
+o Amaechi & Agajo (2019) believe that……….. 
+
+ 
+24 
+ 
+ Three to five authors. Cite all the authors in text the first time a reference occurs; 
+in subsequent citations, include only the surname of the first author followed by 
+et al. 
+o First reference: 
+ Amaechi, Ngend, Isoh, Agajo & Ziraba (2019) argue that ……….. 
+o Subsequent references (the following citations of the same work): 
+     Amaechi et al. (2019) argue that… 
+ Six or more authors. Cite in text only the surname of the first author followed by 
+et al. and the year for the first and subsequent citations. 
+o Amaechi et al. (2020) argue that…. 
+ Author is listed as "Anonymous". Use it as if it were the author's name. 
+o Anonymous (2016) argues that…. 
+ 
+2.12. Chapter 3: Methodology 
+ 
+ This chapter should make clear to the reader the way that you intend to 
+approach the research problem and the techniques and logic that you will use 
+to address it.  
+ It also includes the procedures, the sample and the instruments you will use in 
+your research. 
+ The methodology answers these three main questions: 
+o How is the data/ requirements going to be collected or 
+generated? 
+o How will data/requirements be analyzed or designed? 
+o What processes, methods, tools, and techniques will be used 
+and how they will be used?            
+
+ 
+25 
+ 
+ In other words, the methodology shows the reader how you are going to 
+obtain your results. 
+2.12.1.  Data/Requirements Gathering 
+ 
+Tools and techniques for data or requirements gathering are described here. They may 
+include: 
+o Interviews 
+o Review of existing documents (documentation) 
+o Questionnaires (Physical or Google forms) 
+o Remote Sensing (through GPS, robots or drones for instance) 
+o Joint Application Development (JAD) 
+o Focus Groups 
+o Participatory Design 
+o Observation 
+o Shadowing 
+2.12.2.  Population and Sample 
+ 
+This section describes the population used in the study and the process utilized in 
+selecting a sample. Unless the population is extremely small, a sample usually will be 
+drawn from the population. The sample should be small enough to provide a 
+manageable volume of data, but the sample must accurately represent the population 
+if any valid inferences are to be drawn from the sample results. In general, the sample 
+will accurately represent the population from which it is drawn if (a) sample selection 
+carefully follows an appropriate sampling design, (b) the sample is randomly selected 
+from the population, (c) a large enough sample is selected in relation to the total 
+population, and (d) the sample size is adequate for the data-collecting instrument being 
+used. 
+
+ 
+26 
+ 
+2.12.3.  Quantitative Analysis 
+ 
+ Even though pure quantitative research is not encouraged in the 
+Faculty/Department, your applied research could make use of it. 
+ You could embed quantitative analysis in your applied research to answer the 
+following questions for instance: 
+o What does the population (or sample) think about my idea? your idea 
+could be a Web/Mobile Application to address a problem in the community 
+for instance 
+o What does the population (or sample) think about my solution? What is 
+their experience (opinion, feeling) after using my solution? 
+ Best applied research include a quantitative analysis. So, we advocate your 
+research design to be smart enough to accommodate both applied and 
+quantitative approaches. 
+Tools & Techniques used in Quantitative Analysis 
+If you decide to make use of quantitative design in your applied research (it is what we 
+recommend). You could make use of the following tools and techniques: 
+o Sampling (probabilistic or non-probabilistic sampling) 
+o Descriptive and inferential statistics 
+o Statistical software packages (like Spreadsheets, SPSS, Stata, etc.) 
+2.12.4.  Processes, Methods, Techniques, and Tools 
+ 
+Whether you are developing a model, an algorithm, or a system, you will use 
+Processes, Methods, Techniques, and Tools. In this Chapter 3 you should indicate the 
+ones you will use. They may include for instance: 
+Processes: 
+ System Development Lifecycles 
+ Analysis and Design Cycles 
+
+ 
+27 
+ 
+ Implementation and Testing Cycles 
+ Work Breakdown Structures and Plans 
+ Etc. 
+Methods and Techniques: 
+ Unified Modeling Language (UML) 
+ Modeling and Diagramming Techniques 
+ Agile Development 
+ Prototyping 
+ Algorithmic Design 
+ Structured Analysis and Design Technique (SADT) 
+ Information Engineering 
+ Modeling and Simulation 
+ Etc. 
+Tools: 
+ Development Tools and Languages 
+ Testing Tools 
+ Data Resource Management Tools 
+ System Software 
+ Etc. 
+2.13. Chapter 4: Analysis, Design, Implementation, and Findings 
+ 
+This chapter 4 is the execution of what has been said to me done in Chapter 3 
+(Methodology). It provides: 
+ The statistical analysis of data collected (if quantitative design has been used). It 
+could be statistical analysis of the idea (is it good or bad) or the solution (UX, user 
+experience) 
+
+ 
+28 
+ 
+ The analysis of the requirements gathered. Specifications of the model, the 
+algorithm, or the system is properly documented here. 
+ The design of the specifications. Diagrams, models, and other artifacts are 
+designed at this stage. 
+ The implementation and the testing of designs. It is done using the tools and 
+techniques listed in the methodology. 
+ The findings and results. It is the reporting of the findings and results (Please note 
+that Chapter 4 is limited to reporting findings and results, and is not the proper 
+place for conclusions or discussion of the findings. Chapter 5 is where findings are 
+discussed). 
+2.14. Chapter 5: Summary, Conclusions, Discussion, and Recommendations 
+ 
+ Summary  
+The Summary section of Chapter 5 provides a brief recap of the entire study. Generally, 
+this section summarizes the introduction, problem statement and hypotheses/research 
+questions, literature review, methodology, and findings. Someone reading this section 
+would have a good overview of why the study was done, the specific purpose of the study 
+and hypotheses/research questions, what the literature relates about the problem under 
+investigation (very briefly), the methods used to gather data for the study, and findings 
+emerging from analysis of the data. 
+ Conclusions  
+This section presents conclusions drawn from the findings and results of the data 
+analysis. Frequently, conclusions provide answers to hypotheses or research questions 
+posed in Chapter 1. While conclusions may be written in narrative form or listed one at a 
+time, listing them one at a time is generally easier for readers to follow and helps maintain 
+clarity of focus for each conclusion. An important observation regarding conclusions is in 
+order: Conclusions are not the same as findings and should not simply be restatements 
+
+ 
+29 
+ 
+of findings from Chapter 4. A conclusion should be broader and more encompassing than 
+a specific finding, and several findings may be incorporated into one conclusion. While 
+several findings may be used to support one conclusion, it is also possible that one finding 
+might give rise to several conclusions (although this is somewhat less common). 
+Generally, while specific findings are stated in the past tense (e.g., students expressed 
+greatest satisfaction with university instructors), conclusions are stated in the present 
+tense (e.g., students are most satisfied with university instructors). The following 
+illustrates the relationship between findings and conclusions. 
+A study of public school superintendents across the United States in 1991 yielded the 
+following findings: 
+1. Only 5% were non-White  
+2. Only 8% were female 
+ From these findings the following conclusion was drawn: Women and minorities 
+continue to remain underrepresented in the ranks of public school superintendents.  
+ Discussion  
+The discussion section provides a forum within which the researcher explores and 
+attempts to explain findings and conclusions that emerged from the study. Within this 
+section, the researcher attempts to interpret findings and conclusions, and relate these 
+to both the purpose of the study and to published results from other studies examined in 
+the literature review. This section may be used to forward theories and/or models, or 
+raise questions regarding previously developed theories. It is important to note that the 
+discussion section in Chapter 5 provides the researcher with one of the very few 
+opportunities throughout the dissertation to explore ideas and possibilities. Unlike most 
+other sections of the dissertation whose content and form are dictated by fairly rigid 
+standards, the discussion section may be open-ended and take the form that researcher 
+desires. Some researchers choose to discuss each conclusion or finding separately, while 
+others prefer to address several or all of them at once in a general discussion. 
+
+ 
+30 
+ 
+ Recommendations 
+The final section of Chapter 5 contains recommendations that emerge from the study. 
+Generally, recommendations are of two distinct types; recommendations for action or 
+practice (based on the study's findings and conclusions, and sometimes headed 
+Recommendations from the Study or Recommendations for Practice), and 
+Recommendations for Further Study. Frequently a separate section is included for each 
+set of recommendations – each with an appropriate section heading. Recommendations 
+for practice are generally prescriptive in nature and address what could or should be done 
+by practitioners or members of the intended audience in terms of professional practice 
+and policy. These recommendations are based upon results of the study. 
+ For example: Since male and female teachers rated elements of the professional 
+development program much differently, the administration should provide gender-
+appropriate training to the teachers that highlights gender differences.  
+Recommendations for further study contain suggestions regarding follow-up studies or 
+replication studies. These recommendations usually acknowledge limitations that the 
+study included and which further studies could help explain or clarify. These might include 
+different methodologies, expanded populations or samples, or changes in the instrument 
+itself.  
+For example: Since the current study was completed using a cross-sectional survey 
+design, a similar study should be planned within the same school that uses a 
+longitudinal design to determine if changes over time become perceptible. 
+2.15. References 
+ 
+ References (i.e. all the sources used to produce your work) come at the end of 
+your paper, on a separate page with the word References centered at the top.  
+ The list is alphabetical by the author’s last name. If no author is given, start with 
+the subject heading.  
+
+ 
+31 
+ 
+ Each type of reference used, has a different format.   
+ Referencing simply means that you indicate which material is not your own and 
+show where you got it from. 
+ Even if you have not used someone's exact words, but have rephrased their ideas 
+you need to give your sources.   
+ The idea is that someone reading your work should be able to recognize the 
+difference between your work and the author’s. 
+ You need to provide them with enough information about your sources so that 
+one can easily find the source themselves. 
+2.15.1.  Referencing a Book 
+ 
+Necessary Information and where to find it: 
+ Author(s) of book can generally be found on both the cover (and dust jacket) and 
+title page.  
+ Year of publication can sometimes be found at the bottom of the title page; 
+otherwise look on the page directly behind the title page, where it says 
+"Copyright ©."  
+ Title of book can be found on both the cover (or dust jacket) and title page 
+(naturally 
+ Place of publication is usually listed on the title page  
+ Publishing entity is almost always listed at the bottom of the title page. If no 
+listing is made here, try the page directly behind the title page. 
+AUTHOR(S) OF BOOK 
+For books, put each author's last name, then a comma, then the first initial of the first 
+name, then any additional initials. e. g 
+o One author - Pondi, J. E.  
+o Two authors - Ngend, L. E., & Amaechi, A.  
+
+ 
+32 
+ 
+o Three authors - Sack, S. H., Chen, C. L., & Crismon, S. 
+YEAR OF PUBLICATION 
+For books, include only the year of copyright, in parenthesis, then end with a period. If 
+no date of publication is listed, put "n.d." in the parenthesis.  
+o Standard form  - (1994). 
+o No date given - (n.d.). 
+TITLE OF BOOK 
+Give the full title of the book, Capitalize only the first letter of the first word of the title. 
+e.g.  
+o Standard form - The evolution of Internet in the last three decades 
+PLACE OF PUBLICATION 
+Certain common cities of publication are included with no additional information. These 
+include: Baltimore, Boston, Chicago, Los Angeles, New York, Philadelphia, San Francisco, 
+Amsterdam, Jerusalem, London, Milan, Moscow, Paris, Rome, Stockholm, Tokyo, and 
+Vienna. If the book was published in one of these places, simply list the city, followed by 
+a colon (:). e.g.  
+o Common locations -  New York: 
+PUBLISHING ENTITY 
+ Give as much of the publisher's name as necessary to render it comprehensible. Follow 
+the publisher's name with a period.  
+o Commercial press- Collins.  
+o University press- Cambridge University Press.  
+o Corporate press- General Electric Corporation. 
+GENERAL EXAMPLE 
+o Webb, C. D. (2018). A novel protocol for point to point data transmission in 
+IoT. Boston, Cambridge University. 
+
+ 
+33 
+ 
+o Order: Author(s), year, title of the book, place of publication, publishing 
+entity. 
+2.15.2.  Referencing a Journal 
+ 
+Necessary Information and where to find it: 
+ Author(s) of article can be found either in the table of contents or on the first page 
+of the article.  
+ Year of publication is almost always included on the front cover of the journal, or 
+on the journal's title page. Often the publication year can also be found on the first 
+page of each article, at the top of each page, or on the journal's spine.  
+ Title of article is printed in the table of contents and on the first page of the article.  
+ Title of journal is indicated on the journal's front cover or title page. Sometimes it 
+will also be printed at the top of each page and on the journal's spine.  
+ Volume number is usually noted on the front cover or title page of the journal.  
+ Issue number is used only if the journal paginates each issue individually; the issue 
+number can usually be found either on the front cover or title page. Sometimes 
+the issue number is also found on the first page of the article. 
+ Pages of chapter are sometimes specified as a range in the table of contents; 
+otherwise, make a note of the first and last page numbers of the actual article. 
+ 
+VOLUME & ISSUE NUMBER 
+o Volume alone - Journal title, 25,  
+o Volume and issue - Journal title, 18 (6),  
+PAGE NUMBER 
+o After volume - 18, 94-156.  
+o After issue- 9 (6), 221-238.  
+ 
+
+ 
+34 
+ 
+GENERAL EXAMPLE 
+o Ngend, L. (2015). A hybrid classification model in machine learning. African 
+Computer Science Journal, 26 (2), 247-289. 
+o Order:  author(s) name, year, title of article, title of journal, volume 
+number, issue number, page numbers.  
+*****N.B:  follow the same format for journal referencing to reference other periodicals 
+like magazines, newspapers. 
+2.15.3.  Referencing Internet Documents 
+ 
+Necessary Information and where to find it: 
+ Author(s) of document if an author is given it is usually at the very beginning or 
+very end of a particular document; when in doubt, look for an email address-this 
+will often lead you to the name of the person who authored the document  
+ Date of publication if given, the document's date will be included somewhere in 
+its text. There is a special way to note if the document has no specific date. date of 
+publication on the web (or the date of most recently updated version)  
+ Title of document the placement of documents' titles varies. Generally, web 
+authors place a title at the top of the actual web page. If no title is there, use the 
+title of the window as it opens in your web browser  
+ Location of document also varies according to the source of your document. See 
+below for details on this citation element 
+Example: 
+o  Bacon, H. P. (2021). Frequently asked questions about reinforcement 
+learning in AI. URL: http://www.hamnet.org/pigfaqs.html. Accessed on 
+February 16, 2022 
+o Author(s), Date, Title, location (URL), Date of retrieval 
+ 
+
+ 
+35 
+ 
+2.16. Annexes 
+ 
+2.16.1. Cover Page 
+ 
+THE ICT UNIVERSITY 
+ 
+ 
+ 
+ 
+Faculty of Information and Communication Technology 
+ 
+A dissertation presented and submitted in partial fulfilment of the requirement 
+for the degree of a Bachelor of Science in Information System and Networking 
+Title 
+RFID assisted Mobile Devices Identification in WSN 
+By 
+Toto Bobo 
+ 
+Registration Number: ICTU1025265 
+ 
+Supervised by: Dr. John Africa 
+ 
+ 
+March 2022 
+ 
+
+
+ 
+36 
+ 
+  
+2.16.2.  Declaration 
+ 
+I declare that the work entitled “RFID assisted Mobile Devices Identification in WSN” is my own 
+original work, conceived and presented in the partial fulfilment of the requirement for the degree 
+of a Bachelor of Science in Information System and Networking at ICT University. This work has 
+not been submitted for any degree or examination in any other university, and that all the 
+sources I have used or quoted have been indicated and acknowledged as complete references 
+ 
+Signed_______________________   Date:_____________________ 
+Name:_______________________ 
+Registration Number:____________________ 
+ 
+2.16.3.  Certification  
+ 
+This work entitled “RFID assisted Mobile Devices Identification in WSN” has been submitted for 
+examination with my approval as the Research Supervisor. 
+Signed_______________________   Date:_____________________ 
+Name:_______________________ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+37 
+ 
+2.14.4. Faculty Approval 
+ 
+This dissertation has been duly reviewed by the Department and the Faculty and is ready for examination 
+with our approval 
+Approved by 
+ 
+                                       
+Signature                               Date 
+____________________________ 
+      Engr. XXXXXXXXXXXXXXX 
+    Supervisor 
+ 
+Signature                               Date 
+____________________________ 
+Dr. Abdallah Ziraba 
+Head of Department 
+ 
+Signature                               Date 
+___________________________ 
+Dr. Luc Einstein Ngend 
+Dean

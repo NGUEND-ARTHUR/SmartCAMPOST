@@ -1,0 +1,57 @@
+ICT University – Yaoundé, Cameroon
+Bachelor of Science in Software EngineeringFinal Year Project ReportAuthor: Nguend Arthur Johann
+SmartCAMPOST: Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, AI, and Digital Payments
+
+Table of Contents
+1. Chapter 1: Introduction
+ 1.1 Background of the Study
+ 1.2 Problem Statement
+ 1.3 Objectives
+ 1.4 Scope of the Project
+ 1.5 Significance / Justification
+2. Chapter 2: System Analysis
+3. Chapter 3: System Design
+4. Chapter 4: System Implementation
+5. Chapter 5: Testing and Results
+6. Chapter 6: Conclusion and Recommendations
+7. References
+
+Chapter 1: Introduction
+1.1 Background of the Study
+The postal and logistics sector in Cameroon faces significant challenges in tracking parcels and providing timely information to customers. At CAMPOST, most parcel transactions are still processed manually, causing delays, lack of transparency, and high operational costs. Clients often visit branches multiple times just to ask, “Has my parcel arrived?” With the rise of mobile technology, QR codes, and digital payments, there is an opportunity to modernize CAMPOST’s services by developing an intelligent tracking and notification system that provides real-time parcel visibility, instant updates, and secure transactions.
+1.2 Problem Statement
+CAMPOST currently faces: Absence of real-time parcel tracking; No automatic customer notifications; Heavy manual workload for agents; Long queues and customer frustration; Risk of parcel loss, misrouting, and management errors. This leads to low customer satisfaction and a poor public image.
+1.3 Objectives
+General Objective: To design and implement an intelligent parcel tracking, collection, and delivery system for CAMPOST using QR codes, GPS, AI, and digital payments.
+Specific Objectives: Enable real-time parcel tracking; Allow customers to request parcel pickup or deposit parcels; Integrate payment systems (Orange Money, MTN Money, CAMPOST Money); Provide automated SMS notifications; Allow administrators to monitor parcels; Use AI for predictive delivery.
+1.4 Scope of the Project
+SmartCAMPOST will cover parcel registration, pickup, transportation, tracking, delivery, and payment. It will include mobile applications for customers and agents, and a desktop/web application for administrators.
+1.5 Significance / Justification
+This project supports digital transformation in Cameroon by improving postal efficiency, customer trust, and financial transparency. It modernizes CAMPOST and aligns it with global logistics standards.
+
+Chapter 2: System Analysis
+The current CAMPOST system relies heavily on paper-based tracking and manual communication. Clients are required to call or physically visit post offices to know their parcel status. No unified database exists for real-time monitoring. SmartCAMPOST replaces manual operations with automation: Each parcel is assigned a QR code, agents scan parcels, customers receive SMS notifications, and administrators monitor everything in real time.
+
+Chapter 3: System Design
+The system is composed of: Mobile App (Customer), Mobile App (Agent), Web/Desktop Dashboard (Admin), Backend API, and Database. It uses PostgreSQL for storage, Node.js or Django for backend, and Flutter for the frontend.
+QR Code Workflow
+When a parcel is registered (via customer app or agent), the system generates a unique Parcel ID (e.g., CAM-2025-000123). From this ID, a QR code is created automatically. The QR code is printed on a label and attached to the parcel. At every transit point, the agent scans it to update the parcel status. Each scan triggers a real-time SMS to the customer.
+
+Chapter 4: System Implementation
+Frontend: Flutter; Backend: Node.js or Django REST API; Database: PostgreSQL; QR Libraries: ZXing or QRGen; Payments: Orange Money, MTN Money, CAMPOST Money; Notifications: Twilio, Orange SMS API.
+AI Integration: Predictive AI estimates delivery time using distance, traffic, and historical data. AI suggests optimal routes and detects delivery anomalies.
+
+Chapter 5: Testing and Results
+Test scenarios include parcel registration, QR generation, SMS notification, and payment confirmation. Expected results: faster parcel processing, improved transparency, fewer lost parcels, higher customer satisfaction.
+
+Chapter 6: Conclusion and Recommendations
+SmartCAMPOST achieves full digitization of CAMPOST’s parcel process. It integrates tracking, communication, and payments into a single intelligent system. Future work includes expanding AI-based optimization, implementing smart lockers, and scaling nationwide.
+
+References
+CAMPOST official website (www.campost.cm)
+Orange Developer Portal (developer.orange.com)
+MTN Mobile Money API Documentation (mtn.com/developer)
+Track-POD Logistics System Documentation (track-pod.com)
+DHL Parcel Tracking Architecture – Technical Report (DHL, 2023)
+We Are Tech Africa (2024) – Digital Transformation in Cameroon
+LexAfrica (2023) – CEMAC and BEAC Payment Regulations

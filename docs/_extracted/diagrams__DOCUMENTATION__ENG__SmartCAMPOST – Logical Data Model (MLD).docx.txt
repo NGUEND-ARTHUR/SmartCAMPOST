@@ -1,0 +1,116 @@
+SmartCAMPOST – Logical Data Model (MLD)
+Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and AIPrepared by: Nguend Arthur Johann
+1. Introduction to Logical Data Model
+The Logical Data Model (LDM), also known as MLD, represents the logical structure of data used in the SmartCAMPOST system.It serves as a bridge between the Conceptual Model (MCD) and the Physical Database (MPD).The model defines all entities, attributes, relationships, and constraints required to implement a consistent, normalized, and scalable database system.
+The goal of this model is to ensure that the data design supports all SmartCAMPOST business rules — parcel tracking, collection, payment, and delivery — while maintaining referential integrity and normalization.
+2. SmartCAMPOST Data Modeling Overview
+The SmartCAMPOST Logical Data Model (MLD) describes the essential data architecture that enables parcel tracking, delivery, and logistics management.It is composed of thirteen key entities:
+CLIENT, ADDRESS, AGENCY, AGENT, PARCEL, PICKUP_REQUEST, SCAN_EVENT, DELIVERY_PROOF, PAYMENT, INVOICE, NOTIFICATION, TARIFF, and PRICING_DETAIL.
+Each entity corresponds to a real-world element in the CAMPOST operational process, ensuring smooth coordination between clients, agents, agencies, and financial components.
+
+3. Entity Descriptions
+• CLIENT
+Represents customers registered in the system who send or receive parcels.
+• ADDRESS
+Stores sender and receiver addresses linked to clients or parcels.
+• AGENCY
+Represents a physical branch of CAMPOST where parcels are scanned, received, or dispatched.
+• AGENT
+Represents CAMPOST employees managing scanning, handling, and delivery operations.
+• PARCEL
+The central entity representing a physical package with sender, recipient, and tracking information.
+• PICKUP_REQUEST
+Represents a customer’s request for parcel collection from their address.
+• SCAN_EVENT
+Tracks parcel movements through agencies and routes by logging status, time, and location.
+• DELIVERY_PROOF
+Captures evidence of successful parcel delivery (photo, signature, or OTP confirmation).
+• PAYMENT
+Stores all financial transactions related to parcel delivery and services.
+• INVOICE
+Documents billing information issued upon successful payments.
+• NOTIFICATION
+Represents alerts and updates sent to clients through SMS or push notifications.
+• TARIFF
+Defines pricing rules for delivery services based on origin, destination, and weight.
+• PRICING_DETAIL
+Associative entity linking each parcel to its corresponding applied tariff during billing or quotation.
+
+4. Relationship Descriptions
+The following summarizes all cardinalities and logical links among the entities:
+
+Relationship
+Cardinality
+Description
+CLIENT → PARCEL
+1 → N
+Each client can send multiple parcels.
+CLIENT → ADDRESS
+1 → N
+A client can register multiple addresses.
+PARCEL → ADDRESS (Sender/Recipient)
+1 → 1
+Each parcel has exactly one sender and one recipient address.
+PARCEL → PICKUP_REQUEST
+1 → 0..1
+A parcel may have one pickup request.
+PARCEL → SCAN_EVENT
+1 → N
+A parcel can generate multiple scan events.
+AGENCY → SCAN_EVENT
+0..1 → N
+Each agency may handle several scan events.
+AGENT → SCAN_EVENT
+0..1 → N
+Each agent can process multiple scan events.
+PARCEL → DELIVERY_PROOF
+1 → 0..1
+A parcel may have one delivery proof.
+PARCEL → PAYMENT
+1 → N
+A parcel can be associated with multiple payments.
+PAYMENT → INVOICE
+1 → 0..1
+Each payment may generate a single invoice.
+PARCEL → NOTIFICATION
+1 → N
+Each parcel can trigger multiple notifications.
+CLIENT → NOTIFICATION
+1 → N
+A client may receive multiple notifications.
+TARIFF → PRICING_DETAIL
+1 → N
+Each tariff can be used for several parcels.
+PARCEL → PRICING_DETAIL
+1 → N
+Each parcel can have multiple pricing details.
+
+5. Notes and Referential Actions
+In StarUML’s Data Model diagram, referential actions such as ON UPDATE or ON DELETE cannot be applied directly.To overcome this limitation, short notes were added beside entities to document these behaviors explicitly.
+These referential notes specify how updates or deletions on a parent record affect related child records.They are essential for maintaining referential integrity and provide guidance for the database administrator when implementing SQL constraints.
+Common Referential Actions:
+ON UPDATE CASCADE – When a parent record is updated, all child foreign keys are automatically updated.
+ON DELETE CASCADE – When a parent record is deleted, all dependent records are automatically deleted.
+ON DELETE RESTRICT – Prevents deletion of a parent record when dependent child records exist.
+ON DELETE SET NULL – Sets the foreign key value to NULL when the parent record is deleted.
+Application in SmartCAMPOST:
+ON UPDATE CASCADE is applied to maintain synchronization between parent and child tables.
+ON DELETE CASCADE is used for entities like PARCEL → SCAN_EVENT or PARCEL → PAYMENT to ensure logical data cleanup.
+ON DELETE RESTRICT is applied for CLIENT → PARCEL to preserve transaction history.
+The notes were visually linked to entities using Note Links in StarUML, serving as permanent documentation of database behavior.
+6. Data Integrity and Normalization
+The SmartCAMPOST MLD ensures strong data integrity by applying:
+Primary Keys (PK): Each table has a unique UUID identifier.
+Foreign Keys (FK): Ensure valid links between entities.
+Unique Constraints (UQ): Enforce uniqueness on fields like tracking_ref, invoice_number, and staff_number.
+Not Null Constraints: Guarantee that mandatory fields always contain valid data.
+The data model conforms to Third Normal Form (3NF):
+Eliminates redundancy.
+Ensures every non-key attribute depends only on the primary key.
+Improves scalability and prevents anomalies during data updates.
+This normalization ensures that the SmartCAMPOST system remains efficient, consistent, and easy to maintain.
+7. Conclusion
+The SmartCAMPOST Logical Data Model (MLD) provides a detailed and structured foundation for implementing CAMPOST’s digital logistics database.It integrates the full lifecycle of a parcel — from pickup and tracking to payment and delivery — while maintaining referential integrity and normalized data design.
+The use of notes in StarUML complements the diagram by documenting referential rules like ON UPDATE CASCADE and ON DELETE CASCADE, ensuring that the model remains both technically accurate and developer-friendly.
+This MLD serves as the official blueprint for the database implementation phase, ensuring SmartCAMPOST’s reliability, scalability, and coherence across all services.
+Dans le modèle conceptuel et logique de données, les fonctionnalités d’intelligence artificielle (IA) et de QR Code ne figurent pas directement car elles ne représentent pas des entités de stockage, mais des traitements fonctionnels appliqués sur les données du système.Le QR Code est généré à partir du champ TrackingRef de la table COLIS, tandis que l’IA s’appuie sur les données de suivi (EVENEMENT_SCAN, PAIEMENT, AGENCE, etc.) pour produire des analyses et des prédictions externes.

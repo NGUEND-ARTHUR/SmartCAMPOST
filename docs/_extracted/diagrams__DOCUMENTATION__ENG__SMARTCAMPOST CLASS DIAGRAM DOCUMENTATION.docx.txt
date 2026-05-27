@@ -1,0 +1,469 @@
+SMARTCAMPOST CLASS DIAGRAM DOCUMENTATION
+
+1. Introduction
+The class diagram is one of the most important diagrams in object-oriented design.It represents the static structure of the SmartCAMPOST system by showing all the classes, their attributes, methods (operations), and the relationships that exist between them.
+In this project, the class diagram serves as a bridge between the logical data model (MLD) and the object-oriented design phase.It ensures that all functional requirements defined in the use cases and data model are correctly implemented in software components.
+
+2. Objectives of the Class Diagram
+The main objectives of this class diagram are to:
+Model the core business entities of SmartCAMPOST (client, parcel, agent, courier, etc.);
+Define the relationships and interactions between these entities;
+Identify attributes and behaviors (methods) of each class;
+Prepare for the implementation phase in object-oriented languages (Java, Flutter/Dart, etc.);
+Ensure consistency between database structure (MLD) and object-oriented logic.
+
+3. Overview of the SmartCAMPOST System
+SmartCAMPOST is an intelligent parcel management system that allows CAMPOST clients to:
+Create parcel shipments,
+Request home pickup,
+Track their parcels in real time through QR code scanning,
+Make payments digitally (MTN, Orange, CAMPOST Money),
+Receive instant notifications (SMS, push).
+The system also allows agents, couriers, and administrators to:
+Record, validate, and deliver parcels;
+Update parcel statuses in real time;
+Generate invoices and financial reports;
+Use artificial intelligence to predict delivery time and detect anomalies.
+The class diagram models these functional aspects as interconnected software classes.
+
+4. Description of the Main Classes
+4.1 Class: Client
+Attribute
+Type
+Description
+clientId
+UUID
+Unique identifier of the client
+fullName
+String
+Full name of the client
+phone
+String
+Phone number (used for login and OTP)
+email
+String?
+Optional email address
+preferredLanguage
+String?
+Preferred language (FR/EN)
+createdAt
+DateTime
+Account creation date
+
+Methods:
+addAddress(Address) → Adds a new address for the client
+removeAddress(UUID) → Deletes a saved address
+chooseDeliveryOption(Parcel, option) → Chooses delivery type
+subscribeToNotifications(Parcel, channel) → Activates SMS/push notifications
+
+Associations:
+1 Client → 0..* Address
+1 Client → 0..* Parcel
+1 Client → 0..* Notification
+
+4.2 Class: Address
+Attribute
+Type
+Description
+addressId
+UUID
+Unique identifier
+label
+String
+Address label (e.g., Home, Office)
+city
+String
+City name
+region
+String
+Region name
+country
+String
+Country name
+latitude
+Decimal(9,6)?
+Optional geographic latitude
+longitude
+Decimal(9,6)?
+Optional geographic longitude
+
+Associations:
+0..1 Client → 0..* Address
+Used by Parcel as both sender and recipient addresses.
+
+4.3 Class: Parcel
+Attribute
+Type
+Description
+parcelId
+UUID
+Unique identifier
+trackingRef
+String
+Tracking reference (used in QR Code)
+weightKg
+Decimal
+Weight in kilograms
+dimensions
+String?
+Dimensions (L×W×H)
+declaredValue
+Decimal?
+Declared value for insurance
+isFragile
+Boolean
+True if parcel is fragile
+serviceType
+Enum
+Standard or Express
+deliveryOption
+Enum
+Agency or Home
+status
+Enum
+Parcel state (Created, In Transit, Delivered, etc.)
+createdAt
+DateTime
+Creation date
+
+Methods:
+generateTrackingRef()
+generateQrPayload()
+addScanEvent(event)
+markDelivered(pod)
+addPayment(payment)
+quote(tariffEngine)
+currentETA(analyticsService)
+
+Associations:
+1 Parcel → 1 Sender Address
+1 Parcel → 1 Recipient Address
+1 Parcel → 0..1 PickupRequest
+1 Parcel → 0..* ScanEvent
+1 Parcel → 0..* Payment
+1 Parcel → 0..1 DeliveryProof
+1 Parcel → 0..* Notification
+1 Parcel → 0..* PricingDetail
+
+4.4 Class: PickupRequest
+Attribute
+Type
+Description
+pickupId
+UUID
+Unique pickup identifier
+requestedDate
+Date
+Desired pickup date
+timeWindow
+String
+Time slot for pickup
+state
+Enum
+Requested / Assigned / Completed / Cancelled
+comment
+String?
+Additional info
+
+Methods:
+assignTo(Courier)
+complete()
+cancel(reason)
+
+Associations:
+1 PickupRequest → 1 Parcel
+0..1 Courier → 0..* PickupRequest
+
+4.5 Class: ScanEvent
+Attribute
+Type
+Description
+scanId
+UUID
+Unique ID of the event
+eventType
+Enum
+CREATED, AT_ORIGIN, IN_TRANSIT, DELIVERED, etc.
+timestamp
+DateTime
+Event date/time
+locationNote
+String?
+Optional location remark
+
+Associations:
+1 Parcel → 0..* ScanEvent
+0..1 Agency → 0..* ScanEvent
+0..1 Agent → 0..* ScanEvent
+
+4.6 Class: DeliveryProof (POD)
+Attribute
+Type
+Description
+podId
+UUID
+Proof identifier
+proofType
+Enum
+Signature, Photo, OTP
+timestamp
+DateTime
+Proof timestamp
+details
+String?
+Signature name, photo URL, or OTP code
+
+Association:
+1 Parcel → 0..1 DeliveryProof (composition)
+
+4.7 Class: Payment
+Attribute
+Type
+Description
+paymentId
+UUID
+Unique payment identifier
+amount
+Decimal
+Transaction amount
+currency
+String
+Currency (XAF)
+method
+Enum
+Digital or Cash
+status
+Enum
+INIT, PAID, FAILED
+timestamp
+DateTime
+Payment timestamp
+externalRef
+String?
+External payment reference
+
+Methods:
+initiate(provider)
+confirm(success, ref)
+refund(amount)
+
+Associations:
+1 Parcel → 0..* Payment
+1 Payment → 0..1 Invoice
+
+4.8 Class: Invoice
+Attribute
+Type
+Description
+invoiceId
+UUID
+Unique invoice ID
+invoiceNumber
+String
+Human-readable number
+totalAmount
+Decimal
+Invoice total
+issuedAt
+DateTime
+Issue date
+pdfLink
+String?
+PDF file URL
+
+Association:
+1 Payment → 0..1 Invoice
+
+4.9 Class: Notification
+Attribute
+Type
+Description
+notifId
+UUID
+Notification ID
+channel
+Enum
+SMS or PUSH
+message
+String
+Notification content
+timestamp
+DateTime
+Time sent
+status
+Enum
+SENT or FAILED
+
+Methods:
+send(gateway)
+
+Associations:
+1 Parcel → 0..* Notification
+1 Client → 0..* Notification
+
+4.10 Class: Tariff
+Attribute
+Type
+Description
+tariffId
+UUID
+Tariff ID
+serviceType
+Enum
+Standard or Express
+originZone
+String
+Departure zone
+destinationZone
+String
+Destination zone
+weightBracket
+String
+Weight range
+price
+Decimal
+Cost for that range
+
+4.11 Class: PricingDetail
+Attribute
+Type
+Description
+pricingDetailId
+UUID
+Pricing detail ID
+appliedPrice
+Decimal
+Applied price
+appliedAt
+DateTime
+Date of quotation
+Associations:
+1 Tariff → 0..* PricingDetail
+1 Parcel → 0..* PricingDetail
+
+4.12 Class: Agency
+Attribute
+Type
+Description
+agencyId
+UUID
+Unique agency ID
+agencyName
+String
+Name of the agency
+agencyCode
+String
+Unique code
+city
+String
+City
+region
+String
+Region
+
+Associations:
+0..1 Agency → 0..* ScanEvent
+
+4.13 Class: Staff (Abstract)
+Attribute
+Type
+Description
+staffId
+UUID
+Unique staff ID
+fullName
+String
+Staff name
+phone
+String
+Contact number
+status
+Enum
+Active / Inactive / Suspended
+createdAt
+DateTime
+Record date
+
+Agent (inherits from Staff)
+Adds:
+staffNumber: String
+Methods: registerParcel(), scanParcel(), deliverParcel()
+Courier (inherits from Staff)
+Adds:
+acceptPickup(), deliverParcel(), captureProof()
+
+5. Enumerations
+Enum Name
+Values
+ServiceType
+Standard, Express
+DeliveryOption
+Agency, Home
+ParcelStatus
+Created, Accepted, PickedUp, InTransit, Delivered, Returned
+EventType
+CREATED, IN_TRANSIT, ARRIVED_HUB, DELIVERED
+PaymentMethod
+Digital, Cash
+PaymentStatus
+INIT, PAID, FAILED
+Channel
+SMS, PUSH
+NotifStatus
+SENT, FAILED
+ProofType
+Signature, Photo, OTP
+StaffStatus
+Active, Inactive, Suspended
+PickupState
+Requested, Assigned, Completed, Cancelled
+
+6. Relationships Summary
+Relationship
+Type
+Multiplicity
+Client – Address
+Aggregation
+1 → 0..*
+Client – Parcel
+Association
+1 → 0..*
+Parcel – Address (Sender)
+Composition
+1 → 1
+Parcel – Address (Recipient)
+Composition
+1 → 1
+Parcel – PickupRequest
+Association
+1 → 0..1
+Parcel – ScanEvent
+Association
+1 → 0..*
+Parcel – DeliveryProof
+Composition
+1 → 0..1
+Parcel – Payment
+Association
+1 → 0..*
+Payment – Invoice
+Association
+1 → 0..1
+Parcel – Notification
+Association
+1 → 0..*
+Client – Notification
+Association
+1 → 0..*
+Tariff – PricingDetail
+Association
+1 → 0..*
+Parcel – PricingDetail
+Association
+1 → 0..*
+Staff → Agent, Courier
+Inheritance
+Generalization
+
+7. Conclusion
+The class diagram of SmartCAMPOST provides a complete object-oriented view of the system.It defines how data, logic, and users interact to achieve efficient parcel management, digital payments, and intelligent tracking.This model will guide the implementation in Java (backend) and Flutter (mobile app) while ensuring structural integrity and scalability.

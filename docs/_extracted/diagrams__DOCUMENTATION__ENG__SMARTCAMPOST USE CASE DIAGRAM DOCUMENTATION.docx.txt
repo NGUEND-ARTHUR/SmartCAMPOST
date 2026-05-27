@@ -1,0 +1,209 @@
+SMARTCAMPOST USE CASE DIAGRAM DOCUMENTATION
+1. Introduction
+The Use Case Diagram of SmartCAMPOST describes the interaction between external actors (users and systems) and the SmartCAMPOST platform.It illustrates how the different types of users — clients, staff, administrators, couriers, and external partners — interact with the system to achieve their objectives.This model also defines the scope of the system, its core functionalities, and the main relationships among the actors and use cases.
+
+2. Objectives of the Use Case Diagram
+The main objectives of this diagram are to:
+Identify who interacts with the system (actors).
+Define what each actor does (use cases).
+Represent relationships and dependencies between use cases.
+Provide a functional overview of the system before detailing the technical design.
+
+3. Actors Description
+Actor
+Description
+Client
+The main user of the system. A client can send or receive parcels, request pickups, make payments, track shipments, and receive notifications.
+Staff
+Represents all postal employees authorized to handle operations. It includes agents and couriers.
+Agent
+A staff member at a CAMPOST branch who registers parcels, scans QR codes, updates statuses, and assists customers.
+Courier
+A staff member responsible for collecting parcels at client addresses and performing home deliveries.
+Administrator
+Manages users, agencies, tariffs, zones, and system configurations (payment, SMS, reports).
+Finance Officer
+Manages financial transactions, verifies payments, reconciles balances, and validates invoices.
+Compliance Officer
+Supervises compliance with AML/CFT rules, monitors anomalies, and freezes suspicious accounts.
+Payment Provider
+External system (Orange Money, MTN MoMo, CAMPOST Money) used to process payments and send payment callbacks.
+SMS/Push Gateway
+External system responsible for sending OTPs and delivery notifications to users.
+Maps/Geolocation Service
+External API used to validate addresses and provide navigation/routing support.
+AI/Analytics Service
+External AI module that predicts delivery times, detects anomalies, and supports optimization.
+NPSI / USSD Switch (#237)
+National payment and service aggregator enabling USSD menu access for feature phones.
+
+Actor Hierarchy
+Staff
+ ├── Agent
+ └── Courier
+Agents and couriers inherit the permissions of the generic staff role, but each has specific operational tasks.
+
+4. List of Use Cases (with Descriptions)
+Client Use Cases
+Use Case
+Description
+Register Account
+The client creates a new SmartCAMPOST account.
+Verify Phone via OTP
+Confirms user identity during registration. (included in Register Account)
+Authenticate (Login)
+Allows the client to log in with phone number and password.
+Manage Profile
+The client updates personal details or preferences (language, address, contact).
+Create Parcel Request
+Allows the client to register a parcel to send.
+Describe Parcel
+Enter parcel weight, dimensions, value, fragility. (included in Create Parcel Request)
+Provide Sender/Recipient Address
+Select or add addresses. (included in Create Parcel Request)
+Quote Price
+The system calculates cost based on tariff and zone. (included in Create Parcel Request)
+Generate Tracking Reference
+Generates a unique tracking number. (included in Create Parcel Request)
+Generate QR Label
+Optionally creates a QR code label for home printing. (extends Create Parcel Request)
+Request Pickup at Home
+The client asks for a home collection.
+Validate Pickup Address (Geo)
+Confirms pickup location using GPS. (included in Request Pickup)
+Schedule Pickup Slot
+Choose a time for collection. (included in Request Pickup)
+Choose Delivery Option (Agency vs Home)
+The client selects delivery mode.
+Pay Home-Delivery Surcharge
+Applies if the client switches to home delivery. (extends Choose Delivery Option)
+Pay for Service
+Client pays for parcel shipment.
+Initiate Payment
+Launches the transaction via MoMo, Orange, or CAMPOST Money. (included in Pay for Service)
+Verify Payment Result
+Confirms payment success/failure. (included in Pay for Service)
+Issue Invoice
+Generates the digital invoice. (included in Pay for Service)
+Track Parcel
+Client tracks parcel status in real time.
+View Parcel Timeline (Scan Events)
+Displays history of scan events. (included in Track Parcel)
+Subscribe to Notifications
+Client opts in for SMS/push alerts. (extends Track Parcel)
+Download Invoice/Receipt
+Accesses and downloads invoice as PDF.
+Open Support Ticket
+Submits a complaint or inquiry.
+
+Agent Use Cases
+Use Case
+Description
+Register Walk-In Parcel
+Agent registers a parcel for a walk-in customer.
+Weigh & Classify Parcel
+Determines service category (Standard/Express). (included in Register Walk-In Parcel)
+Generate Tracking Reference
+Creates the unique tracking ID. (included in Register Walk-In Parcel)
+Print & Attach QR Label
+Prints and attaches the QR code label. (included in Register Walk-In Parcel)
+Collect Payment (Counter)
+Registers physical payment. (extends Register Walk-In Parcel)
+Issue Invoice
+Generates and provides the client with the invoice. (included in Register Walk-In Parcel)
+Validate Parcel Description
+Approves or adjusts the parcel details submitted by clients.
+Scan Parcel (Operational)
+Scans the QR code to record parcel movement.
+Validate QR / TrackingRef
+Ensures the scanned QR corresponds to a valid parcel. (included in Scan Parcel)
+Update Parcel Status
+Updates the tracking state in the system. (included in Scan Parcel)
+Receive Parcel at Destination
+Confirms arrival at destination agency.
+Deliver to Client at Counter
+Handles parcel delivery to client.
+Capture Proof of Delivery (POD)
+Takes a signature, photo, or OTP for delivery confirmation. (included in Deliver to Client)
+Manage Pickup Queue
+Assigns or monitors pending pickup requests.
+Assign Pickup to Courier
+Allocates pickup tasks to couriers. (included in Manage Pickup Queue)
+Resolve Exceptions
+Manages issues such as damaged, delayed, or lost parcels.
+
+Courier Use Cases
+Use Case
+Description
+Accept Pickup Task
+Accepts assigned pickup requests.
+Navigate to Pickup Address
+Uses GPS directions. (included in Accept Pickup Task)
+Scan & Confirm Pickup
+Scans QR label to validate parcel collection. (included in Accept Pickup Task)
+Out-for-Delivery
+Marks parcel as en route to customer.
+Navigate to Delivery Address
+Uses geolocation. (included in Out-for-Delivery)
+Collect COD (Cash on Delivery)
+Handles payment upon delivery. (extends Out-for-Delivery)
+Capture Proof of Delivery (POD)
+Confirms successful delivery. (included in Out-for-Delivery)
+
+Administrator Use Cases
+Manage Users & Roles
+Manage Agencies
+Manage Tariffs & Zones
+Manage Billers / Services
+Configure Integrations (Payment, SMS, Maps, NPSI)
+Configure Notification Templates
+View Reports & Dashboards
+Manage Refunds / Adjustments
+
+Finance Officer Use Cases
+Reconcile Payments
+Audit Invoices & Fees
+Export Settlement Reports
+Handle Chargebacks / Refunds
+
+Compliance Officer Use Cases
+Monitor Risk/AML Alerts
+«include» Review Anomalies (AI)
+Freeze / Unfreeze Accounts
+Generate Compliance Reports
+
+External Systems Use Cases
+System
+Use Cases
+Payment Provider
+Process Payment, Send Payment Callback
+SMS Gateway
+Send OTP, Send Notification
+Maps/Geolocation
+Geocode Address, Route Optimization
+AI/Analytics Service
+Predict Delivery ETA, Detect Anomaly
+NPSI Switch (#237)
+Expose USSD Menu, Route Session
+
+5. Relationships Between Use Cases
+«include» Relationships
+Register Account → Verify Phone via OTP
+Create Parcel Request → Describe Parcel, Provide Address, Quote Price, Generate Tracking Ref
+Pay for Service → Initiate Payment, Verify Payment, Issue Invoice
+Scan Parcel → Validate QR / TrackingRef, Update Parcel Status
+Deliver to Client → Capture Proof of Delivery
+Out-for-Delivery → Navigate to Address, Capture Proof of Delivery
+
+«extend» Relationships
+Create Parcel Request ← Generate QR Label
+Choose Delivery Option ← Pay Home-Delivery Surcharge
+Track Parcel ← Subscribe to Notifications
+Register Walk-In Parcel ← Collect Payment (Counter)
+Out-for-Delivery ← Collect COD
+
+Generalization Relationships
+Staff → Agent, Courier
+
+6. Conclusion
+The Use Case Diagram provides a comprehensive view of how SmartCAMPOST functions from the user’s perspective.It defines every interaction between internal users, external systems, and the platform’s processes.This model ensures that all functional requirements — from parcel creation, QR tracking, payment, delivery, to AI-based analytics — are captured clearly before development.
