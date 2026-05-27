@@ -27,6 +27,16 @@ public interface ParcelRepository extends JpaRepository<Parcel, UUID> {
     // Find parcels by status
     List<Parcel> findByStatusIn(List<ParcelStatus> statuses);
 
+    // ✅ FIX: Paginated version for map endpoints - prevents memory bomb
+    Page<Parcel> findByStatusIn(List<ParcelStatus> statuses, Pageable pageable);
+
+    // ✅ FIX: COUNT query for dashboard - avoids findAll() memory bomb
+    long countByStatus(ParcelStatus status);
+
+    // ✅ FIX: Use this in DashboardServiceImpl instead of findAll().stream().filter(DELIVERED)
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(p) FROM Parcel p WHERE p.status IN :statuses")
+    long countByStatusIn(@org.springframework.data.repository.query.Param("statuses") List<ParcelStatus> statuses);
+
     // Find unlocked parcels (can be corrected)
     List<Parcel> findByLockedFalse();
 }
