@@ -7,6 +7,7 @@ import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/delivery_service.dart';
 import 'package:smartcampost_mobile/services/parcel_service.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
+import 'package:geolocator/geolocator.dart';
 
 class DeliveryScreen extends StatefulWidget {
   const DeliveryScreen({super.key});
@@ -52,7 +53,20 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
   Future<void> _startDelivery(String parcelId) async {
     try {
-      await DeliveryService().startDelivery({'parcelId': parcelId});
+      Position? pos;
+      try {
+        final permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          pos = await Geolocator.getCurrentPosition();
+        }
+      } catch (_) {}
+
+      await DeliveryService().startDelivery({
+        'parcelId': parcelId,
+        if (pos != null) 'latitude': pos.latitude,
+        if (pos != null) 'longitude': pos.longitude,
+      });
       if (mounted) {
         ScaffoldMessenger.of(
           context,
