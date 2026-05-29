@@ -1,8 +1,8 @@
 import { test, expect, Page, Browser } from '@playwright/test';
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const API_URL  = process.env.API_URL      || 'http://localhost:8082';
+const BASE_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').trim();
+const API_URL  = (process.env.API_URL      || 'http://localhost:8082').trim();
 
 const CREDS = {
   admin:   { email: 'admin@smartcampost.cm', password: 'Admin@SmartCAMPOST2026' },
@@ -16,19 +16,30 @@ const CREDS = {
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 async function login(page: Page, email: string, password: string, label = '') {
-  await page.goto(BASE_URL + '/login');
+  await page.goto(BASE_URL + '/auth/login');
   await page.waitForLoadState('networkidle');
 
-  const emailField = page.locator('input[type=email], input[name=email], input[placeholder*=mail i]').first();
+  // Backend LoginRequest uses field "phone" but accepts email too
+  // Frontend input has name="phone" based on types/index.ts LoginRequest
+  const emailField = page.locator('input[name="phone"], input[type=email], input[name=email], input[placeholder*=mail i], input[placeholder*=phone i]').first();
   await emailField.waitFor({ timeout: 10000 });
   await emailField.fill(email);
 
-  await page.locator('input[type=password]').first().fill(password);
-  await page.locator('button[type=submit], button:has-text("Connexion"), button:has-text("Login")').first().click();
+  await page.locator('input[type=password], input[name=password]').first().fill(password);
+  await page.locator('button[type=submit], button:has-text("Se connecter"), button:has-text("Connexion"), button:has-text("Login")').first().click();
 
-  await page.waitForURL(/dashboard|admin|client|courier|agent|staff|finance|risk/, { timeout: 15000 });
+  await page.waitForURL(/dashboard|\/admin|\/client|\/courier|\/agent|\/staff|\/finance|\/risk/, { timeout: 20000 });
   await page.screenshot({ path: `screenshots/login-${label || email.split('@')[0]}.png` });
   console.log(`  Logged in as ${email} -> ${page.url()}`);
+}
+
+async function apiLogin(request: any, email: string, password: string): Promise<string> {
+  const res = await request.post(`${API_URL}/api/auth/login`, {
+    data: { phone: email, password }  // backend field is "phone" but accepts email
+  });
+  if (!res.ok()) throw new Error(`Login failed for ${email}: ${res.status()}`);
+  const body = await res.json();
+  return body.token || body.accessToken || body.jwt;
 }
 
 async function expectForbidden(page: Page, url: string) {
@@ -46,12 +57,7 @@ async function expectForbidden(page: Page, url: string) {
 // ── SETUP: Create all test users via admin API ─────────────────────────────────
 test.describe('0 - Setup', () => {
   test('Admin creates test users for all roles', async ({ request }) => {
-    const login = await request.post(`${API_URL}/api/auth/login`, {
-      data: { email: CREDS.admin.email, password: CREDS.admin.password }
-    });
-    expect(login.ok(), `Admin login failed: ${login.status()}`).toBeTruthy();
-    const body = await login.json();
-    const token = body.token || body.accessToken || body.jwt;
+    const token = await apiLogin(request, CREDS.admin.email, CREDS.admin.password);
 
     const roles = ['client','courier','agent','staff','finance','risk'] as const;
     for (const role of roles) {
@@ -59,7 +65,9 @@ test.describe('0 - Setup', () => {
       const res = await request.post(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
         data: {
-          email: c.email, password: c.password,
+          phone: c.email,  // backend uses "phone" field
+          email: c.email,
+          password: c.password,
           role: role.toUpperCase(),
           firstName: role.charAt(0).toUpperCase() + role.slice(1),
           lastName: 'Test'
@@ -192,11 +200,7 @@ test.describe('6 - Security & API Contracts', () => {
   });
 
   test('Client JWT rejected on admin endpoint', async ({ request }) => {
-    const loginRes = await request.post(`${API_URL}/api/auth/login`, {
-      data: { email: CREDS.client.email, password: CREDS.client.password }
-    });
-    const body = await loginRes.json();
-    const token = body.token || body.accessToken || body.jwt;
+    const token = await apiLogin(request, CREDS.client.email, CREDS.client.password);
     const res = await request.get(`${API_URL}/api/admin/users`, {
       headers: { Authorization: `Bearer ${token}` }
     });
