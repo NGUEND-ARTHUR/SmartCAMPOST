@@ -59,7 +59,7 @@ class ParcelService {
         'status': status,
         'latitude': latitude,
         'longitude': longitude,
-        if (comment != null) 'comment': comment,
+        'comment': ?comment,
       },
       fromJson: (d) => Parcel.fromJson(d),
     );
@@ -75,12 +75,10 @@ class ParcelService {
     return _api.post(
       '/parcels/$id/validate-and-lock',
       data: {
-        if (validatedWeight != null) 'validatedWeight': validatedWeight,
-        if (validatedDimensions != null)
-          'validatedDimensions': validatedDimensions,
-        if (validationComment != null) 'validationComment': validationComment,
-        if (descriptionConfirmed != null)
-          'descriptionConfirmed': descriptionConfirmed,
+        'validatedWeight': ?validatedWeight,
+        'validatedDimensions': ?validatedDimensions,
+        'validationComment': ?validationComment,
+        'descriptionConfirmed': ?descriptionConfirmed,
       },
       fromJson: (d) => Parcel.fromJson(d),
     );

@@ -82,6 +82,7 @@ public class DefaultAdminBootstrap implements ApplicationRunner {
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(normalizedPhone)
+                .email(email != null && !email.isBlank() ? email.trim() : null) // ✅ FIX: set email so login-by-email works
                 .passwordHash(encoded)
                 .role(UserRole.ADMIN)
                 .entityId(staff.getId())

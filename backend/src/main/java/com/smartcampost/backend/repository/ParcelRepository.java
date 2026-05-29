@@ -37,6 +37,9 @@ public interface ParcelRepository extends JpaRepository<Parcel, UUID> {
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(p) FROM Parcel p WHERE p.status IN :statuses")
     long countByStatusIn(@org.springframework.data.repository.query.Param("statuses") List<ParcelStatus> statuses);
 
+    // ✅ FIX: Count parcels by destination agency for ReportingService zone volume
+    long countByDestinationAgency_Id(UUID agencyId);
+
     // Find unlocked parcels (can be corrected)
     List<Parcel> findByLockedFalse();
 }

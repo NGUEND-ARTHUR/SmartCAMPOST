@@ -27,11 +27,14 @@ public class WebConfig implements WebMvcConfigurer {
             .toList();
         mapping.allowedOrigins(origins.toArray(new String[0]));
     } else {
+        // ✅ FIX: Explicit safe dev origins — never falls through to wildcard "*"
+        // In production, set CORS_ALLOWED_ORIGINS env var on Render
         mapping.allowedOrigins(
             "http://localhost:5173",
             "http://localhost:5174",
             "http://localhost:5175",
-            "http://localhost:5176"
+            "http://localhost:5176",
+            "http://localhost:3000"
         );
     }
     }
