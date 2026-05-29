@@ -27,3 +27,9 @@ build/
 .vercel
 .env*.local
 
+# Playwright auth state (contains session tokens — never commit)
+smartcampost-frontend/e2e/.auth/
+# Playwright output artifacts
+smartcampost-frontend/playwright-report/
+smartcampost-frontend/test-results/
+

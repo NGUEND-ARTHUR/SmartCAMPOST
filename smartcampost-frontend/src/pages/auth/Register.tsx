@@ -242,6 +242,7 @@ export function Register() {
                 id="email"
                 type="email"
                 placeholder="your@email.com"
+                autoComplete="off"
                 {...register("email")}
               />
             </div>
