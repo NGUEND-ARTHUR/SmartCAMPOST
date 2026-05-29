@@ -9,11 +9,13 @@ interface AuthStore extends AuthState {
   setAuth: (user: User, token: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
+  hydrated: boolean;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, _get) => ({
+      hydrated: false,
       user: null,
       token: null,
       isAuthenticated: false,
@@ -82,6 +84,21 @@ export const useAuthStore = create<AuthStore>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
-    },
-  ),
+      onRehydrateStorage: () => (state) => {
+        try {
+          setTimeout(() => {
+            try {
+              // useAuthStore will be defined by the time this runs; use the store API
+              (useAuthStore as any).setState({ hydrated: true });
+              console.info('[authStore] rehydrate complete, hydrated flag set');
+            } catch (e) {
+              console.warn('[authStore] inner setState error', String(e));
+            }
+          }, 0);
+        } catch (e) {
+          console.warn('[authStore] onRehydrateStorage error', String(e));
+        }
+      }
+    }
+  )
 );

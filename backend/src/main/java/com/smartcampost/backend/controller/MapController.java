@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.data.domain.PageRequest;
 import java.util.*;
 
 @RestController
@@ -73,7 +74,10 @@ public class MapController {
         List<Location> locs = locationService.getRecentForUser(uid);
         String actorId = uid;
 
-        List<Map<String, Object>> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES).stream()
+        // ✅ FIX: Use paginated query instead of findAll - prevents memory bomb
+        List<Map<String, Object>> activeParcels = parcelRepository
+                .findByStatusIn(ACTIVE_STATUSES, PageRequest.of(0, 150))
+                .stream()
                 .map(p -> {
                     ScanEventResponse last = scanEventService.getLastScanEvent(p.getId());
                     if (last == null || last.getActorId() == null || !actorId.equals(last.getActorId())) {
@@ -107,8 +111,10 @@ public class MapController {
         Map<String, Object> out = new HashMap<>();
         out.put("recentLocations", locationService.getRecentAll());
 
-        List<Map<String, Object>> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES).stream()
-                .limit(300)
+        // ✅ FIX: Use paginated query for admin overview - prevents memory bomb
+        List<Map<String, Object>> activeParcels = parcelRepository
+                .findByStatusIn(ACTIVE_STATUSES, PageRequest.of(0, 300))
+                .stream()
                 .map(p -> {
                     Map<String, Object> parcel = new HashMap<>();
                     parcel.put("id", p.getId());

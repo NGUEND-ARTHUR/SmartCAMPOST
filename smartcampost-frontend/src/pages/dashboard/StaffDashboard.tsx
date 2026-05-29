@@ -76,8 +76,8 @@ export default function StaffDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{t("staffDashboard.welcome")}</h1>
-        <p className="text-muted-foreground">{t("staffDashboard.overview")}</p>
+        <h1 className="text-3xl font-bold">{t("dashboard.staff.title")}</h1>
+        <p className="text-muted-foreground">{t("dashboard.overview")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
