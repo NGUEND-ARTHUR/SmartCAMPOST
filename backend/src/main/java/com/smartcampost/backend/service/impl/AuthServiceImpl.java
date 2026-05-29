@@ -57,8 +57,9 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // 1b) Vérifier email en double
-        if (request.getEmail() != null && clientRepository.existsByEmail(request.getEmail())) {
+        // 1b) Vérifier email en double — skip blank email (H2/Hibernate maps "" to NULL in existsBy queries)
+        if (request.getEmail() != null && !request.getEmail().isBlank()
+                && clientRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException(
                     "Email already exists",
                     ErrorCode.CLIENT_CONFLICT
@@ -162,6 +163,14 @@ public class AuthServiceImpl implements AuthService {
                 );
             }
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
+        }
+
+        // SECURITY: Block login for frozen accounts
+        if (Boolean.TRUE.equals(user.isFrozen())) {
+            throw new AuthException(
+                ErrorCode.AUTH_ACCOUNT_LOCKED,
+                "Account is frozen. Contact support to restore access."
+            );
         }
 
         // SECURITY: Clear lockout on successful login
