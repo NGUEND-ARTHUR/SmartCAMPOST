@@ -1,6 +1,6 @@
-import playwright from "../node_modules/@playwright/test/index.js";
+import { defineConfig, devices } from '@playwright/test';
 
-const { defineConfig, devices } = playwright;
+const isCI = !!process.env.CI || !!process.env.GITHUB_ACTIONS;
 
 export default defineConfig({
   testDir: "./tests",
@@ -20,11 +20,13 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command:
-      '"C:\\Users\\Nguend Arthur Johann\\Desktop\\SmartCAMPOST\\.venv\\Scripts\\python.exe" scripts/playwright_spa_server.py',
-    port: 4173,
-    timeout: 120_000,
-    reuseExistingServer: false,
-  },
+  webServer: isCI
+    ? undefined
+    : {
+        command:
+          '"C:\\Users\\Nguend Arthur Johann\\Desktop\\SmartCAMPOST\\.venv\\Scripts\\python.exe" scripts/playwright_spa_server.py',
+        port: 4173,
+        timeout: 120_000,
+        reuseExistingServer: false,
+      },
 });
