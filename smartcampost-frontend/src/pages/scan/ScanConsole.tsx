@@ -288,14 +288,15 @@ export default function ScanConsole() {
 
                   {/* Status Selection for Camera Mode */}
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {t("scan.status.label")}
+                    <label htmlFor="scan-status" className="block text-sm font-medium text-foreground mb-2">
+                      {t("scan.status.label", { defaultValue: "Scan type" })}
                     </label>
                     <select
+                      id="scan-status"
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                       className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
-                      title={t("scan.status.selectTitle")}
+                      title={t("scan.status.selectTitle", { defaultValue: "Scan type" })}
                     >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -355,15 +356,16 @@ export default function ScanConsole() {
 
                     {/* Status Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t("scan.status.label")}
+                      <label htmlFor="scan-status" className="block text-sm font-medium text-foreground mb-2">
+                        {t("scan.status.label", { defaultValue: "Scan type" })}
                       </label>
                       <select
+                        id="scan-status"
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
                         className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
-                        title={t("scan.status.selectTitle")}
+                        title={t("scan.status.selectTitle", { defaultValue: "Scan type" })}
                       >
                         {statusOptions.map((option) => (
                           <option key={option.value} value={option.value}>
