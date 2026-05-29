@@ -29,23 +29,34 @@ public class ScanController {
     @GetMapping("/{parcelId}/scan-events")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('CLIENT')")
     public ResponseEntity<List<ScanEventResponse>> getScanEvents(@PathVariable String parcelId, Principal principal) {
+        // ✅ FIX: Return 400 on invalid UUID instead of silently returning empty list
+        java.util.UUID pid;
         try {
-            java.util.UUID pid = java.util.UUID.fromString(parcelId);
-            return ResponseEntity.ok(scanEventService.getHistoryForParcel(pid));
+            pid = java.util.UUID.fromString(parcelId);
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.ok(List.of());
+            return ResponseEntity.badRequest().build();
         }
+        return ResponseEntity.ok(scanEventService.getHistoryForParcel(pid));
     }
 
     @PostMapping("/{parcelId}/scan")
     @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<?> postScan(@PathVariable String parcelId, @RequestBody ScanEvent evt) {
-        // Attach parcel and user
-        try { evt.setParcelId(java.util.UUID.fromString(parcelId)); } catch (Exception ignored) {}
-        // Resolve authentication from SecurityContext so tests work whether filters are active
-        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        try { if (auth != null) evt.setScannedBy(auth.getName()); } catch (Exception ignored) {}
+        // ✅ FIX: Fail fast on invalid parcelId instead of silently ignoring
+        java.util.UUID pid;
+        try {
+            pid = java.util.UUID.fromString(parcelId);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid parcelId format: must be a UUID"));
+        }
+        evt.setParcelId(pid);
 
+        // ✅ FIX: scannedBy stored as String (UUID string) - no Long parse needed
+        org.springframework.security.core.Authentication auth =
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null) {
+            evt.setScannedBy(auth.getName()); // stores UUID string directly
+        }
         // Derive role from authentication authorities; prefer first matching role
         String role = "CLIENT";
         if (auth != null) {
