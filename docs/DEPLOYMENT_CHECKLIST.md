@@ -13,7 +13,7 @@ Run locally
   - Or build jar and run:
     ```powershell
     ./mvnw.cmd -DskipTests package
-    java -jar target/backend-0.0.1-SNAPSHOT.jar
+    java -jar target/backend-1.0.0.jar
     ```
 
 - Frontend (Vite)
@@ -46,7 +46,7 @@ Vercel deployment (frontend)
 - Output directory: `dist`
 
 Render deployment (backend)
-- Push backend to a Render service (or connect GitHub repo). Ensure build command: `./mvnw.cmd -DskipTests package` and start command `java -jar target/backend-0.0.1-SNAPSHOT.jar`.
+- Push backend to a Render service (or connect GitHub repo). Ensure build command: `./mvnw.cmd -DskipTests package` and start command `java -jar target/backend-1.0.0.jar`.
 - Set `CORS_ALLOWED_ORIGINS` to include your Vercel domain (e.g., `https://<project>.vercel.app`) or leave empty to allow preview patterns.
 
 Notes & gotchas
