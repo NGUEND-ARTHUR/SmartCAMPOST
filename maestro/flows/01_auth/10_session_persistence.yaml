@@ -1,0 +1,30 @@
+appId: com.smartcampost.mobile
+---
+# Auth — Session persistence: login, background app, restore, still authenticated
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "01_auth_10_initial_login"
+
+# Background the app
+- pressKey: home
+- sleep: 2000
+
+# Bring app back to foreground
+- launchApp
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_10_after_restore"
+
+# Should still be authenticated (session persisted)
+- assertVisible: "Dashboard"
+- assertNotVisible: "Login"
+- assertNotVisible: "SmartCAMPOST"

@@ -1,0 +1,33 @@
+appId: com.smartcampost.mobile
+---
+# STAFF — Forbidden screens: STAFF cannot see admin/client/finance/risk specific screens
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000002"
+- tapOn: "Password"
+- inputText: "Test123!Staff"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Staff Dashboard"
+- takeScreenshot: "04_staff_03_dashboard"
+
+# STAFF should NOT see these
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "User Management"
+- assertNotVisible: "Finance Dashboard"
+- assertNotVisible: "Risk Dashboard"
+- assertNotVisible: "Courier Dashboard"
+- assertNotVisible: "Agent Dashboard"
+- assertNotVisible: "My Parcels"
+
+# STAFF should see their own items
+- assertVisible:
+    text: "Manage Pickups"
+    optional: true
+- assertVisible:
+    text: "View Analytics"
+    optional: true
+- takeScreenshot: "04_staff_03_forbidden_verified"

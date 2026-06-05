@@ -1,0 +1,18 @@
+appId: com.smartcampost.mobile
+---
+# Auth — CLIENT login: valid credentials → Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_client"
+
+# Landed on Client Dashboard
+- assertVisible: "Dashboard"
+- assertNotVisible: "Login"

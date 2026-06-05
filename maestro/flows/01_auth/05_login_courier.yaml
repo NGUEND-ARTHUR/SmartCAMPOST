@@ -1,0 +1,17 @@
+appId: com.smartcampost.mobile
+---
+# Auth — COURIER login: valid credentials → Courier Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000004"
+- tapOn: "Password"
+- inputText: "Test123!Courier"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_courier"
+
+- assertVisible: "Courier Dashboard"
+- assertNotVisible: "Login"

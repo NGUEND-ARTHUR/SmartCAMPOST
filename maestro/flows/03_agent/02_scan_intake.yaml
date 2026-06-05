@@ -1,0 +1,38 @@
+appId: com.smartcampost.mobile
+---
+# AGENT — Scan intake: navigate to scan screen, camera/QR interaction
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000003"
+- tapOn: "Password"
+- inputText: "Test123!Agent"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Agent Dashboard"
+
+# Navigate to Scan
+- tapOn: "Scan Parcel"
+- waitForAnimationToEnd
+- takeScreenshot: "03_agent_02_scan_screen"
+
+# Scan screen elements
+- assertVisible: "Scan Intake"
+# Camera preview or manual entry
+- assertVisible:
+    text: "Scan parcel QR code for intake"
+    optional: true
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Agent Dashboard"
+
+# Navigate to Receive Parcel (same scan screen via different action)
+- tapOn: "Receive Parcel"
+- waitForAnimationToEnd
+- takeScreenshot: "03_agent_02_receive_screen"
+- pressKey: back
+- waitForAnimationToEnd

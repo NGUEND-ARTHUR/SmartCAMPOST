@@ -1,0 +1,35 @@
+appId: com.smartcampost.mobile
+---
+# AGENT — Dashboard: login, validate dashboard content, quick actions
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000003"
+- tapOn: "Password"
+- inputText: "Test123!Agent"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "03_agent_01_dashboard"
+
+# Agent Dashboard content
+- assertVisible: "Agent Dashboard"
+
+# Stats cards
+- assertVisible:
+    text: "Parcels Today"
+    optional: true
+- assertVisible:
+    text: "Scanned"
+    optional: true
+
+# Quick actions
+- assertVisible: "Receive Parcel"
+- assertVisible: "Validate Parcels"
+- assertVisible: "Scan Parcel"
+
+# Scroll to see all content
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "03_agent_01_dashboard_scrolled"

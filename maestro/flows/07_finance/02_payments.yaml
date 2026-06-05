@@ -1,0 +1,45 @@
+appId: com.smartcampost.mobile
+---
+# FINANCE — Payments: view payments list, search, filter
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000005"
+- tapOn: "Password"
+- inputText: "Test123!Finance"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Finance Dashboard"
+
+# Navigate to Payments
+- tapOn: "View All Payments"
+- waitForAnimationToEnd
+- takeScreenshot: "07_finance_02_payments"
+
+# Payments screen
+- assertVisible: "Payments"
+# Empty state or list
+- assertVisible:
+    text: "No payments found"
+    optional: true
+
+# Scroll through
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "07_finance_02_payments_scrolled"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Finance Dashboard"
+
+# Navigate to Refunds
+- tapOn:
+    text: "Manage Refunds"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "07_finance_02_refunds"
+- pressKey: back
+- waitForAnimationToEnd

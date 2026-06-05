@@ -1,69 +1,65 @@
-import { test, expect, Page } from "@playwright/test";
+/**
+ * Roles — Cross-cutting role-based access tests (local infrastructure).
+ * Updated from legacy remote-URL tests to use local backend/frontend.
+ */
+import { test, expect } from '@playwright/test';
+import { AUTH_STATE, ADMIN_USER, TEST_CLIENT } from './fixtures/users';
+import { apiLogin } from './helpers/api.helpers';
 
-const baseURL = "https://smartcampost-frontend.vercel.app";
-const apiURL = "https://smartcampost-backend.onrender.com/api";
+const API = process.env.API_URL ?? 'http://localhost:8082';
 
-// Test data
-const admin = { phone: "+237690000000", password: "Admin@SmartCAMPOST2026" };
-const client = {
-  phone: "+237690000001",
-  email: "client1@smartcampost.cm",
-  password: "Client@2026",
-  fullName: "Client One",
-};
+test.describe('Role-based API access', () => {
 
-// Helper: Register a new client
-async function registerClient(
-  page: Page,
-  client: { phone: string; email: string; password: string; fullName: string },
-) {
-  await page.goto(`${baseURL}/auth/register`);
-  await page.fill('input[name="fullName"]', client.fullName);
-  await page.fill('input[name="phone"]', client.phone);
-  await page.fill('input[name="email"]', client.email);
-  await page.fill('input[name="password"]', client.password);
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/login/);
-}
-
-// Helper: Login
-async function login(page: Page, user: typeof admin | typeof client) {
-  await page.goto(`${baseURL}/auth/login`);
-  await page.fill('input[name="phoneOrEmail"]', user.phone);
-  await page.fill('input[name="password"]', user.password);
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/dashboard|admin|client/);
-}
-
-test.describe("Role-based workflows", () => {
-  test("Client registration, login, dashboard, CRUD, logout", async ({
-    page,
-  }) => {
-    await registerClient(page, client);
-    await login(page, client);
-    await expect(page.locator("text=Dashboard")).toBeVisible();
-    // Simulate create/edit/delete resource
-    // ... (fill forms, click buttons, validate UI)
-    await page.click('button:text("Logout")');
-    await expect(page).toHaveURL(/login/);
+  test('Admin can login and gets ADMIN role in token', async ({ request }) => {
+    const res = await request.post(`${API}/api/auth/login`, {
+      data: { phone: ADMIN_USER.phone, password: ADMIN_USER.password },
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.role).toBe('ADMIN');
   });
 
-  test("Admin login, manage users, view analytics, logout", async ({
-    page,
-  }) => {
-    await login(page, admin);
-    await expect(page.locator("text=Admin")).toBeVisible();
-    // Simulate user management
-    // ... (navigate, click, validate UI)
-    await page.click('button:text("Logout")');
-    await expect(page).toHaveURL(/login/);
+  test('Client role is set correctly in login response', async ({ request }) => {
+    // apiLogin returns flat response — role is at top level, not nested under user
+    const result = await apiLogin(request, TEST_CLIENT.phone, TEST_CLIENT.password);
+    expect((result as Record<string, unknown>).role).toBe('CLIENT');
   });
 
-  test("Guest access, restricted actions", async ({ page }) => {
-    await page.goto(`${baseURL}/dashboard`);
-    await expect(page.locator("text=Login")).toBeVisible();
-    // Try restricted actions
-    await page.goto(`${baseURL}/admin`);
-    await expect(page.locator("text=Login")).toBeVisible();
+  test('Guest (unauthenticated) cannot access /admin dashboard route', async ({
+    page,
+  }) => {
+    await page.goto('/admin');
+    // Unauthenticated user is redirected to login
+    await expect(page).not.toHaveURL(/^http.*\/admin$/);
+  });
+
+  test('Guest cannot access /client route', async ({ page }) => {
+    await page.goto('/client');
+    await expect(page).not.toHaveURL(/^http.*\/client$/);
+  });
+});
+
+test.describe('Role-based UI access — CLIENT', () => {
+  test.use({ storageState: AUTH_STATE.client });
+
+  test('CLIENT can access /client dashboard', async ({ page }) => {
+    await page.goto('/client');
+    await expect(page).toHaveURL(/\/client/);
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('CLIENT is redirected away from /admin', async ({ page }) => {
+    await page.goto('/admin');
+    await expect(page).not.toHaveURL(/^http.*\/admin$/);
+  });
+});
+
+test.describe('Role-based UI access — ADMIN', () => {
+  test.use({ storageState: AUTH_STATE.admin });
+
+  test('ADMIN can access /admin dashboard', async ({ page }) => {
+    await page.goto('/admin');
+    await expect(page).toHaveURL(/\/admin/);
+    await expect(page.locator('body')).toBeVisible();
   });
 });

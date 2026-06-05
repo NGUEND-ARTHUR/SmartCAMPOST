@@ -1,0 +1,12 @@
+appId: com.smartcampost.mobile
+---
+# Helper: logout via Profile screen. Assumes user is authenticated.
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- assertVisible: "Login"

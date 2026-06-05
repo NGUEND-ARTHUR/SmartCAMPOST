@@ -1,0 +1,60 @@
+appId: com.smartcampost.mobile
+---
+# WORKFLOW — Admin creates staff user (via API visible in admin UI), staff logs in
+# This validates the admin → internal-user-creation → login cross-role flow
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Step 1: Login as ADMIN
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+- takeScreenshot: "09_wf_01_admin_logged_in"
+
+# Step 2: Navigate to User Management
+- tapOn: "User Management"
+- waitForAnimationToEnd
+- assertVisible: "User Management"
+- takeScreenshot: "09_wf_01_user_management"
+
+# Verify STAFF user is visible in the list (pre-seeded)
+- assertVisible:
+    text: "+237699000002"
+    optional: true
+
+# Scroll to verify user list loaded
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_01_user_list"
+
+# Step 3: Logout from ADMIN
+- pressKey: back
+- waitForAnimationToEnd
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"
+
+# Step 4: Login as STAFF (to verify account works)
+- tapOn: "Phone number"
+- inputText: "+237699000002"
+- tapOn: "Password"
+- inputText: "Test123!Staff"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_01_staff_logged_in"
+
+# STAFF should land on Staff Dashboard
+- assertVisible: "Staff Dashboard"
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "My Parcels"

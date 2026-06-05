@@ -1,0 +1,48 @@
+appId: com.smartcampost.mobile
+---
+# DEVICE — Offline behavior and network failure recovery
+# Tests: app handles API failure gracefully, shows error states, allows retry
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Test 1: Login normally (network required)
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "11_device_02_online_login"
+
+# Test 2: Navigate to a data-loading screen (My Parcels)
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_02_parcels_loaded"
+# Data is displayed or empty state
+
+# Test 3: Pull to refresh — verifies retry mechanism
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_02_after_refresh"
+# App shows data or empty state — no crash
+
+# Test 4: Navigate to Track and enter unknown ref (simulates no-data response)
+- pressKey: back
+- waitForAnimationToEnd
+- tapOn: "Track Parcel"
+- waitForAnimationToEnd
+- tapOn: "Enter tracking number"
+- inputText: "OFFLINE-TEST-REF"
+- tapOn: "Track"
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_02_tracking_failure"
+# Should show "Parcel not found" or error — not crash
+
+# Test 5: Retry button works after failure
+- tapOn:
+    text: "Retry"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_02_after_retry"

@@ -1,0 +1,88 @@
+appId: com.smartcampost.mobile
+---
+# SECURITY — Role isolation: each role lands on correct dashboard only
+# Validates router redirect enforces role-based routing
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Test 1: CLIENT → lands on /client (Dashboard), NOT admin
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "Staff Dashboard"
+- assertNotVisible: "Courier Dashboard"
+- takeScreenshot: "10_sec_02_client_role_isolated"
+
+# Logout
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+
+# Test 2: AGENT → lands on /agent (Agent Dashboard)
+- tapOn: "Phone number"
+- inputText: "+237699000003"
+- tapOn: "Password"
+- inputText: "Test123!Agent"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Agent Dashboard"
+- assertNotVisible: "Dashboard"
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "Finance Dashboard"
+- takeScreenshot: "10_sec_02_agent_role_isolated"
+
+# Logout
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+
+# Test 3: FINANCE → lands on /finance (Finance Dashboard)
+- tapOn: "Phone number"
+- inputText: "+237699000005"
+- tapOn: "Password"
+- inputText: "Test123!Finance"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Finance Dashboard"
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "Agent Dashboard"
+- assertNotVisible: "Risk Dashboard"
+- takeScreenshot: "10_sec_02_finance_role_isolated"
+
+# Logout
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+
+# Test 4: ADMIN → lands on /admin (Admin Dashboard)
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+- assertNotVisible: "Dashboard"
+- assertNotVisible: "Courier Dashboard"
+- takeScreenshot: "10_sec_02_admin_role_isolated"

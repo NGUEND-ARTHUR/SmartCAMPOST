@@ -1,0 +1,20 @@
+appId: com.smartcampost.mobile
+---
+# Auth — ADMIN login: valid credentials → Admin Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"
+
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_admin"
+
+# Landed on Admin Dashboard
+- assertVisible: "Admin Dashboard"
+- assertNotVisible: "Login"
+- assertNotVisible: "SmartCAMPOST"
