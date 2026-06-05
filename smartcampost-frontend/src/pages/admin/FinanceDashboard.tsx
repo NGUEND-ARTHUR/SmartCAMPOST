@@ -111,10 +111,6 @@ export default function FinanceDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
@@ -144,6 +140,13 @@ export default function FinanceDashboard() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadDashboardData();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {

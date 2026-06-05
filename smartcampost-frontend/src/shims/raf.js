@@ -4,12 +4,16 @@ export default function raf(callback) {
 }
 
 export function polyfill() {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     if (!window.requestAnimationFrame) {
-      window.requestAnimationFrame = function (cb) { return setTimeout(cb, 16); };
+      window.requestAnimationFrame = function (cb) {
+        return setTimeout(cb, 16);
+      };
     }
     if (!window.cancelAnimationFrame) {
-      window.cancelAnimationFrame = function (id) { clearTimeout(id); };
+      window.cancelAnimationFrame = function (id) {
+        clearTimeout(id);
+      };
     }
   }
 }

@@ -193,7 +193,9 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             {liveAi.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No AI events yet</div>
+              <div className="text-sm text-muted-foreground">
+                No AI events yet
+              </div>
             ) : (
               <div className="space-y-2">
                 {liveAi.map((e, idx) => (

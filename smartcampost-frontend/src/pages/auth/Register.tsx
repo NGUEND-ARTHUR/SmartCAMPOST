@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Package as PackageIcon } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
@@ -30,12 +30,6 @@ export function Register() {
     i18n.language === "fr" ? "FR" : "EN",
   );
 
-  // Sync form language with i18n
-  useEffect(() => {
-    const lang = i18n.language === "fr" ? "FR" : "EN";
-    setLanguage(lang);
-  }, [i18n.language]);
-
   // When user changes language in form, also update i18n
   const handleLanguageChange = (val: string) => {
     setLanguage(val as "FR" | "EN");
@@ -48,8 +42,9 @@ export function Register() {
     handleSubmit,
     formState: { errors },
     watch,
+    control,
   } = useForm<RegisterRequest>();
-  const phoneValue = watch("phone");
+  const phoneValue = useWatch({ control, name: "phone" });
 
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -299,7 +294,9 @@ export function Register() {
                         navigate(routeByRole(res.user.role), { replace: true });
                       })
                       .catch((err: unknown) => {
-                        const apiErr = err as { code?: string; message?: string } | undefined;
+                        const apiErr = err as
+                          | { code?: string; message?: string }
+                          | undefined;
                         if (apiErr?.message) {
                           toast.error(apiErr.message);
                         } else {
@@ -310,7 +307,9 @@ export function Register() {
                   }
                 }}
                 onError={() => {
-                  toast.error(t("errors.googleSignInFailed", "Google sign-in failed"));
+                  toast.error(
+                    t("errors.googleSignInFailed", "Google sign-in failed"),
+                  );
                 }}
                 theme="outline"
                 size="large"

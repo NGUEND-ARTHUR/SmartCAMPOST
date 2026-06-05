@@ -61,17 +61,10 @@ export function QRCodeScanner({
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [hasCamera, setHasCamera] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastScanTimeRef = useRef<number>(0);
-
-  // Ensure component is mounted before starting camera
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
 
   const parseQRCode = useCallback((decodedText: string): ScanResult => {
     // Secure payload format: V1|P|TOKEN|REF|TS|SIG
@@ -193,7 +186,7 @@ export function QRCodeScanner({
   );
 
   const startScanning = useCallback(async () => {
-    if (!containerRef.current || !isMounted) return;
+    if (!containerRef.current) return;
 
     setIsLoading(true);
     setCameraError(null);
@@ -262,7 +255,7 @@ export function QRCodeScanner({
       });
       onError?.(errorMessage);
     }
-  }, [facingMode, handleScanSuccess, isMounted, onError, t]);
+  }, [facingMode, handleScanSuccess, onError, t]);
 
   const toggleCamera = useCallback(async () => {
     await stopScanning();

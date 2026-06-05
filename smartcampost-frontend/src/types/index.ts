@@ -3,14 +3,7 @@ export interface User {
   phone: string;
   email?: string;
   name: string;
-  role:
-    | "CLIENT"
-    | "AGENT"
-    | "COURIER"
-    | "STAFF"
-    | "ADMIN"
-    | "FINANCE"
-    | "RISK";
+  role: "CLIENT" | "AGENT" | "COURIER" | "STAFF" | "ADMIN" | "FINANCE" | "RISK";
   authProvider?: "LOCAL" | "GOOGLE";
 }
 
