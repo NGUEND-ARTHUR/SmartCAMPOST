@@ -1,0 +1,120 @@
+name: Playwright E2E
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  e2e:
+    name: Playwright tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      E2E_BASE_URL: http://127.0.0.1:5173
+      E2E_API_BASE_URL: http://127.0.0.1:8082
+      TEST_ADMIN_PHONE: +237690000000
+      TEST_ADMIN_PASSWORD: Admin@SmartCAMPOST2026
+      TEST_ADMIN_EMAIL: admin@smartcampost.cm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: smartcampost-frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          SPRING_PROFILES_ACTIVE: local
+          PORT: 8082
+          TEST_ADMIN_PHONE: ${{ env.TEST_ADMIN_PHONE }}
+          TEST_ADMIN_PASSWORD: ${{ env.TEST_ADMIN_PASSWORD }}
+          TEST_ADMIN_EMAIL: ${{ env.TEST_ADMIN_EMAIL }}
+        run: |
+          ./mvnw -q -DskipTests spring-boot:run -Dspring-boot.run.profiles=local > ../backend.log 2>&1 &
+          for i in {1..60}; do
+            code=$(curl -o /dev/null -s -w "%{http_code}" http://127.0.0.1:8082/ || true)
+            if [ "$code" = "200" ] || [ "$code" = "403" ] || [ "$code" = "404" ]; then
+              echo "Backend is ready"
+              break
+            fi
+            sleep 5
+          done
+          code=$(curl -o /dev/null -s -w "%{http_code}" http://127.0.0.1:8082/ || true)
+          if [ "$code" != "200" ] && [ "$code" != "403" ] && [ "$code" != "404" ]; then
+            echo "Backend failed to start"
+            tail -n 200 ../backend.log || true
+            exit 1
+          fi
+
+      - name: Start frontend
+        working-directory: smartcampost-frontend
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 5173 > ../frontend.log 2>&1 &
+          for i in {1..60}; do
+            code=$(curl -o /dev/null -s -w "%{http_code}" http://127.0.0.1:5173/ || true)
+            if [ "$code" = "200" ]; then
+              echo "Frontend is ready"
+              break
+            fi
+            sleep 5
+          done
+          code=$(curl -o /dev/null -s -w "%{http_code}" http://127.0.0.1:5173/ || true)
+          if [ "$code" != "200" ]; then
+            echo "Frontend failed to start"
+            tail -n 200 ../frontend.log || true
+            exit 1
+          fi
+
+      - name: Run Playwright tests
+        run: npx playwright test --config=playwright-tests/playwright.config.ts --project=${{ matrix.browser }} --reporter=list
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/**
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-${{ matrix.browser }}
+          path: |
+            test-results/**
+            traces/**
+            videos/**

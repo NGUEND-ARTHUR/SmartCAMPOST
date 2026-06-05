@@ -24,6 +24,7 @@ spring:
       hibernate:
         format_sql: false  # Disable in production
     show-sql: ${SHOW_SQL:false}  # SECURITY: Disable SQL logging in production
+    open-in-view: false  # ✅ FIX: Disable OSIV - prevents lazy-loading in view layer, forces explicit @Transactional
 
   ai:
     openai:

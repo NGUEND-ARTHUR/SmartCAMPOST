@@ -32,4 +32,8 @@ smartcampost-frontend/e2e/.auth/
 # Playwright output artifacts
 smartcampost-frontend/playwright-report/
 smartcampost-frontend/test-results/
-
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

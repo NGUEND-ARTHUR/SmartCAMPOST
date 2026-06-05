@@ -7,6 +7,7 @@ import com.smartcampost.backend.model.enums.RiskSeverity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
@@ -27,6 +28,9 @@ public interface RiskAlertRepository extends JpaRepository<RiskAlert, UUID> {
     List<RiskAlert> findByPayment_Id(UUID paymentId);
 
     List<RiskAlert> findByReviewedByStaff_Id(UUID staffId);
+
+    // ✅ FIX: date-filtered query for compliance reports — replaces findAll() + stream filter
+    List<RiskAlert> findByCreatedAtBetween(Instant from, Instant to);
 
     Optional<RiskAlert> findTopByParcel_IdAndAlertTypeAndResolvedFalseOrderByCreatedAtDesc(
             UUID parcelId,

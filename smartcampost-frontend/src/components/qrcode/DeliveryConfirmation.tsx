@@ -98,7 +98,7 @@ export function DeliveryConfirmation({
 
       try {
         // Fetch real delivery info from backend using tracking reference
-        const parcelDetail = await parcelService.getByTracking(
+        const parcelDetail = await parcelService.trackByRef(
           result.data.trackingRef,
         );
 

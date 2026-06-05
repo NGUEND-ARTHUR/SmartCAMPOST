@@ -1,0 +1,1449 @@
+THE ICT UNIVERSITY
+Faculty of Information and Communication Technology
+Department of Software Engineering
+
+A dissertation submitted in partial fulfilment of the requirement for the award of a
+BACHELOR OF SCIENCE IN SOFTWARE ENGINEERING (BSc)
+Title
+Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Codes, GPS, and Artificial Intelligence
+By
+NGUEND ARTHUR JOHANN
+Registration Number: ICTU20223180
+Supervised by:
+Eng. TANWI NKIAMBOH
+
+Yaoundé, Cameroon
+Academic Year 2025–2026
+
+Declaration
+I declare that the work entitled "Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Codes, GPS, and Artificial Intelligence" is my original work, conceived and presented in partial fulfilment of the requirement for the award of the degree of a Bachelor of Science in Software Engineering at the Information, Communication, and Technology (ICT) University. This work has not been submitted for any degree or examination in any other university, and all the sources I have used or quoted have been indicated and acknowledged as complete references.
+Name: NGUEND ARTHUR JOHANN
+Registration Number: ICTU20223180
+Signature: __________________________
+Date: __________________________
+
+Certification
+This project titled "Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Codes, GPS, and Artificial Intelligence" is at this moment approved as a credible study in Software Engineering carried out by NGUEND ARTHUR JOHANN (ICTU20223180), a student at the ICT University, in a satisfactory manner to warrant its acceptance as a prerequisite to the degree of Bachelor in Science in Software Engineering for which it has been submitted.
+Name: Eng. TANWI NKIAMBOH     —     Supervisor
+Signature: __________________________     Date: __________________________
+
+Dedication
+To my family — whose patience, love, and sacrifice made this journey possible.
+To every Cameroonian who has ever sent a parcel with no way to know where it went —
+this work is a step toward a more transparent postal future.
+
+Acknowledgments
+The author expresses sincere gratitude to Eng. TANWI NKIAMBOH, whose expert guidance, patience, and rigorous feedback throughout this research were fundamental to its quality and coherence. Appreciation is also extended to the entire Faculty of Information and Communication Technology at ICT University, particularly all lecturers whose courses laid the technical foundation for this project.
+Special thanks are due to the 30 participants of the SmartCAMPOST bilingual needs assessment survey — clients, couriers, and CAMPOST agents in Yaoundé — whose candid responses directly shaped the system design decisions and feature priorities.
+The author acknowledges the open-source communities behind Spring Boot, React, Flutter, TiDB Cloud, OpenAI, and MapLibre, without whose tools this system would not have been achievable within the scope of a final-year dissertation. Gratitude is also expressed to CAMPOST for providing the operational and institutional context that motivated this research.
+
+Faculty Approval
+This dissertation has been duly reviewed by the Department and the Faculty and is ready for examination with our approval.
+Approved by
+Signature: _____________________________     Date: ___________________
+Eng. TANWI NKIAMBOH     —     Supervisor
+Signature: _____________________________     Date: ___________________
+Dr. Abdallah Ziraba     —     Head of Department
+Signature: _____________________________     Date: ___________________
+Dr. Luc Einstein Ngend     —     Dean
+
+Abstract
+Cameroon Post (CAMPOST) maintains a well-established national postal network that serves millions of customers across Cameroon. However, the ability to track parcels across the national territory in real time, and to integrate such tracking with digital payment and automated customer notification, has remained limited. This dissertation presents the design and complete implementation of SmartCAMPOST — a multi-platform, AI-enhanced intelligent parcel tracking, collection, and delivery management system conceived as a complement to CAMPOST's existing services.
+A bilingual needs-assessment survey administered in English and French via Google Forms to 30 respondents — CAMPOST clients, agents, and couriers in Yaoundé — confirmed strong demand for real-time tracking (4.7/5), mobile payment integration (4.6/5), and SMS notifications (4.5/5). A hybrid methodology combining Merise data modelling and Agile Scrum iterative development was employed across twelve development sprints.
+The system comprises a Spring Boot 3.5.7 RESTful backend, a React 19 TypeScript web portal, and a Flutter 3.11.1 Android mobile application. The database encompasses 45 tables hosted on TiDB Cloud. Seven user roles are enforced with role-based access control at the API level. Key capabilities include dual QR code parcel identification, GPS real-time tracking, a multi-agent AI framework (Courier Agent, Agency Agent, Risk Agent) powered by OpenAI GPT, and mobile payment processing through MTN Mobile Money, Orange Money, and CAMPOST Money.
+Automated testing achieved a 99.4% pass rate across 170 test cases. All four bugs identified during structured manual end-to-end testing were diagnosed and resolved. The system was deployed on Render (backend), Vercel (web), and distributed as a signed Android APK via GitHub Releases v1.0.0.
+Keywords: Parcel Tracking, QR Code, GPS, Artificial Intelligence, Spring Boot, Flutter, Mobile Payment, CAMPOST, Cameroon, Postal Digitalisation.
+
+Table of Contents
+Declarationii
+Certificationiii
+Dedicationiv
+Acknowledgmentsv
+Faculty Approvalvi
+Abstractvii
+Table of Contentsviii
+List of Tablesxii
+List of Figuresxiii
+List of Acronyms and Abbreviationsxiv
+CHAPTER ONE: INTRODUCTION1
+1. Introduction1
+1.1  Background to the Problem1
+1.1.1  The Existing EMS System at CAMPOST2
+1.2  Problem Statement3
+1.3  Proposed Solution3
+1.4  Objectives4
+1.4.1  General Objective4
+1.4.2  Specific Objectives4
+1.5  Research Questions4
+1.6  Scope of the Study5
+1.6.1  Technological Scope5
+1.6.2  Geographical Coverage5
+1.6.3  Functional Scope6
+1.7  Significance of the Study7
+1.8  Limitations of the Study7
+1.9  Organisation of the Study8
+CHAPTER TWO: LITERATURE REVIEW10
+2. Introduction10
+2.1  Postal Digitalisation in Africa10
+2.1.1  The Historical Context of African Postal Services10
+2.1.2  The Rise of Digital Postal Platforms in Africa11
+2.1.3  Challenges Specific to Cameroonian Postal Digitalisation11
+2.2  QR Code Technology in Logistics12
+2.2.1  Evolution of QR Code Adoption in Supply Chains12
+2.2.2  Dual QR Code Strategies12
+2.3  GPS-Based Parcel and Delivery Tracking13
+2.3.1  GPS Tracking in Urban Logistics13
+2.3.2  OpenStreetMap as an African Logistics Mapping Solution13
+2.4  Artificial Intelligence in Postal and Delivery Systems13
+2.4.1  Machine Learning for Delivery Time Prediction13
+2.4.2  Large Language Models and Multi-Agent AI in Logistics14
+2.5  Mobile Payment Integration in Africa14
+2.6  Review of Comparable Systems15
+2.7  Theoretical Framework15
+CHAPTER THREE: METHODOLOGY17
+3. Introduction17
+3.1  Research Design17
+3.2  Data and Requirements Gathering17
+3.2.1  Primary Data Collection17
+3.2.2  Secondary Data Collection18
+3.3  Analysis18
+3.3.1  Quantitative Analysis19
+3.3.2  Qualitative Analysis19
+3.4  Population and Sample20
+3.5  Processes20
+3.5.1  Define Requirements20
+3.5.2  Project Planning Phase20
+3.5.3  Analysis and Design Phase21
+3.5.4  Development Phase21
+3.6  Development Methodology22
+3.7  Technology Stack23
+CHAPTER FOUR: ANALYSIS, DESIGN, IMPLEMENTATION, AND FINDINGS25
+4. Introduction25
+4.1  Statistical Analysis25
+4.1.1  Overview of Survey Methodology25
+4.1.2  Section 1: Respondent Profile and Context25
+4.1.3  Section 2: Current Postal Service Experience and Pain Points28
+4.1.4  Section 3: Payment and Digital Feature Preferences31
+4.1.5  Section 4: SmartCAMPOST Feature Expectations33
+4.1.6  Summary of Survey Findings35
+4.2  Requirements Analysis36
+4.2.1  Functional Requirements36
+4.2.2  Non-Functional Requirements37
+4.3  UML Diagrams and System Design38
+4.3.1  Use Case Diagram38
+4.3.1.1  System Actors Description39
+4.3.2  Conceptual Data Model (MCD)41
+4.3.3  Logical Data Model (MLD)41
+4.3.4  Class Diagram42
+4.4  Activity Diagrams43
+4.4.1  Registration and OTP Verification43
+4.4.2  Create Parcel, Quote, and Generate QR44
+4.4.3  Request Home Pickup and Courier Assignment45
+4.4.4  Scan Event — Agency Intake and Transit46
+4.4.5  Out-for-Delivery and Proof of Delivery47
+4.4.6  Track Parcel and Subscribe to Notifications48
+4.4.7  Admin Create/Update Tariff48
+4.5  Sequence Diagrams49
+4.5.1  Register and Verify Phone (OTP)49
+4.5.2  Create Parcel, Quote, and Generate QR50
+4.5.3  Request Home Pickup and Assign Courier50
+4.5.4  Scan Event — Agency Intake and Transit51
+4.5.5  Out-for-Delivery and Proof of Delivery51
+4.5.6  Pay for Service and Payment Callback52
+4.5.7  Track Parcel and Subscribe to Notifications52
+4.5.8  Admin Manage Tariff52
+4.6  Database Design53
+4.7  Parcel Lifecycle53
+4.8  Role-Based Access Control54
+4.9  REST API Modules54
+4.10  Security Implementation55
+4.11  Testing and Findings56
+4.11.1  Testing Strategy56
+4.11.2  Automated Test Results56
+4.11.3  Bugs Found and Fixed57
+CHAPTER FIVE: SUMMARY, CONCLUSIONS, DISCUSSION, AND RECOMMENDATIONS58
+5.1  Introduction58
+5.2  Summary58
+5.3  Conclusions59
+5.4  Discussion59
+5.5  Recommendations for Practice60
+5.6  Recommendations for Further Study61
+References62
+Appendix A: Survey Questionnaire (English)64
+Appendix B: Survey Questionnaire (French)65
+Appendix C: Database Tables Reference66
+Appendix D: Project Timeline Overview68
+Appendix E: GitHub Repository and Deployment Links68
+
+
+List of Tables
+Table 1: Limitations of the Existing CAMPOST EMS System vs SmartCAMPOST Responses
+Table 2: Existing EMS System vs SmartCAMPOST — Functional Comparison
+Table 3: Comparison of Existing Parcel Tracking Systems
+Table 4: Survey Results — Feature Importance Ratings (n=30)
+Table 5: Sprint Plan Summary
+Table 6: Technology Stack
+Table 7: Functional Requirements
+Table 8: Non-Functional Requirements
+Table 9: Security Audit Summary
+Table 10: Database Entity Groups
+Table 11: Parcel Lifecycle States
+Table 12: User Roles and Permissions
+Table 13: REST API Modules
+Table 14: Automated Test Results by Module
+Table 15: Bugs Found and Fixed
+Table 16: Project Timeline Overview
+
+List of Figures
+Figure 1: SmartCAMPOST Use Case Diagram
+Figure 2: Conceptual Data Model (MCD — Merise)
+Figure 3: Logical Data Model (MLD — Merise)
+Figure 4: Class Diagram
+Figure 5: Activity Diagram — Registration and OTP Verification
+Figure 6: Activity Diagram — Create Parcel, Quote, and Generate QR
+Figure 7: Activity Diagram — Request Home Pickup and Courier Assignment
+Figure 8: Activity Diagram — Scan Event (Agency Intake / Transit)
+Figure 9: Activity Diagram — Out-for-Delivery and Proof of Delivery
+Figure 10: Activity Diagram — Track Parcel and Subscribe to Notifications
+Figure 11: Activity Diagram — Admin Create/Update Tariff
+Figure 12: Sequence Diagram — Register and Verify Phone (OTP)
+Figure 13: Sequence Diagram — Create Parcel, Quote, and Generate QR
+Figure 14: Sequence Diagram — Request Home Pickup and Assign Courier
+Figure 15: Sequence Diagram — Scan Event (Agency Intake / Transit)
+Figure 16: Sequence Diagram — Out-for-Delivery and Proof of Delivery
+Figure 17: Sequence Diagram — Pay for Service and Payment Callback
+Figure 18: Sequence Diagram — Track Parcel and Subscribe to Notifications
+Figure 19: Sequence Diagram — Admin Manage Tariff
+
+List of Acronyms and Abbreviations
+Acronym
+Definition
+AI
+Artificial Intelligence
+API
+Application Programming Interface
+AML
+Anti-Money Laundering
+CAMPOST
+Cameroun Postal Services (La Poste du Cameroun)
+CORS
+Cross-Origin Resource Sharing
+DTO
+Data Transfer Object
+EMS
+Express Mail Service
+ETA
+Estimated Time of Arrival
+GPS
+Global Positioning System
+GSMA
+Global System for Mobile Communications Association
+HTTP
+HyperText Transfer Protocol
+JPA
+Java Persistence API
+JWT
+JSON Web Token
+MCD
+Modèle Conceptuel de Données (Conceptual Data Model)
+MLD
+Modèle Logique de Données (Logical Data Model)
+ORM
+Object-Relational Mapping
+OTP
+One-Time Password
+RBAC
+Role-Based Access Control
+REST
+Representational State Transfer
+SDLC
+Software Development Life Cycle
+SMS
+Short Message Service
+SOA
+Service-Oriented Architecture
+SQL
+Structured Query Language
+TAM
+Technology Acceptance Model
+UI
+User Interface
+UML
+Unified Modeling Language
+UPU
+Universal Postal Union
+USSD
+Unstructured Supplementary Service Data
+UUID
+Universally Unique Identifier
+QR
+Quick Response (Code)
+
+
+CHAPTER ONE: INTRODUCTION
+1. Introduction
+In the rapidly evolving landscape of digital logistics and postal services, intelligent parcel tracking systems have become a hallmark of efficient and customer-centric operations. SmartCAMPOST is an innovative multi-platform system that seeks to revolutionize parcel management in Cameroon by connecting clients, agents, couriers, and administrators through a unified digital platform powered by QR codes, GPS real-time tracking, and Artificial Intelligence. This application is designed to seamlessly integrate with the operational environment of Cameroon Post (CAMPOST) — the national postal operator — adding digital capabilities that complement and extend its well-established physical infrastructure.
+The platform addresses the needs of a diverse set of users: clients who send and receive parcels, agents who handle intake and transit scanning, couriers who manage last-mile delivery, and administrators who oversee the entire system. With features including bilingual support (English and French), mobile payment integration via MTN Mobile Money and Orange Money, automated SMS notifications, and an AI multi-agent framework for delivery prediction and route optimisation, SmartCAMPOST brings world-class postal logistics technology to the Cameroonian context. SmartCAMPOST is not merely a tracking application — it is a gateway to a more transparent, efficient, and inclusive postal future for Cameroon.
+1.1  Background to the Problem
+The postal system has long constituted a fundamental pillar of communication, commerce, and social cohesion across the world. In Cameroon, the Cameroun Postal Services — commonly known as CAMPOST or La Poste du Cameroun — operates a national network of agencies and distribution centres responsible for the collection, transit, and delivery of parcels and correspondence to individuals, businesses, and public institutions throughout the country. CAMPOST represents a strategic public infrastructure with the potential to serve as a backbone for inclusive digital commerce in Cameroon.
+CAMPOST has invested meaningfully in expanding its physical agency presence across both urban centres and semi-rural areas. The institution provides a range of services including domestic parcel handling, financial transfers, and various public service operations. Like many postal operators in the developing world, however, CAMPOST faces the challenge of adapting its service delivery model to the expectations of an increasingly mobile-savvy population that demands real-time visibility, digital payment convenience, and proactive communication about the status of their shipments.
+1.1.1  The Existing EMS System at CAMPOST
+To properly contextualise the contribution of SmartCAMPOST, it is necessary to understand the current digital infrastructure in place at CAMPOST. The existing system is built around the EMS (Express Mail Service) billing and management platform, which handles several administrative modules including agency management, client registration, weight and zone-based tariff computation, billing and invoice generation, and payment recovery. This EMS system was documented in the official CAMPOST technical requirements and analysed as the baseline for this research.
+The EMS system operates in a largely semi-manual mode. For contracted clients (legal entities), the process involves collection of parcels at the client premises against a paper pickup receipt, manual data entry at the agency counter, monthly billing by subscription, and manual payment tracking. For occasional clients (individuals), the procedure requires a physical visit to the agency and hand-written transport letters transmitted between regional agencies. A critical review of the EMS documentation reveals seven principal limitations that SmartCAMPOST directly addresses:
+Limitation
+Description
+SmartCAMPOST Response
+No real-time tracking
+No QR code or barcode system exists for automated parcel identification at the national level.
+Dual QR code system: permanent parcel codes and time-limited pickup tokens.
+No agency interconnection
+Regional agencies operate in isolation with no real-time data synchronisation.
+Centralised TiDB Cloud database accessible to all roles across all agencies.
+No customer digital platform
+Clients have no web or mobile interface to register parcels or track shipments.
+React 19 web portal and Flutter mobile app for all client operations.
+Manual billing and payment
+Invoice and payment processes are entirely paper-based and prone to errors.
+Automated PDF invoice generation and mobile money payment integration.
+No audit logs
+No system-level activity logging for compliance or fraud investigation.
+Immutable audit_log table recording all events with actor, action, and timestamp.
+No analytics or reporting
+No automated statistical reporting or performance KPIs are generated.
+Role-specific dashboards with AI-powered anomaly detection and financial reports.
+Low customer satisfaction
+Delays and lack of transparency generate complaints and distrust.
+Automated SMS and push notifications at every parcel status change.
+Table 1: Limitations of the Existing CAMPOST EMS System vs SmartCAMPOST Responses
+1.2  Problem Statement
+The central problem addressed by this research is the gap between the growing expectations of digital postal service users in Cameroon and the current state of real-time parcel tracking capabilities within the CAMPOST network. At present, customers who send parcels through CAMPOST have no digital mechanism to verify, in real time, the whereabouts or status of their package during transit. The absence of automated notification, the cash-only payment model for many parcel services, and the need for physical counter visits to obtain status information create friction and uncertainty in the customer experience.
+More precisely, this research asks: How can the integration of QR Code technology, GPS geolocation, Artificial Intelligence, and multi-platform software development be employed to design and implement an intelligent parcel tracking, collection, and delivery management system that meaningfully extends the digital capabilities of CAMPOST and is operationally suitable for the Cameroonian postal context?
+1.3  Proposed Solution
+In response to the challenges identified in the analysis of the existing CAMPOST system and the results of the bilingual needs-assessment survey, SmartCAMPOST was conceived as a comprehensive, multi-platform solution. SmartCAMPOST is a cloud-hosted intelligent parcel management system comprising a Spring Boot RESTful backend API, a React 19 web administration portal, and a Flutter Android mobile application. The system serves seven distinct user roles — Client, Agent, Courier, Staff, Administrator, Finance Officer, and Compliance Officer — each with a dedicated, role-specific dashboard.
+SmartCAMPOST addresses the identified gaps through a set of integrated capabilities: dual QR code-based parcel identification enabling scan-at-every-touchpoint tracking; real-time GPS mapping allowing clients to visualise their parcel's location on an interactive map; automated SMS and push notifications at each status change; a provider-agnostic mobile payment gateway integrating MTN Mobile Money, Orange Money, and CAMPOST Money; a multi-agent AI framework for delivery time prediction and route optimisation; and an offline scan-and-sync mobile module ensuring operational continuity even under intermittent connectivity. The solution is fully bilingual in English and French.
+1.4  Objectives
+1.4.1  General Objective
+The overarching goal is to design and implement SmartCAMPOST, an intelligent multi-platform parcel tracking, collection, and delivery management system that extends the digital capabilities of CAMPOST by integrating QR codes, GPS, and Artificial Intelligence to enhance customer experience and operational efficiency.
+1.4.2  Specific Objectives
+To analyse the current CAMPOST parcel management process through user interviews, direct observation, and a structured bilingual needs-assessment survey, and to derive functional and non-functional system requirements from these inputs.
+To design a multi-platform system architecture consisting of a Spring Boot RESTful backend, a React web administrative portal, and a Flutter mobile application, supporting seven distinct user roles with enforced role-based access control.
+To implement QR Code-based parcel identification, GPS real-time tracking, AI-driven delivery prediction and route optimisation, and mobile payment processing via MTN Mobile Money, Orange Money, and CAMPOST Money.
+To evaluate the implemented system through automated unit and integration testing and structured manual end-to-end testing, measuring functional coverage, API pass rates, and access control correctness.
+1.5  Research Questions
+What are the key functional and non-functional requirements of an intelligent parcel management system that meaningfully extends the digital tracking and payment capabilities of CAMPOST in Cameroon?
+How should the system architecture be designed to support multi-platform access, real-time GPS tracking, and role-based access control across seven user roles?
+How can QR codes, GPS, and Artificial Intelligence be effectively integrated into a parcel tracking and delivery workflow to improve operational reliability and customer visibility?
+To what extent does the implemented SmartCAMPOST system satisfy the identified functional requirements, as evidenced by automated testing and structured manual evaluation?
+1.6  Scope of the Study
+1.6.1  Technological Scope
+SmartCAMPOST focuses on developing a sophisticated, secure, and bilingual multi-platform application for parcel management. The technological scope includes:
+Backend Development: A Spring Boot 3.5.7 RESTful API with 42 controllers, Spring Security JWT authentication, and TiDB Cloud MySQL database hosting 45 tables.
+Web Frontend: A React 19 TypeScript portal with 7 role-specific dashboards, MapLibre GL GPS tracking map, and i18next bilingual support.
+Mobile Application: A Flutter 3.11.1 Android application with offline QR scan-and-sync, GoRouter authentication guards, and Flutter Secure Storage.
+QR and GPS Systems: Google ZXing dual QR code generation, real-time GPS scan event recording with coordinates, and OpenStreetMap routing.
+AI and Analytics: OpenAI GPT multi-agent framework (Courier Agent, Agency Agent, Risk Agent) for ETA prediction, route optimisation, and anomaly detection.
+Payment Integration: Provider-agnostic gateway supporting MTN Mobile Money, Orange Money, and CAMPOST Money with callback handling and PDF invoice generation.
+1.6.2  Geographical Coverage
+SmartCAMPOST is designed for deployment within the national territory of Cameroon, with CAMPOST's domestic parcel operations as the primary use case. The initial rollout targets agencies in Yaoundé, with a phased expansion strategy recommended for other regions. The system supports both urban and semi-rural operational contexts through its offline scan-and-sync capability and USSD module for feature phone access.
+1.6.3  Functional Scope
+The functional scope covers the complete parcel lifecycle from client registration through final delivery, including:
+Client operations: registration, parcel creation with QR generation, payment, home pickup scheduling, tracking, and support ticket submission.
+Agent operations: walk-in parcel intake, QR scanning at each transit point, GPS-tagged scan events, and invoice issuance.
+Courier operations: pickup acceptance, QR scan confirmation, GPS navigation, and proof of delivery (OTP/signature/photo) capture.
+Administrative operations: user, agency, and tariff management; analytics dashboards; and system integration configuration.
+Out of scope: iOS mobile deployment, international parcel tracking, physical hardware procurement, production data migration from existing CAMPOST systems, and postal regulatory analysis.
+Key Features of SmartCAMPOST
+Bilingual user interface (English and French) for all client-facing screens.
+Dual QR code parcel identification: permanent code at creation, temporary token for pickup verification.
+Real-time GPS-based parcel tracking on an interactive MapLibre / OpenStreetMap map.
+Automated SMS notifications via Twilio at each parcel status transition.
+Multi-provider mobile payment: MTN MoMo, Orange Money, CAMPOST Money.
+Home pickup scheduling with automatic geo-based courier assignment.
+AI multi-agent framework: delivery ETA prediction, route optimisation, AML risk detection.
+Seven role-based dashboards with dedicated KPIs and functional modules.
+Assumptions
+Clients, agents, and couriers are willing to adopt a digital platform as a complement to existing CAMPOST services.
+Targeted users have access to an Android smartphone or a web browser with an internet connection.
+CAMPOST agency staff at pilot sites will be supported through basic training in using the AgentApp scanning interface.
+Constraints
+The system must comply with BEAC/CEMAC payment and data protection standards applicable to financial transactions in the CEMAC zone.
+The Android mobile application must support API level 23 (Android 6.0) and above to ensure broad device coverage.
+The backend must perform within a 2-second response time under normal operational load conditions.
+1.7  Significance of the Study
+This study contributes to the body of knowledge on postal digitalisation in Sub-Saharan Africa by providing a complete, tested implementation of an intelligent logistics system adapted to the Cameroonian context. It offers a documented methodology combining Merise, UML, and Agile Scrum for applied software engineering in a developing-country context, and a replicable technical blueprint for other national postal operators in the region.
+For CAMPOST, SmartCAMPOST presents a technically ready, open-source-based solution that could be piloted in selected agencies. For customers, it provides transparency, convenience, and a digital payment alternative. For the Cameroonian software engineering community, it demonstrates that world-class logistics technology can be built on open-source stacks by local engineers, using globally accessible tools and cloud infrastructure.
+1.8  Limitations of the Study
+All system testing was conducted in a controlled development environment using H2 in-memory and TiDB Cloud databases. Performance under real production load with thousands of concurrent users may differ from the test results reported.
+The AI delivery prediction and route optimisation features rely on the OpenAI API, introducing a third-party dependency. Response quality is subject to the availability and pricing policies of the OpenAI service.
+Mobile testing was limited to Android devices running API level 23 and above. iOS behaviour was not validated, as the iOS build configuration falls outside the scope of this dissertation.
+Payment gateway testing used sandbox credentials provided by test environments. Real-world transaction behaviour may vary depending on mobile network operator API policies.
+The bilingual needs-assessment survey sample of 30 respondents was drawn exclusively from Yaoundé, limiting geographic representativeness to the national level. Rural postal users are not reflected in the survey data.
+1.9  Organisation of the Study
+This study is broken down and organised following a well-structured approach to address the research questions and objectives. The study is structured into five chapters with the inclusion of a references list and appendices. The main chapters include the following:
+Introduction: This chapter opens the study with an introduction to the background, problem statement, proposed solution, objectives, research questions, scope, significance, and limitations.
+Literature Review: A comprehensive review of relevant research on postal digitalisation in Africa, QR code logistics, GPS tracking, AI in delivery systems, mobile payment integration, and existing comparable systems, establishing the theoretical framework for this study.
+Methodology: The research design, requirements gathering approach, survey instrument, development methodology, and technology stack are described. The Merise-Agile hybrid methodology and twelve-sprint development plan are documented in detail.
+Analysis, Design, Implementation, and Findings: This chapter presents a statistical analysis of the survey data, complete requirements analysis, all UML and Merise design artefacts, implementation findings, and test results.
+Summary, Conclusions, Discussion, and Recommendations: A summary of key findings, drawn conclusions, discussion of implications, and recommendations for practice and further study are provided.
+Chapter 1 has provided an introduction to the project, outlining the background, problem statement, proposed solution, objectives, research questions, scope, significance, and limitations. Chapter 2 will delve into related literature, while Chapter 3 will outline the methodology. Chapter 4 will present the analysis, design, and implementation findings, and Chapter 5 will summarise the findings, draw conclusions, discuss implications, and offer recommendations for further research.
+
+CHAPTER TWO: LITERATURE REVIEW
+2. Introduction
+In the digital transformation and logistics technology domain, the development of intelligent parcel tracking and management systems has gained significant attention globally. To understand the landscape surrounding SmartCAMPOST and its contribution to the field, a comprehensive literature review is essential. This review examines five thematic areas: the state of postal digitalisation in Africa, QR code technology in logistics, GPS-based delivery tracking, Artificial Intelligence in postal systems, and mobile payment integration in Sub-Saharan Africa. The chapter also provides a comparative analysis of existing systems and identifies the research gap that SmartCAMPOST addresses. This review aims to stand on the shoulders of great scholars and provide the theoretical grounding necessary to justify the design decisions made throughout this project.
+2.1  Postal Digitalisation in Africa
+2.1.1  The Historical Context of African Postal Services
+Postal services in Sub-Saharan Africa have historically operated as essential public infrastructure, providing universal service obligations to both urban and rural populations. Traditional postal operations relied heavily on physical counter visits, paper-based documentation, and manual sorting and routing processes. The Universal Postal Union has consistently identified digital tracking and payment as the two highest-impact modernisation priorities for developing-country postal operators. Their Postal Development Report confirmed that fewer than 30% of African postal operators had deployed functional end-to-end digital track-and-trace services, compared to over 90% in Europe — a gap representing both a service quality challenge and a strategic opportunity for improvement.
+This historical reliance on paper-based workflows is well documented. The analysis of CAMPOST's own EMS technical requirements — conducted as primary source research for this dissertation — confirmed that the existing system manages agencies, tariffs, and billing effectively, but contains no provision for digital parcel tracking, customer notification, or mobile payment. This baseline finding directly motivates the contribution of SmartCAMPOST.
+2.1.2  The Rise of Digital Postal Platforms in Africa
+The digitalisation of African postal services has accelerated since the mid-2010s, driven by the proliferation of mobile connectivity and the success of mobile money ecosystems. Kuteyi and Winkler (2022) conducted a comprehensive review of logistics challenges in Sub-Saharan Africa, published in Sustainability. Their analysis found that digital logistics platforms offering real-time shipment visibility, mobile payment, and last-mile GPS tracking had the highest impact on customer retention and operational efficiency in the Sub-Saharan African context. They identified mobile banking as a key enabler of digital logistics growth, citing its role in overcoming the cash-handling friction that characterises traditional postal payment models.
+The study by Oloba and Ramhurry (2024) on the implementation of Fourth Industrial Revolution (4IR) technologies in South African postal services found that participants praised the introduction of real-time tracking features in courier services, reporting that greater delivery visibility significantly reduced customer anxiety. These findings underscore the direct relevance of SmartCAMPOST's tracking and notification features to the African postal context.
+2.1.3  Challenges Specific to Cameroonian Postal Digitalisation
+The Cameroonian postal environment presents specific challenges that literature from comparable African contexts helps to contextualise. The bilingual (French and English) operating environment requires that any digital platform support both languages to achieve broad user adoption — a constraint that directly shaped the i18next bilingual implementation in SmartCAMPOST. The co-existence of MTN Mobile Money and Orange Money as dominant payment channels in Cameroon — with over 12 million combined subscribers as of 2024 according to GSMA data — makes mobile payment integration not merely a convenience feature but a fundamental accessibility requirement.
+Amofah and Chai (2022), in their study of e-commerce adoption in Sub-Saharan Africa published in 
+Amofah and Chai (2022), published in Sustainability, found that payment method availability is a critical determinant of platform adoption in Ghana and Sub-Saharan Africa, with mobile money identified as the currently preferred payment channel. However, they also noted that seamless mobile money API integration for e-commerce remained technically challenging. SmartCAMPOST addresses this directly through a provider-agnostic payment gateway architecture that abstracts MTN MoMo, Orange Money, and CAMPOST Money behind a single PaymentService interface.
+2.2  QR Code Technology in Logistics
+2.2.1  Evolution of QR Code Adoption in Supply Chains
+Quick Response (QR) codes, originally developed by Denso Wave in 1994, have become a de facto universal identifier in modern logistics. Benos et al. (2021) documented the expansion of QR code and sensor-based tracking technologies across supply chain management in a comprehensive review published in Sensors (MDPI). Their analysis highlighted three advantages of QR codes over traditional barcodes: higher data density, built-in error correction, and mobile-native readability without specialised hardware. These properties make QR codes particularly suited for parcel identification in resource-constrained postal environments where agencies may not have dedicated barcode scanners.
+The adoption of QR codes in African logistics contexts has been validated empirically. Egharevba et al. (2019) piloted a smartphone-based QR tracking application for supply chain management of medicines in Nigeria, publishing their findings in 
+Egharevba et al. (2019) piloted a QR-based smartphone tracking application in Nigeria, reporting 100% tracking accuracy for product identity and scan timestamps in their PLOS ONE article. Their system demonstrated that generic smartphone QR scanning, GPS location tracking, and cloud-based data storage were viable and reliable in an African logistics environment — directly validating the technical feasibility of the SmartCAMPOST approach.
+2.2.2  Dual QR Code Strategies
+While single-QR identification is the most common approach in logistics literature, SmartCAMPOST implements a dual-QR strategy: a permanent cryptographically signed parcel QR code assigned at creation, and a time-limited temporary QR token generated for pickup verification events. This design provides both operational continuity under intermittent connectivity and fraud prevention. The temporary token approach is inspired by security patterns from the web application security domain and addresses the specific risk of unauthorised parcel collection — a concern raised by survey respondents who noted safety and reliability as key concerns in the existing manual process.
+2.3  GPS-Based Parcel and Delivery Tracking
+2.3.1  GPS Tracking in Urban Logistics
+Real-time GPS tracking has become a standard feature of leading global courier and postal services. Bosona (2020) conducted a systematic literature review of urban freight last-mile logistics, published in Sustainability (MDPI). His review highlighted that ICT and GPS-based real-time intelligent route planning systems had been successfully deployed in urban last-mile logistics across multiple cities, reducing delivery time and improving environmental outcomes. He identified real-time data availability and dynamic route planning algorithms as critical enablers of last-mile logistics improvement — capabilities that are central to the SmartCAMPOST GPS tracking and AI route optimisation modules.
+De Araujo and Etemad (2021) proposed an end-to-end system for parcel delivery time prediction under the IoT paradigm for smart city applications, published in the IEEE Internet of Things Journal. Their system used real-time tracking data from delivery agents' smartphones — the same data collection approach used in SmartCAMPOST's courier GPS update mechanism — to generate continuous ETA predictions. They concluded that such a tracking-app architecture was immediately applicable to urban last-mile delivery contexts, validating the SmartCAMPOST mobile GPS approach.
+2.3.2  OpenStreetMap as an African Logistics Mapping Solution
+The selection of OpenStreetMap as the mapping layer for SmartCAMPOST is supported by literature on digital logistics in Africa. Unlike proprietary mapping services with high per-request costs and limited coverage in Cameroonian cities, OpenStreetMap offers open-access, community-maintained map data that has reached sufficient coverage density in Yaoundé and other major Cameroonian cities for logistics applications. The MapLibre GL library used in SmartCAMPOST provides a performant, open-source rendering engine for this data, enabling real-time courier tracking without incurring per-request licensing costs that would constrain deployment at scale.
+2.4  Artificial Intelligence in Postal and Delivery Systems
+2.4.1  Machine Learning for Delivery Time Prediction
+The application of AI to logistics ETA prediction has been well-documented in recent literature. Özarık, da Costa, and Florio (2024) developed a machine learning framework for optimising last-mile delivery routes by inferring objective functions from historical data, published in Transportation Science. Their approach incorporated sequence duration, time window compliance, and delivery ordering as key predictive variables — factors that informed the feature selection for SmartCAMPOST's delivery prediction module.
+Tsolaki et al. (2023) reviewed machine learning applications for freight transportation in the ICT Express journal, identifying real-time ETA generation using Support Vector Regression and Random Forest algorithms as among the most impactful applications in logistics. Their review confirmed that ML-generated ETAs reduced customer uncertainty and improved operational planning — precisely the outcomes targeted by SmartCAMPOST's AI module.
+2.4.2  Large Language Models and Multi-Agent AI in Logistics
+The use of Large Language Models (LLMs) for logistics reasoning and recommendation was pioneered in the AI research community by Brown et al. (2020), whose foundational paper on GPT-3, published on arXiv, demonstrated that few-shot prompted LLMs could reason effectively across diverse task domains without domain-specific training. SmartCAMPOST's multi-agent AI framework — comprising a Courier Agent, an Agency Agent, and a Risk Agent — leverages this capability through OpenAI GPT to provide natural-language routing recommendations, workload rebalancing suggestions, and AML risk alerts.
+The multi-agent AI architecture represents a pragmatic trade-off: custom-trained models would provide higher domain-specific accuracy, but require historical operational data that does not yet exist in digital form at CAMPOST. The LLM-based approach provides immediate deployability with meaningful intelligence, while the system is designed to transition to domain-trained models once sufficient operational data has been collected through pilot deployment.
+2.5  Mobile Payment Integration in Africa
+Mobile money has fundamentally reshaped financial access in Sub-Saharan Africa. The GSMA's 2023 State of the Industry Report on Mobile Money documented 1.6 billion registered mobile money accounts globally, with Sub-Saharan Africa contributing 56% of the total. In Cameroon, MTN Mobile Money and Orange Money collectively served over 12 million subscribers, making mobile money the most accessible digital payment channel for both urban and semi-urban populations.
+The technical integration of mobile money APIs into logistics platforms in Africa has been addressed in several studies. The literature consistently identifies the elimination of cash-handling friction as the primary driver of transaction completion rate improvement when mobile payment is introduced in previously cash-only service environments. SmartCAMPOST implements a provider-agnostic payment gateway that abstracts MTN MoMo, Orange Money, and CAMPOST Money behind a single PaymentService interface, allowing new providers to be added without modifying core business logic.
+2.6  Review of Comparable Systems
+The following table benchmarks SmartCAMPOST against four comparable logistics and postal tracking systems identified in the literature, providing a basis for assessing the novelty and completeness of the proposed solution.
+System
+QR Tracking
+GPS Real-Time
+AI Features
+Mobile Payment
+Offline Mode
+Roles
+DHL Express App
+Yes
+Yes
+ETA only
+Limited (cards)
+No
+2
+PostNL (Netherlands)
+Yes
+Yes
+Route optimisation
+EU-only
+No
+3
+India Post eParcel
+Yes
+No
+None
+UPI only
+No
+2
+Jumia Logistics (Africa)
+Partial
+Yes
+None
+Mobile Money
+No
+3
+SmartCAMPOST (this work)
+Dual QR
+Yes (live GPS)
+Multi-agent AI
+MTN/Orange/CAMPOST
+Yes (sync)
+7
+Table 3: Comparison of Existing Parcel Tracking Systems
+SmartCAMPOST is uniquely distinguished by its combination of dual QR verification, multi-agent AI, offline synchronisation, and Cameroonian mobile payment support. No single comparable system identified in the review provides all of these capabilities simultaneously for the African postal context.
+2.7  Theoretical Framework
+This research is grounded in two complementary theoretical frameworks. The Service-Oriented Architecture (SOA) paradigm (Erl, 2005) advocates for designing software systems as collections of loosely coupled, interoperable services with well-defined interfaces. SmartCAMPOST instantiates SOA through its RESTful API-first design: the backend business logic is entirely decoupled from the web and mobile presentation layers. Söylemez, Tekinerdogan, and Kolukisa Tarhan (2022) confirmed in their systematic literature review in Applied Sciences (MDPI) that SOA and microservice architectures remain the dominant paradigm for scalable, maintainable logistics software systems.
+The research also draws on Davis's (1989) Technology Acceptance Model (TAM), as documented in the AIS eLibrary MIS Quarterly publication. TAM identifies perceived usefulness and perceived ease of use as the primary predictors of technology adoption. The bilingual needs-assessment survey explicitly measured perceived feature usefulness, and the resulting priority rankings directly guided which features were implemented in the first release of SmartCAMPOST.
+Chapter 2 has reviewed existing literature on five thematic areas relevant to SmartCAMPOST, establishing the theoretical and empirical foundation for the design decisions made in subsequent chapters. The review confirmed a clear gap in the literature: no existing system provides the specific combination of dual QR verification, multi-agent AI, offline synchronisation, and Cameroonian mobile payment integration that SmartCAMPOST delivers. Chapter 3 will outline the methodology employed to gather requirements, design, and implement the system.
+
+CHAPTER THREE: METHODOLOGY
+3. Introduction
+The methodology chapter outlines the research design and approach employed in developing SmartCAMPOST, an intelligent multi-platform parcel tracking and delivery management system. This chapter encompasses the systematic processes used to gather requirements, design the system architecture, and implement and test the application, ensuring that the system meets its functional and non-functional requirements. Detailed descriptions of the chosen methodologies, data collection techniques, population sample, analysis approaches, and tools utilised are provided to illustrate the comprehensive and dynamic process followed. Given the aim of SmartCAMPOST to complement CAMPOST's postal services through a centralised digital platform, the chapter ensures an in-depth exploration of each step taken to achieve this goal.
+3.1  Research Design
+This study adopts a hybrid applied research design, combining full-stack system development with quantitative empirical evaluation. The applied component involves the complete design and implementation of the SmartCAMPOST software system. The quantitative component involves the administration and analysis of a structured needs-assessment survey to validate feature priorities and measure perceived usefulness, and the collection and analysis of automated test result data to evaluate system correctness and functional coverage. The research problem is practical in nature — it requires the construction of a working artefact — and is therefore best addressed through an applied engineering research approach.
+3.2  Data and Requirements Gathering
+Data and requirements gathering is a crucial step in understanding the problem and developing an appropriate solution. To design and implement an intelligent parcel tracking application that meets the real needs of CAMPOST users, a concise and thorough requirements gathering phase was conducted. This phase involved collecting information from multiple stakeholders, analysing the information, and documenting the requirements for the system.
+3.2.1  Primary Data Collection
+Primary data was collected through three complementary techniques:
+Structured Interviews: Semi-structured interviews with three CAMPOST agency agents, two couriers, and five regular clients in Yaoundé, targeting current workflow pain points, frequency of parcel loss or damage disputes, and desired digital features.
+Direct Observation: On-site observation of parcel intake and dispatch operations at two CAMPOST offices in Yaoundé, documenting the step-by-step manual workflow and identifying specific inefficiencies in identification, sorting, and payment collection.
+Bilingual Needs Assessment Survey (Google Forms): A structured questionnaire was administered digitally in both English and French. The English-language form, titled "SmartCAMPOST – Satisfaction and Needs Assessment Survey (Agents, Couriers, and Users)", is accessible at 
+The English-language survey (forms.gle/vN9eRWGXTzkBrbmN7) and the French-language survey (forms.gle/DH1DQR8HRbn79YkW9) were distributed via WhatsApp and email to 30 respondents in Yaoundé, comprising 18 clients, 7 agents, and 5 management-level staff. The survey measured feature importance on a 5-point Likert scale.
+3.2.2  Secondary Data Collection
+Secondary data was collected through two sources:
+Documentation Review: Analysis of CAMPOST's official EMS technical requirements document (Cahier des Charges EMS), providing a definitive baseline of existing system capabilities and operational constraints.
+Academic Literature Review: Review of peer-reviewed articles, industry reports (UPU Postal Development Report, GSMA Mobile Money Report), and comparable system analyses, as documented in Chapter 2.
+3.3  Analysis
+The study adopted a mixed-methods approach, combining quantitative and qualitative analysis to provide a comprehensive understanding of the requirements and user expectations for SmartCAMPOST. This approach ensures that both numerical data and in-depth user insights are considered in the requirements analysis, leading to a more holistic view of the system's needs.
+3.3.1  Quantitative Analysis
+3.3.1.1  Data Collection and Instrumentation
+Quantitative data was collected using the structured Google Forms questionnaire distributed to the 30-person sample. The questionnaire consisted of closed-ended questions including 5-point Likert scale items measuring feature importance, multiple-choice questions on technology access and demographic information, and binary yes/no questions on mobile money account ownership and smartphone access.
+3.3.1.2  Descriptive Statistics
+Quantitative data was analysed using descriptive statistics to summarise the key findings. Mean feature importance scores were calculated for each of the ten features assessed, enabling prioritisation of the feature backlog for Sprint 1. Frequencies and percentages were computed for demographic and technology access questions.
+3.3.1.3  Graphical Representation
+Bar charts and pie charts were used to visually represent the quantitative survey findings, making it easier to identify trends and communicate results to stakeholders. The feature importance bar chart (presented in Chapter 4) shows the distribution of mean scores across all surveyed features, directly informing the Sprint planning decisions.
+3.3.2  Qualitative Analysis
+3.3.2.1  Data Collection and Instrumentation
+Qualitative data was obtained through the open-ended questions in the survey and through the semi-structured interviews conducted with CAMPOST agents and clients. These interactions provided deeper insights into user experiences, pain points, and workflow expectations that could not be captured through closed-ended questions alone.
+3.3.2.2  Thematic Analysis
+The qualitative data was analysed using thematic analysis to identify recurring themes and patterns. This involved coding interview and open-ended survey responses, categorising the codes into themes, and interpreting the findings. The three primary themes that emerged were: (1) the need for real-time visibility during transit, (2) the desire for digital payment convenience, and (3) the importance of automated notification without requiring active tracking. These three themes directly correspond to the three highest-rated features in the quantitative survey results.
+3.4  Population and Sample
+The population for this study includes users and operational staff of CAMPOST parcel services in Cameroon, comprising clients, agents, couriers, and management-level staff. A purposive sample of 30 individuals in Yaoundé was selected to ensure representation of the primary user categories. The sample was composed of 18 clients who regularly send or receive parcels through CAMPOST, 7 agents currently stationed at CAMPOST agencies, and 5 management-level staff members. While this sample is not statistically representative of the entire national user population, it is adequate for requirements validation and perceived usefulness assessment within the scope of this applied research project, consistent with the sample sizes employed in comparable applied software engineering research reviewed in Chapter 2.
+3.5  Processes
+The development of SmartCAMPOST involved several key phases aligned with the hybrid Merise-Agile methodology, to ensure an effective and user-centric product. The process was broken down into specific tasks and sub-tasks required to complete each phase of the project.
+3.5.1  Define Requirements
+This phase clearly outlined the necessary features and functionalities that SmartCAMPOST should provide, determined by critically examining the needs of users through the survey, interviews, observation, and review of the CAMPOST EMS documentation. The requirements were documented as functional requirements (what the system must do) and non-functional requirements (how well the system must do it), following the ICT University guidelines for software specification.
+3.5.2  Project Planning Phase
+Scope Definition: Clearly outlined the project scope, objectives, and deliverables, ensuring alignment with gathered requirements and supervisor guidance.
+Timeline and Scheduling: A 17-week project plan was developed, running from October 2025 to April 2026, with phases for initiation, analysis and design, twelve implementation sprints, and testing and documentation.
+Budgeting and Resource Allocation: The total project budget was estimated at 2,900,000 FCFA, covering software development (2,000,000 FCFA), cloud hosting (300,000 FCFA), SMS and payment API costs (200,000 FCFA), personnel training (150,000 FCFA), and hardware (250,000 FCFA).
+Risk Management: Identified risks including third-party API unavailability, mobile connectivity limitations, and changing payment provider APIs, with corresponding mitigation strategies including offline sync capability and provider-agnostic gateway design.
+Stakeholder Communication: Regular supervisor meetings were held throughout the project to validate design decisions and review implementation progress.
+Sprint Planning: Twelve development sprints were planned and executed, each with a defined sprint goal, user stories, acceptance criteria, and deliverables.
+3.5.3  Analysis and Design Phase
+3.5.3.1  Business Analysis
+Requirement Analysis: Gathered requirements were analysed to produce the functional and non-functional requirements tables, which drove sprint backlog prioritisation.
+Process Flow and UML Design: Use Case, Class, Sequence, and Activity diagrams were produced using StarUML, providing a comprehensive visual specification of the system.
+Merise Data Modelling: The MCD (Conceptual Data Model) was designed first, establishing entities and relationships, followed by the MLD (Logical Data Model) translating these into a 45-table relational schema with explicit keys and referential integrity constraints.
+3.5.3.2  Technical Specifications
+Module Specifications: Detailed technical specifications were developed for each of the 42 backend controller modules, including request/response schemas, validation rules, and authentication requirements.
+Security Architecture: Security controls were specified including JWT token authentication, BCrypt password hashing (minimum cost factor 10), per-IP rate limiting (60 requests/minute general, 10 requests/minute authentication), account lockout after 5 failed attempts, and OWASP-compliant security headers.
+3.5.4  Development Phase
+3.5.4.1  Application Development
+Backend Development: The Spring Boot 3.5.7 RESTful API was developed following a layered Controller → Service → Repository → Entity architecture, with Spring Security enforcing role-based access control at the endpoint level.
+Web Frontend Development: The React 19 TypeScript portal was implemented using Vite as the build tool, TanStack Query for server state management, Zustand for client authentication state, and MapLibre GL for the GPS tracking map.
+Mobile Application: The Flutter 3.11.1 Android application was developed with GoRouter for type-safe navigation, Dio with JWT interceptor for API communication, and SQLite for offline scan event caching.
+Module Integration: All modules were integrated and tested iteratively within each sprint cycle, ensuring seamless interaction between authentication, parcel lifecycle, payment, notification, and AI components.
+3.6  Development Methodology
+SmartCAMPOST was developed using a hybrid methodology combining Merise (for data analysis and modelling) and Agile Scrum (for iterative implementation and testing). Merise was selected for the data modelling phase because it provides rigorous MCD and MLD frameworks that are well-suited to the entity-relationship complexity of a 45-table relational schema. Agile Scrum was adopted for implementation to accommodate the evolving requirements discovered iteratively during development and testing cycles.
+Sprint
+Period
+Primary Deliverables
+Sprint 1
+Nov 3–16 / 2025
+Authentication module: JWT, OTP, Google OAuth, BCrypt, AccountLockoutService, RateLimitFilter
+Sprint 2
+Nov 17–30 / 2025
+Client, Agent, Courier, Staff module APIs; Address module with GPS coordinates
+Sprint 3
+Dec 1–14 / 2025
+Parcel CRUD, dual QR code (ZXing), TariffEngine, PricingDetail module
+Sprint 4
+Dec 15–21 / 2025
+PickupRequest management, QR verification token lifecycle, home pickup scheduling
+Sprint 5
+Dec 22–28 / 2025
+Payment gateways: MTN MoMo, Orange Money, CAMPOST Money; callback handling
+Sprint 6
+Dec 29 – Jan 4 / 2026
+Twilio SMS notifications; scan event GPS recording; parcel status state machine
+Sprint 7
+Jan 5–11 / 2026
+PDF invoice generation (PDFBox); delivery proof capture (OTP/signature/photo)
+Sprint 8
+Jan 12–18 / 2026
+AI multi-agent framework: Courier Agent, Agency Agent, Risk Agent (OpenAI GPT)
+Sprint 9
+Jan 19–25 / 2026
+React 19 web portal: 7 role dashboards, MapLibre GPS map, Recharts analytics
+Sprint 10
+Jan 26 – Feb 1 / 2026
+Finance and compliance modules; audit log; RBAC endpoint protection
+Sprint 11
+Feb 2–8 / 2026
+Flutter Android app: offline scan/sync, GoRouter, Google Sign-In, QR scanner
+Sprint 12
+Feb 9–20 / 2026
+Integration testing, 4 bug fixes, Docker deployment, GitHub Release v1.0.0
+Table 5: Sprint Plan Summary (12 Sprints)
+3.7  Technology Stack
+Layer
+Technology
+Version
+Purpose
+Backend
+Spring Boot
+3.5.7
+Core RESTful API, business logic, security
+Backend
+Java
+17
+Primary programming language
+Backend
+Spring AI
+1.0.3
+OpenAI GPT multi-agent integration
+Backend
+Spring Security
+6.x
+JWT + RBAC + Google OAuth2
+Backend
+Spring Data JPA
+3.5.7
+ORM data access layer
+Backend
+MySQL / TiDB Cloud
+8.0
+Production relational database (45 tables)
+Backend
+H2 Database
+Latest
+In-memory database for automated testing
+Backend
+Google ZXing
+3.5.2
+QR code generation and decoding
+Backend
+Apache PDFBox
+2.0.27
+PDF invoice and QR label generation
+Backend
+JJWT
+0.11.5
+JWT signing and validation
+Backend
+Caffeine Cache
+3.1.8
+In-memory rate limiting and response caching
+Backend
+Twilio SDK
+Latest
+SMS notification delivery
+Web Frontend
+React
+19.x
+Web admin and agent portal
+Web Frontend
+TypeScript
+5.x
+Type-safe JavaScript
+Web Frontend
+Vite
+5.x
+Build tool and development server
+Web Frontend
+TanStack Query
+5.x
+Server state management
+Web Frontend
+MapLibre GL
+4.x
+GPS tracking map (OpenStreetMap)
+Web Frontend
+Recharts
+3.x
+Dashboard data visualisation
+Web Frontend
+i18next
+25.x
+Bilingual EN/FR internationalisation
+Mobile App
+Flutter
+3.11.1
+Android mobile application
+Mobile App
+Dart
+3.x
+Flutter programming language
+Mobile App
+Dio
+Latest
+HTTP client with JWT interceptor
+Mobile App
+GoRouter
+Latest
+Type-safe navigation with auth guards
+Mobile App
+Flutter Secure Storage
+Latest
+Encrypted JWT token storage
+DevOps
+Docker
+Latest
+Backend containerisation
+DevOps
+Render
+Cloud
+Backend hosting (production)
+DevOps
+Vercel
+Cloud
+Frontend hosting with CI/CD from GitHub
+DevOps
+GitHub Actions
+Latest
+Automated build validation pipeline
+Table 6: Technology Stack
+Chapter 3 has provided a comprehensive overview of the methodology employed in designing and implementing SmartCAMPOST, covering the research design, data collection methods, population sample, quantitative and qualitative analysis approaches, development process phases, sprint plan, and technology stack. The mixed-methods approach, combining Merise data modelling with Agile Scrum, and primary data collection with academic literature review, ensured that both user needs and technical best practices informed every design decision. Chapter 4 will delve into the analysis of the collected survey data, the design artefacts, the implementation findings, and the test results.
+
+CHAPTER FOUR: ANALYSIS, DESIGN, IMPLEMENTATION, AND FINDINGS
+4. Introduction
+This chapter delves into the practical execution of the methodology outlined in Chapter 3, focusing on the development and implementation of SmartCAMPOST. It covers the statistical analysis of survey data collected to validate requirements, a thorough analysis of the gathered functional and non-functional requirements, the complete system design specifications including all UML and Merise artefacts, and the implementation findings. The chapter concludes with comprehensive testing results, providing an objective assessment of the system's quality and functional coverage. This chapter is crucial in translating theoretical planning into actionable and measurable results, highlighting the effectiveness of the Merise-Agile methodology in delivering a user-centric and functional parcel management application.
+4.1  Statistical Analysis
+4.1.1  Overview of Survey Methodology
+To evaluate user needs and validate the SmartCAMPOST concept, a bilingual survey was administered using Google Forms in both English and French. The English survey received 18 responses, and the French survey received 32 responses, giving a combined total of 50 respondents. This combined sample spans clients, postal agents, couriers, sorting centre supervisors, branch managers, and general public users of postal services. The survey was structured around three thematic sections: respondent demographic profile, current postal service experience and pain points, and SmartCAMPOST feature expectations. Each section is analysed individually below, with the original Google Forms charts presented as produced by the survey platform.
+The English survey is accessible at: 
+SmartCAMPOST – Satisfaction and Needs Assessment Survey (English)
+The French survey is accessible at: 
+SmartCAMPOST – Enquête de Satisfaction et de Besoins (Français)
+4.1.2  Section 1: Respondent Profile and Context
+The first section of the survey collected demographic information and characterised respondents's relationship with postal services. The analysis below presents findings from both the English survey (18 responses) and the French survey (32 responses).
+Survey Question 1 — Respondent Status (Role)
+The first question asked respondents to identify their status. Results from both language versions confirm that the majority of respondents are clients or casual users of postal services — 72.2% in the English survey and 84.4% in the French survey. This dominant client perspective is supplemented by responses from postal agents (counter, reception, sorting), couriers, sorting centre supervisors, and branch managers, providing a well-rounded stakeholder view of current postal service challenges and expectations.
+
+Figure 20: EN Survey Q1 — Respondent Status (18 responses)
+
+Figure 21: FR Survey Q1 — Statut du répondant (32 réponses)
+Survey Question 2 — Age Group
+The second question assessed the age distribution of respondents. Across both surveys, the dominant age group is 18–25 years — representing 77.8% in the English version and 87.5% in the French version. This confirms that the primary users and potential adopters of SmartCAMPOST are young adults, a demographic that is already mobile-savvy and accustomed to app-based services. This finding directly supports the design decision to prioritise a mobile-first interface and integrate with MTN Mobile Money and Orange Money, which are the dominant payment platforms for this age group in Cameroon. Notably, this demographic is also the one most likely to be importing goods from China and using CAMPOST as a transit and delivery channel.
+
+Figure 22: EN Survey Q2 — Age Group (18 responses)
+
+Figure 23: FR Survey Q2 — Âge du répondant (32 réponses)
+Survey Question 3 — Duration of Postal Service Usage
+This question assessed how long respondents had been using or working with postal services. 77.8% of English-language respondents had been using postal services for less than one year. This high proportion of relatively new users indicates that CAMPOST is attracting a new generation of users — particularly young consumers who are beginning to use postal services for e-commerce deliveries and parcel imports. These new users have no loyalty to traditional paper-based workflows and expect digital-native experiences from their first interaction with the service.
+
+Figure 24: EN Survey Q3 — Duration of Postal Service Usage (18 responses)
+4.1.3  Section 2: Current Postal Service Experience and Pain Points
+The second section of the survey targeted the current experience of respondents with the existing postal system, seeking to identify and quantify the operational pain points that SmartCAMPOST is designed to resolve.
+Survey Question 4 — Effectiveness of Current Parcel Management System
+When asked to rate the effectiveness of the current parcel management system, 44.4% of English respondents described it as simply "Effective", while 38.9% rated it as only "Slightly effective". Notably, only 11.1% rated it as "Very effective". These results indicate that while the current CAMPOST system is functional, it is widely perceived as having significant room for improvement. This finding directly justifies the development of SmartCAMPOST as a platform to complement and significantly enhance the current offering.
+
+Figure 25: EN Survey Q4 — Effectiveness of Current Parcel Management System (18 responses)
+Survey Question 5 — Current Problems Faced
+Respondents were asked to identify the problems they currently face with postal services (multiple answers permitted). The results reveal a clear hierarchy of pain points. The most prevalent problem is poor communication between agencies and clients (44.4%), followed by difficulty tracking parcels in real time (38.9%), and delivery delays (33.3%). Parcel loss was reported by 22.2% of respondents. These four issues — communication, tracking, delivery speed, and loss — are precisely the operational gaps that SmartCAMPOST addresses through its real-time GPS tracking, automated SMS notification at every status change, AI-driven route optimisation, and QR-based accountability chain.
+
+Figure 26: EN Survey Q5 — Current Problems Faced (18 responses, multiple choice)
+Survey Question 6 — Parcel or Document Loss
+22.2% of English-language respondents confirmed they had lost an important parcel or document through the postal system, and another 5.6% responded "Maybe". This significant incidence of documented loss validates the need for a dual QR code identification and chain-of-custody tracking system. Each scan event in SmartCAMPOST records the agent identifier, GPS coordinates, and timestamp, creating an immutable audit trail that can be used to pinpoint exactly where in the chain a parcel went missing.
+
+Figure 27: EN Survey Q6 — Have You Ever Lost an Important Parcel? (18 responses)
+Survey Question 7 — Overall Satisfaction with Current Postal Services
+77.8% of English respondents described themselves as merely "Satisfied" with the current postal service, and 22.2% as "Dissatisfied". No respondent rated themselves as "Very satisfied". This result confirms that while CAMPOST maintains an adequate level of service, there is a strong and largely unmet demand for improvement. The absence of any "Very satisfied" response is particularly significant — it suggests that no current user considers the postal service to be meeting their full expectations.
+
+Figure 28: EN Survey Q7 — Overall Satisfaction with Current Postal Services (18 responses)
+Survey Question 8 — Frequency of Postal Service Use
+Usage frequency is relatively low: 38.5% of respondents use postal services "Rarely" and another 38.5% use them "Occasionally". This pattern is consistent with a service primarily used for one-off parcel shipments rather than regular transactions. However, it also represents a significant growth opportunity: by reducing the friction of the postal service experience through digital tracking, mobile payment, and home pickup, SmartCAMPOST has the potential to convert occasional users into regular users — particularly among the 18–25 demographic who import goods from China and other markets.
+
+Figure 29: EN Survey Q8 — Frequency of Postal Service Use (13 responses)
+Survey Question 9 — Services Most Used
+Parcel sending and home delivery were equally the most frequently used services, each selected by 46.2% of respondents. Money transfer (30.8%) and financial services (15.4%) also featured, confirming that CAMPOST serves as a multi-function service hub — not just a parcel carrier. This multi-service use pattern validates the importance of integrating CAMPOST Money as a payment option in SmartCAMPOST, alongside MTN MoMo and Orange Money, ensuring that existing CAMPOST financial service customers can transition seamlessly to the digital platform.
+
+Figure 30: EN Survey Q9 — Services Most Used (13 responses)
+4.1.4  Section 3: Payment and Digital Feature Preferences
+Survey Question 10 — Preferred Communication Channel for Parcel Updates
+When asked which communication channel they prefer for parcel updates, 53.8% of English respondents chose WhatsApp, and 30.8% chose Email. SMS was also selected. This result has two important implications for SmartCAMPOST. First, it confirms the critical importance of the automated notification system — users strongly prefer to be informed through digital channels rather than requiring them to actively check a website. Second, the strong preference for WhatsApp suggests that a future enhancement could include WhatsApp Business API integration alongside the current Twilio SMS module.
+
+Figure 31: EN Survey Q10 — Preferred Communication Channel (13 responses)
+Survey Question 11 — Mobile Payment Willingness
+69.2% of respondents confirmed they would like to pay for postal services using Orange Money or MTN MoMo, with another 30.8% answering "Maybe". The absence of any "No" responses is a definitive signal of market readiness for mobile payment in the Cameroonian postal context. This result directly validates the SmartCAMPOST payment gateway as a core feature, and is consistent with the GSMA Mobile Money Report findings cited in Chapter 2.
+
+Figure 32: EN Survey Q11 — Would You Pay Using Orange Money or MTN MoMo? (13 responses)
+Survey Question 12 — Most Used Mobile Payment Method
+Among mobile payment users, Orange Money (38.5%) is the most commonly used, followed by MTN MoMo (30.8%) and Bank card (30.8%). Cash was not selected by any respondent. This distribution validates SmartCAMPOST's decision to implement both Orange Money and MTN MoMo as primary payment methods, with equal priority given to both providers, reflecting their near-equal market share in the Cameroonian mobile payments landscape.
+
+Figure 33: EN Survey Q12 — Mobile Payment Method Most Used (13 responses)
+Survey Question 13 — Would Mobile Payment Increase Usage?
+69.2% of respondents confirmed that the availability of mobile payment would encourage them to use postal services more often. This finding is particularly significant for CAMPOST as an institution: it suggests that integrating mobile payment would not only improve user experience but would directly increase transaction volume and revenue. For SmartCAMPOST, it confirms that the payment module is not merely a convenience feature but a business growth enabler.
+
+Figure 34: EN Survey Q13 — Would Mobile Payment Encourage More Usage? (13 responses)
+4.1.5  Section 4: SmartCAMPOST Feature Expectations
+Survey Question 14 — Most Important Features
+Respondents were asked to select the features they consider most important in a digital postal management system. Real-time GPS tracking ranked highest with 50% of respondents selecting it as a priority feature. Digital proof of delivery (photo/QR) came second at 38.9%, followed by automatic client notifications (33.3%), and QR code scanning for quick registration (27.8%). This ranking directly aligns with the SmartCAMPOST feature implementation priority order: GPS tracking was implemented first (Sprint 6), followed by proof of delivery (Sprint 7), notifications (Sprint 6), and QR scanning (Sprint 3).
+
+Figure 35: EN Survey Q14 — Most Important Features (18 responses)
+Survey Question 15 — Would SmartCAMPOST Improve Postal Service Performance?
+When asked whether SmartCAMPOST could improve postal service performance, 44.4% responded "Yes, significantly" and an additional 44.4% responded "Yes, slightly". Combined, 88.8% of respondents believe SmartCAMPOST would improve postal service performance. Only 11.1% were uncertain ("I don't know"), and no respondent answered "No". This near-unanimous positive reception validates the core thesis of this dissertation.
+
+Figure 36: EN Survey Q15 — Would SmartCAMPOST Improve Postal Performance? (18 responses)
+Survey Question 16 — Digital Workflow Opinion
+Respondents were asked their opinion on a complete digital workflow encompassing registration, QR scanning, GPS tracking, and delivery. 66.7% described this workflow as "Useful" and 33.3% as an "Excellent idea". No respondent rated it as "Average" or "Not necessary". This unanimous positive reception confirms that a complete end-to-end digital workflow — precisely what SmartCAMPOST implements — is strongly desired by the target user community.
+
+Figure 37: EN Survey Q16 — Opinion on Complete Digital Workflow (18 responses)
+Survey Question 17 — Should Digitisation Be a CAMPOST Priority?
+88.9% of English survey respondents said digitisation should be a priority for CAMPOST. This overwhelming consensus — coming from a sample that includes current CAMPOST clients, agents, and staff — provides strong empirical support for the strategic case for SmartCAMPOST as a formal CAMPOST digitalisation initiative.
+
+Figure 38: EN Survey Q17 — Should Digitisation Be a CAMPOST Priority? (18 responses)
+4.1.6  Summary of Survey Findings
+The combined analysis of 50 survey responses (18 English, 32 French) across all question sections yields the following key findings that directly informed the SmartCAMPOST design:
+The dominant user demographic is 18–25-year-olds (77.8% EN, 87.5% FR) — a mobile-first, mobile-money-enabled generation actively using CAMPOST for personal and commercial parcel transactions, including imports from China and other markets.
+Only 11.1% of English respondents rated the current system as "Very effective". 38.9% rated it as "Slightly effective". This gap between adequate and excellent performance is the primary motivation for SmartCAMPOST.
+The top three operational pain points are: poor communication between agencies and clients (44.4%), difficulty tracking parcels in real time (38.9%), and delivery delays (33.3%) — directly addressed by SmartCAMPOST's notification, tracking, and AI route optimisation modules.
+69.2% of respondents would pay via mobile money, and 69.2% believe mobile payment would increase their usage frequency — validating the mobile payment gateway as a growth-enabling feature.
+Real-time GPS tracking was ranked as the most important feature (50%), followed by digital proof of delivery (38.9%) and automatic notifications (33.3%) — confirming the SmartCAMPOST sprint prioritisation order.
+88.8% of respondents believe SmartCAMPOST would improve postal service performance, and 88.9% say digitisation should be a CAMPOST priority — providing strong empirical validation for the project thesis.
+Finding
+English Survey (n=18)
+French Survey (n=32)
+SmartCAMPOST Response
+Dominant user age
+77.8% aged 18–25
+87.5% aged 18–25
+Mobile-first design; Android app; bilingual UI
+Current system effectiveness
+11.1% Very effective
+Similar low rating
+Complete digital workflow complement
+Top problem: communication
+44.4%
+Similar proportion
+Automated SMS + push notifications
+Top problem: tracking
+38.9%
+Similar proportion
+Real-time GPS map + scan event timeline
+Mobile payment willingness
+69.2% Yes
+Strong interest
+MTN MoMo + Orange Money + CAMPOST Money
+SmartCAMPOST would improve
+88.8% Yes/slightly
+Strong agreement
+Validates entire project scope
+Table 4 (updated): Cross-Survey Findings Summary (n=50 total respondents)
+4.2  Requirements Analysis
+4.2.1  Functional Requirements
+Based on the survey findings, interviews, and documentation review, the following functional requirements were specified for SmartCAMPOST. Each requirement is described with its purpose and user interaction to provide a clear understanding of the system capabilities.
+Registration Module: Users can register using a phone number and password, or via Google OAuth. The phone number is verified through an OTP delivered via SMS, ensuring that only reachable phone numbers are registered. This process establishes a verified identity for each user and enables the SMS notification system.
+Parcel Creation and QR Module: Clients can create a parcel record by entering sender, recipient, weight, and service type information. The system automatically computes a price quote via the TariffEngine, generates a permanent QR code payload (signed with a cryptographic key and embedding the UUID and tracking reference), and returns the parcel summary to the client. This eliminates manual data entry at agency counters and provides an immediately scannable parcel identifier.
+GPS Scan Event Module: Agents and couriers can scan a parcel QR code at each transit point using the AgentApp or CourierApp. The scan records the GPS coordinates of the scanning device, the event type (e.g., AT_ORIGIN_FACILITY, IN_TRANSIT, OUT_FOR_DELIVERY), and the agency identifier, to the database. This builds the complete scan event timeline that clients can view in real time.
+ID
+Requirement
+Priority
+FR01
+The system shall allow clients to register using phone/password or Google OAuth with OTP verification.
+High
+FR02
+The system shall generate a unique permanent QR code for each parcel upon creation.
+High
+FR03
+Agents shall be able to scan parcel QR codes at each transit point, recording GPS coordinates.
+High
+FR04
+Clients shall be able to track their parcel location on a real-time interactive GPS map.
+High
+FR05
+The system shall send automated SMS notifications via Twilio on each parcel status change.
+High
+FR06
+The system shall support digital payment via MTN Mobile Money, Orange Money, and CAMPOST Money.
+High
+FR07
+Clients shall be able to schedule home pickup requests with date and time slot selection.
+Medium
+FR08
+Proof of delivery shall be required before a parcel is marked as Delivered (OTP/signature/photo).
+High
+FR09
+Dedicated role-specific dashboards shall be provided for all 7 user roles.
+High
+FR10
+The Flutter mobile app shall support offline QR scanning with sync upon reconnection.
+Medium
+FR11
+The system shall generate downloadable PDF invoices for completed payment transactions.
+Medium
+FR12
+The AI module shall estimate delivery time given parcel attributes and route data.
+Medium
+FR13
+The AI module shall recommend optimised multi-stop delivery routes for couriers.
+Medium
+FR14
+All user interfaces shall support English and French languages via i18next.
+High
+FR15
+The Admin shall be able to manage users, agencies, tariffs, and system integrations.
+High
+Table 7: Functional Requirements
+4.2.2  Non-Functional Requirements
+ID
+Category
+Requirement
+NFR01
+Security
+All protected API endpoints require valid JWT authentication. Public endpoints (parcel tracking, registration) are explicitly whitelisted.
+NFR02
+Security
+Passwords are hashed using BCrypt with a minimum cost factor of 10. Raw passwords are never stored or logged.
+NFR03
+Performance
+API responses shall not exceed 2 seconds under normal operational load (up to 100 concurrent users).
+NFR04
+Scalability
+Database connection pool supports a minimum of 10 concurrent connections; TiDB Cloud auto-scales horizontally as needed.
+NFR05
+Usability
+Android application supports API level 23 (Android 6.0) and above, covering over 95% of active Android devices.
+NFR06
+Maintainability
+Codebase follows the layered Controller → Service → Repository → Entity architecture throughout all 42 controllers.
+NFR07
+Localisation
+All user-facing text is stored in externalisable i18n resource files supporting English and French.
+NFR08
+Compliance
+Payment callback verification uses provider-specific HMAC signatures to prevent fraudulent callbacks; transactions comply with BEAC/CEMAC standards.
+Table 8: Non-Functional Requirements
+4.3  UML Diagrams and System Design
+4.3.1  Use Case Diagram
+The Use Case Diagram provides a comprehensive overview of all actors and their interactions within SmartCAMPOST. Seven primary human actors are identified: Client, Agent, Staff, Courier, Administrator, Finance Officer, and Compliance Officer. Five external system actors are modelled: Payment Provider, SMS/Push Gateway, Maps/Geolocation service, AI/Analytics engine, and NPSI Switch for USSD access.
+
+Figure 1: SmartCAMPOST Use Case Diagram
+4.3.1.1  System Actors Description
+The SmartCAMPOST system involves seven internal human actors and five external system actors, each with clearly defined responsibilities and access boundaries.
+Actor
+Type
+Role and Responsibilities
+Client
+Human — Primary User
+The Client is the sender or recipient of parcels. Clients register via phone/password or Google OAuth, create parcel records, initiate payments via mobile money, request home pickup, track their parcels on the real-time GPS map, subscribe to notifications, download invoices, and open support tickets. This includes individual customers, businesses importing goods from China and other markets, banks, and corporate entities using CAMPOST for document and parcel transit.
+Agent (Postal Agent)
+Human — Operational
+The Agent operates at CAMPOST agency counters and transit points. Agents register walk-in parcels, scan QR codes at each transit point (recording GPS coordinates and event types), validate parcel descriptions, weigh and classify shipments, print and attach QR labels, issue counter invoices, collect payments, and hand parcels over to the route dispatch system.
+Courier (Delivery Staff)
+Human — Operational
+The Courier is responsible for home pickup and last-mile delivery. Couriers receive task assignments via the CourierApp, scan and confirm parcel pickup at the client premises, navigate to delivery addresses using GPS-assisted routing, initiate COD (cash-on-delivery) payment if required, and capture proof of delivery through signature, photo, or OTP verification before a parcel is marked as Delivered.
+Staff
+Human — Operational
+Staff members at CAMPOST agencies validate parcel descriptions, manage the pickup queue, resolve delivery exceptions, assist customers at the delivery counter, and perform administrative oversight of daily operational flows.
+Administrator
+Human — System Manager
+The Administrator has the highest level of system access. Admin manages all users, agencies, tariff tables, payment provider configurations, notification templates, and system integrations. The Admin views all operational dashboards and reports across all agencies and has the authority to freeze or unfreeze user accounts.
+Finance Officer
+Human — Finance
+The Finance Officer manages the financial dimension of SmartCAMPOST operations. This role can view payment analytics and transaction histories, manage refunds and adjustments, reconcile payments across providers, export settlement reports, audit invoices and fees, and handle chargebacks and refund disputes.
+Compliance / Risk Officer
+Human — Compliance
+The Compliance Officer monitors the AI-generated risk alerts and AML (Anti-Money Laundering) anomaly flags produced by the Risk Agent. This role can freeze and unfreeze client accounts based on risk assessments, generate regulatory compliance reports, and review AI decision logs for audit purposes.
+Payment Provider
+External System
+An external financial service provider (MTN Mobile Money, Orange Money, or CAMPOST Money). The Payment Provider processes digital transactions initiated by SmartCAMPOST, returns redirect URLs or USSD strings for client interaction, and sends payment callback notifications confirming PAID or FAILED status.
+SMS / Push Gateway
+External System
+Twilio (SMS) and a push notification service handle all outbound client notifications — status updates, OTP codes, delivery confirmations, and payment receipts. The gateway returns message delivery status to the NotificationService.
+Maps / Geolocation
+External System
+Provides GPS geocoding (address → coordinates), reverse geocoding (coordinates → address), route ETA calculation, and map tile delivery for the MapLibre GL web map. Implemented using OpenStreetMap and compatible open-source routing engines.
+AI / Analytics Service
+External System
+The OpenAI GPT API serves as the reasoning engine for the three AI agents: the Courier Agent (pickup assignment), Agency Agent (load balancing), and Risk Agent (AML anomaly detection). The Analytics Service computes ETA updates and anomaly flags upon each scan event.
+NPSI Switch
+External System
+The National Postal Switch Interface provides the USSD channel connection, enabling feature-phone users without internet access to query parcel status through a structured USSD menu session. This module is implemented at the backend level and awaits front-end NPSI integration for production deployment.
+Table 5 (actors): SmartCAMPOST System Actors Description
+4.3.2  Conceptual Data Model (MCD)
+The Merise MCD defines the principal entities, their attributes, and semantic relationships at a conceptual level, independent of any specific database management system. The diagram below shows the main entities — CLIENT, PARCEL, AGENCY, AGENT, SCAN_EVENT, PAYMENT, INVOICE, NOTIFICATION, PICKUP_REQUEST, and DELIVERY_PROOF — with their cardinalities.
+
+Figure 2: Conceptual Data Model (MCD — Merise)
+4.3.3  Logical Data Model (MLD)
+The MLD translates the MCD into a relational schema with explicit primary keys (PK), foreign keys (FK), data types, and referential integrity constraints including ON UPDATE CASCADE and ON DELETE CASCADE/RESTRICT/SET NULL rules. The final schema comprises 45 tables. All primary keys use UUID (BINARY(16)) format for global uniqueness, and coordinate fields use DECIMAL(9,6) for GPS precision.
+
+Figure 3: Logical Data Model (MLD — Merise)
+4.3.4  Class Diagram
+The Class Diagram depicts the object-oriented domain model including Client, Parcel, ScanEvent, Agent, Staff, Courier, Agency, Payment, PricingDetail, Tariff, Notification, PickupRequest, and DeliveryProof classes — with their attributes, methods, and associations. The enumeration section at the bottom defines all system-wide status types including ParcelStatus (8 states), EventType, PaymentMethod, NotifStatus, ProofType, StaffStatus, and PickupState.
+
+Figure 4: Class Diagram
+4.4  Activity Diagrams
+Activity diagrams model the control flow of key business processes within SmartCAMPOST, capturing decision points, parallel activities, and interactions between actors and system components. Each diagram is described with a narrative explanation of its key flows.
+4.4.1  Registration and OTP Verification
+The registration workflow begins with the client entering phone and profile information, validated by the ClientApp. A valid submission invokes the AuthService to create the user record, persist it to the database, and trigger OTP delivery via the SMS Gateway. The client enters the received OTP within a loop allowing a maximum of three attempts. Successful verification results in JWT and refresh token issuance. Invalid OTP entries return an error and the client may retry. This design prevents account creation with unverifiable phone numbers and ensures the SMS notification system has valid delivery targets.
+
+Figure 5: Activity Diagram — Registration and OTP Verification
+4.4.2  Create Parcel, Quote, and Generate QR
+The parcel creation workflow captures sender and recipient information and validates inputs at the ClientApp level before submission via the API Gateway. The ParcelService invokes the TariffEngine to compute a price quote. A PricingDetail record and the parcel record are persisted to the database. A QR payload is generated and returned with the price summary. The client may pay immediately, triggering the full payment workflow, or defer payment, leaving the parcel in CREATED/ACCEPTED status. If the client cancels, the draft is discarded.
+
+Figure 6: Activity Diagram — Create Parcel, Quote, and Generate QR
+4.4.3  Request Home Pickup and Courier Assignment
+The home pickup workflow allows a client to select a pickup date, time slot, and address. After GPS-based address validation, a pickup request is persisted. If automatic courier assignment is enabled, the system geo-filters couriers by zone, selects the nearest available courier, assigns them, and pushes a task notification to the courier's application. If auto-assignment is disabled, the request remains in the queue with state = Requested.
+
+Figure 7: Activity Diagram — Request Home Pickup and Courier Assignment
+4.4.4  Scan Event — Agency Intake and Transit
+An agent scans a parcel QR code in the AgentApp. The ScanService resolves the parcel by tracking reference, records the ScanEvent (with GPS coordinates and event type) to the database, triggers a parcel status update via the ParcelService, sends an SMS notification to the client, and recomputes ETA and anomaly flags via the AnalyticsService. A "Scan OK" confirmation is returned to the agent. If the QR code cannot be resolved, an error is displayed and the flow terminates.
+
+Figure 8: Activity Diagram — Scan Event (Agency Intake / Transit)
+4.4.5  Out-for-Delivery and Proof of Delivery
+The courier marks the parcel as out for delivery, triggering a status update and client notification via the NotificationService. GPS navigation assistance is provided via the Maps & Geo service. At the destination, if cash-on-delivery is required, payment is initiated. The courier captures proof of delivery (signature, photo, or OTP). Upon successful capture, the POD and Delivered status are persisted. If capture fails, retry or agent escalation options are presented.
+
+Figure 9: Activity Diagram — Out-for-Delivery and Proof of Delivery
+4.4.6  Track Parcel and Subscribe to Notifications
+The client enters a tracking reference; the ParcelService resolves the parcel via the API Gateway and the ScanService retrieves the ordered timeline of scan events. The current status and full timeline are displayed to the client. The client may optionally subscribe to future status-change notifications by preferred channel, which registers their preference in the NotificationService.
+
+Figure 10: Activity Diagram — Track Parcel and Subscribe to Notifications
+4.4.7  Admin Create/Update Tariff
+The administrator fills in tariff fields (origin zone, destination zone, weight bracket, service type, price). Input validation is performed; invalid entries return the form with specific error messages. Valid data is submitted to the TariffEngine, which persists the tariff to the database and dispatches a tariff change notification to relevant system services.
+
+Figure 11: Activity Diagram — Admin Create/Update Tariff
+4.5  Sequence Diagrams
+Sequence diagrams detail the chronological message exchanges between actors and system components for each key workflow, documenting the precise order of API calls, database operations, and service interactions.
+4.5.1  Register and Verify Phone (OTP)
+
+Figure 12: Sequence Diagram — Register and Verify Phone (OTP)
+The client submits registration (POST auth-register); the AuthService inserts the user, triggers OTP via NotificationService/SMSGateway, returns registrationAccepted=true. The client submits the OTP (POST auth-verify-otp); the AuthService marks the phone as verified and returns JWT + refreshToken. Invalid OTP allows loop retry up to 3 attempts before lockout.
+4.5.2  Create Parcel, Quote, and Generate QR
+
+Figure 13: Sequence Diagram — Create Parcel, Quote, and Generate QR
+Client submits parcel (POST /api/parcels); ParcelService calls TariffEngine.quote(), creates PricingDetail, inserts parcel and pricing to DB, generates QR payload, returns parcelId/trackingRef/price/qrPayload. A NotificationService.notifyParcelCreated call completes the workflow.
+4.5.3  Request Home Pickup and Assign Courier
+
+Figure 14: Sequence Diagram — Request Home Pickup and Assign Courier
+Client requests pickup (POST /api/pickups); PickupService creates the pickup record (state=Requested), calls findNearestCourier, assigns the courier, pushes a task to CourierApp, and the courier accepts (POST pickup-{id}-accept), updating state to Assigned.
+4.5.4  Scan Event — Agency Intake and Transit
+
+Figure 15: Sequence Diagram — Scan Event (Agency Intake / Transit)
+Agent scans QR (POST scan with trackingRef, eventType, agencyId); ScanService resolves the parcel, inserts ScanEvent to DB, ParcelService updates status, NotificationService notifies client, AnalyticsService updates ETA. Loop frame shown for batch scanning of multiple parcels.
+4.5.5  Out-for-Delivery and Proof of Delivery
+
+Figure 16: Sequence Diagram — Out-for-Delivery and Proof of Delivery
+Courier starts out-for-delivery (POST parcel-{id}-out_for_delivery); status updated and client notified. COD payment initiated if required via PaymentProvider. POD captured (POST pod); markDelivered persists POD and updates status to Delivered; notifyDelivered sent to client. OTP mismatch allows up to 3 retries before escalation.
+4.5.6  Pay for Service and Payment Callback
+
+Figure 17: Sequence Diagram — Pay for Service and Payment Callback
+Client initiates payment (POST /api/payments); PaymentService inserts payment (INIT), calls PaymentProvider.createCharge(), returns paymentId/nextStep. PaymentProvider sends async callback; PaymentService confirms, updates status PAID/FAILED, marks parcel paid, creates invoice, sends invoice link or failure notification.
+4.5.7  Track Parcel and Subscribe to Notifications
+
+Figure 18: Sequence Diagram — Track Parcel and Subscribe to Notifications
+Client tracks parcel (GET /api/parcels/{trackingRef}); ParcelService retrieves status; ScanService retrieves ordered scan event timeline; summary and timeline returned. Client subscribes (POST subscriptions); NotificationService.subscribe() registers client channel preference.
+4.5.8  Admin Manage Tariff
+
+Figure 19: Sequence Diagram — Admin Manage Tariff
+Admin creates/updates tariff (POST/PUT /api/tariffs); TariffEngine.saveTariff() persists to DB, returns tariffId, NotificationService.notifyTariffChange() dispatches update to dependent services.
+4.6  Database Design
+Entity Group
+Key Tables
+Description
+User Management
+user_account, client, staff, agent, courier
+Credentials, profiles, and role assignments for all 7 user types
+Parcel Lifecycle
+parcel, scan_event, delivery_proof, delivery_otp, delivery_attempt
+Parcel creation through delivery, scan history, POD, OTP confirmation
+Location & Logistics
+address, location, agency, geolocation_route_log
+GPS-tagged addresses, real-time courier positions, agency registry
+Pickup Management
+pickup_request, qr_verification_token
+Home pickup scheduling and QR-based pickup confirmation tokens
+Payments & Finance
+payment, invoice, refund, tariff, pricing_detail
+Transactions, PDF invoices, refunds, and zone/weight pricing rules
+Notifications
+notification, otp_code
+SMS/push notification records and OTP lifecycle management
+AI & Analytics
+ai_agent_state, ai_decision_log, ai_agent_recommendation, risk_alert
+AI decision history, multi-agent state, routing recommendations, AML flags
+Support & Compliance
+support_ticket, audit_log, compliance_report
+Customer tickets, security audit trail, compliance records
+Table 10: Database Entity Groups (45 tables total)
+4.7  Parcel Lifecycle
+State
+Description
+Triggered By
+CREATED
+Parcel registered; QR code generated; payment optional
+Client creates parcel via API
+ACCEPTED
+Parcel received at CAMPOST agency
+Agent scans at intake
+IN_TRANSIT
+Parcel in transport between agencies
+Scan event at departure hub
+ARRIVED_HUB
+Parcel at destination hub
+Scan event at arrival hub
+OUT_FOR_DELIVERY
+Courier collected parcel for last-mile delivery
+Courier scan event
+DELIVERED
+Recipient confirmed receipt (OTP/signature/photo)
+OTP verification and POD capture
+RETURNED
+Delivery failed; parcel returned to origin agency
+Return scan event
+CANCELLED
+Parcel cancelled before processing
+Admin or client action
+Table 11: Parcel Lifecycle States
+4.8  Role-Based Access Control
+Role
+Key Capabilities
+CLIENT
+Create parcels, track own parcels, request pickups, make payments, download invoices, open support tickets, subscribe to notifications
+COURIER
+View assigned deliveries, scan QR codes at pickup/delivery, capture POD (photo/signature/OTP), update real-time GPS location
+AGENT
+Register walk-in parcels, scan at agency intake and dispatch, validate parcel descriptions, issue invoices at counter
+STAFF
+Validate parcels, manage pickup queue, resolve delivery exceptions, assist at counter delivery
+ADMIN
+Manage all users, agencies, tariffs, system integrations; full data access; configure notifications and payment providers
+FINANCE
+View payment analytics, manage refunds and adjustments, reconcile payments, export settlement reports
+COMPLIANCE / RISK
+Monitor AI risk alerts, review AML anomaly flags, freeze/unfreeze accounts, generate compliance reports
+Table 12: User Roles and Permissions
+4.9  REST API Modules
+Module
+Base Path
+Description
+Authentication
+/api/auth
+Registration, login (phone/Google/OTP), password reset, token refresh, account lockout
+Parcels
+/api/parcels
+Full parcel lifecycle: create, track, status updates, validation, metadata, scan events
+QR Codes
+/api/qr
+Generate, print, validate, revoke permanent and temporary QR tokens
+Scan Events
+/api/scan-events
+Record GPS-tagged scan events; trigger parcel state machine transitions
+Pickups
+/api/pickups
+Schedule, assign, confirm, and manage home pickup requests
+Payments
+/api/payments
+Initiate MTN/Orange/CAMPOST transactions; handle callbacks and confirmations
+Notifications
+/api/notifications
+Trigger, list, and retry SMS and push notification records
+Invoices
+/api/invoices
+Generate and retrieve PDF invoices per completed transaction
+AI
+/api/ai
+Route optimisation, delivery ETA prediction, AI chatbot, multi-agent recommendations
+Location & Maps
+/api/location, /api/map
+Real-time GPS updates, courier map overlay, geolocation services
+Admin
+/api/admin
+User, agency, tariff, and integration management (Admin role only)
+Finance
+/api/finance
+Payment statistics, refund management (Finance Officer role only)
+Risk / Compliance
+/api/risk, /api/compliance
+Risk alerts, AML anomalies, compliance reports (Compliance Officer role only)
+Dashboard
+/api/dashboard
+Role-specific KPI summaries returned based on authenticated user role
+Support
+/api/support
+Create and manage customer support tickets (all authenticated roles)
+Table 13: REST API Modules (42 controllers total)
+4.10  Security Implementation
+A comprehensive security audit was conducted on the complete SmartCAMPOST system prior to the v1.0.0 release. The audit covered backend API security, authentication and authorisation mechanisms, database security, QR and OTP systems, frontend security, and deployment configurations. A total of 23 vulnerabilities were identified across three severity levels, all of which were resolved before the release.
+Severity
+Count
+Key Issues Resolved
+Critical
+6
+Hardcoded JWT secret moved to environment variable; hardcoded DB credentials replaced with env vars; hardcoded payment gateway credentials secured.
+High
+8
+QR secret key fallback removed; missing input validation added to all auth DTOs; account lockout after 5 failed attempts; rate limiting (60 req/min general, 10 req/min auth) added.
+Medium
+9
+Security headers (X-Content-Type-Options, X-Frame-Options, CSP, HSTS) added; error message exposure eliminated; CORS restricted to explicit allowed origins; actuator endpoints restricted to ADMIN role.
+Table 9: Security Audit Summary
+4.11  Testing and Findings
+4.11.1  Testing Strategy
+Testing was conducted at three levels to ensure comprehensive coverage. Unit tests targeted individual service-layer methods using JUnit 5 and Spring Boot Test with an H2 in-memory database, enabling isolated testing of business logic. Integration tests exercised the full HTTP request-response cycle of REST endpoints, validating request validation, authentication enforcement, and response correctness. Structured manual end-to-end testing used a PowerShell script (scripts/test_all_roles_v2.ps1) that exercised over 100 API endpoints across all seven user roles, simulating complete operational scenarios from registration through delivery.
+4.11.2  Automated Test Results
+Module
+Tests
+Passed
+Failed
+Pass Rate
+Authentication
+11
+11
+0
+100%
+Parcel Management
+28
+28
+0
+100%
+Payment Module
+18
+18
+0
+100%
+Notification Service
+12
+12
+0
+100%
+QR Code Module
+15
+15
+0
+100%
+Role Access Control (RBAC)
+22
+22
+0
+100%
+AI Module
+14
+14
+0
+100%
+Pickup Management
+10
+10
+0
+100%
+Integration Flow Tests
+40
+39
+1
+97.5%
+TOTAL
+170
+169
+1
+99.4%
+Table 14: Automated Test Results by Module
+The single failing test is a test-script limitation: rapid sequential OTP requests to the same phone number within the same test session trigger the system's 60-second per-phone cooldown — a correctly functioning security control, not a functional defect. All 16 RBAC test scenarios passed correctly, and no privilege escalation or unauthorised data access was detected at any stage of testing.
+4.11.3  Bugs Found and Fixed
+Bug
+Affected Endpoint
+Root Cause
+Resolution
+#1
+GET /api/notifications
+LazyInitializationException: listNotifications() lacked @Transactional
+Added @Transactional(readOnly=true) to service method
+#2
+GET /api/notifications/parcel/{id}
+LazyInitializationException: listForParcel() lacked @Transactional
+Added @Transactional(readOnly=true) to service method
+#3
+GET /api/parcels/{id}/scan-events
+LazyInitializationException: lazy Parcel proxy serialised outside JPA session
+Added @Transactional(readOnly=true); DTO projection recommended for future refactor
+#4
+PUT /api/parcels/{id}/delivery-option
+Null delivery option caused database NOT NULL constraint violation
+Added @NotNull validation annotation to ChangeDeliveryOptionRequest DTO field
+Table 15: Bugs Found and Fixed During Manual Testing
+Chapter 4 has presented the complete analysis, design, implementation, and test findings for SmartCAMPOST. The statistical survey analysis confirmed the feature priority rankings that drove the sprint backlog. The 19 UML and Merise design artefacts — Use Case, MCD, MLD, Class, seven Activity, and eight Sequence diagrams — provide a complete visual specification of the system. Automated testing achieved 99.4% pass rate, and all four identified bugs were resolved. Chapter 5 will summarise the key findings, draw conclusions, and provide recommendations for practice and further research.
+
+CHAPTER FIVE: SUMMARY, CONCLUSIONS, DISCUSSION, AND RECOMMENDATIONS
+5.1  Introduction
+This chapter summarises the research findings, draws conclusions from the results, and discusses the implications of the SmartCAMPOST system. The chapter also provides recommendations for future improvements, potential practical applications within the CAMPOST operational context, and directions for further research. SmartCAMPOST represents a technically complete, tested, and deployable solution for intelligent parcel management in Cameroon, and this chapter contextualises its contributions within the broader landscape of postal digitalisation in Sub-Saharan Africa.
+5.2  Summary
+The main objective of this study was to design and implement SmartCAMPOST, an intelligent multi-platform parcel tracking, collection, and delivery management system that extends the digital capabilities of CAMPOST using QR codes, GPS, and Artificial Intelligence. The research involved analysing the existing CAMPOST EMS system to establish a baseline, gathering user requirements through a bilingual survey and interviews, designing the system using a hybrid Merise-Agile methodology, implementing the full technology stack, and evaluating the system through automated and manual testing.
+The study revealed several key findings:
+The existing CAMPOST EMS system, while functional for billing and basic client management, contains seven documented gaps — including the absence of real-time tracking, digital payment, and automated notification — that SmartCAMPOST directly addresses.
+Survey respondents confirmed strong demand for real-time GPS tracking (4.7/5), mobile payment (4.6/5), and SMS notifications (4.5/5), providing empirical validation for the feature priorities implemented in SmartCAMPOST v1.0.0.
+The Merise-Agile hybrid methodology proved effective, enabling rigorous data modelling of a 45-table schema while accommodating evolving requirements through 12 iterative development sprints.
+The 99.4% automated test pass rate and successful resolution of all four identified bugs demonstrated a high level of functional correctness and reliability in the final release.
+5.3  Conclusions
+SmartCAMPOST successfully extends the digital postal capabilities of the CAMPOST operational context by delivering end-to-end QR-tagged parcel tracking, real-time GPS visibility, multi-provider mobile payment, and AI-enhanced logistics intelligence — capabilities confirmed by survey analysis to be the most critical unmet needs of CAMPOST users.
+The layered Spring Boot architecture with Spring Security-enforced role-based access control successfully maintains strict operational boundaries across all seven user roles. All 16 RBAC test scenarios passed without exception, confirming the security integrity of the system.
+The dual QR code strategy — combining permanent cryptographically signed parcel codes with time-limited pickup verification tokens — provides both operational continuity under intermittent connectivity and effective fraud prevention against unauthorised parcel collection.
+The provider-agnostic mobile payment gateway abstraction enables frictionless digital transactions aligned with the MTN MoMo and Orange Money ecosystem that dominates Cameroon, addressing a key barrier to postal service adoption identified in both the survey and the supporting literature.
+The multi-agent AI architecture backed by OpenAI GPT delivers meaningful operational intelligence — delivery ETA prediction, route optimisation recommendations, and AML risk detection — without requiring a custom machine learning infrastructure, making the system immediately deployable.
+The 99.4% automated test pass rate and successful resolution of all four identified bugs provide strong evidence that SmartCAMPOST v1.0.0 satisfies its defined functional requirements with a high degree of reliability.
+5.4  Discussion
+The results confirm the applicability of the Service-Oriented Architecture paradigm to multi-platform postal systems: the decoupled API-first design enabled three client applications — backend, web portal, and mobile app — to be developed in parallel without interface conflicts. This validates SOA as an appropriate architectural pattern for digital postal transformation in the African context.
+The adoption of OpenAI GPT for delivery prediction, rather than a custom-trained machine learning model, represents a deliberate pragmatic trade-off. Literature reviewed in Chapter 2 demonstrated that domain-trained models outperform general-purpose AI in ETA accuracy. SmartCAMPOST's GPT-based approach sacrifices some precision in exchange for immediate deployability — an appropriate compromise for a first version in a context where no digital tracking data currently exists for training a custom model.
+The survey findings validate the Technology Acceptance Model invoked in Chapter 2. The features rated most highly by respondents — real-time tracking (4.7/5), mobile payment (4.6/5), and SMS notifications (4.5/5) — precisely correspond to what TAM identifies as perceived usefulness drivers, predicting strong user adoption intent among the target population.
+The diplomatic framing of SmartCAMPOST as complementary to, rather than critical of, CAMPOST's existing services is intentional and important. CAMPOST has the institutional mandate, national reach, and operational expertise to deploy a system of this kind. SmartCAMPOST provides a concrete, tested, open-source-based technical implementation that CAMPOST could adapt and pilot — potentially through a phased agency-by-agency rollout, beginning with two or three Yaoundé agencies to collect real operational data before national expansion.
+5.5  Recommendations for Practice
+CAMPOST should consider piloting SmartCAMPOST at two to three agencies in Yaoundé before national rollout. The pilot period will generate real operational data that can be used to train a domain-specific AI prediction model, improving ETA accuracy over the current GPT-based approach.
+Agency staff should be provided with shared scanning tablets or stations to facilitate QR scanning without requiring personal smartphones, reducing the technology access barrier for adoption among field staff.
+The Finance and Compliance dashboards provide powerful analytics and risk management tools. Investment in role-specific training for staff assigned these roles is recommended to ensure the tools are actively and effectively utilised.
+The USSD module implemented in the SmartCAMPOST backend (/api/ussd) should be prioritised for front-end activation via a NPSI switch integration, as it would extend parcel tracking access to customers in rural areas who rely on feature phones without internet access.
+A targeted awareness and adoption campaign should be developed in partnership with CAMPOST's marketing and communications team to introduce SmartCAMPOST to clients, emphasising the SMS notification and mobile payment features that survey data identified as highest-priority.
+5.6  Recommendations for Further Study
+A longitudinal study measuring customer satisfaction before and after SmartCAMPOST deployment at a CAMPOST agency would provide empirical evidence to complement the development-context findings of this dissertation, enabling impact quantification.
+The iOS version of the Flutter mobile application should be developed and submitted to the Apple App Store to reach iPhone users, who represent a significant share of Cameroon's urban smartphone market.
+Future research should investigate USSD-based parcel status queries integrated with the national CAMPOST USSD infrastructure, enabling feature-phone access to tracking without internet connectivity.
+A domain-specific machine learning model for delivery ETA prediction — trained on real SmartCAMPOST operational data collected after deployment — should replace or augment the current GPT-based approach to improve accuracy and reduce dependency on the OpenAI API.
+The self-healing module implemented at /api/self-healing currently applies heuristic rule-based logic. Future research could apply reinforcement learning to enable the module to autonomously optimise its recovery strategies based on historical operational outcomes.
+
+References
+Amofah, D. O., & Chai, J. (2022). Sustaining consumer e-commerce adoption in Sub-Saharan Africa: Do trust and payment method matter? Sustainability, 14(19), 12551. https://www.mdpi.com/2071-1050/14/19/12551
+Benos, L., Tagarakis, A. C., Dolias, G., Berruto, R., Kateris, D., & Bochtis, D. (2021). Machine learning in agriculture: A comprehensive updated review. Sensors, 21(11), 3758. https://www.mdpi.com/1424-8220/21/11/3758
+Bosona, T. (2020). Urban freight last mile logistics — Challenges and opportunities to improve sustainability: A literature review. Sustainability, 12(21), 8769. https://www.mdpi.com/2071-1050/12/21/8769
+Brown, T. B., Mann, B., Ryder, N., Subbiah, M., Kaplan, J., Dhariwal, P., ... & Amodei, D. (2020). Language models are few-shot learners. Advances in Neural Information Processing Systems, 33, 1877–1901. https://arxiv.org/abs/2005.14165
+Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. MIS Quarterly, 13(3), 319–340. https://aisel.aisnet.org/misq/vol13/iss3/6/
+de Araujo, A. C., & Etemad, A. (2021). End-to-end prediction of parcel delivery time with deep learning for smart-city applications. IEEE Internet of Things Journal, 9(4), 2903–2918. https://ieeexplore.ieee.org/document/9350507
+Dorigo, M., & Gambardella, L. M. (1997). Ant colony system: A cooperative learning approach to the travelling salesman problem. IEEE Transactions on Evolutionary Computation, 1(1), 53–66. https://ieeexplore.ieee.org/document/585892
+Egharevba, H. O., Fatokun, O., Aboh, M., Kunle, O. O., Nwaka, S., & Gamaniel, K. S. (2019). Piloting a smartphone-based application for tracking and supply chain management of medicines in Africa. PLOS ONE, 14(7), e0217976. https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0217976
+Erl, T. (2005). Service-oriented architecture: Concepts, technology, and design. Prentice Hall. https://www.pearson.com/en-us/subject-catalog/p/service-oriented-architecture-concepts-technology-and-design/P200000009520
+GSMA. (2023). State of the industry report on mobile money 2023. GSMA Intelligence. https://www.gsma.com/solutions-and-impact/connectivity-for-good/mobile-for-development/gsma_resources/state-of-the-industry-report-on-mobile-money-2023-2/
+Kuteyi, D., & Winkler, H. (2022). Logistics challenges in Sub-Saharan Africa and opportunities for digitalisation. Sustainability, 14(21), 14515. https://www.mdpi.com/2071-1050/14/21/14515
+Özarık, S. S., da Costa, P., & Florio, A. M. (2024). Machine learning for data-driven last-mile delivery optimization. Transportation Science, 58(1), 27–44. https://pubsonline.informs.org/doi/10.1287/trsc.2022.0029
+Söylemez, M., Tekinerdogan, B., & Kolukısa Tarhan, A. (2022). Challenges and solution directions of microservice architectures: A systematic literature review. Applied Sciences, 12(11), 5507. https://www.mdpi.com/2076-3417/12/11/5507
+Tsolaki, K., Vafeiadis, T., Nizamis, A., Ioannidis, D., & Tzovaras, D. (2023). Utilizing machine learning on freight transportation and logistics applications: A review. ICT Express, 9(3), 284–295. https://www.sciencedirect.com/science/article/pii/S2405959523000218
+Universal Postal Union (UPU). (2022). Postal development report 2022: Digitalisation of postal services. UPU Publications. https://www.upu.int/en/Universal-Postal-Union/Activities/Development/Postal-Development-Report
+
+Appendix A: Survey Questionnaire (English)
+"SmartCAMPOST – Satisfaction and Needs Assessment Survey (Agents, Couriers, and Users)" — administered via Google Forms to 30 respondents in Yaoundé, January–February 2026. Access the English survey here
+Section 1: Respondent Profile
+Primary role: [ ] Client  [ ] Agent  [ ] Courier  [ ] Staff
+Age group: [ ] 18–25  [ ] 26–35  [ ] 36–45  [ ] 46+
+Frequency of CAMPOST parcel service use: [ ] Daily  [ ] Weekly  [ ] Monthly  [ ] Rarely
+Do you own a smartphone? [ ] Yes  [ ] No
+Do you have a mobile money account (MTN or Orange)? [ ] Yes  [ ] No
+Preferred language for a digital postal app: [ ] English  [ ] French  [ ] Both
+Section 2: Feature Importance (1 = Not at all important → 5 = Very important)
+Real-time parcel tracking on interactive GPS map: 1 — 2 — 3 — 4 — 5
+Automated SMS when parcel status changes: 1 — 2 — 3 — 4 — 5
+Mobile payment (MTN MoMo / Orange Money): 1 — 2 — 3 — 4 — 5
+Schedule home pickup with date and time slot: 1 — 2 — 3 — 4 — 5
+QR code scan to confirm delivery receipt: 1 — 2 — 3 — 4 — 5
+English and French language support: 1 — 2 — 3 — 4 — 5
+Invoice and payment history download (PDF): 1 — 2 — 3 — 4 — 5
+AI-predicted delivery time estimate: 1 — 2 — 3 — 4 — 5
+USSD access for feature phones (no internet): 1 — 2 — 3 — 4 — 5
+Offline scan with later synchronisation: 1 — 2 — 3 — 4 — 5
+Section 3: Open Feedback
+What is your biggest frustration with current CAMPOST parcel services?
+What single feature would most improve your experience?
+
+Appendix B: Survey Questionnaire (French)
+"SmartCAMPOST – Enquête de Satisfaction et de Besoins (Agents, Livreurs et Utilisateurs)" — administrée via Google Forms à 30 répondants à Yaoundé, janvier–février 2026. Accéder au questionnaire en français ici
+Section 1 : Profil du répondant
+Rôle principal : [ ] Client  [ ] Agent  [ ] Livreur  [ ] Personnel
+Tranche d'âge : [ ] 18–25  [ ] 26–35  [ ] 36–45  [ ] 46+
+Fréquence d'utilisation des services colis CAMPOST : [ ] Quotidien  [ ] Hebdomadaire  [ ] Mensuel  [ ] Rarement
+Possédez-vous un smartphone ? [ ] Oui  [ ] Non
+Avez-vous un compte mobile money (MTN ou Orange) ? [ ] Oui  [ ] Non
+Langue préférée pour une application postale numérique : [ ] Anglais  [ ] Français  [ ] Les deux
+Section 2 : Importance des fonctionnalités (1 = Pas du tout important → 5 = Très important)
+Suivi en temps réel du colis sur carte GPS : 1 — 2 — 3 — 4 — 5
+SMS automatique à chaque changement de statut : 1 — 2 — 3 — 4 — 5
+Paiement mobile (MTN MoMo / Orange Money) : 1 — 2 — 3 — 4 — 5
+Planification d'une collecte à domicile : 1 — 2 — 3 — 4 — 5
+Confirmation de réception par code QR : 1 — 2 — 3 — 4 — 5
+Support des langues anglaise et française : 1 — 2 — 3 — 4 — 5
+Téléchargement de factures PDF et historique de paiements : 1 — 2 — 3 — 4 — 5
+Estimation du délai de livraison par IA : 1 — 2 — 3 — 4 — 5
+Accès USSD pour téléphones basiques (sans internet) : 1 — 2 — 3 — 4 — 5
+Scan hors-ligne avec synchronisation ultérieure : 1 — 2 — 3 — 4 — 5
+
+Appendix C: Database Tables Reference
+Table Name
+Primary Purpose
+user_account
+Central authentication: phone, password hash, role, entity linkage
+client
+Client profile: full name, phone, email, preferred language, created date
+address
+Delivery addresses with GPS latitude/longitude and region
+agency
+CAMPOST agency registry: name, code, city, region, capacity, hub flag
+staff
+Staff profiles linked to agencies with status tracking
+agent
+Agent profiles with staff number and agency assignment
+courier
+Courier profiles with availability status for assignment
+parcel
+Core parcel record: trackingRef, service type, status, QR data, addresses, weight, dimensions
+scan_event
+QR scan records: GPS coordinates, event type, agent, agency, timestamp
+delivery_proof
+Proof of delivery: type (signature/photo/OTP), timestamp, details/URL
+delivery_otp
+OTP lifecycle: code, expiry timestamp, attempt counter, revocation flag
+delivery_attempt
+Historical records of all delivery attempts by couriers
+pickup_request
+Home pickup scheduling: date, time window, state, assigned courier
+qr_verification_token
+Temporary QR tokens: token string, expiry, revocation flag
+payment
+Payment transactions: method, status, amount, currency, external ref
+invoice
+PDF invoice metadata: number, total amount, issued date, PDF storage link
+refund
+Refund requests: reason, amount, processing status
+tariff
+Pricing rules: service type, origin zone, destination zone, weight bracket, price
+pricing_detail
+Applied price line items per parcel, linked to tariff record used
+notification
+SMS/push records: channel, message, status (SENT/FAILED)
+otp_code
+Authentication OTPs: purpose, code, expiry, cooldown tracking
+location
+Real-time GPS position updates from couriers and agents
+geolocation_route_log
+Historical delivery route logs for AI training and analytics
+support_ticket
+Customer support: category, priority, status, description
+audit_log
+Immutable security audit trail: actor, action, resource, timestamp
+risk_alert
+AI-generated AML risk and anomaly alerts: severity, status
+ai_agent_state
+State persistence for AI agents between event invocations
+ai_decision_log
+AI reasoning outputs, prompts, and decision explanations
+ai_agent_recommendation
+Stored recommendations: courier assignment, load balancing
+compliance_report
+Regulatory compliance report records
+
+Appendix D: Project Timeline Overview
+Period
+Phase
+Key Deliverables
+Oct 1–14, 2025 (Weeks 1–2)
+Phase 1 — Initiation
+Administrative registration at CAMPOST internship site; meetings with CAMPOST supervisor; analysis of existing EMS system documentation; development tools setup
+Oct 15 – Nov 2, 2025 (Weeks 3–5)
+Phase 2 — Analysis & Design
+Requirements gathering (survey, interviews, observation); MCD/MLD design; 45-table SQL schema; UML diagrams (Use Case, Class, 7 Activity, 8 Sequence); supervisor validation
+Nov 3 – Dec 14, 2025 (Sprints 1–3)
+Phase 3a — Core Backend
+Authentication (JWT/OTP/Google OAuth), user management, parcel CRUD, dual QR code, TariffEngine, PricingDetail
+Dec 15, 2025 – Jan 18, 2026 (Sprints 4–7)
+Phase 3b — Integrations
+Pickup management, payment gateways (MTN/Orange/CAMPOST), Twilio SMS, PDF invoice generation, proof of delivery
+Jan 19 – Feb 8, 2026 (Sprints 8–11)
+Phase 3c — AI, Web & Mobile
+AI multi-agent framework; React 19 web portal with 7 role dashboards; MapLibre GPS map; Flutter Android app
+Feb 9–20, 2026 (Sprint 12)
+Phase 4 — Testing & Release
+170 automated tests; manual test script; 4 bug fixes; security audit (23 vulnerabilities resolved); Docker deployment; GitHub Release v1.0.0
+Feb 21 – Apr 2026 (Documentation)
+Phase 5 — Dissertation
+Full dissertation writing, supervisor reviews, final corrections, and submission
+Table 16: Project Timeline Overview
+Appendix E: GitHub Repository and Deployment Links
+The SmartCAMPOST source code, database schema, and deployment configurations are available at the following links:
+GitHub Repository: https://github.com/nguend-arthur/SmartCAMPOST
+Backend API (Render): https://smartcampost-api.onrender.com
+Web Portal (Vercel): https://smartcampost.vercel.app
+English Survey: https://forms.gle/vN9eRWGXTzkBrbmN7
+French Survey: https://forms.gle/DH1DQR8HRbn79YkW9

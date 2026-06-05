@@ -57,8 +57,8 @@ class ParcelService {
       '/parcels/$id/status',
       data: {
         'status': status,
-        'latitude': ?latitude,
-        'longitude': ?longitude,
+        'latitude': latitude,
+        'longitude': longitude,
         'comment': ?comment,
       },
       fromJson: (d) => Parcel.fromJson(d),

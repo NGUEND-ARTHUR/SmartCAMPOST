@@ -1,0 +1,501 @@
+Global UI Building Blocks (Used Everywhere)
+API + State hooks (recommended)
+useAuth() → token, role, user profile, logout
+useRoleGuard(requiredRoles[])
+useApiClient() → axios/fetch wrapper with Authorization header + error handling
+useQuery / useMutation wrappers (React Query style):
+useFetchList(key, url, params)
+useFetchOne(key, url)
+useCreate(url)
+useUpdate(url)
+useDelete(url)
+Global UI states (all pages)
+idle, loading, success, error
+empty
+forbidden (403)
+notFound (404)
+conflict (409) (unique constraints like pickup per parcel, unique phone/email)
+frozenAccount (user_account.frozen → block actions)
+Common components
+AppLayout(role) + Sidebar(role) + Topbar
+PageHeader(title, breadcrumbs, actions)
+KpiCards
+DataTable (search, filters, pagination)
+StatusBadge (ParcelStatus, PaymentStatus, PickupState, TicketStatus, RefundStatus, RiskStatus)
+ConfirmModal (danger actions)
+Toast + ErrorBanner
+EmptyState + SkeletonLoader
+Map components
+MapView
+AddressPickerMap (pin + search)
+RoutePreviewMap (polyline + distance/duration)
+AgencyMarkersMap
+ReadOnlyTrackingMap
+A) PUBLIC PAGES
+A1. Landing /
+Components
+Hero + CTA buttons
+QuickTrackWidget (tracking_ref input)
+Features cards (optional)
+Hooks
+none (or public tracking if exists)
+States
+normal / error (if quick track calls endpoint)
+A2. Login /auth/login
+Components
+LoginForm (phone/email + password)
+Links: OTP login / register / reset password
+Hooks
+useMutation(POST /api/auth/login)
+States
+loading, error (invalid creds), success → redirect by role
+A3. OTP Login Step 1 /auth/login-otp
+Components
+OtpRequestForm (phone)
+OtpVerifyForm (shown after request or separate step)
+Hooks
+useMutation(POST /api/auth/login/otp/request)
+useMutation(POST /api/auth/login/otp/confirm)
+States
+loading, error, otpSent, success redirect
+A4. Register /auth/register
+Components
+RegisterClientForm (full_name, phone, email, language, password)
+Hooks
+useMutation(POST /api/auth/register) (or registerClient service endpoint if different)
+States
+loading, validation errors, conflict (phone/email), success
+A5. Reset Password /auth/reset-password
+Components
+Stepper: Request → Confirm
+ResetRequestForm (phone)
+ResetConfirmForm (otp + new password)
+Hooks
+useMutation(POST /api/auth/password/reset/request)
+useMutation(POST /api/auth/password/reset/confirm)
+States
+loading, error, otpSent, success
+B) CLIENT PAGES (/client/*)
+B1. Client Dashboard /client/dashboard
+Components
+KpiCards (in transit, delivered, returned)
+RecentParcelsTable (last 5–10)
+QuickActions (Create Parcel, Track, Pickup)
+Hooks
+useQuery(GET /api/parcels/me) (or dashboard endpoint if exists)
+States
+loading, empty, error
+B2. Create Parcel /client/parcels/new
+Components
+CreateParcelStepper (4 steps)
+AddressSelector + AddressCreateInlineModal
+ParcelDetailsForm
+ServiceOptionsForm + AgencySelector
+PaymentOptionsForm + TariffQuotePanel
+Map: RoutePreviewMap (sender/recipient pins)
+ConfirmSubmitModal
+Hooks
+useQuery(GET /api/addresses?me) (if you expose it)
+useMutation(POST /api/parcels)
+(optional) useQuery(GET /api/tariffs/quote?... ) or equivalent
+States
+loading addresses, validation error, conflict, submit success → redirect /client/parcels/:id
+B3. My Parcels /client/parcels
+Components
+ParcelsTable with filters:
+search tracking_ref
+status dropdown
+date range
+ExportButton (optional)
+Hooks
+useQuery(GET /api/parcels/me?status=&q=&from=&to=&page=...)
+States
+loading, empty, error
+B4. Parcel Detail /client/parcels/:parcelId
+Components
+ParcelHeader (tracking_ref + status + expected_delivery_at)
+Tabs:
+TimelineTab → ParcelTimeline + ReadOnlyTrackingMap
+PaymentTab → payments list + invoice link
+ProofTab → proof viewer
+NotificationsTab → logs
+SupportTab → tickets list + CreateTicketModal
+ChangeDeliveryOptionModal
+CancelParcelModal (if allowed)
+Hooks
+useQuery(GET /api/parcels/{id})
+useQuery(GET /api/scan-events/by-parcel/{id}) (or equivalent)
+useQuery(GET /api/payments/by-parcel/{id})
+useMutation(PATCH /api/parcels/{id}/delivery-option)
+useMutation(PATCH /api/parcels/{id}/cancel) (if exists)
+States
+loading, notFound, forbidden, error
+B5. Track Parcel /client/track
+Components
+TrackingSearchBar
+TrackingResultCard (if found)
+ParcelTimeline + ReadOnlyTrackingMap
+Hooks
+useQuery(GET /api/parcels/{id or trackingRef}) (depends on backend)
+States
+empty, notFound, error
+B6. Pickups /client/pickups
+Components
+Tabs:
+MyPickupsTable
+RequestPickupButton → opens RequestPickupModal
+Hooks
+useQuery(GET /api/pickups/me)
+useMutation(POST /api/pickups)
+States
+loading, conflict (pickup already exists), success toast
+B7. Payments & Invoices /client/payments
+Components
+PaymentsTable
+PaymentDetailDrawer (optional)
+Hooks
+useQuery(GET /api/payments/me)
+useQuery(GET /api/invoices/me) (if exists)
+States
+loading, empty, error
+B8. Support Tickets /client/support
+Components
+TicketsTable
+CreateTicketForm
+TicketDetailView
+Hooks
+useQuery(GET /api/support-tickets/me)
+useMutation(POST /api/support-tickets)
+States
+loading, empty, error
+B9. Addresses (Map) /client/addresses
+Components
+AddressBookTable
+AddAddressModal / EditAddressModal
+AddressPickerMap (inside modal)
+Hooks
+useQuery(GET /api/addresses/me)
+useMutation(POST /api/addresses)
+useMutation(PATCH /api/addresses/{id})
+useMutation(DELETE /api/addresses/{id})
+States
+loading, conflict (duplicate), success
+C) AGENT PAGES (/agent/*)
+C1. Agent Dashboard /agent/dashboard
+Components
+KPI: parcels today, scans today, pending pickups (optional)
+TodayParcelsTable
+QuickActions (Register Parcel, Scan)
+Hooks
+useQuery(GET /api/parcels?today&agency=...) (or ops endpoint)
+States
+loading, empty, error
+C2. Register Parcel (Counter) /agent/parcels/new
+Components
+CounterCreateParcelForm (same fields as client, plus counter-specific fields)
+ClientLookup (search client by phone)
+AddressCreateInline
+Map route preview (optional)
+Hooks
+useMutation(POST /api/parcels) (as AGENT)
+useQuery(GET /api/clients/search?phone=...) (if exists)
+States
+loading, conflict, success
+C3. Parcels /agent/parcels
+Components
+ParcelsOpsTable (filter by status, date)
+ParcelDetailLink
+Hooks
+useQuery(GET /api/parcels?agency=...)
+States
+loading, empty, error
+C4. Parcel Ops Detail /agent/parcels/:parcelId
+Components
+ParcelOpsHeader
+Tabs:
+Timeline + Map
+Payment summary (read-only)
+Proof (read-only)
+UpdateStatusModal
+CreateScanEventModal
+Hooks
+useQuery(GET /api/parcels/{id})
+useMutation(PATCH /api/parcels/{id}/status)
+useMutation(POST /api/scan-events)
+States
+loading, forbidden, error
+C5. Scan Console /agent/scans
+Components
+QRScannerPlaceholder (webcam)
+ManualTrackingInput
+ParcelSummaryCard
+ScanEventForm (event_type + location_note)
+Hooks
+useQuery(GET /api/parcels/by-tracking/{ref}) (if exists)
+useMutation(POST /api/scan-events)
+States
+notFound parcel, success toast, error
+C6. Pickups (View) /agent/pickups
+Components
+PickupsTable (read-only)
+PickupDetailDrawer (optional)
+Hooks
+useQuery(GET /api/pickups?agency=...) (if exists)
+States
+loading, empty, error
+D) COURIER PAGES (/courier/*)
+D1. Courier Dashboard /courier/dashboard
+Components
+KPI: assigned pickups, deliveries pending, completed today
+MyTodayStopsTable
+Hooks
+useQuery(GET /api/pickups/courier/me)
+useQuery(GET /api/parcels/assigned-to-me) (if exists)
+States
+loading, empty, error
+D2. My Pickups /courier/pickups
+Components
+PickupsTable
+PickupDetailCard with actions:
+mark ASSIGNED/COMPLETED/CANCELLED (state updates)
+open map
+Hooks
+useQuery(GET /api/pickups/courier/me)
+useMutation(PATCH /api/pickups/{pickupId}/state)
+States
+loading, conflict, success
+D3. My Deliveries /courier/deliveries
+Components
+DeliveriesTable (parcels out-for-delivery)
+DeliveryActionButton (open confirmation stepper)
+Hooks
+useQuery(GET /api/parcels/courier/me?status=OUT_FOR_DELIVERY) (if exists)
+States
+loading, empty, error
+D4. Delivery Confirmation Stepper /courier/deliveries/:parcelId/confirm
+Components
+Step 1: SendOtpPanel
+Step 2: VerifyOtpPanel + countdown
+Step 3: ProofCapturePanel (signature pad / photo upload)
+ReadOnlyTrackingMap (destination confirmation)
+Final “Confirm Delivery” button
+Hooks
+useMutation(POST /api/delivery/otp/send)
+useMutation(POST /api/delivery/otp/verify)
+useMutation(POST /api/delivery/final)
+useQuery(GET /api/parcels/{id})
+States
+otp expired / wrong / consumed
+upload proof failed
+final success screen (status DELIVERED + COD Paid ✅ if COD)
+D5. Courier Route Map /courier/map
+Components
+StopsList (pickups + deliveries)
+RoutePreviewMap with markers
+“Navigate” links (external maps)
+Hooks
+useQuery(GET /api/pickups/courier/me)
+useQuery(GET /api/parcels/courier/me)
+States
+loading, empty, error
+E) STAFF PAGES (/staff/*)
+E1. Ops Dashboard /staff/dashboard
+Components
+KPI cards: total parcels by status, pickups pending, payments pending, tickets open
+ParcelsByStatusChart placeholder
+RecentAlertsWidget (optional)
+Hooks
+useQuery(GET /api/parcels?stats=...) (or aggregate endpoints)
+States
+loading, error
+E2. Parcels Management /staff/parcels
+Components
+ParcelsOpsTable (filters: status, date, agency, courier)
+bulk actions (optional)
+ParcelDetailDrawer
+Hooks
+useQuery(GET /api/parcels?...)
+useMutation(PATCH /api/parcels/{id}/status)
+States
+loading, empty, error
+E3. Pickups Management /staff/pickups
+Components
+PickupsAdminTable
+AssignCourierModal (filter AVAILABLE couriers)
+Hooks
+useQuery(GET /api/pickups)
+useMutation(POST /api/pickups/{id}/assign-courier)
+useQuery(GET /api/couriers?status=AVAILABLE) (if exists)
+States
+loading, success, error
+E4. Scan Logs /staff/scans
+Components
+ScanEventsTable (filters: parcel, agency, type, date)
+CreateScanEventModal (optional if staff can create)
+Hooks
+useQuery(GET /api/scan-events)
+useMutation(POST /api/scan-events) (if allowed)
+States
+loading, empty, error
+E5. Delivery Monitoring /staff/deliveries
+Components
+DeliveriesTable
+DeliveryProofViewer
+OtpLogViewer (optional)
+Hooks
+useQuery(GET /api/parcels?status=OUT_FOR_DELIVERY|DELIVERED)
+States
+loading, empty, error
+E6. Payments (Ops View) /staff/payments
+Components
+PaymentsAdminTable
+PaymentDetail view
+Hooks
+useQuery(GET /api/payments)
+useQuery(GET /api/payments/{id})
+States
+loading, empty, error
+E7. Support Inbox /staff/support
+Components
+TicketsInboxTable (filters status/priority/category)
+AssignStaffModal
+UpdateTicketStatusModal
+Hooks
+useQuery(GET /api/support-tickets)
+useMutation(PATCH /api/support-tickets/{id})
+States
+loading, empty, error
+E8. Notifications /staff/notifications
+Components
+NotificationLogsTable
+TemplateEditor (if allowed)
+SendTestModal
+Hooks
+useQuery(GET /api/notifications)
+useMutation(POST /api/notifications/send-test) (if exists)
+States
+loading, empty, error
+E9. Analytics /staff/analytics
+Components
+EtaPanel (parcelId input + output)
+AnomalyPanel (paymentId input + output)
+charts placeholders
+Hooks
+useQuery(GET /api/analytics/parcels/{parcelId}/eta)
+useQuery(GET /api/analytics/payments/{paymentId}/anomaly)
+States
+loading, empty, error
+F) ADMIN PAGES (/admin/*) — STAFF + FULL CRUD
+F1. Accounts Management /admin/accounts
+Components
+AccountsTable (phone, role, frozen)
+FreezeUnfreezeModal
+ChangeRoleModal
+LinkEntityModal (entity_id mapping)
+Hooks
+useQuery(GET /api/accounts)
+useMutation(PATCH /api/accounts/{id}/freeze)
+useMutation(PATCH /api/accounts/{id}/role)
+useMutation(PATCH /api/accounts/{id}/entity)
+States
+loading, conflict, success, error
+F2. Agencies CRUD /admin/agencies
+Components
+AgencyTable
+Add/Edit Agency Modal
+Hooks
+CRUD: GET/POST/PATCH/DELETE /api/agencies
+States
+loading, conflict, error
+F3. Staff CRUD /admin/staff
+Components
+StaffTable
+Add/Edit Staff Modal
+StatusChangeModal
+Hooks
+CRUD endpoints /api/staff
+F4. Agents CRUD /admin/agents
+Components
+AgentsTable
+Add/Edit Agent Modal (link staff_id + agency_id)
+AssignAgencyModal
+Hooks
+CRUD endpoints /api/agents
+F5. Couriers CRUD /admin/couriers
+Components
+CouriersTable
+Add/Edit Courier Modal
+StatusUpdateModal
+Hooks
+CRUD endpoints /api/couriers
+F6. Tariffs & Pricing /admin/tariffs
+Components
+TariffTable (service_type, zones, bracket, price)
+Add/Edit Tariff Modal
+TariffLookupTool (origin/destination/weight/service)
+Hooks
+CRUD /api/tariffs
+lookup /api/tariffs/quote (if exists)
+F7. Integrations /admin/integrations
+Components
+IntegrationsTable
+EditIntegrationModal (type, provider, base_url, api_key, active)
+Hooks
+CRUD /api/integrations
+F8. USSD Monitor /admin/ussd
+Components
+UssdSessionsTable
+SessionDetailDrawer
+Hooks
+useQuery(GET /api/ussd/sessions)
+G) FINANCE PAGES (/finance/*)
+G1. Finance Dashboard /finance/dashboard
+Components
+KPIs: pending payments, failed payments, refund requested, processed today
+PaymentsMiniTable + RefundsMiniTable
+Hooks
+useQuery(GET /api/payments?status=PENDING|FAILED)
+useQuery(GET /api/refunds?status=REQUESTED|PENDING)
+G2. Payments Admin /finance/payments
+Components
+PaymentsAdminTable
+PaymentDetail
+CreateRefundModal
+Hooks
+useQuery(GET /api/payments)
+useMutation(POST /api/refunds)
+G3. Refunds /finance/refunds
+Components
+RefundsTable
+RefundDetailPanel
+Actions: Approve / Reject / Process
+Hooks
+useQuery(GET /api/refunds)
+useMutation(PATCH /api/refunds/{id})
+States
+conflict, error, success
+H) RISK PAGES (/risk/*)
+H1. Risk Dashboard /risk/dashboard
+Components
+KPIs: open alerts, high severity, under review
+AlertsMiniTable
+Hooks
+useQuery(GET /api/risk-alerts?status=OPEN|UNDER_REVIEW)
+H2. Risk Alerts /risk/alerts
+Components
+RiskAlertsTable (filters severity/status)
+RiskAlertDetailDrawer
+Hooks
+useQuery(GET /api/risk-alerts)
+useMutation(PATCH /api/risk-alerts/{id}/status)
+Map
+RoutePreviewMap in detail view (parcel route logs)
+H3. Compliance Reports /risk/compliance
+Components
+ComplianceReportsTable
+GenerateReportModal (period_start, period_end)
+Actions: Send / Archive
+Hooks
+useQuery(GET /api/compliance/reports)
+useMutation(POST /api/compliance/reports)
+useMutation(PATCH /api/compliance/reports/{id})
