@@ -41,10 +41,6 @@ export default function AgentDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
   const loadTasks = async () => {
     try {
       setIsLoading(true);
@@ -61,6 +57,13 @@ export default function AgentDashboard() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadTasks();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const metrics = useMemo(() => {
     const pending = tasks.filter((task) => task.status === "PENDING").length;

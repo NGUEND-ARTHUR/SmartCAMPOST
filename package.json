@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^25.6.2",
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.6",

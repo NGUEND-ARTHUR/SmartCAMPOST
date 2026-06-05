@@ -48,6 +48,7 @@ test.describe('Edge cases — UI boundary conditions', () => {
 
 test.describe('Edge cases — Parcel operations', () => {
 
+<<<<<<< HEAD
   test('GET non-existent tracking ref returns 404', async ({ request }) => {
     const res = await request.get(`${API}/api/track/SCP-NONEXISTENT-XYZ`);
     expect([404, 400]).toContain(res.status());
@@ -60,4 +61,12 @@ test.describe('Edge cases — Parcel operations', () => {
     });
     expect([400, 404]).toContain(res.status());
   });
+=======
+test("Expired session", async ({ page }) => {
+  await page.goto(`${baseURL}/auth/login`);
+  // Simulate login, then expire session (mock or manipulate cookie)
+  // ...
+  await page.goto(`${baseURL}/dashboard`);
+  await expect(page.locator("text=Login")).toBeVisible();
+>>>>>>> ad71cf4 (Update SmartCAMPOST frontend and mobile modules)
 });

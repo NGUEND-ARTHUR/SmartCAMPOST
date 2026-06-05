@@ -267,7 +267,10 @@ export default function RoleMapDashboard() {
   );
 
   useEffect(() => {
-    void loadMapData();
+    const timer = window.setTimeout(() => {
+      void loadMapData();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [loadMapData]);
 
   useEffect(() => {

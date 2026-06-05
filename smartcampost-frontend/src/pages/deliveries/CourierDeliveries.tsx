@@ -10,6 +10,7 @@ import { CourierNavigationMap } from "@/components/maps";
 import { useMyParcels } from "@/hooks";
 import { toast } from "sonner";
 import { deliveryService } from "@/services";
+import type { ParcelResponse } from "@/services/parcels/parcels.api";
 
 const statusColors: Record<string, string> = {
   OUT_FOR_DELIVERY: "bg-yellow-100 text-yellow-800",
@@ -36,10 +37,12 @@ export default function CourierDeliveries() {
     (p) => p.status === "OUT_FOR_DELIVERY" || p.status === "IN_TRANSIT",
   );
 
+  const deliveryParcels = deliveries as ParcelResponse[];
+
   // Convert deliveries to map stops using real data from API response
   const mapStops = useMemo(
     () =>
-      deliveries.map((d, index) => ({
+      deliveryParcels.map((d, index) => ({
         id: d.id,
         type: "DELIVERY" as const,
         location: {
@@ -55,7 +58,7 @@ export default function CourierDeliveries() {
         clientPhone: d.clientPhone || "",
         priority: 1,
       })),
-    [deliveries, t],
+    [deliveryParcels, t],
   );
 
   // Handle marking a stop as complete — call the real backend delivery API

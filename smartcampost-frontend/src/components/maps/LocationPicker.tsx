@@ -284,11 +284,7 @@ export default function LocationPicker({
   useEffect(() => {
     const q = searchQuery.trim();
     if (!allowSearch) return;
-    if (q.length < 2) {
-      setSearchResults([]);
-      setIsResultsOpen(false);
-      return;
-    }
+    if (q.length < 2) return;
 
     const id = window.setTimeout(async () => {
       try {
@@ -406,31 +402,34 @@ export default function LocationPicker({
                   </Button>
                 </div>
 
-                {isResultsOpen && searchResults.length > 0 && (
-                  <div className="absolute z-50 mt-2 w-full rounded-md border bg-card shadow">
-                    <div className="max-h-60 overflow-auto">
-                      {searchResults.map((r, idx) => (
-                        <button
-                          key={`${r.latitude}-${r.longitude}-${idx}`}
-                          type="button"
-                          className="w-full px-3 py-2 text-left hover:bg-muted transition-colors"
-                          onClick={() => selectSearchResult(r)}
-                        >
-                          <div className="text-sm font-medium">
-                            {r.displayName ||
-                              [r.city, r.state, r.country]
-                                .filter(Boolean)
-                                .join(", ") ||
-                              "Result"}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {[r.type, r.category].filter(Boolean).join(" • ")}
-                          </div>
-                        </button>
-                      ))}
+                {allowSearch &&
+                  searchQuery.trim().length >= 2 &&
+                  isResultsOpen &&
+                  searchResults.length > 0 && (
+                    <div className="absolute z-50 mt-2 w-full rounded-md border bg-card shadow">
+                      <div className="max-h-60 overflow-auto">
+                        {searchResults.map((r, idx) => (
+                          <button
+                            key={`${r.latitude}-${r.longitude}-${idx}`}
+                            type="button"
+                            className="w-full px-3 py-2 text-left hover:bg-muted transition-colors"
+                            onClick={() => selectSearchResult(r)}
+                          >
+                            <div className="text-sm font-medium">
+                              {r.displayName ||
+                                [r.city, r.state, r.country]
+                                  .filter(Boolean)
+                                  .join(", ") ||
+                                "Result"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {[r.type, r.category].filter(Boolean).join(" • ")}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
               {searchResultLabel && (
                 <p className="text-xs text-muted-foreground">

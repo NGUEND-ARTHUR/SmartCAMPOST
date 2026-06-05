@@ -8,7 +8,9 @@ function getAuthToken(): string | null {
       const parsed = JSON.parse(stored);
       return parsed?.state?.token || parsed?.token || null;
     }
-  } catch {}
+  } catch (error) {
+    console.warn("Failed to read auth token for AI SSE", error);
+  }
   return null;
 }
 
@@ -30,7 +32,9 @@ export default function useAiSSE(onEvent: (e: unknown) => void) {
       if (cancelled) return;
       const token = getAuthToken();
       const base = getSseBaseUrl();
-      const url = token ? `${base}/stream/ai?token=${encodeURIComponent(token)}` : `${base}/stream/ai`;
+      const url = token
+        ? `${base}/stream/ai?token=${encodeURIComponent(token)}`
+        : `${base}/stream/ai`;
       const es = new EventSource(url);
       esRef.current = es;
 

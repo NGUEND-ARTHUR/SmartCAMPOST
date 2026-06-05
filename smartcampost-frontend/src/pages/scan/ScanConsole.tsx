@@ -15,7 +15,6 @@ import {
 import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
-import type { ScanResult } from "@/components/qrcode/QRCodeScanner";
 import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
 import { useAuthStore } from "@/store/authStore";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -116,7 +115,10 @@ export default function ScanConsole() {
       return () => window.clearTimeout(id);
     }
   }, [statusOptions, selectedStatus]);
-  const [scanHistory, setScanHistory] = useLocalStorage<ScanEvent[]>("scanHistory", []);
+  const [scanHistory, setScanHistory] = useLocalStorage<ScanEvent[]>(
+    "scanHistory",
+    [],
+  );
   const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -159,7 +161,9 @@ export default function ScanConsole() {
       // Step 1: Verify QR Code
       const verificationResult = await verifyQrCodeContent(scannedCode);
       if (!verificationResult.valid) {
-        throw new Error(verificationResult.message || t("scan.error.invalidQr"));
+        throw new Error(
+          verificationResult.message || t("scan.error.invalidQr"),
+        );
       }
       const { parcelId } = verificationResult;
       if (!parcelId) {
@@ -233,14 +237,17 @@ export default function ScanConsole() {
     handleScan(barcode);
   };
 
-  const handleCameraScan = (result: ScanResult) => {
-    if (result.success && result.rawText) {
+  const handleCameraScan = (result: any) => {
+    if (result?.success) {
       setBarcode(result.rawText);
-      handleScan(result.rawText);
+      void handleScan(result.rawText);
     }
   };
 
-  const clearHistory = () => setScanHistory([]);
+  const clearHistory = () => {
+    setScanHistory([]);
+    toast.info(t("scan.history.cleared", { defaultValue: "History cleared" }));
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -291,7 +298,10 @@ export default function ScanConsole() {
 
                   {/* Status Selection for Camera Mode */}
                   <div>
-                    <label htmlFor="scan-status" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="scan-status"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       {t("scan.status.label", { defaultValue: "Scan type" })}
                     </label>
                     <select
@@ -299,7 +309,9 @@ export default function ScanConsole() {
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                       className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
-                      title={t("scan.status.selectTitle", { defaultValue: "Scan type" })}
+                      title={t("scan.status.selectTitle", {
+                        defaultValue: "Scan type",
+                      })}
                     >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -359,7 +371,10 @@ export default function ScanConsole() {
 
                     {/* Status Selection */}
                     <div>
-                      <label htmlFor="scan-status" className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="scan-status"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         {t("scan.status.label", { defaultValue: "Scan type" })}
                       </label>
                       <select
@@ -368,7 +383,9 @@ export default function ScanConsole() {
                         onChange={(e) => setSelectedStatus(e.target.value)}
                         className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
-                        title={t("scan.status.selectTitle", { defaultValue: "Scan type" })}
+                        title={t("scan.status.selectTitle", {
+                          defaultValue: "Scan type",
+                        })}
                       >
                         {statusOptions.map((option) => (
                           <option key={option.value} value={option.value}>

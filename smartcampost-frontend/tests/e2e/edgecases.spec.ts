@@ -1,6 +1,4 @@
-import playwright, { type Page } from "../../../node_modules/@playwright/test/index.js";
-
-const { expect, test } = playwright;
+import { test, expect, type Page } from "@playwright/test";
 
 async function useEnglishLocale(page: Page) {
   await page.addInitScript(() => {

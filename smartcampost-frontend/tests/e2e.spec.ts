@@ -94,7 +94,9 @@ test("open register page and submit (mocked)", async ({ page }) => {
   await expect(page.locator("input[id=fullName]")).toBeVisible();
 });
 
-test("map viewer search shows Cameroon-only results (mocked)", async ({ page }) => {
+test("map viewer search shows Cameroon-only results (mocked)", async ({
+  page,
+}) => {
   await page.route("**/api/geo/search", (route) => {
     route.fulfill({
       status: 200,
