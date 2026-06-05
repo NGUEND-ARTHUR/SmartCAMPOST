@@ -1,0 +1,104 @@
+appId: com.smartcampost.mobile
+---
+# WORKFLOW — Cross-role data visibility: CLIENT data visible to ADMIN/STAFF but not others
+# Test sequence: CLIENT login → see parcel → ADMIN login → see same parcel → FINANCE → no direct parcel access
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# === ROLE 1: CLIENT — Create/view own parcel ===
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "09_wf_04_client_dashboard"
+
+# View client parcels
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_04_client_parcels"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Logout CLIENT
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"
+
+# === ROLE 2: ADMIN — Can see all parcels including CLIENT's ===
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+- takeScreenshot: "09_wf_04_admin_dashboard"
+
+# Admin views all parcels (should include CLIENT's parcels)
+- tapOn: "View All Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_04_admin_parcels"
+- assertVisible: "All Parcels"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Logout ADMIN
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"
+
+# === ROLE 3: STAFF — Can see all parcels ===
+- tapOn: "Phone number"
+- inputText: "+237699000002"
+- tapOn: "Password"
+- inputText: "Test123!Staff"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Staff Dashboard"
+
+# Staff views all parcels
+- tapOn: "View & Manage Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_04_staff_parcels"
+- assertVisible: "All Parcels"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Logout STAFF
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"
+
+# === ROLE 4: FINANCE — No direct parcel access, only finance screens ===
+- tapOn: "Phone number"
+- inputText: "+237699000005"
+- tapOn: "Password"
+- inputText: "Test123!Finance"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Finance Dashboard"
+- assertNotVisible: "My Parcels"
+- assertNotVisible: "All Parcels"
+- takeScreenshot: "09_wf_04_finance_no_parcels"

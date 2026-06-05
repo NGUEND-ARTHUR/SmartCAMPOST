@@ -1,0 +1,31 @@
+appId: com.smartcampost.mobile
+---
+# ADMIN — Forbidden screens: ADMIN should NOT see client/courier/agent-specific workflows
+# ADMIN has full access but role-specific dashboards are not shown to admin
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+- takeScreenshot: "06_admin_05_dashboard"
+
+# Admin should NOT have client-specific navigation
+- assertNotVisible: "My Parcels"
+- assertNotVisible: "Create Parcel"
+- assertNotVisible: "Track Parcel"
+
+# Admin should NOT have courier/agent-specific nav
+- assertNotVisible: "My Deliveries"
+- assertNotVisible: "Scan Parcel"
+- assertNotVisible: "Validate Parcels"
+
+# Admin SHOULD have their management items
+- assertVisible: "User Management"
+- assertVisible: "Tariffs"
+- takeScreenshot: "06_admin_05_forbidden_verified"

@@ -1,0 +1,41 @@
+appId: com.smartcampost.mobile
+---
+# ADMIN — Tariff management: view and configure pricing
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+
+# Navigate to Tariffs
+- tapOn: "Tariffs"
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_03_tariffs"
+
+# Tariff management screen
+- assertVisible: "Tariffs"
+
+# Scroll to see tariff list
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_03_tariffs_scrolled"
+
+# Try to edit a tariff if visible
+- tapOn:
+    text: "Edit"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_03_tariff_edit"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"

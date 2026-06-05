@@ -1,0 +1,17 @@
+appId: com.smartcampost.mobile
+---
+# Auth — STAFF login: valid credentials → Staff Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000002"
+- tapOn: "Password"
+- inputText: "Test123!Staff"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_staff"
+
+- assertVisible: "Staff Dashboard"
+- assertNotVisible: "Login"

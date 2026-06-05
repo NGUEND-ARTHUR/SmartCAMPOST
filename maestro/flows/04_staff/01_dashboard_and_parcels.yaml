@@ -1,0 +1,55 @@
+appId: com.smartcampost.mobile
+---
+# STAFF — Dashboard and parcel management
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000002"
+- tapOn: "Password"
+- inputText: "Test123!Staff"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "04_staff_01_dashboard"
+
+# Staff Dashboard content
+- assertVisible: "Staff Dashboard"
+
+# Quick actions
+- assertVisible:
+    text: "Manage Pickups"
+    optional: true
+- assertVisible:
+    text: "View & Manage Parcels"
+    optional: true
+
+# Scroll
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "04_staff_01_dashboard_scrolled"
+
+# Navigate to Parcel Management
+- tapOn: "View & Manage Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "04_staff_01_parcel_management"
+
+# Parcel list content
+- assertVisible: "All Parcels"
+# May show parcel list or empty state
+- scroll
+- waitForAnimationToEnd
+
+# Try search
+- tapOn:
+    text: "Search"
+    optional: true
+- inputText: "CP"
+- waitForAnimationToEnd
+- takeScreenshot: "04_staff_01_parcel_search"
+
+- pressKey: back
+- waitForAnimationToEnd
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Staff Dashboard"

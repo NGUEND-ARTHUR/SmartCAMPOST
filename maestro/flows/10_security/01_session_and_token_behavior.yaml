@@ -1,0 +1,52 @@
+appId: com.smartcampost.mobile
+---
+# SECURITY — Session and token behavior
+# Tests: session persistence, background/foreground, token cleared on logout
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "10_sec_01_initial_session"
+
+# Test 1: Background app — session should persist
+- pressKey: home
+- sleep: 3000
+- launchApp
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- assertNotVisible: "Login"
+- takeScreenshot: "10_sec_01_session_after_background"
+
+# Test 2: Navigate to profile — session intact
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- assertVisible: "+237699000001"
+- takeScreenshot: "10_sec_01_profile_with_token"
+
+# Test 3: Logout clears session
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"
+- assertNotVisible: "Dashboard"
+- takeScreenshot: "10_sec_01_after_logout"
+
+# Test 4: App remembers we're logged out (session cleared)
+- pressKey: home
+- sleep: 1000
+- launchApp
+- waitForAnimationToEnd
+# Should land on login (not dashboard) after logout
+- assertVisible: "Login"
+- takeScreenshot: "10_sec_01_session_cleared"

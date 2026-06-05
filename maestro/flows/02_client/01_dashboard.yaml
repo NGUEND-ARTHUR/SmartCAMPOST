@@ -1,0 +1,32 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Dashboard: login, validate dashboard content, navigation cards
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_01_dashboard"
+
+# Dashboard content
+- assertVisible: "Dashboard"
+- assertVisible: "Welcome"
+- assertVisible: "Postal activity at a glance"
+
+# Quick action cards
+- assertVisible: "My Parcels"
+- assertVisible: "Track Parcel"
+- assertVisible: "Create Parcel"
+
+# Scroll to see more
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_01_dashboard_scrolled"
+
+# Recent parcels section (may be empty)
+- assertVisible: "Recent Parcels"

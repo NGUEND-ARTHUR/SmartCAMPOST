@@ -1,0 +1,39 @@
+appId: com.smartcampost.mobile
+---
+# COURIER — Dashboard: login, validate stats and quick actions
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000004"
+- tapOn: "Password"
+- inputText: "Test123!Courier"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "05_courier_01_dashboard"
+
+# Courier Dashboard content
+- assertVisible: "Courier Dashboard"
+- assertVisible:
+    text: "Deliveries Today"
+    optional: true
+- assertVisible:
+    text: "Assigned Pickups"
+    optional: true
+- assertVisible:
+    text: "Completed"
+    optional: true
+
+# Quick action items
+- assertVisible:
+    text: "My Deliveries"
+    optional: true
+- assertVisible:
+    text: "Route Map"
+    optional: true
+
+# Scroll to see all
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "05_courier_01_dashboard_scrolled"

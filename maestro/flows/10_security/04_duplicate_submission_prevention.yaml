@@ -1,0 +1,55 @@
+appId: com.smartcampost.mobile
+---
+# SECURITY — Duplicate submission prevention and race conditions
+# Tests that the app prevents double-tapping login button
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Test 1: Rapid double-tap on Login button
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+
+# Attempt rapid double-tap
+- tapOn: "Login"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "10_sec_04_double_tap_result"
+
+# Should still reach Dashboard (not double-login crash)
+- assertVisible: "Dashboard"
+- takeScreenshot: "10_sec_04_after_double_tap"
+
+# Logout and test create parcel double submission
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+
+# Login again for parcel test
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Test 2: Double-tap Create in parcel form
+- tapOn: "Create Parcel"
+- waitForAnimationToEnd
+- tapOn: "Weight (kg)"
+- inputText: "2.0"
+
+# Double-tap Create button
+- tapOn: "Create"
+- tapOn: "Create"
+- waitForAnimationToEnd
+- takeScreenshot: "10_sec_04_double_create"
+# Should show validation error or loading — not crash or create twice

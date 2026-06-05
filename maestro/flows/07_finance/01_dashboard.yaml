@@ -1,0 +1,40 @@
+appId: com.smartcampost.mobile
+---
+# FINANCE — Dashboard: login, validate finance stats and navigation
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000005"
+- tapOn: "Password"
+- inputText: "Test123!Finance"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "07_finance_01_dashboard"
+
+# Finance Dashboard content
+- assertVisible: "Finance Dashboard"
+- assertVisible:
+    text: "Total Payments"
+    optional: true
+- assertVisible:
+    text: "Total Refunds"
+    optional: true
+- assertVisible:
+    text: "Revenue"
+    optional: true
+
+# Quick actions
+- assertVisible: "View All Payments"
+- assertVisible:
+    text: "Manage Refunds"
+    optional: true
+- assertVisible:
+    text: "Financial Analytics"
+    optional: true
+
+# Scroll
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "07_finance_01_dashboard_scrolled"

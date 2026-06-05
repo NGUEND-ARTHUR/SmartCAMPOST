@@ -1,0 +1,46 @@
+appId: com.smartcampost.mobile
+---
+# COURIER — Deliveries: view my deliveries, start delivery, OTP confirmation
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000004"
+- tapOn: "Password"
+- inputText: "Test123!Courier"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Courier Dashboard"
+
+# Navigate to Deliveries
+- tapOn: "Deliveries"
+- waitForAnimationToEnd
+- takeScreenshot: "05_courier_03_deliveries"
+
+# Deliveries screen
+- assertVisible: "My Deliveries"
+# Empty state or list
+- assertVisible:
+    text: "No deliveries found"
+    optional: true
+
+# If deliveries exist, tap first delivery
+- tapOn:
+    text: "Start Delivery"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "05_courier_03_start_delivery"
+- pressKey: back
+- waitForAnimationToEnd
+
+# QR Scan for delivery
+- pressKey: back
+- waitForAnimationToEnd
+- tapOn: "Scan QR Code"
+- waitForAnimationToEnd
+- takeScreenshot: "05_courier_03_qr_scan"
+# Camera permission dialog may appear — dismiss
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Courier Dashboard"

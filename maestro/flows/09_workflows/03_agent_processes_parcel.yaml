@@ -1,0 +1,57 @@
+appId: com.smartcampost.mobile
+---
+# WORKFLOW — AGENT receives and validates parcel created by CLIENT
+# Validates cross-role interaction: client-created parcel visible to agent
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as AGENT
+- tapOn: "Phone number"
+- inputText: "+237699000003"
+- tapOn: "Password"
+- inputText: "Test123!Agent"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Agent Dashboard"
+- takeScreenshot: "09_wf_03_agent_dashboard"
+
+# Step 1: Navigate to Validate Parcels (parcels waiting for agent validation)
+- tapOn: "Validate Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_03_validation_list"
+# Either parcels visible or empty state
+
+# Step 2: Scroll and check for pending validation
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_03_validation_scrolled"
+
+# Step 3: If parcel exists, try to validate it
+- tapOn:
+    text: "Validate"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_03_validate_action"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Step 4: Navigate to Scan Parcel
+- pressKey: back
+- waitForAnimationToEnd
+- tapOn: "Scan Parcel"
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_03_scan_screen"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Step 5: Navigate to Assign Courier
+- tapOn:
+    text: "Assign Courier"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "09_wf_03_assign_courier"
+- pressKey: back
+- waitForAnimationToEnd
+
+- assertVisible: "Agent Dashboard"

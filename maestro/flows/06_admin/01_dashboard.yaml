@@ -1,0 +1,39 @@
+appId: com.smartcampost.mobile
+---
+# ADMIN — Dashboard: login, validate stats and management actions
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_01_dashboard"
+
+# Admin Dashboard content
+- assertVisible: "Admin Dashboard"
+# Stats
+- assertVisible:
+    text: "Total Users"
+    optional: true
+- assertVisible:
+    text: "Total Agencies"
+    optional: true
+- assertVisible:
+    text: "Total Revenue"
+    optional: true
+
+# Management actions
+- assertVisible: "User Management"
+- assertVisible: "Tariffs"
+- assertVisible:
+    text: "Audit Logs"
+    optional: true
+
+# Scroll
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_01_dashboard_scrolled"

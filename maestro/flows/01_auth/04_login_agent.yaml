@@ -1,0 +1,17 @@
+appId: com.smartcampost.mobile
+---
+# Auth — AGENT login: valid credentials → Agent Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000003"
+- tapOn: "Password"
+- inputText: "Test123!Agent"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_agent"
+
+- assertVisible: "Agent Dashboard"
+- assertNotVisible: "Login"

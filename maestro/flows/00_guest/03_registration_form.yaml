@@ -1,0 +1,55 @@
+appId: com.smartcampost.mobile
+---
+# Guest — Registration form: navigation, fields, validation
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Navigate to Register screen
+- tapOn: "Register"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_03_register_screen"
+
+# Registration fields present
+- assertVisible: "Full name"
+- assertVisible: "Phone number"
+- assertVisible: "Password"
+- assertVisible: "Confirm password"
+
+# --- Test 1: Submit empty form ---
+- tapOn: "Register"
+- waitForAnimationToEnd
+- assertVisible: "This field is required"
+- takeScreenshot: "00_guest_03_empty_register_error"
+
+# --- Test 2: Enter full name only ---
+- tapOn: "Full name"
+- inputText: "E2E Mobile Test User"
+- tapOn: "Register"
+- waitForAnimationToEnd
+# Phone is still empty
+- assertVisible: "This field is required"
+
+# --- Test 3: Enter phone without country code ---
+- tapOn: "Phone number"
+- inputText: "699000099"
+- tapOn: "Register"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_03_invalid_phone_format"
+
+# --- Test 4: Fill all required fields with mismatched passwords ---
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237699888099"
+- tapOn: "Password"
+- inputText: "Test123!Mobile"
+- tapOn: "Confirm password"
+- inputText: "Different123!"
+- tapOn: "Register"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_03_password_mismatch"
+
+# --- Test 5: Go back to login ---
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "SmartCAMPOST"

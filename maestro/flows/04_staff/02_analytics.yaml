@@ -1,0 +1,42 @@
+appId: com.smartcampost.mobile
+---
+# STAFF — Analytics screen: charts, stats, period selector
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000002"
+- tapOn: "Password"
+- inputText: "Test123!Staff"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Staff Dashboard"
+
+# Navigate to Analytics
+- tapOn: "View Analytics"
+- waitForAnimationToEnd
+- takeScreenshot: "04_staff_02_analytics"
+
+# Analytics content
+- assertVisible: "Analytics"
+# Stats or charts
+- assertVisible:
+    text: "Total Parcels"
+    optional: true
+- assertVisible:
+    text: "Period: This Month"
+    optional: true
+- assertVisible:
+    text: "Status Distribution"
+    optional: true
+
+# Scroll down to see charts
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "04_staff_02_analytics_charts"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Staff Dashboard"

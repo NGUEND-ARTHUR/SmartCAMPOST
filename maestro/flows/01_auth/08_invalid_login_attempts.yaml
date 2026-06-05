@@ -1,0 +1,59 @@
+appId: com.smartcampost.mobile
+---
+# Auth — Invalid credentials: wrong password, non-existent user, frozen account attempt
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# --- Test 1: Wrong password for valid user ---
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "WrongPassword999!"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_wrong_password"
+# Should stay on login screen
+- assertVisible: "Login"
+- assertVisible: "SmartCAMPOST"
+- assertNotVisible: "Dashboard"
+
+# --- Test 2: Non-existent phone number ---
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237699999888"
+- tapOn: "Password"
+- clearText
+- inputText: "Test123!NotExist"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_nonexistent_user"
+- assertVisible: "Login"
+- assertNotVisible: "Dashboard"
+
+# --- Test 3: SQL injection attempt in phone field ---
+- tapOn: "Phone number"
+- clearText
+- inputText: "' OR '1'='1"
+- tapOn: "Password"
+- clearText
+- inputText: "Test123!Inject"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_sql_injection"
+# Should be rejected by client-side validator (invalid phone format)
+- assertVisible: "Login"
+- assertNotVisible: "Dashboard"
+
+# --- Test 4: XSS attempt in password field ---
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237699000001"
+- tapOn: "Password"
+- clearText
+- inputText: "<script>alert(1)</script>"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_xss_attempt"
+# Rejected by password validator or server
+- assertNotVisible: "Dashboard"

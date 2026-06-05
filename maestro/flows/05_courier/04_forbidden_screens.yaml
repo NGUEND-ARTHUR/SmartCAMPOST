@@ -1,0 +1,32 @@
+appId: com.smartcampost.mobile
+---
+# COURIER — Forbidden screens: COURIER cannot see admin/client/finance/risk screens
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000004"
+- tapOn: "Password"
+- inputText: "Test123!Courier"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Courier Dashboard"
+- takeScreenshot: "05_courier_04_dashboard"
+
+# COURIER should NOT see these
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "User Management"
+- assertNotVisible: "Finance Dashboard"
+- assertNotVisible: "Risk Dashboard"
+- assertNotVisible: "Agent Dashboard"
+- assertNotVisible: "Staff Dashboard"
+- assertNotVisible: "My Parcels"
+- assertNotVisible: "Compliance Alerts"
+
+# COURIER should see their own items
+- assertVisible: "Courier Dashboard"
+- assertVisible:
+    text: "Deliveries"
+    optional: true
+- takeScreenshot: "05_courier_04_forbidden_verified"

@@ -1,0 +1,17 @@
+appId: com.smartcampost.mobile
+---
+# Auth — FINANCE login: valid credentials → Finance Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000005"
+- tapOn: "Password"
+- inputText: "Test123!Finance"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_finance"
+
+- assertVisible: "Finance Dashboard"
+- assertNotVisible: "Login"
