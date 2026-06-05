@@ -19,7 +19,7 @@ const ReactQueryDevtools = import.meta.env.DEV
     )
   : null;
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1029384756-dummyclientid.apps.googleusercontent.com";
 
 const queryClient = new QueryClient({
   defaultOptions: {
