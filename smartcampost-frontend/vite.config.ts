@@ -13,14 +13,17 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   optimizeDeps: {
     // Exclude packages that cause esbuild pre-bundle resolution errors (e.g., raf/performance-now)
-    exclude: ['raf', 'performance-now'],
+    exclude: ["raf", "performance-now"],
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
       // Use local shims for packages that cause esbuild resolution issues
-      'performance-now': path.resolve(__dirname, './src/shims/performance-now.js'),
-      raf: path.resolve(__dirname, './src/shims/raf.js'),
+      "performance-now": path.resolve(
+        __dirname,
+        "./src/shims/performance-now.js",
+      ),
+      raf: path.resolve(__dirname, "./src/shims/raf.js"),
     },
   },
   build: {
@@ -72,7 +75,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Prevent SSR build from trying to bundle problematic CJS packages
   ssr: {
-    noExternal: ['raf', 'performance-now'],
+    noExternal: ["raf", "performance-now"],
   },
   test: {
     environment: "jsdom",

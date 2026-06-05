@@ -456,15 +456,7 @@ export default function AIChatbot({
         .filter(Boolean)
         .join("\n");
     },
-    [
-      allowedActionTypes,
-      language,
-      roleBasePath,
-      roleUpper,
-      user?.phone,
-      user?.name,
-      userPhone,
-    ],
+    [roleBasePath, allowedActionTypes, language, roleUpper, user, userPhone],
   );
 
   const safeNavigate = useCallback(

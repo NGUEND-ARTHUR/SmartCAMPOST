@@ -194,39 +194,6 @@ export function CreateParcel() {
     );
   }, [addressForm]);
 
-  // ── Dynamic pricing: fetch server-side quote when inputs change ──
-  const senderAddr = addresses.find((a) => a.id === senderAddressId);
-  const recipientAddr = addresses.find((a) => a.id === recipientAddressId);
-
-  useEffect(() => {
-    const weight = getValues("weight");
-    if (!weight || weight <= 0) {
-      setPriceQuote(null);
-      return;
-    }
-    const controller = new AbortController();
-    setPriceLoading(true);
-    tariffService
-      .quote({
-        serviceType,
-        weight: Number(weight),
-        originCity: senderAddr?.city ?? undefined,
-        destinationCity: recipientAddr?.city ?? undefined,
-      })
-      .then((q) => {
-        if (!controller.signal.aborted) setPriceQuote(q);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setPriceQuote(null);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setPriceLoading(false);
-      });
-    return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceType, senderAddressId, recipientAddressId, currentStep]);
-  // Refetch when user enters step 2 (service) or step 3 (payment)
-
   const openAddAddress = (target: "sender" | "recipient") => {
     setAddAddressTarget(target);
     setShowMapTab(false);
@@ -241,6 +208,46 @@ export function CreateParcel() {
     });
     setIsAddAddressOpen(true);
   };
+
+  // ── Dynamic pricing: fetch server-side quote when inputs change ──
+  const senderAddr = addresses.find((a) => a.id === senderAddressId);
+  const recipientAddr = addresses.find((a) => a.id === recipientAddressId);
+
+  useEffect(() => {
+    const weight = getValues("weight");
+    if (!weight || weight <= 0) {
+      const timer = window.setTimeout(() => {
+        setPriceQuote(null);
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setPriceLoading(true);
+      tariffService
+        .quote({
+          serviceType,
+          weight: Number(weight),
+          originCity: senderAddr?.city ?? undefined,
+          destinationCity: recipientAddr?.city ?? undefined,
+        })
+        .then((q) => {
+          if (!controller.signal.aborted) setPriceQuote(q);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setPriceQuote(null);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setPriceLoading(false);
+        });
+    }, 0);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [getValues, recipientAddr?.city, senderAddr?.city, serviceType]);
 
   const handleCreateAddress = async () => {
     if (!canSaveAddress) {
@@ -886,10 +893,7 @@ export function CreateParcel() {
               </Button>
 
               {currentStep < steps.length - 1 ? (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                >
+                <Button type="button" onClick={handleNext}>
                   Next
                 </Button>
               ) : (

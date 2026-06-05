@@ -50,10 +50,17 @@ export default function SelfHealingDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
     // Refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      void fetchData();
+    }, 30000);
+    return () => {
+      window.clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleExecuteAction = async (actionId: string) => {
