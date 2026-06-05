@@ -24,6 +24,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired(required = false)
     private JwtService jwtService;
 
+    @Autowired(required = false)
+    private TokenBlacklistService tokenBlacklistService;
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -47,6 +50,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         if (token != null) {
+
+            // Reject blacklisted tokens (logged-out tokens)
+            if (tokenBlacklistService != null && tokenBlacklistService.isBlacklisted(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (jwtService != null && jwtService.validateToken(token) &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {

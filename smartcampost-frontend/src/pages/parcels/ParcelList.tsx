@@ -40,7 +40,7 @@ import {
   exportToXlsx,
 } from "@/lib/exportCsv";
 import { useMyParcels } from "@/hooks";
-import type { Parcel } from "@/types";
+import type { ParcelResponse } from "@/services/parcels/parcels.api";
 
 export function ParcelList() {
   const { t } = useTranslation();
@@ -51,7 +51,7 @@ export function ParcelList() {
   const [exportFormat, setExportFormat] = useState<
     "CSV" | "JSON" | "XLSX" | "PDF"
   >("CSV");
-  const [qrParcel, setQrParcel] = useState<Parcel | null>(null);
+  const [qrParcel, setQrParcel] = useState<ParcelResponse | null>(null);
 
   const { data, isLoading, error } = useMyParcels(page, 20);
 
@@ -335,11 +335,11 @@ export function ParcelList() {
           onOpenChange={(open) => {
             if (!open) setQrParcel(null);
           }}
-          trackingRef={qrParcel.trackingRef}
+          trackingRef={qrParcel.trackingRef ?? ""}
           parcelId={qrParcel.id}
           qrContent={
             qrParcel.locked && qrParcel.qrStatus === "FINAL"
-              ? qrParcel.finalQrCode
+              ? (qrParcel.finalQrCode as string | undefined)
               : undefined
           }
           qrStatus={qrParcel.qrStatus}

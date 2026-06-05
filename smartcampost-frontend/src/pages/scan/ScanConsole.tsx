@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
+import type { ScanResult } from "@/components/qrcode/QRCodeScanner";
 import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
 import { useAuthStore } from "@/store/authStore";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -158,7 +159,7 @@ export default function ScanConsole() {
       // Step 1: Verify QR Code
       const verificationResult = await verifyQrCodeContent(scannedCode);
       if (!verificationResult.valid) {
-        throw new Error(verificationResult.error || t("scan.error.invalidQr"));
+        throw new Error(verificationResult.message || t("scan.error.invalidQr"));
       }
       const { parcelId } = verificationResult;
       if (!parcelId) {
@@ -232,12 +233,14 @@ export default function ScanConsole() {
     handleScan(barcode);
   };
 
-  const handleCameraScan = (result: string | null) => {
-    if (result) {
-      setBarcode(result);
-      handleScan(result);
+  const handleCameraScan = (result: ScanResult) => {
+    if (result.success && result.rawText) {
+      setBarcode(result.rawText);
+      handleScan(result.rawText);
     }
   };
+
+  const clearHistory = () => setScanHistory([]);
 
   return (
     <div className="min-h-screen bg-background">
