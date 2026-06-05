@@ -131,6 +131,12 @@ public class QrVerificationToken {
     @Column(name = "last_user_agent", length = 255)
     private String lastVerificationUserAgent;
 
+    @Column(name = "last_latitude", columnDefinition = "DECIMAL(10,8)")
+    private Double lastLatitude;
+
+    @Column(name = "last_longitude", columnDefinition = "DECIMAL(11,8)")
+    private Double lastLongitude;
+
     @PrePersist
     protected void onCreate() {
         if (id == null) {
@@ -158,11 +164,13 @@ public class QrVerificationToken {
     /**
      * Record a verification event
      */
-    public void recordVerification(UserAccount verifier, String ip, String userAgent) {
+    public void recordVerification(UserAccount verifier, String ip, String userAgent, Double latitude, Double longitude) {
         this.lastVerifiedAt = Instant.now();
         this.lastVerifiedBy = verifier;
         this.lastVerificationIp = ip;
         this.lastVerificationUserAgent = userAgent;
+        this.lastLatitude = latitude;
+        this.lastLongitude = longitude;
         this.verificationCount++;
     }
 

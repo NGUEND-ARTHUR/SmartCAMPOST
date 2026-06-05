@@ -27,6 +27,29 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
     super.dispose();
   }
 
+  Future<Position> _getCurrentPositionOrThrow() async {
+    bool enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      throw Exception('Location services are disabled. Please enable GPS.');
+    }
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied) {
+      throw Exception('Location permission denied.');
+    }
+    if (perm == LocationPermission.deniedForever) {
+      throw Exception('Location permission permanently denied. Enable it in settings.');
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
+  }
+
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_isProcessing) return;
     final barcodes = capture.barcodes;
@@ -39,20 +62,13 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
     });
 
     try {
-      // Get GPS position
-      double? lat, lng;
-      try {
-        final pos = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-          ),
-        );
-        lat = pos.latitude;
-        lng = pos.longitude;
-      } catch (_) {}
+      // Get GPS position (GPS is mandatory)
+      final pos = await _getCurrentPositionOrThrow();
+      final lat = pos.latitude;
+      final lng = pos.longitude;
 
       // Verify QR first
-      final qrResult = await QrService().verifyQr(code);
+      final qrResult = await QrService().verifyQr(code, latitude: lat, longitude: lng);
       final parcelId = qrResult['parcelId'];
 
       if (parcelId != null) {
@@ -62,7 +78,7 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
           'eventType': 'AGENT_SCAN_IN',
           'latitude': lat,
           'longitude': lng,
-          'locationSource': lat != null ? 'GPS' : 'MANUAL',
+          'locationSource': 'GPS',
         });
 
         if (mounted) {
@@ -77,7 +93,7 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
         }
       }
     } catch (e) {
-      if (mounted) setState(() => _lastError = e.toString());
+      if (mounted) setState(() => _lastError = e.toString().replaceAll('Exception: ', ''));
     }
     if (mounted) setState(() => _isProcessing = false);
   }

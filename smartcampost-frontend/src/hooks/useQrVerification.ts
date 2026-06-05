@@ -33,7 +33,7 @@ export function useQrVerification(): UseQrVerificationReturn {
   });
 
   const verifyQr = useCallback(
-    async (qrContent: string): Promise<QrVerificationResponse | null> => {
+    async (qrContent: string, latitude?: number, longitude?: number): Promise<QrVerificationResponse | null> => {
       if (!qrContent) {
         setState((prev) => ({
           ...prev,
@@ -74,7 +74,7 @@ export function useQrVerification(): UseQrVerificationReturn {
         }
 
         // Server-side verification (the real anti-forgery check)
-        const response = await verifyQrCodeContent(qrContent);
+        const response = await verifyQrCodeContent(qrContent, latitude, longitude);
 
         const forgeryDetected = isForgeryAttempt(response);
 

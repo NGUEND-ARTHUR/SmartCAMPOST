@@ -177,6 +177,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (e) {
           console.warn("[authStore] onRehydrateStorage error", String(e));
         }
-    },
+      },
+    }
   )
 );

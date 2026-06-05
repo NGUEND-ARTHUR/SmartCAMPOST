@@ -51,21 +51,36 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  Future<Position> _getCurrentPositionOrThrow() async {
+    bool enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      throw Exception('Location services are disabled. Please enable GPS.');
+    }
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied) {
+      throw Exception('Location permission denied.');
+    }
+    if (perm == LocationPermission.deniedForever) {
+      throw Exception('Location permission permanently denied. Enable it in settings.');
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
+  }
+
   Future<void> _startDelivery(String parcelId) async {
     try {
-      Position? pos;
-      try {
-        final permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.always ||
-            permission == LocationPermission.whileInUse) {
-          pos = await Geolocator.getCurrentPosition();
-        }
-      } catch (_) {}
-
+      final pos = await _getCurrentPositionOrThrow();
       await DeliveryService().startDelivery({
         'parcelId': parcelId,
-        if (pos != null) 'latitude': pos.latitude,
-        if (pos != null) 'longitude': pos.longitude,
+        'latitude': pos.latitude,
+        'longitude': pos.longitude,
       });
       if (mounted) {
         ScaffoldMessenger.of(
@@ -77,7 +92,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}')));
       }
     }
   }

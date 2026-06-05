@@ -293,7 +293,7 @@ public class QrSecurityServiceImpl implements QrSecurityService {
 
             // Record verification attempt
             UserAccount verifier = getCurrentUserAccount();
-            tokenEntity.recordVerification(verifier, request.getClientIp(), request.getUserAgent());
+            tokenEntity.recordVerification(verifier, request.getClientIp(), request.getUserAgent(), request.getLatitude(), request.getLongitude());
             tokenEntity = Objects.requireNonNull(tokenRepository.save(tokenEntity), "failed to save token entity");
 
             // Build success response with parcel/pickup details
@@ -311,7 +311,7 @@ public class QrSecurityServiceImpl implements QrSecurityService {
 
     @Override
     @Transactional
-    public QrVerificationResponse verifyQrCodeContent(String qrContent, String clientIp, String userAgent) {
+    public QrVerificationResponse verifyQrCodeContent(String qrContent, String clientIp, String userAgent, Double latitude, Double longitude) {
         log.info("Verifying QR code content from IP: {}", clientIp);
 
         try {
@@ -339,6 +339,8 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                     .trackingRef(payload.getRef())
                     .clientIp(clientIp)
                     .userAgent(userAgent)
+                    .latitude(latitude)
+                    .longitude(longitude)
                     .build();
 
             return verifyQrCode(request);

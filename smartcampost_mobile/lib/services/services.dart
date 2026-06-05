@@ -27,10 +27,15 @@ class ScanService {
 class QrService {
   final ApiClient _api = ApiClient();
 
-  Future<Map<String, dynamic>> verifyQr(String qrData) async {
-    return _api.get<Map<String, dynamic>>(
-      '/qr/verify/${Uri.encodeComponent(qrData)}',
-    );
+  Future<Map<String, dynamic>> verifyQr(String qrData, {double? latitude, double? longitude}) async {
+    String path = '/qr/verify/${Uri.encodeComponent(qrData)}';
+    final queryParams = <String>[];
+    if (latitude != null) queryParams.add('latitude=$latitude');
+    if (longitude != null) queryParams.add('longitude=$longitude');
+    if (queryParams.isNotEmpty) {
+      path += '?${queryParams.join('&')}';
+    }
+    return _api.get<Map<String, dynamic>>(path);
   }
 
   Future<Map<String, dynamic>> getSecureQr(String parcelId) async {

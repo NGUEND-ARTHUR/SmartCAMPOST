@@ -6,6 +6,8 @@ export interface QrVerificationRequest {
   token: string;
   signature?: string;
   trackingRef?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface QrVerificationResponse {
@@ -80,12 +82,20 @@ export async function verifyQrCode(
 /**
  * Verify a QR code from scanned content
  * @param qrContent The raw content scanned from the QR code
+ * @param latitude Optional latitude coordinates
+ * @param longitude Optional longitude coordinates
  */
 export async function verifyQrCodeContent(
   qrContent: string,
+  latitude?: number,
+  longitude?: number,
 ): Promise<QrVerificationResponse> {
   const encodedContent = encodeURIComponent(qrContent);
-  return httpClient.get<QrVerificationResponse>(`/qr/verify/${encodedContent}`);
+  const queryParams = [];
+  if (latitude !== undefined) queryParams.push(`latitude=${latitude}`);
+  if (longitude !== undefined) queryParams.push(`longitude=${longitude}`);
+  const queryStr = queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
+  return httpClient.get<QrVerificationResponse>(`/qr/verify/${encodedContent}${queryStr}`);
 }
 
 /**

@@ -30,7 +30,6 @@ export interface ParcelResponse {
   recipientCity?: string;
   recipientRegion?: string;
   recipientCountry?: string;
-<<<<<<< HEAD
   // Recipient GPS coordinates (for courier map navigation)
   recipientLatitude?: number;
   recipientLongitude?: number;
@@ -38,12 +37,6 @@ export interface ParcelResponse {
   clientName?: string;
   clientPhone?: string;
   [key: string]: unknown;
-=======
-  recipientLatitude?: number;
-  recipientLongitude?: number;
-  clientName?: string;
-  clientPhone?: string;
->>>>>>> ad71cf4 (Update SmartCAMPOST frontend and mobile modules)
 }
 
 export interface ParcelDetailResponse {
@@ -87,13 +80,9 @@ export interface ParcelDetailResponse {
   // Pricing
   lastAppliedPrice?: number;
   pricingHistory?: PricingDetailDto[];
-<<<<<<< HEAD
   // Proof photo
   proofUrl?: string;
   photoUrl?: string;
-=======
-  proofUrl?: string;
->>>>>>> ad71cf4 (Update SmartCAMPOST frontend and mobile modules)
 }
 
 export interface PricingDetailDto {

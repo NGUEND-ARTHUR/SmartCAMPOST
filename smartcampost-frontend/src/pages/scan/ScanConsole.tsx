@@ -159,7 +159,7 @@ export default function ScanConsole() {
 
     try {
       // Step 1: Verify QR Code
-      const verificationResult = await verifyQrCodeContent(scannedCode);
+      const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
       if (!verificationResult.valid) {
         throw new Error(
           verificationResult.message || t("scan.error.invalidQr"),
