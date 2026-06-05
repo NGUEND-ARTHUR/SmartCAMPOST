@@ -1,0 +1,359 @@
+smartcampost-frontend/
+├─ public/
+│  ├─ favicon.ico
+│  └─ assets/                      # static logos, images (optional)
+│
+├─ src/
+│  ├─ app/
+│  │  ├─ App.tsx                   # root app shell
+│  │  ├─ main.tsx                  # entry
+│  │  ├─ providers/
+│  │  │  ├─ QueryProvider.tsx      # React Query provider
+│  │  │  ├─ AuthProvider.tsx       # auth context (token, role, user)
+│  │  │  └─ ThemeProvider.tsx      # optional dark/light
+│  │  ├─ router/
+│  │  │  ├─ index.tsx              # createBrowserRouter / Routes
+│  │  │  ├─ routes.public.tsx      # public routes
+│  │  │  ├─ routes.client.tsx      # client routes
+│  │  │  ├─ routes.agent.tsx       # agent routes
+│  │  │  ├─ routes.courier.tsx     # courier routes
+│  │  │  ├─ routes.staff.tsx       # staff routes
+│  │  │  ├─ routes.admin.tsx       # admin routes
+│  │  │  ├─ routes.finance.tsx     # finance routes
+│  │  │  ├─ routes.risk.tsx        # risk routes
+│  │  │  └─ RouteGuards.tsx        # AuthGuard / RoleGuard wrappers
+│  │  ├─ config/
+│  │  │  ├─ env.ts                 # VITE_API_BASE_URL, etc.
+│  │  │  ├─ roles.ts               # role constants + helpers
+│  │  │  └─ navigation.ts          # optional: menu config per role
+│  │  └─ styles/
+│  │     └─ globals.css
+│  │
+│  ├─ pages/
+│  │  ├─ public/
+│  │  │  ├─ LandingPage.tsx
+│  │  │  ├─ LoginPage.tsx
+│  │  │  ├─ LoginOtpPage.tsx
+│  │  │  ├─ RegisterPage.tsx
+│  │  │  └─ ResetPasswordPage.tsx
+│  │  │
+│  │  ├─ client/
+│  │  │  ├─ ClientLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ parcels/
+│  │  │  │  ├─ ParcelList.tsx
+│  │  │  │  ├─ ParcelCreate.tsx
+│  │  │  │  └─ ParcelDetail.tsx
+│  │  │  ├─ pickups/
+│  │  │  │  ├─ PickupList.tsx
+│  │  │  │  └─ PickupCreate.tsx
+│  │  │  ├─ payments/
+│  │  │  │  ├─ PaymentList.tsx
+│  │  │  │  └─ PaymentDetail.tsx
+│  │  │  ├─ addresses/
+│  │  │  │  └─ AddressBook.tsx
+│  │  │  ├─ support/
+│  │  │  │  ├─ TicketList.tsx
+│  │  │  │  └─ TicketDetail.tsx
+│  │  │  ├─ tracking/
+│  │  │  └─ Settings.tsx
+│  │  │
+│  │  ├─ agent/
+│  │  │  ├─ AgentLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ parcels/
+│  │  │  │  ├─ ParcelRegister.tsx
+│  │  │  │  ├─ ParcelList.tsx
+│  │  │  │  └─ ParcelOpsDetail.tsx
+│  │  │  ├─ scans/
+│  │  │  │  ├─ ScanConsole.tsx
+│  │  │  │  └─ ScanLogs.tsx
+│  │  │  ├─ pickups/
+│  │  │  └─ Profile.tsx
+│  │  │
+│  │  ├─ courier/
+│  │  │  ├─ CourierLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ pickups/
+│  │  │  │  ├─ MyPickups.tsx
+│  │  │  │  └─ PickupDetail.tsx
+│  │  │  ├─ deliveries/
+│  │  │  │  ├─ MyDeliveries.tsx
+│  │  │  │  ├─ DeliveryDetail.tsx
+│  │  │  │  └─ DeliveryConfirmStepper.tsx
+│  │  │  ├─ map/
+│  │  │  │  └─ RouteMap.tsx
+│  │  │  ├─ scans/
+│  │  │  └─ Profile.tsx
+│  │  │
+│  │  ├─ staff/
+│  │  │  ├─ StaffLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ parcels/
+│  │  │  ├─ pickups/
+│  │  │  ├─ scans/
+│  │  │  ├─ deliveries/
+│  │  │  ├─ payments/
+│  │  │  ├─ notifications/
+│  │  │  ├─ support/
+│  │  │  ├─ analytics/
+│  │  │  └─ Profile.tsx
+│  │  │
+│  │  ├─ admin/
+│  │  │  ├─ AdminLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ accounts/
+│  │  │  │  ├─ AccountsList.tsx
+│  │  │  │  └─ AccountDetail.tsx
+│  │  │  ├─ agencies/
+│  │  │  ├─ staff/
+│  │  │  ├─ agents/
+│  │  │  ├─ couriers/
+│  │  │  ├─ tariffs/
+│  │  │  ├─ integrations/
+│  │  │  ├─ ussd/
+│  │  │  └─ Profile.tsx
+│  │  │
+│  │  ├─ finance/
+│  │  │  ├─ FinanceLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ payments/
+│  │  │  ├─ invoices/
+│  │  │  ├─ refunds/
+│  │  │  └─ Profile.tsx
+│  │  │
+│  │  ├─ risk/
+│  │  │  ├─ RiskLayout.tsx
+│  │  │  ├─ Dashboard.tsx
+│  │  │  ├─ alerts/
+│  │  │  ├─ compliance/
+│  │  │  └─ Profile.tsx
+│  │  │
+│  │  └─ errors/
+│  │     ├─ NotFound.tsx
+│  │     ├─ Forbidden.tsx
+│  │     └─ ServerError.tsx
+│  │
+│  ├─ components/
+│  │  ├─ layout/
+│  │  │  ├─ AppLayout.tsx
+│  │  │  ├─ Sidebar.tsx
+│  │  │  ├─ Topbar.tsx
+│  │  │  ├─ Breadcrumbs.tsx
+│  │  │  └─ PageHeader.tsx
+│  │  │
+│  │  ├─ guards/
+│  │  │  ├─ AuthGuard.tsx
+│  │  │  └─ RoleGuard.tsx
+│  │  │
+│  │  ├─ ui/
+│  │  │  ├─ Button.tsx
+│  │  │  ├─ Input.tsx
+│  │  │  ├─ Select.tsx
+│  │  │  ├─ Modal.tsx
+│  │  │  ├─ Badge.tsx
+│  │  │  ├─ Tabs.tsx
+│  │  │  ├─ Toast.tsx
+│  │  │  ├─ Skeleton.tsx
+│  │  │  └─ EmptyState.tsx
+│  │  │
+│  │  ├─ tables/
+│  │  │  ├─ DataTable.tsx
+│  │  │  ├─ TableFilters.tsx
+│  │  │  └─ TablePagination.tsx
+│  │  │
+│  │  ├─ forms/
+│  │  │  ├─ auth/
+│  │  │  │  ├─ LoginForm.tsx
+│  │  │  │  ├─ OtpLoginForm.tsx
+│  │  │  │  ├─ RegisterClientForm.tsx
+│  │  │  │  └─ ResetPasswordForms.tsx
+│  │  │  ├─ parcels/
+│  │  │  │  ├─ CreateParcelStepper.tsx
+│  │  │  │  ├─ ParcelDetailsForm.tsx
+│  │  │  │  ├─ ServiceOptionsForm.tsx
+│  │  │  │  ├─ PaymentOptionsForm.tsx
+│  │  │  │  └─ ChangeDeliveryOptionForm.tsx
+│  │  │  ├─ pickups/
+│  │  │  │  └─ PickupRequestForm.tsx
+│  │  │  ├─ scans/
+│  │  │  │  └─ ScanEventForm.tsx
+│  │  │  ├─ delivery/
+│  │  │  │  ├─ SendOtpForm.tsx
+│  │  │  │  ├─ VerifyOtpForm.tsx
+│  │  │  │  └─ ProofCaptureForm.tsx
+│  │  │  ├─ payments/
+│  │  │  │  └─ CreateRefundForm.tsx
+│  │  │  ├─ support/
+│  │  │  │  └─ TicketForm.tsx
+│  │  │  └─ common/
+│  │  │     ├─ AddressForm.tsx
+│  │  │     └─ SearchTrackingForm.tsx
+│  │  │
+│  │  ├─ modals/
+│  │  │  ├─ ConfirmModal.tsx
+│  │  │  ├─ AssignCourierModal.tsx
+│  │  │  ├─ AddressModal.tsx
+│  │  │  ├─ UpdateStatusModal.tsx
+│  │  │  └─ FreezeAccountModal.tsx
+│  │  │
+│  │  ├─ maps/
+│  │  │  ├─ MapView.tsx
+│  │  │  ├─ AddressPickerMap.tsx
+│  │  │  ├─ RoutePreviewMap.tsx
+│  │  │  ├─ AgencyMarkersMap.tsx
+│  │  │  └─ ReadOnlyTrackingMap.tsx
+│  │  │
+│  │  ├─ domain/
+│  │  │  ├─ ParcelTimeline.tsx
+│  │  │  ├─ StatusBadge.tsx
+│  │  │  ├─ DeliveryStepper.tsx
+│  │  │  ├─ PaymentStatusPanel.tsx
+│  │  │  ├─ NotificationLog.tsx
+│  │  │  └─ RiskSeverityBadge.tsx
+│  │  │
+│  │  └─ feedback/
+│  │     ├─ ErrorBanner.tsx
+│  │     ├─ LoadingOverlay.tsx
+│  │     └─ SuccessScreen.tsx
+│  │
+│  ├─ hooks/
+│  │  ├─ auth/
+│  │  │  ├─ useAuth.ts
+│  │  │  ├─ useLogin.ts
+│  │  │  ├─ useOtpLogin.ts
+│  │  │  ├─ useRegister.ts
+│  │  │  └─ useResetPassword.ts
+│  │  │
+│  │  ├─ parcels/
+│  │  │  ├─ useParcels.ts
+│  │  │  ├─ useParcelDetail.ts
+│  │  │  └─ useCreateParcel.ts
+│  │  │
+│  │  ├─ pickups/
+│  │  │  ├─ usePickups.ts
+│  │  │  └─ useAssignCourier.ts
+│  │  │
+│  │  ├─ delivery/
+│  │  │  ├─ useSendDeliveryOtp.ts
+│  │  │  ├─ useVerifyDeliveryOtp.ts
+│  │  │  └─ useFinalizeDelivery.ts
+│  │  │
+│  │  ├─ scans/
+│  │  │  └─ useScanEvents.ts
+│  │  │
+│  │  ├─ payments/
+│  │  │  ├─ usePayments.ts
+│  │  │  └─ useRefunds.ts
+│  │  │
+│  │  ├─ support/
+│  │  │  └─ useTickets.ts
+│  │  │
+│  │  ├─ risk/
+│  │  │  ├─ useRiskAlerts.ts
+│  │  │  └─ useComplianceReports.ts
+│  │  │
+│  │  ├─ notifications/
+│  │  │  └─ useNotifications.ts
+│  │  │
+│  │  ├─ common/
+│  │  │  ├─ useApiClient.ts
+│  │  │  ├─ useDebounce.ts
+│  │  │  ├─ usePagination.ts
+│  │  │  └─ useRoleRedirect.ts
+│  │  │
+│  │  └─ maps/
+│  │     ├─ useGeocoding.ts          # optional
+│  │     └─ useRoutePreview.ts       # optional
+│  │
+│  ├─ services/
+│  │  ├─ http/
+│  │  │  ├─ apiClient.ts             # axios/fetch client + interceptors
+│  │  │  └─ endpoints.ts             # centralized route strings
+│  │  │
+│  │  ├─ auth/
+│  │  │  ├─ auth.service.ts
+│  │  │  └─ auth.types.ts
+│  │  │
+│  │  ├─ parcels/
+│  │  │  ├─ parcels.service.ts
+│  │  │  └─ parcels.types.ts
+│  │  │
+│  │  ├─ pickups/
+│  │  │  ├─ pickups.service.ts
+│  │  │  └─ pickups.types.ts
+│  │  │
+│  │  ├─ delivery/
+│  │  │  ├─ delivery.service.ts
+│  │  │  └─ delivery.types.ts
+│  │  │
+│  │  ├─ scans/
+│  │  │  ├─ scans.service.ts
+│  │  │  └─ scans.types.ts
+│  │  │
+│  │  ├─ payments/
+│  │  │  ├─ payments.service.ts
+│  │  │  ├─ invoices.service.ts
+│  │  │  └─ payments.types.ts
+│  │  │
+│  │  ├─ notifications/
+│  │  │  ├─ notifications.service.ts
+│  │  │  └─ notifications.types.ts
+│  │  │
+│  │  ├─ support/
+│  │  │  ├─ support.service.ts
+│  │  │  └─ support.types.ts
+│  │  │
+│  │  ├─ admin/
+│  │  │  ├─ accounts.service.ts
+│  │  │  ├─ agencies.service.ts
+│  │  │  ├─ staff.service.ts
+│  │  │  ├─ agents.service.ts
+│  │  │  ├─ couriers.service.ts
+│  │  │  ├─ tariffs.service.ts
+│  │  │  ├─ integrations.service.ts
+│  │  │  └─ ussd.service.ts
+│  │  │
+│  │  ├─ finance/
+│  │  │  ├─ refunds.service.ts
+│  │  │  └─ finance.types.ts
+│  │  │
+│  │  └─ risk/
+│  │     ├─ risk.service.ts
+│  │     ├─ compliance.service.ts
+│  │     └─ risk.types.ts
+│  │
+│  ├─ types/
+│  │  ├─ enums.ts                    # ParcelStatus, PaymentStatus...
+│  │  ├─ common.ts                   # Pagination, ApiError, ApiResponse
+│  │  └─ models.ts                   # Parcel, Pickup, Payment, Ticket...
+│  │
+│  ├─ utils/
+│  │  ├─ formatters.ts               # money, date, phone
+│  │  ├─ validators.ts               # client-side validation rules
+│  │  ├─ storage.ts                  # token/role storage helpers
+│  │  └─ permissions.ts              # permission checks by role
+│  │
+│  └─ assets/
+│     ├─ logos/
+│     └─ icons/
+│
+├─ .env.example
+├─ package.json
+├─ tsconfig.json
+└─ README.mdKey Notes (so your team doesn’t get confused)
+1) Pages vs Components
+pages/ = route screens only (compose components)
+components/ = reusable UI blocks (forms, tables, modals, maps, domain widgets)
+2) Hooks are feature-based
+Each module has its own hook folder:
+hooks/parcels/*
+hooks/payments/*
+etc.
+3) Services are the “API contract”
+Each service folder has:
+*.service.ts → calls endpoints
+*.types.ts → DTOs + response shapes
+4) Enums are centralized
+Your DB enums go in:
+src/types/enums.ts

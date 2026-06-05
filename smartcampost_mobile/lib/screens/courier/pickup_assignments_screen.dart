@@ -4,6 +4,7 @@ import 'package:smartcampost_mobile/models/common.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/pickup_service.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PickupAssignmentsScreen extends StatefulWidget {
   const PickupAssignmentsScreen({super.key});
@@ -40,7 +41,15 @@ class _PickupAssignmentsScreenState extends State<PickupAssignmentsScreen> {
 
   Future<void> _confirmPickup(String id) async {
     try {
-      await PickupService().confirmPickup({'pickupId': id});
+      // Get current location
+      final position = await Geolocator.getCurrentPosition();
+
+      await PickupService().confirmPickup({
+        'pickupId': id,
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'descriptionConfirmed': true,
+      });
       _loadPickups();
       if (mounted) {
         ScaffoldMessenger.of(

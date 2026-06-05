@@ -1,0 +1,80 @@
+Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, AI, and Digital Payments
+Author: Nguend Arthur Johann — ICT University, Yaoundé, Cameroon
+
+Functional and Technical Overview (Web & Mobile)
+1. Introduction
+SmartCAMPOST is a web and mobile application designed to digitalize the entire postal workflow of CAMPOST: parcel registration, collection, tracking, notification, payment, and delivery. Each parcel is uniquely identified by a QR Code, which ensures traceability from sender to receiver. The system is powered by a centralized backend built with Spring Boot, integrated with secure APIs, GPS, and AI modules.
+This document explains the core operational mechanisms of SmartCAMPOST, including: QR-based tracking, parcel collection and delivery using GPS, digital payments, the structure of the web and mobile interfaces, and the Artificial Intelligence module.
+2. Overview of the Web & Mobile Interfaces
+The SmartCAMPOST ecosystem includes:
+• Web Application (Vue.js): for clients, agents, and administrators.
+• Mobile Application (Flutter): for clients (tracking, payment) and agents (scanning, delivery).
+• Backend (Spring Boot): RESTful API for authentication, parcel management, payments, notifications, and AI analytics.
+2.1 Web Client Portal
+The client web portal enables customers to manage all postal activities digitally. Key features include:
+• Account registration and OTP login.
+• Parcel creation with description, address, value, and photo upload.
+• Generation of a unique QR Code and printable shipping label.
+• Request for home pickup via GPS geolocation.
+• Real-time tracking of parcel status and history.
+• Online payment through Orange Money, MTN Mobile Money, or CAMPOST Money.
+• Option to switch between in-agency pickup and home delivery once parcel arrives.
+2.2 Web and Mobile Agent Interfaces
+Agents use both mobile and web portals to register parcels, perform scans, and handle collections/deliveries. Each scan updates the parcel’s status, location, and time in the system. Features include:
+• Parcel registration and validation at agency counters.
+• QR Code scanning (via phone camera or web scanner) at every transit point.
+• GPS-enabled updates for accurate tracking.
+• Daily report generation and transaction exports.
+• Route management and assignment for collection/delivery.
+2.3 Administrator Dashboard
+Administrators monitor the entire system in real-time using visual analytics and reports:
+• Tracking of all parcels, agents, and payment operations.
+• Management of tariffs, users, and agency performance metrics.
+• Visualization of key metrics through interactive maps and dashboards.
+3. Parcel Tracking Using QR Code
+Each parcel is associated with a unique QR Code generated at registration. The tracking process works as follows:
+1) Parcel registered → unique ID and QR Code generated via ZXing library.
+2) Label printed and attached to the parcel.
+3) Agent scans QR Code during each handling stage (departure, transit, arrival, delivery).
+4) Data sent to API endpoint `/parcels/{id}/scan` with timestamp and GPS coordinates.
+5) Client receives automatic SMS or push notification for each status change.
+6) Timeline and delivery proof available in client dashboard.
+4. Parcel Collection and Home Delivery (GPS)
+The collection and delivery process leverages GPS and intelligent routing to ensure efficiency and transparency:
+• Client submits pickup request with address and time slot.
+• Nearest available agent receives the assignment based on GPS proximity.
+• Agent collects parcel, validates description, and confirms pickup via QR scan.
+• For home delivery, agent follows optimized route, scans at delivery, and uploads proof (photo/signature).
+• Clients can dynamically request home delivery after arrival at destination agency.
+5. Integrated Digital Payment System
+Supported methods: Orange Money, MTN Mobile Money, and CAMPOST Money.
+Process: payment intent is created on the backend, user approves payment (STK Push or redirect), webhook validates transaction, PDF receipt is generated and stored in the client account.
+Security: signature verification, idempotent API calls, TLS encryption, and audit logging ensure reliability.
+Tariff calculation considers distance, parcel weight, and selected delivery option.
+6. Artificial Intelligence (AI) Module
+The AI component of SmartCAMPOST introduces automation and intelligence in logistics optimization:
+• ETA Prediction: estimates delivery time based on distance, route history, and traffic trends.
+• Route Optimization: recommends best delivery paths using heuristics or ML routing models.
+• Anomaly Detection: monitors for delayed or inconsistent parcel scans, signaling possible issues.
+• Virtual Assistant: responds to user inquiries (“Where is my parcel?”) using real-time tracking data.
+AI services are deployed as microservices (Spring Boot or Python-based), communicating via secure internal APIs.
+All AI computations comply with local data privacy standards, anonymizing sensitive data and ensuring CEMAC/BEAC compliance.
+7. Security, Roles, and Logging
+• Roles: CLIENT, AGENT, ADMIN with Spring Security role-based access control.
+• Authentication: OTP via SMS, short-lived JWT tokens, and device-level binding for mobile users.
+• Logging: immutable audit logs for all parcel status changes and payment events.
+• Resilience: message queues for async tasks (notifications/webhooks), retry mechanisms, backups.
+8. Core API Endpoints (Examples)
+POST /api/v1/auth/login-otp – Request OTP login
+POST /api/v1/parcels – Create parcel record
+POST /api/v1/parcels/{id}/label – Generate QR label
+POST /api/v1/parcels/{id}/scan – Update parcel scan status
+POST /api/v1/pickups – Create pickup request
+POST /api/v1/payments/intents – Create payment intent
+POST /api/v1/webhooks/payment – Handle payment confirmation
+9. Key Advantages
+• Real-time tracking and notifications enhance transparency.
+• Secure digital payments integrated into postal services.
+• AI-powered predictions improve reliability and efficiency.
+• Full bilingual accessibility (English/French).
+• Full traceability for auditing and regulatory compliance.

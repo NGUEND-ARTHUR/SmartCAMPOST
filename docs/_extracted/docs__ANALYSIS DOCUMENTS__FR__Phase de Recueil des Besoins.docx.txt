@@ -1,0 +1,129 @@
+Phase de Recueil des Besoins SmartCAMPOST
+1. Introduction
+La phase de recueil des besoins a pour objectif d’identifier, d’analyser et de documenter les besoins fonctionnels et non fonctionnels de tous les acteurs impliqués dans le système SmartCAMPOST.Elle vise à s’assurer que la solution proposée répond aux attentes opérationnelles de la CAMPOST et aux besoins réels de ses utilisateurs (clients, agents et administrateurs).
+Le projet SmartCAMPOST a pour ambition de digitaliser la gestion des colis, d’améliorer la rapidité des livraisons, d’accroître la transparence du service et d’intégrer des fonctionnalités intelligentes de suivi et de paiement numérique.
+2. Les acteurs concernés
+2.1 Les Clients (Utilisateurs finaux)
+Les clients sont les personnes physiques ou morales qui envoient ou reçoivent des colis via les services de la CAMPOST.
+Besoins et attentes :
+Enregistrement facile d’un colis (en ligne ou en agence).
+Suivi en temps réel du colis via QR Code ou numéro de suivi.
+Réception de notifications automatiques (SMS ou push) à chaque étape du processus.
+Possibilité de demander une collecte à domicile ou une livraison à domicile grâce à la géolocalisation GPS.
+Paiement sécurisé via Orange Money, MTN Mobile Money ou CAMPOST Money.
+Consultation de l’historique des colis, des factures et des reçus.
+Interface simple, intuitive et bilingue (Français / Anglais).
+Outils utilisés :Application mobile Android / iOS et portail web client.
+2.2 Les Agents Postaux (Personnel opérationnel)
+Les agents CAMPOST sont chargés de la collecte, du tri, du scan et de la livraison des colis sur le terrain.
+Besoins et attentes :
+Pouvoir scanner les colis avec un smartphone pour mettre à jour le statut (via QR Code).
+Accéder aux listes de tournées, missions et livraisons quotidiennes.
+Système de géolocalisation GPS pour planifier les itinéraires et valider les collectes.
+Possibilité de valider ou corriger la description d’un colis enregistrée par le client.
+Preuve de collecte et de livraison (photo, signature, heure, position GPS).
+Fonctionnement en mode hors-ligne (synchronisation automatique quand le réseau revient).
+Interface simple, intuitive et adaptée aux conditions de terrain.
+Outils utilisés :Application mobile Flutter ou interface web pour les agences fixes.
+2.3 Les Administrateurs (Gestionnaires et Superviseurs)
+Les administrateurs CAMPOST assurent la supervision du système, la gestion des utilisateurs et la génération de rapports analytiques.
+Besoins et attentes :
+Accès à un tableau de bord centralisé pour suivre les colis, agents et transactions.
+Visualisation des parcours des colis sur une carte interactive.
+Gestion des utilisateurs, des agences et des rôles (accès sécurisé).
+Paramétrage des tarifs et des zones de livraison selon le poids et la distance.
+Génération de rapports statistiques et financiers (revenus, délais, anomalies).
+Alertes en cas de retards, fraudes ou incidents techniques.
+Garantie de la conformité avec les normes et politiques internes de la CAMPOST.
+Outils utilisés :Application web (Vue.js) connectée au backend (Spring Boot).
+3. Exigences Fonctionnelles
+ID
+Exigence
+Description
+EF1
+Authentification et création de compte
+Les utilisateurs et agents se connectent via OTP (vérification par SMS).
+EF2
+Enregistrement d’un colis
+Le client saisit la description, l’adresse, la valeur et la photo du colis.
+EF3
+Génération du QR Code
+Le système attribue un QR Code unique à chaque colis.
+EF4
+Scan du colis
+Les agents scannent le QR Code à chaque étape du parcours.
+EF5
+Suivi en temps réel
+Les clients peuvent consulter le statut du colis à tout moment.
+EF6
+Notifications automatiques
+Le système envoie des SMS / push à chaque mise à jour de statut.
+EF7
+Paiement numérique
+Paiement des services via Orange Money, MTN Money ou CAMPOST Money.
+EF8
+Tableau de bord administrateur
+Supervision en temps réel des colis, agents et paiements.
+EF9
+Optimisation des tournées
+L’IA recommande les itinéraires les plus efficaces.
+EF10
+Preuve de livraison
+L’agent ajoute photo et signature du client lors de la livraison.
+
+4. Exigences Non Fonctionnelles
+Type
+Exigence
+Performance
+Le système doit pouvoir gérer au moins 10 000 transactions par jour.
+Disponibilité
+Taux de disponibilité de 99,5 %, avec sauvegardes quotidiennes.
+Sécurité
+Chiffrement TLS, authentification JWT, journal d’audit complet.
+Scalabilité
+Architecture évolutive (cloud-ready) pour extensions futures.
+Utilisabilité
+Interface fluide et accessible sur appareils à faibles ressources.
+Localisation
+Interface bilingue (FR / EN) avec formats de dates localisés.
+Conformité
+Respect des normes BEAC / CEMAC pour paiements et données.
+
+5. Résumé des Cas d’Utilisation
+Acteur
+Cas d’utilisation
+Objectif
+Client
+Enregistrer un colis
+Créer un colis et générer le QR Code.
+Client
+Suivre un colis
+Voir le statut et la position actuelle.
+Client
+Payer en ligne
+Régler les frais via paiement numérique.
+Agent
+Scanner un colis
+Mettre à jour le statut à chaque étape.
+Agent
+Collecter un colis
+Récupérer un colis au domicile du client (validation GPS).
+Agent
+Livrer un colis
+Confirmer la livraison avec preuve photo/signature.
+Admin
+Gérer les utilisateurs
+Ajouter, modifier ou désactiver les comptes.
+Admin
+Superviser le système
+Suivre les colis, paiements et agents en temps réel.
+Admin
+Générer des rapports
+Exporter les données analytiques et financières.
+6. Synthèse
+La phase de recueil des besoins constitue une étape clé dans la conception du système SmartCAMPOST.Elle permet de définir clairement les attentes des utilisateurs, les contraintes techniques et les priorités fonctionnelles.
+En intégrant les besoins des clients, agents et administrateurs, le système vise à :
+Offrir un service plus rapide et plus transparent,
+Automatiser les opérations internes,
+Et renforcer la traçabilité et la fiabilité du service postal.
+Cette étape sert de base à la phase suivante : l’analyse et la modélisation du système (UML), qui précisera les cas d’utilisation, les interactions entre acteurs et la structure des données.

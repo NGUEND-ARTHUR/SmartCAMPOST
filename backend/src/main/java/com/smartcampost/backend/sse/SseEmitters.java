@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -59,5 +60,32 @@ public class SseEmitters {
                 emitters.remove(emitter);
             }
         }
+    }
+
+    public void emitAiEvent(String eventName, Object payload) {
+        Objects.requireNonNull(eventName, "eventName is required");
+        Objects.requireNonNull(payload, "payload is required");
+
+        for (SseEmitter emitter : emitters) {
+            try {
+                SseEmitter.SseEventBuilder builder = SseEmitter.event()
+                        .name(eventName)
+                        .data(payload);
+                emitter.send(builder);
+            } catch (IOException e) {
+                log.warn("Removing dead emitter after IO error", e);
+                emitters.remove(emitter);
+            }
+        }
+    }
+
+    public void emitAiEvent(String eventName, String correlationId, Object payload) {
+        Objects.requireNonNull(eventName, "eventName is required");
+        Objects.requireNonNull(payload, "payload is required");
+
+        LinkedHashMap<String, Object> envelope = new LinkedHashMap<>();
+        envelope.put("correlationId", correlationId);
+        envelope.put("payload", payload);
+        emitAiEvent(eventName, envelope);
     }
 }
