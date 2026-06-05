@@ -32,11 +32,7 @@ export function MapSearch({
   );
 
   useEffect(() => {
-    if (trimmed.length < 2) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
+    if (trimmed.length < 2) return;
 
     const id = window.setTimeout(async () => {
       const now = Date.now();
@@ -102,7 +98,7 @@ export function MapSearch({
         </Button>
       </div>
 
-      {open && results.length > 0 && (
+      {trimmed.length >= 2 && open && results.length > 0 && (
         <Card className="pointer-events-auto mt-2 overflow-hidden">
           <div className="max-h-64 overflow-auto">
             {results.map((r, idx) => (

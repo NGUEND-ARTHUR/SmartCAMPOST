@@ -113,9 +113,10 @@ export default function TrackingPage() {
     if (!ref) return;
     const trimmed = ref.trim();
     if (!trimmed) return;
-    setActiveTab("number");
-    setNumber(trimmed);
-    lookupByNumber(trimmed);
+    const timer = window.setTimeout(() => {
+      void lookupByNumber(trimmed);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [lookupByNumber, searchParams]);
 
   return (

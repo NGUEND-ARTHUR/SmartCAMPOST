@@ -98,15 +98,15 @@ export const useAuthStore = create<AuthStore>()(
             try {
               // useAuthStore will be defined by the time this runs; use the store API
               (useAuthStore as any).setState({ hydrated: true });
-              console.info('[authStore] rehydrate complete, hydrated flag set');
+              console.info("[authStore] rehydrate complete, hydrated flag set");
             } catch (e) {
-              console.warn('[authStore] inner setState error', String(e));
+              console.warn("[authStore] inner setState error", String(e));
             }
           }, 0);
         } catch (e) {
-          console.warn('[authStore] onRehydrateStorage error', String(e));
+          console.warn("[authStore] onRehydrateStorage error", String(e));
         }
-      }
-    }
-  )
+      },
+    },
+  ),
 );
