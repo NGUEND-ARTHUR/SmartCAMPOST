@@ -251,7 +251,7 @@ export function CameroonMap({
                 resolvedTheme === "dark"
                   ? LAYER_COLORS.maskDark
                   : LAYER_COLORS.maskLight,
-              "fill-opacity": 0.7,
+              "fill-opacity": 0.15,
             }}
           />
         </Source>

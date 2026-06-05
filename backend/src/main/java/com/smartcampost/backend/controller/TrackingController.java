@@ -176,7 +176,7 @@ public class TrackingController {
         if (code.startsWith("V1|")) {
             String ip = request != null ? request.getRemoteAddr() : null;
             String ua = request != null ? request.getHeader("User-Agent") : null;
-            QrVerificationResponse verification = qrSecurityService.verifyQrCodeContent(code, ip, ua);
+            QrVerificationResponse verification = qrSecurityService.verifyQrCodeContent(code, ip, ua, null, null);
             if (verification == null || verification.getStatus() == null) {
                 return ResponseEntity.badRequest().build();
             }

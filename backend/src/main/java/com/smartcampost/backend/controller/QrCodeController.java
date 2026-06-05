@@ -108,12 +108,14 @@ public class QrCodeController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<QrVerificationResponse> verifyQrCodeContent(
             @PathVariable String qrContent,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             HttpServletRequest httpRequest) {
         
         String clientIp = getClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
         
-        return ResponseEntity.ok(qrSecurityService.verifyQrCodeContent(qrContent, clientIp, userAgent));
+        return ResponseEntity.ok(qrSecurityService.verifyQrCodeContent(qrContent, clientIp, userAgent, latitude, longitude));
     }
 
     @Operation(summary = "Generate secure QR code for parcel",

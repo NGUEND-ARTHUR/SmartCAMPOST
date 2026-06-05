@@ -54,9 +54,11 @@ public interface QrSecurityService {
      * @param qrContent The raw content scanned from the QR code
      * @param clientIp The IP address of the verifying client
      * @param userAgent The user agent of the verifying client
+     * @param latitude The latitude of the verifying client
+     * @param longitude The longitude of the verifying client
      * @return Verification result
      */
-    QrVerificationResponse verifyQrCodeContent(String qrContent, String clientIp, String userAgent);
+    QrVerificationResponse verifyQrCodeContent(String qrContent, String clientIp, String userAgent, Double latitude, Double longitude);
 
     /**
      * Quick validation without full verification (for display purposes).
