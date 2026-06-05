@@ -53,10 +53,6 @@ export default function Addresses() {
     country: "Cameroon",
   });
 
-  useEffect(() => {
-    loadAddresses();
-  }, []);
-
   const loadAddresses = async () => {
     try {
       setIsLoading(true);
@@ -73,6 +69,13 @@ export default function Addresses() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadAddresses();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleOpenDialog = (address?: Address) => {
     if (address) {
