@@ -249,9 +249,8 @@ test.describe('Session — UI Logout and Re-login', () => {
     const tokenFirst = await getStoredToken(page);
     expect(tokenFirst).toBeTruthy();
 
-    // Logout
+    // Logout (logoutViaStorage already navigates to /auth/login)
     await logoutViaStorage(page);
-    await page.goto('/auth/login');
 
     // Re-login
     await loginViaUI(page, { phone: TEST_CLIENT.phone, password: TEST_CLIENT.password });

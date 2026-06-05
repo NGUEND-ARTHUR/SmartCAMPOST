@@ -65,6 +65,14 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
+        const token = _get().token;
+        // Notify backend to blacklist the JWT (fire-and-forget)
+        if (token) {
+          fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8082"}/api/auth/logout`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(() => {});
+        }
         set({
           user: null,
           token: null,

@@ -42,6 +42,7 @@ public class SecurityConfig {
                             "/api/track/**",
                             "/api/auth/register",
                             "/api/auth/login",
+                            "/api/auth/logout",
                             "/api/auth/google",
                             "/api/auth/send-otp",
                             "/api/auth/verify-otp",

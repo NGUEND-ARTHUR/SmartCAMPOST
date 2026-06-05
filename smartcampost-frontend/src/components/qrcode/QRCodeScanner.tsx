@@ -26,7 +26,7 @@ interface QRCodeData {
   version: number;
 }
 
-interface ScanResult {
+export interface ScanResult {
   success: boolean;
   data?: QRCodeData;
   rawText: string;

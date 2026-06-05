@@ -26,7 +26,7 @@ export default function Notifications() {
   const markAllRead = useMarkAllAsRead();
 
   const notifications = notificationsData?.content ?? [];
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleMarkAllRead = () => {
     markAllRead.mutate(undefined, {
@@ -87,18 +87,18 @@ export default function Notifications() {
                 <li
                   key={notification.id}
                   className={`flex items-start space-x-4 p-4 rounded-lg ${
-                    notification.isRead
+                    notification.read
                       ? "bg-muted/50"
                       : "bg-primary/10"
                   }`}
                 >
                   <div
                     className={`w-2 h-2 rounded-full mt-2 ${
-                      notification.isRead ? "bg-muted-foreground" : "bg-primary"
+                      notification.read ? "bg-muted-foreground" : "bg-primary"
                     }`}
                   ></div>
                   <div className="flex-1">
-                    <p className="font-semibold">{notification.title}</p>
+                    <p className="font-semibold">{notification.subject ?? notification.message}</p>
                     <p className="text-sm text-muted-foreground">
                       {notification.message}
                     </p>
