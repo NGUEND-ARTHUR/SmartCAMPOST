@@ -1,0 +1,17 @@
+appId: com.smartcampost.mobile
+---
+# Auth — RISK login: valid credentials → Risk Dashboard
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000006"
+- tapOn: "Password"
+- inputText: "Test123!Risk"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_login_risk"
+
+- assertVisible: "Risk Dashboard"
+- assertNotVisible: "Login"

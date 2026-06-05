@@ -1,0 +1,42 @@
+appId: com.smartcampost.mobile
+---
+# Guest — OTP login screen navigation and validation
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Navigate to OTP login
+- tapOn: "Login with OTP"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_05_otp_screen"
+
+# OTP screen content
+- assertVisible: "Phone number"
+- assertVisible: "Send OTP"
+
+# --- Test: Submit empty phone ---
+- tapOn: "Send OTP"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_05_otp_empty_phone"
+
+# --- Test: Enter phone and request OTP ---
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Send OTP"
+- waitForAnimationToEnd
+- sleep: 2000
+- takeScreenshot: "00_guest_05_otp_sent"
+# After sending OTP, OTP code field or resend button appears
+- assertVisible: "OTP Code"
+
+# --- Test: Enter invalid OTP ---
+- tapOn: "OTP Code"
+- inputText: "000000"
+- tapOn: "Verify"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_05_invalid_otp"
+# Should show error, stay on OTP screen
+
+# Go back to login
+- pressKey: back
+- waitForAnimationToEnd

@@ -1,0 +1,36 @@
+appId: com.smartcampost.mobile
+---
+# RISK — Compliance alerts: view alerts, filter, interact
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000006"
+- tapOn: "Password"
+- inputText: "Test123!Risk"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Risk Dashboard"
+
+# Navigate to Compliance Alerts
+- tapOn: "View Compliance Alerts"
+- waitForAnimationToEnd
+- takeScreenshot: "08_risk_02_compliance_alerts"
+
+# Compliance screen
+- assertVisible: "Compliance Alerts"
+# Empty or list
+- assertVisible:
+    text: "No alerts"
+    optional: true
+
+# Scroll
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "08_risk_02_alerts_scrolled"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Risk Dashboard"

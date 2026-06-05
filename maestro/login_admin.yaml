@@ -1,21 +1,16 @@
 appId: com.smartcampost.mobile
 ---
+# Quick smoke test: ADMIN login
+# Full suite: maestro/flows/01_auth/01_login_admin.yaml
 - launchApp:
     clearState: true
 - waitForAnimationToEnd
-- tapOn:
-    text: "Se connecter"
-    optional: true
-- inputText:
-    text: "admin@smartcampost.cm"
-- tapOn:
-    text: "Mot de passe"
-    optional: true
-- inputText:
-    text: "Admin@SmartCAMPOST2026"
-- tapOn:
-    text: "Connexion"
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
 - waitForAnimationToEnd
 - takeScreenshot: "admin-login-success"
-- assertNotVisible:
-    text: "Connexion"
+- assertVisible: "Admin Dashboard"
+- assertNotVisible: "Login"

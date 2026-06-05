@@ -1,0 +1,30 @@
+appId: com.smartcampost.mobile
+---
+# AGENT — Forbidden screens: AGENT cannot see admin/client/finance/risk screens
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000003"
+- tapOn: "Password"
+- inputText: "Test123!Agent"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Agent Dashboard"
+- takeScreenshot: "03_agent_04_dashboard"
+
+# AGENT should NOT see these items
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "User Management"
+- assertNotVisible: "Finance Dashboard"
+- assertNotVisible: "Risk Dashboard"
+- assertNotVisible: "Courier Dashboard"
+- assertNotVisible: "My Parcels"
+- assertNotVisible: "Compliance Alerts"
+
+# AGENT-specific items should be visible
+- assertVisible: "Receive Parcel"
+- assertVisible: "Validate Parcels"
+- assertVisible: "Scan Parcel"
+- takeScreenshot: "03_agent_04_forbidden_verified"

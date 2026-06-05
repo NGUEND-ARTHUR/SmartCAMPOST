@@ -1,0 +1,69 @@
+appId: com.smartcampost.mobile
+---
+# DEVICE — Navigation stack behavior: back button, deep navigation, stack integrity
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Deep navigation: Dashboard → My Parcels → back to Dashboard
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- assertVisible: "My Parcels"
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "11_device_03_back_to_dashboard"
+
+# Deep navigation: Dashboard → Create Parcel → back → Dashboard
+- tapOn: "Create Parcel"
+- waitForAnimationToEnd
+- assertVisible: "Weight (kg)"
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Deep navigation: Dashboard → Track Parcel → back → Dashboard
+- tapOn: "Track Parcel"
+- waitForAnimationToEnd
+- assertVisible: "Track Parcel"
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Rapid navigation test (tap multiple screens quickly)
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- pressKey: back
+- tapOn: "Track Parcel"
+- waitForAnimationToEnd
+- pressKey: back
+- tapOn: "Create Parcel"
+- waitForAnimationToEnd
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "11_device_03_rapid_nav_stable"
+
+# Profile screen navigation
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- assertVisible: "Profile"
+- tapOn: "Notifications"
+- waitForAnimationToEnd
+- assertVisible: "Notifications"
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Profile"
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "11_device_03_deep_stack_resolved"

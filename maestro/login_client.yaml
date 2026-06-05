@@ -1,22 +1,16 @@
 appId: com.smartcampost.mobile
 ---
+# Quick smoke test: CLIENT login
+# Full suite: maestro/flows/01_auth/02_login_client.yaml
 - launchApp:
     clearState: true
 - waitForAnimationToEnd
-- tapOn:
-    text: "Se connecter"
-    optional: true
-- waitForAnimationToEnd
-- inputText:
-    text: "client@test.cm"
-- tapOn:
-    text: "Mot de passe"
-    optional: true
-- inputText:
-    text: "Test@2024"
-- tapOn:
-    text: "Connexion"
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
 - waitForAnimationToEnd
 - takeScreenshot: "client-login-success"
-- assertNotVisible:
-    text: "Connexion"
+- assertVisible: "Dashboard"
+- assertNotVisible: "Login"

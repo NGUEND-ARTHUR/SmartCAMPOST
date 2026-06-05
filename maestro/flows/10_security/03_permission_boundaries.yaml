@@ -1,0 +1,45 @@
+appId: com.smartcampost.mobile
+---
+# SECURITY — Permission boundaries: verify API calls fail for unauthorized roles
+# Tests that the mobile app correctly surfaces API 403 errors (not crashes)
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# CLIENT cannot see admin-level screens
+- assertNotVisible: "User Management"
+- assertNotVisible: "Tariffs"
+- assertNotVisible: "Audit Logs"
+- assertNotVisible: "System Analytics"
+
+# CLIENT cannot see courier operations
+- assertNotVisible: "My Deliveries"
+- assertNotVisible: "Start Delivery"
+- assertNotVisible: "Confirm Delivery"
+
+# Verify My Parcels is accessible (CLIENT permission)
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- assertVisible: "My Parcels"
+- takeScreenshot: "10_sec_03_client_parcel_access_allowed"
+- pressKey: back
+- waitForAnimationToEnd
+
+# Verify Create Parcel is accessible (CLIENT permission)
+- tapOn: "Create Parcel"
+- waitForAnimationToEnd
+- assertVisible: "Weight (kg)"
+- takeScreenshot: "10_sec_03_client_create_allowed"
+- pressKey: back
+- waitForAnimationToEnd
+
+- assertVisible: "Dashboard"

@@ -1,0 +1,41 @@
+appId: com.smartcampost.mobile
+---
+# ADMIN — All parcels and system analytics
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+
+# Navigate to All Parcels
+- tapOn: "View All Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_04_all_parcels"
+- assertVisible: "All Parcels"
+
+# Scroll
+- scroll
+- waitForAnimationToEnd
+
+# Go back and navigate to Analytics
+- pressKey: back
+- waitForAnimationToEnd
+
+- tapOn: "System Analytics"
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_04_analytics"
+- assertVisible: "Analytics"
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_04_analytics_scrolled"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"

@@ -1,0 +1,52 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Track parcel: enter tracking number, view result
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Navigate to Track Parcel
+- tapOn: "Track Parcel"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_04_track_screen"
+
+# Track screen elements
+- assertVisible: "Track Parcel"
+- assertVisible: "Enter tracking number"
+
+# --- Test: Submit empty tracking number ---
+- tapOn: "Track"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_04_empty_track"
+
+# --- Test: Track with invalid ref ---
+- tapOn: "Enter tracking number"
+- inputText: "INVALID-REF-000"
+- tapOn: "Track"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_04_invalid_ref"
+# Should show "Parcel not found" or similar, not crash
+
+# --- Test: Clear and try with partial ref ---
+- tapOn:
+    text: "Clear"
+    optional: true
+- tapOn: "Enter tracking number"
+- clearText
+- inputText: "CP"
+- tapOn: "Track"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_04_partial_ref"
+
+# Go back to dashboard
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"

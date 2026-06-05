@@ -1,0 +1,47 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Parcel list: view parcels, search, pull to refresh
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Navigate to My Parcels
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_02_parcel_list"
+
+# Parcel list screen
+- assertVisible: "My Parcels"
+# Either parcel rows or empty state
+- assertVisible:
+    text: "No parcels found"
+    optional: true
+
+# Search field
+- assertVisible: "Search parcels"
+- tapOn: "Search parcels"
+- inputText: "TEST"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_02_search_result"
+
+# Clear search
+- clearText
+- waitForAnimationToEnd
+
+# Pull to refresh
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_02_after_refresh"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"

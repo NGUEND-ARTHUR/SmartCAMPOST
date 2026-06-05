@@ -1,0 +1,53 @@
+appId: com.smartcampost.mobile
+---
+# Auth — Logout and re-login cycle: CLIENT logs in, logs out, re-logs in
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Step 1: Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "01_auth_09_logged_in"
+
+# Step 2: Navigate to Profile and logout
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- assertVisible: "Profile"
+- takeScreenshot: "01_auth_09_profile_screen"
+
+- tapOn: "Logout"
+- waitForAnimationToEnd
+# Confirmation dialog appears
+- assertVisible: "Are you sure you want to logout?"
+- takeScreenshot: "01_auth_09_logout_confirm_dialog"
+
+# Confirm logout
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_09_after_logout"
+
+# Step 3: Should be back on login screen
+- assertVisible: "SmartCAMPOST"
+- assertVisible: "Login"
+- assertNotVisible: "Dashboard"
+
+# Step 4: Re-login as same user
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "01_auth_09_relogin"
+
+# Step 5: Should be back on Dashboard
+- assertVisible: "Dashboard"
+- assertNotVisible: "Login"

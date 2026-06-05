@@ -1,0 +1,42 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Forbidden screens: validate CLIENT cannot access admin/staff/agent/courier/finance/risk screens
+# Mobile navigation is role-enforced by router — CLIENT will not see these nav items
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "02_client_06_dashboard"
+
+# CLIENT dashboard should NOT show admin-only navigation items
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "User Management"
+- assertNotVisible: "Tariffs"
+- assertNotVisible: "Audit Logs"
+
+# Should NOT show staff/agent/courier items
+- assertNotVisible: "Agent Dashboard"
+- assertNotVisible: "Courier Dashboard"
+- assertNotVisible: "Staff Dashboard"
+- assertNotVisible: "Scan Intake"
+- assertNotVisible: "Validate Parcels"
+- assertNotVisible: "My Deliveries"
+
+# Should NOT show finance/risk items
+- assertNotVisible: "Finance Dashboard"
+- assertNotVisible: "Risk Dashboard"
+- assertNotVisible: "Compliance Alerts"
+- assertNotVisible: "Risk Alerts"
+
+- takeScreenshot: "02_client_06_forbidden_verified"
+
+# CLIENT-visible items should be present
+- assertVisible: "My Parcels"
+- assertVisible: "Track Parcel"

@@ -1,0 +1,33 @@
+appId: com.smartcampost.mobile
+---
+# Guest — App launch and splash behavior
+# Validates: app launches, branding is visible, login screen renders correctly
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_01_launch"
+
+# App title visible
+- assertVisible: "SmartCAMPOST"
+
+# Login subtitle visible
+- assertVisible: "Postal logistics made simple"
+
+# Phone and Password fields are present
+- assertVisible: "Phone number"
+- assertVisible: "Password"
+
+# Login button present
+- assertVisible: "Login"
+
+# Secondary actions visible
+- assertVisible: "Forgot password?"
+- assertVisible: "Login with OTP"
+- assertVisible: "Register"
+- assertVisible: "Sign in with Google"
+- assertVisible: "OR"
+
+# Build version badge visible (v1.0.2)
+- assertVisible: "Mobile build v1.0.2"
+
+- takeScreenshot: "00_guest_01_login_screen_verified"

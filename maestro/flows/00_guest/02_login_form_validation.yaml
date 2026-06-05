@@ -1,0 +1,54 @@
+appId: com.smartcampost.mobile
+---
+# Guest — Login form validation (invalid inputs, error messages)
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# --- Test 1: Submit empty form ---
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "This field is required"
+- takeScreenshot: "00_guest_02_empty_form_error"
+
+# --- Test 2: Invalid phone format ---
+- tapOn: "Phone number"
+- inputText: "abc123"
+- tapOn: "Login"
+- waitForAnimationToEnd
+# Validator rejects non-phone format
+- takeScreenshot: "00_guest_02_invalid_phone"
+
+# --- Test 3: Valid phone, empty password ---
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237699000001"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "This field is required"
+- takeScreenshot: "00_guest_02_missing_password"
+
+# --- Test 4: Short password (< 8 chars) ---
+- tapOn: "Password"
+- inputText: "Ab1!"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "00_guest_02_short_password"
+
+# --- Test 5: Wrong credentials (correct format, wrong values) ---
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237699999999"
+- tapOn: "Password"
+- clearText
+- inputText: "WrongPass1!"
+- tapOn: "Login"
+- waitForAnimationToEnd
+# Should show error, stay on login screen
+- assertVisible: "Login"
+- assertNotVisible: "Dashboard"
+- takeScreenshot: "00_guest_02_wrong_credentials"
+
+# --- Test 6: Screen does NOT navigate away on failure ---
+- assertVisible: "Phone number"
+- assertVisible: "SmartCAMPOST"

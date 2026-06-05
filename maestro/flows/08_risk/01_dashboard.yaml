@@ -1,0 +1,37 @@
+appId: com.smartcampost.mobile
+---
+# RISK — Dashboard: login, validate risk stats and alerts
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000006"
+- tapOn: "Password"
+- inputText: "Test123!Risk"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- takeScreenshot: "08_risk_01_dashboard"
+
+# Risk Dashboard content
+- assertVisible: "Risk Dashboard"
+- assertVisible:
+    text: "Active Alerts"
+    optional: true
+- assertVisible:
+    text: "Compliance Score"
+    optional: true
+- assertVisible:
+    text: "High Risk"
+    optional: true
+
+# Quick actions
+- assertVisible: "View Compliance Alerts"
+- assertVisible:
+    text: "View Audit Trail"
+    optional: true
+
+# Scroll
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "08_risk_01_dashboard_scrolled"

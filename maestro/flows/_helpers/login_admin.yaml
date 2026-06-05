@@ -1,0 +1,12 @@
+appId: com.smartcampost.mobile
+---
+# Helper: log in as ADMIN. Assumes app is already launched and on /login.
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237690000000"
+- tapOn: "Password"
+- clearText
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"

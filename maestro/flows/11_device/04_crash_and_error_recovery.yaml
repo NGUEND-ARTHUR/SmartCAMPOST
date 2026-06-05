@@ -1,0 +1,58 @@
+appId: com.smartcampost.mobile
+---
+# DEVICE — Crash/error recovery: app handles unexpected states gracefully
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Test 1: Very long input in search field
+- tapOn: "My Parcels"
+- waitForAnimationToEnd
+- tapOn: "Search parcels"
+- inputText: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_04_long_input"
+# Should not crash
+- clearText
+- pressKey: back
+- waitForAnimationToEnd
+
+# Test 2: Very long input in tracking number
+- tapOn: "Track Parcel"
+- waitForAnimationToEnd
+- tapOn: "Enter tracking number"
+- inputText: "CP-ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+- tapOn: "Track"
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_04_long_tracking"
+# Should show error, not crash
+- pressKey: back
+- waitForAnimationToEnd
+
+# Test 3: Special characters in form fields
+- tapOn: "Create Parcel"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Description"
+    optional: true
+- inputText: "!@#$%^&*()_+-=[]{}|;:',.<>?/`~\"\\"
+- scroll
+- waitForAnimationToEnd
+- tapOn: "Create"
+- waitForAnimationToEnd
+- takeScreenshot: "11_device_04_special_chars"
+# Should handle gracefully, not crash
+- pressKey: back
+- waitForAnimationToEnd
+
+- assertVisible: "Dashboard"
+- takeScreenshot: "11_device_04_recovered"

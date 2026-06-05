@@ -1,0 +1,30 @@
+appId: com.smartcampost.mobile
+---
+# RISK — Forbidden screens: RISK cannot see admin/client/courier/finance screens
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000006"
+- tapOn: "Password"
+- inputText: "Test123!Risk"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Risk Dashboard"
+- takeScreenshot: "08_risk_03_dashboard"
+
+# RISK should NOT see these
+- assertNotVisible: "Admin Dashboard"
+- assertNotVisible: "User Management"
+- assertNotVisible: "Finance Dashboard"
+- assertNotVisible: "Courier Dashboard"
+- assertNotVisible: "Agent Dashboard"
+- assertNotVisible: "Staff Dashboard"
+- assertNotVisible: "My Parcels"
+- assertNotVisible: "Payments"
+
+# RISK should see their items
+- assertVisible: "Risk Dashboard"
+- assertVisible: "View Compliance Alerts"
+- takeScreenshot: "08_risk_03_forbidden_verified"

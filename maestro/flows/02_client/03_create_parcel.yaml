@@ -1,0 +1,69 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Create parcel: form navigation, validation, submission attempt
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Navigate to Create Parcel
+- tapOn: "Create Parcel"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_03_create_parcel_form"
+
+# Form fields visible
+- assertVisible: "Weight (kg)"
+- assertVisible: "Service type"
+- assertVisible: "Delivery option"
+- assertVisible: "Payment option"
+
+# --- Test: Submit empty form ---
+- scroll
+- waitForAnimationToEnd
+- tapOn: "Create"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_03_empty_submission"
+
+# Fill weight field
+- tapOn: "Weight (kg)"
+- inputText: "2.5"
+
+# Scroll to see more fields
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_03_form_filled"
+
+# Description field
+- tapOn:
+    text: "Description"
+    optional: true
+- inputText: "E2E Mobile test parcel"
+
+# Declared value
+- tapOn:
+    text: "Declared value"
+    optional: true
+- inputText: "5000"
+
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_03_form_bottom"
+
+# Attempt to create
+- tapOn: "Create"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_03_after_submit"
+# May need addresses selected — form validates required selections
+# Either success or validation error (not crash)
+- assertNotVisible: "An error occurred"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd

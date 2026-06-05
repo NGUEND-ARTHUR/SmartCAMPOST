@@ -1,0 +1,48 @@
+appId: com.smartcampost.mobile
+---
+# ADMIN — User management: view users, search, filter by role
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+
+# Navigate to User Management
+- tapOn: "User Management"
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_02_user_management"
+
+# User management screen
+- assertVisible: "User Management"
+# User list
+- assertVisible:
+    text: "Search"
+    optional: true
+
+# Search for a user
+- tapOn:
+    text: "Search"
+    optional: true
+- inputText: "+237699000001"
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_02_search_result"
+
+# Clear search
+- clearText
+- waitForAnimationToEnd
+
+# Scroll through list
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: "06_admin_02_user_list_scrolled"
+
+# Go back
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"

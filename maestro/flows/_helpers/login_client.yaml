@@ -1,0 +1,12 @@
+appId: com.smartcampost.mobile
+---
+# Helper: log in as CLIENT. Assumes app is already launched and on /login.
+- tapOn: "Phone number"
+- clearText
+- inputText: "+237699000001"
+- tapOn: "Password"
+- clearText
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"

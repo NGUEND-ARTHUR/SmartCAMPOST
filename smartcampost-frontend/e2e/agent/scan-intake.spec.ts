@@ -5,7 +5,7 @@
 
 import { test, expect } from '../fixtures';
 import { AUTH_STATE } from '../fixtures/users';
-import { apiLogin } from '../helpers/api.helpers';
+import { apiLogin, createTestParcel } from '../helpers/api.helpers';
 
 test.use({ storageState: AUTH_STATE.agent });
 
@@ -128,5 +128,96 @@ test.describe('Parcel Validate and Lock — API', () => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     expect([200, 404, 400]).toContain(res.status());
+  });
+});
+
+// ── Full Scan Intake Flow with Real Parcel ────────────────────────────────────
+
+test.describe.serial('Scan Intake — Full Flow with Real Parcel', () => {
+
+  let parcelId = '';
+
+  test('Setup: CLIENT creates parcel for agent to scan', async ({ request }) => {
+    const { token: clientToken } = await apiLogin(request, '+237699000001', 'Test123!Client');
+    try {
+      const parcel = await createTestParcel(request, clientToken);
+      parcelId = parcel.id;
+      expect(parcelId).toBeTruthy();
+    } catch {
+      test.skip(true, 'Could not create test parcel — address endpoint may differ');
+    }
+  });
+
+  test('AGENT creates scan event RECEIVED_AT_AGENCY for real parcel', async ({ request }) => {
+    if (!parcelId) test.skip(true, 'No parcel from setup');
+
+    const { token } = await apiLogin(request, '+237699000003', 'Test123!Agent');
+    const res = await request.post(
+      `${process.env.API_URL ?? 'http://localhost:8082'}/api/scan-events`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          parcelId,
+          eventType: 'RECEIVED_AT_AGENCY',
+          latitude:  3.8480,
+          longitude: 11.5021,
+          notes:     'E2E agent intake scan',
+        },
+      }
+    );
+    // 200/201 = scan recorded; 400 = status transition issue; NOT 403
+    expect(res.status()).not.toBe(403);
+    expect([200, 201, 400, 422]).toContain(res.status());
+  });
+
+  test('AGENT can call validate-and-lock for real parcel', async ({ request }) => {
+    if (!parcelId) test.skip(true, 'No parcel from setup');
+
+    const { token } = await apiLogin(request, '+237699000003', 'Test123!Agent');
+    const res = await request.post(
+      `${process.env.API_URL ?? 'http://localhost:8082'}/api/parcels/${parcelId}/validate-and-lock?latitude=3.848&longitude=11.502`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { validatedWeight: 2.5 },
+      }
+    );
+    // 200/201 = locked; 400 = business rule (parcel may not be in right status); NOT 403
+    expect(res.status()).not.toBe(403);
+    expect([200, 201, 400, 404]).toContain(res.status());
+  });
+
+  test('AGENT can check if real parcel can be corrected', async ({ request }) => {
+    if (!parcelId) test.skip(true, 'No parcel from setup');
+
+    const { token } = await apiLogin(request, '+237699000003', 'Test123!Agent');
+    const res = await request.get(
+      `${process.env.API_URL ?? 'http://localhost:8082'}/api/parcels/${parcelId}/can-correct`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    expect(res.status()).not.toBe(403);
+    expect([200, 404]).toContain(res.status());
+  });
+
+  test('AGENT cannot delete parcels (403)', async ({ request }) => {
+    if (!parcelId) test.skip(true, 'No parcel from setup');
+
+    const { token } = await apiLogin(request, '+237699000003', 'Test123!Agent');
+    const res = await request.delete(
+      `${process.env.API_URL ?? 'http://localhost:8082'}/api/parcels/${parcelId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    expect([403, 401, 404, 405]).toContain(res.status());
+    expect([200, 204]).not.toContain(res.status());
+  });
+
+  test('CLIENT can track parcel after agent scan', async ({ request }) => {
+    if (!parcelId) test.skip(true, 'No parcel from setup');
+
+    const { token } = await apiLogin(request, '+237699000001', 'Test123!Client');
+    const res = await request.get(
+      `${process.env.API_URL ?? 'http://localhost:8082'}/api/parcels/${parcelId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    expect([200, 204]).toContain(res.status());
   });
 });

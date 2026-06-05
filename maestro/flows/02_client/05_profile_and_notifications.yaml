@@ -1,0 +1,49 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Profile screen: user info, settings, notifications
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Navigate to Profile
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_05_profile"
+
+# Profile content
+- assertVisible: "Profile"
+- assertVisible: "CLIENT"
+# Phone number shown
+- assertVisible: "+237699000001"
+# Settings items
+- assertVisible: "Language"
+- assertVisible: "Notifications"
+- assertVisible: "Support"
+- assertVisible: "Logout"
+
+# Navigate to Notifications
+- tapOn: "Notifications"
+- waitForAnimationToEnd
+- takeScreenshot: "02_client_05_notifications"
+- assertVisible: "Notifications"
+# Empty state or list
+- assertVisible:
+    text: "No notifications yet"
+    optional: true
+
+# Go back to profile
+- pressKey: back
+- waitForAnimationToEnd
+
+# Go back to dashboard
+- pressKey: back
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"

@@ -1,0 +1,42 @@
+appId: com.smartcampost.mobile
+---
+# CLIENT — Full logout/re-login with different role validation
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+# Login as CLIENT
+- tapOn: "Phone number"
+- inputText: "+237699000001"
+- tapOn: "Password"
+- inputText: "Test123!Client"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+- takeScreenshot: "02_client_07_client_loggedin"
+
+# Go to Profile and logout
+- tapOn: "Profile"
+- waitForAnimationToEnd
+- tapOn: "Logout"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Logout"
+    index: 1
+- waitForAnimationToEnd
+
+# Verify on login screen
+- assertVisible: "SmartCAMPOST"
+- assertVisible: "Login"
+- takeScreenshot: "02_client_07_after_logout"
+
+# Login as ADMIN to verify role-switch
+- tapOn: "Phone number"
+- inputText: "+237690000000"
+- tapOn: "Password"
+- inputText: "Admin@SmartCAMPOST2026"
+- tapOn: "Login"
+- waitForAnimationToEnd
+- assertVisible: "Admin Dashboard"
+- assertNotVisible: "My Parcels"
+- takeScreenshot: "02_client_07_admin_after_client_logout"
