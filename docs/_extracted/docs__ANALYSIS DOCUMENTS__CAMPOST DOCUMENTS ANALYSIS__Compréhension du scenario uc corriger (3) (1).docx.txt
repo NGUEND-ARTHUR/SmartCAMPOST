@@ -1,0 +1,330 @@
+DIRECTION DES SYSTEMES D’INFORMATION ET DE LA TRANSFORMATION DIGITALE 
+
+ 
+Compréhension du scenario d’utilisation du référentiel 
+ 
+Scénario actuelle d’utilisation 
+Acteur principal : 
+Utilisateur connecté (rôle : Administrateur ou Gestionnaire) Précondition: 
+L'utilisateur est authentifié avec les droits suffisants pour accéder aux différents menus. 
+1. Module “Gestion des Agences EMS 
+A. Objectif du module Le module “Gestion des Agences EMS” permet la gestion centralisée du référentiel des agences EMS, de leurs informations administratives et des postes de travail qui leur sont associés. 
+Il permet : 
+De consulter, ajouter, modifier ou désactiver des agences, 
+D’associer à chaque agence une ou plusieurs destinations desservies, • De gérer les postes (ordinateurs) rattachés à chaque agence, 
+De suivre la dernière connexion de chaque poste. 
+B.  Déroulement général du scénario d’utilisation 
+1. Accès au module Agences 
+ L’utilisateur clique sur le menu AGENCE, puis sur le sous-menu Agence EMS. 
+Le système affiche un tableau listant toutes les agences existantes avec les colonnes suivantes : 
+Code agence 
+Nom agence 
+Téléphone fixe 
+Fax 
+Boîte postale 
+Adresse 
+Destinations (liste multiple) 
+Actions possibles : 
+Ajouter une agence : l'utilisateur clique sur "Ajouter", renseigne les champs nécessaires, et associe plusieurs destinations (ex. : TikoZ1, TikoZ2…). 
+Modifier une agence : l’utilisateur sélectionne une ligne et modifie les informations souhaitées. • Supprimer une agence : l’utilisateur confirme la suppression. ⚠ Remarque : cette action est à éviter ; il est préférable de désactiver une agence pour conserver l’historique. 
+2. Accès au module Postes agences  L’utilisateur clique sur le sous-menu Postes agences.  Un tableau s’affiche avec les colonnes suivantes : 
+Nom de l’agence 
+Numéro de poste 
+Date de dernière connexion 
+Actions possibles : 
+Rechercher un poste par numéro ou agence 
+Supprimer un poste Remarque : à remplacer idéalement par une désactivation du poste. 
+ Rôle des acteurs 
+
+Acteur 
+Responsabilités principales 
+Administrateur 
+- Crée, modifie ou désactive les agences EMS 
+ 
+- Gère les postes associés 
+Utilisateur standard 
+- Accède aux agences visibles selon ses droits 
+
+Flux fonctionnel simplifié 
+L’administrateur accède au menu Agence EMS et clique sur Ajouter 
+Il renseigne les informations et ajoute plusieurs destinations 
+Il enregistre l’agence 
+Il consulte ou recherche les postes via Postes agences 
+Il peut supprimer ou désactiver un poste 
+ 
+ Bénéfices du scénario 
+Centralisation des données des agences et des postes 
+Suivi précis des connexions par poste 
+Amélioration de la gestion terrain (par agence) 
+Meilleure traçabilité si la désactivation remplace la suppression 
+ 
+2. Module “Gestion des Tarifs” 
+  A.  Objectif du module 
+Le module TARIF permet de gérer la grille tarifaire de l’application selon les bornes de poids et les zones géographiques desservies. 
+Il permet : 
+De définir des tranches tarifaires, 
+De les modifier ou supprimer, 
+De les rechercher selon différents critères. 
+B.  Déroulement général du scénario d’utilisation 
+1. Accès au menu TARIF 
+ L’utilisateur clique sur le menu TARIF  Un tableau s’affiche listant les tarifs avec les colonnes suivantes : 
+Poids inférieur 
+Poids supérieur 
+Zone tarifaire 
+Actions possibles : 
+Ajouter un tarif : l’utilisateur saisit une plage de poids (inférieur/supérieur) et sélectionne la zone. 
+Modifier un tarif existant. 
+Supprimer un tarif si nécessaire. 
+Rechercher des tarifs par plage de poids ou zone. 
+ Rôle des acteurs 
+
+Acteur 
+Responsabilités principales 
+Administrateur 
+- Définit la politique tarifaire 
+ 
+- Gère les tranches de poids et les zones 
+Utilisateur standard 
+- Consulte les tarifs selon ses droits d'accès 
+
+ Flux fonctionnel simplifié 
+L’utilisateur accède au menu TARIF 
+Il clique sur Ajouter, renseigne les champs requis 
+Il enregistre le nouveau tarif 
+Il peut rechercher, modifier ou supprimer des tarifs existants 
+ Bénéfices du scénario 
+Flexibilité de gestion des prix 
+Adaptation rapide aux changements de politique tarifaire 
+Précision dans la facturation automatique 
+Transparence des tranches tarifaires 
+ 
+3. Module “Types de Client” 
+A.  Objectif du module 
+Ce module permet de définir des catégories de clients afin de personnaliser la gestion ou les tarifs selon leur type (abonné, occasionnel, etc.). 
+Il permet : 
+• D’ajouter des types de clients avec un libellé spécifique. 
+Note : le module est actuellement limité à l’ajout uniquement présentement. 
+B.  Déroulement général du scénario d’utilisation 
+1. Accès au menu Types Client 
+L’utilisateur accède au menu Types Client 
+Un formulaire permet d’ajouter un nouveau type 
+Actions possibles : 
+Ajouter un type de client : l’utilisateur entre un libellé (ex. : Client occasionnel)    - Le code client est généré automatiquement 
+Fonctionnalités absentes : 
+Affichage de la liste des types existants 
+Modification ou suppression non disponibles 
+
+
+
+
+ Rôle des acteurs 
+
+Acteur
+Responsabilités principales
+Administrateur
+-Ajoute les types de client
+
+Flux fonctionnel simplifié 
+
+L’utilisateur accède au menu Types Client 
+Il clique sur Ajouter, entre le libellé 
+Il valide et enregistre le type 
+ Bénéfices (potentiels) 
+Préparer une segmentation client efficace 
+Adapter les tarifs ou services à chaque type 
+Structurer le référentiel clients 
+ 
+4. Module “Utilisateur et Groupe” 
+Objectif du module 
+Le module Utilisateur et Groupe a pour but d’assurer la sécurité et la gestion des accès au système. 
+Il permet de : 
+Créer et gérer les utilisateurs, 
+Regrouper ces utilisateurs en groupes selon leurs rôles ou fonctions, 
+Attribuer à chaque groupe des droits spécifiques sur les différents menus et actions de l’application. 
+Ainsi, le contrôle des accès ne se fait pas directement au niveau de chaque utilisateur, mais par héritage des droits de son groupe. 
+Déroulement général du scénario d’utilisation 
+1. Création des groupes 
+L’administrateur définit les groupes d’utilisateurs (par exemple : “Administrateurs”, “Caissiers”, 
+“Consultants”, “Chefs d’agence”…). 
+Chaque groupe est enregistré avec un libellé et une description. 
+Attribution des droits aux groupes 
+Une fois les groupes créés, l’administrateur accède au menu Droits. 
+Il sélectionne un groupe et définit les autorisations pour chaque menu du système : Afficher, Ajouter, Modifier, Supprimer, Valider, Imprimer. 
+Ces droits sont sauvegardés dans une table d’autorisations liée au groupe. 
+Création des utilisateurs 
+L’administrateur crée ensuite les utilisateurs : chaque utilisateur est rattaché à une agence et à un groupe. Il définit le login, le mot de passe initial, et les informations personnelles (nom, prénom, matricule). 
+L’utilisateur hérite automatiquement des droits de son groupe. 
+Connexion et utilisation 
+Lorsqu’un utilisateur se connecte, le système identifie son groupe d’appartenance. 
+Il affiche uniquement les menus et les actions auxquels ce groupe a accès. 
+Par exemple : 
+   -Un caissier peut consulter et ajouter des mouvements, mais ne peut pas supprimer. 
+   -Un administrateur peut tout faire (ajouter, modifier, supprimer, imprimer, etc.).                   5.  Gestion continue 
+Les utilisateurs peuvent être modifiés ou désactiver à tout moment. 
+Les groupes peuvent être réajustés si de nouveaux rôles apparaissent. 
+Chaque utilisateur peut changer son mot de passe après connexion.  
+  Rôle des acteurs 
+
+Acteur                                       Responsabilités principales 
+Administrateur du système     - Crée, modifie et supprime les utilisateurs 
+                                                        - Crée les groupes et définit leurs droits 
+                                                        - Gère les mots de passe initiaux 
+Utilisateur                              - Accède aux menus autorisés par son groupe 
+                                                        - Peut changer son mot de passe personnel 
+ 
+ Flux fonctionnel simplifié 
+L’administrateur ouvre le module Groupe → crée le groupe “Caissier”. 
+Il ouvre le module Droit → accorde à “Caissier” les droits “Afficher” et “Ajouter” uniquement sur le menu “Mouvement”. 
+Il crée un nouvel utilisateur “campost” dans le module Utilisateur, en le rattachant au groupe “Caissier”. 
+Lors de la connexion de campost : 
+Le système identifie qu’il appartient au groupe “Caissier”. 
+Les menus visibles et actions autorisées sont filtrés selon les droits du groupe. 
+ 
+ Bénéfices du scénario 
+Centralisation de la gestion des accès via les groupes. 
+Sécurité accrue : seuls les droits attribués sont exécutables. 
+Souplesse d’administration : modifier un droit de groupe met à jour tous les utilisateurs du groupe. 
+Traçabilité : chaque action d’utilisateur est liée à un groupe et un niveau d’autorisation. 
+5. Module “Changement de mot de passe” 
+Objectif du module 
+Permet à un utilisateur de modifier son mot de passe personnel après authentification. 
+Déroulement général du scénario d’utilisation 
+L'utilisateur accède au menu Changer mot de passeIl saisit : 
+Son ancien mot de passe 
+Le nouveau mot de passe 
+Confirmation du nouveau mot de passe 
+Le système valide la cohérence et applique le changement 
+ Rôle des acteurs 
+
+Acteur 
+Responsabilités principales 
+Utilisateur 
+- Gère la mise à jour de son mot de passe
+
+ Bénéfices du scénario 
+
+Sécurité renforcée via mot de passe personnel 
+Confidentialité assurée 
+Responsabilisation de l'utilisateur 
+6. Module “Journal” 
+Objectif du module 
+Ce module vise à enregistrer toutes les actions effectuées par les utilisateurs dans le système à des fins de traçabilité, de sécurité ou d’audit. 
+Statut actuel : non implémenté. 
+Déroulement général du scénario d’utilisation 
+L’utilisateur clique sur le menu JOURNAL 
+Aucun affichage ne se produit à ce jour 
+ Rôle des acteurs 
+
+Acteur 
+Responsabilités principales 
+Administrateur 
+- Audit et consultation des actions utilisateurs
+
+ Bénéfices attendus 
+
+Suivi détaillé des activités 
+Analyse des incidents ou anomalies 
+Transparence et sécurité accrue 
+7. Schema explicatif 
+Voici un schéma  sous forme d'arborescence décrivant la compréhension du scénario d’utilisation du référentiel :  
+Référentiel - Scénario d’utilisation 
+| 
+|-- Acteur principal : Utilisateur connecté (Admin / Gestionnaire) 
+|-- Précondition : Utilisateur authentifié avec droits suffisants 
+| 
+|-- Module 1 : Gestion des Agences EMS 
+|     |-- Menu AGENCE 
+|          |-- Sous-menu Agence EMS 
+|          |     |-- Tableau agences (Code, Nom, Téléphone, Fax, BP, Adresse, Destinations) 
+|          |     |-- Actions : Ajouter / Modifier / Désactiver agence 
+|          | 
+|          |-- Sous-menu Postes agences 
+|                |-- Tableau postes (Nom agence, Numéro, Date dernière connexion) 
+|                |-- Actions : Rechercher poste / Désactiver poste 
+| 
+|-- Module 2 : Gestion TARIF 
+|     |-- Menu TARIF 
+|          |-- Tableau tarifs (Poids inférieur, poids supérieur, zone tarifaire) |          |-- Actions : Ajouter / Modifier / Supprimer / Rechercher tarif 
+| 
+|-- Module 3 : TYPES CLIENT 
+|     |-- Menu Types Client 
+|          |-- Fonctionnalité : Ajouter type client (libellé, code auto-généré) |          |-- Attention : Modifier et afficher non disponibles 
+| 
+|-- Module 4 : Utilisateur et Groupe 
+|     |-- Sous-menu Utilisateur 
+|     |     |-- Tableau utilisateurs (Matricule, Nom, Agence, Groupe, Login, MdP) 
+|     |     |-- Actions : Ajouter / Modifier / Supprimer utilisateur 
+|     |     |-- Remarque : utilisateur peut changer son MdP après création 
+|     | 
+|     |-- Sous-menu Groupe 
+|     |     |-- Tableau groupes (Code, Libellé, Description) 
+|     |     |-- Actions : Ajouter / Modifier / Supprimer / Rechercher groupe 
+|     | 
+|     |-- Sous-menu Droit 
+|           |-- Sélection d’un groupe 
+|           |-- Association menu(s) 
+|           |-- Attribution des rôles (Afficher, Ajouter, Modifier, Supprimer, Valider, Imprimer) 
+| 
+|-- Module 5 : Changement de mot de passe 
+|     |-- Menu Changer mot de passe 
+|     |-- Actions : Saisie ancien, nouveau mot de passe + confirmation 
+| 
+|-- Module 6 : Journal 
+|     |-- Menu JOURNAL 
+|     |-- Statut : Non implémenté 
+| 
+8.  Résumé des cas d'utilisation 
+ 
+Ajouter / Modifier / Supprimer agence 
+Gérer postes agence 
+Gérer tarifs poids et zone 
+Ajouter type client 
+Gérer utilisateurs 
+Gérer groupes utilisateurs 
+Gérer droits accès par menu 
+Rechercher données 
+9. Proposition de Diagramme de cas d’utilisation 
+ 
+
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Explication du diagramme 
+Acteurs 
+Gestionnaire ou Utilisateur : C'est l'acteur de base. Tout employé utilisant l'application est un Utilisateur. Il peut effectuer les actions fondamentales : 
+Se connecter au système. 
+Changer son propre mot de passe pour des raisons de sécurité. 
+ 
+Administrateur : C'est un Utilisateur avec des privilèges étendus (il hérite des droits de l'Utilisateur). Cet acteur, est responsable de la configuration et de la maintenance du référentiel. Il a accès à tous les modules de gestion. 
+Cas d'utilisation (Fonctionnalités) 
+Les fonctionnalités sont regroupées en trois grands modules logiques : 
+ 
+Gestion des Accès & Sécurité : 
+ 
+Gérer les utilisateurs (Personnel) : Créer, modifier, supprimer et consulter les comptes des employés. 
+Gérer les groupes (Rôles) : Définir les rôles comme "Caissier", "Administrateur", etc. 
+Attribuer les droits : Lier les groupes aux menus et définir les permissions (lecture, écriture, etc.). Consulter le journal : Suivre les actions importantes réalisées dans le système. 
+ 
+Gestion du Référentiel Géographique & Opérationnel : 
+ 
+Gérer les agences : Administrer les informations des différentes agences EMS. 
+Gérer les postes de travail : Enregistrer et suivre les postes informatiques de chaque agence. Gérer les régions et destinations (Département du Cameroun) : Maintenir la liste des zones géographiques desservies. 
+ 
+Gestion du Référentiel Commercial : 
+ 
+Gérer les clients : Gérer la base de données clients, leurs informations et leurs contrats. 
+Gérer les types de client : Catégoriser les clients pour appliquer des règles spécifiques. 
+Gérer les tarifs : Définir et mettre à jour la grille tarifaire en fonction du poids et des zones.

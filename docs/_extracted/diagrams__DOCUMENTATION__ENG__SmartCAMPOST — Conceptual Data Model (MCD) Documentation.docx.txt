@@ -1,0 +1,356 @@
+SmartCAMPOST Conceptual Data Model (MCD) Documentation
+1. Introduction
+The SmartCAMPOST system digitalizes parcel operations at CAMPOST: creation, pickup, routing, tracking, delivery, notifications, and payments. This document describes the conceptual data model (MCD) with entities, attributes (and indicative data types), and relationships.
+2. Entities, Attributes & Data Types
+2.1 CLIENT
+Attribute
+Type
+Notes
+ClientId
+UUID (PK)
+Unique identifier
+FullName
+VARCHAR(150)
+
+Phone
+VARCHAR(30)
+Used for SMS
+Email
+VARCHAR(100), NULL
+Optional
+PreferredLanguage
+VARCHAR(10), NULL
+e.g., FR, EN
+CreatedAt
+DATETIME
+Account creation timestamp
+Represents a postal customer (sender/receiver).
+
+2.2 ADDRESS
+Sender/recipient locations.
+Attribute
+Type
+Notes
+AddressId
+UUID (PK)
+
+Label
+VARCHAR(255)
+Free text line
+City
+VARCHAR(100)
+
+Region
+VARCHAR(100)
+
+Country
+VARCHAR(100)
+
+Latitude
+DECIMAL(9,6), NULL
+Optional GPS
+Longitude
+DECIMAL(9,6), NULL
+Optional GPS
+2.3 AGENCY
+CAMPOST branches/hubs.
+Attribute
+Type
+Notes
+AgencyId
+UUID (PK)
+
+AgencyName
+VARCHAR(150)
+
+AgencyCode
+VARCHAR(50) UNIQUE
+Internal code
+City
+VARCHAR(100)
+
+Region
+VARCHAR(100)
+
+2.4 AGENT
+Postal staff handling scans and operations.
+Attribute
+Type
+Notes
+AgentId
+UUID (PK)
+
+FullName
+VARCHAR(150)
+
+StaffNumber
+VARCHAR(50) UNIQUE
+Employee code
+Phone
+VARCHAR(30)
+
+Status
+ENUM('Active','Inactive','Suspended')
+
+CreatedAt
+DATETIME
+
+2.5 PARCEL
+Attribute
+Type
+Notes
+ParcelId
+UUID (PK)
+
+TrackingRef
+VARCHAR(80) UNIQUE
+Human-readable
+Weight
+DECIMAL(10,3)
+Kg
+Dimensions
+VARCHAR(50), NULL
+e.g., “40×30×20 cm”
+DeclaredValue
+DECIMAL(12,2), NULL
+Insurance value
+IsFragile
+BOOLEAN
+
+ServiceType
+ENUM('Standard','Express', …)
+
+DeliveryOption
+ENUM('Agency','Home')
+
+Status
+ENUM('Created','Accepted','PickedUp',
+'AtOrigin','InTransit','ArrivedHub','DepartedHub',
+'ArrivedDestination','OutForDelivery','Delivered','Returned')
+
+CreatedAt
+DATETIME
+
+
+
+
+The package being shipped.
+
+2.6 PICKUP_REQUEST
+Client request to collect a parcel at home.
+Attribute
+Type
+Notes
+PickupId
+UUID (PK)
+
+RequestedDate
+DATE
+
+TimeWindow
+VARCHAR(30)
+e.g., “08:00–12:00”
+State
+ENUM('Requested','Assigned','Completed','Cancelled')
+
+Comment
+TEXT, NULL
+
+2.7 SCAN_EVENT
+Every scan/checkpoint in the journey.
+Attribute
+Type
+Notes
+ScanId
+UUID (PK)
+
+EventType
+ENUM('CREATED','AT_ORIGIN_FACILITY',
+'IN_TRANSIT','ARRIVED_HUB','DEPARTED_HUB',
+'ARRIVED_DESTINATION',
+'OUT_FOR_DELIVERY','DELIVERED','RETURNED')
+
+Timestamp
+DATETIME
+
+LocationNote
+VARCHAR(255), NULL
+Free text or GPS blob
+2.8 DELIVERY_PROOF
+Proof of delivery (POD).
+Attribute
+Type
+Notes
+PodId
+UUID (PK)
+
+ProofType
+ENUM('Signature','Photo','OTP')
+
+Timestamp
+DATETIME
+
+Details
+TEXT, NULL
+e.g., image URL, signer name
+
+
+
+
+2.9 PAYMENT
+Transactions for shipping, surcharges, COD.
+Attribute
+Type
+Notes
+PaymentId
+UUID (PK)
+
+Amount
+DECIMAL(12,2)
+
+Currency
+VARCHAR(10) DEFAULT 'XAF'
+
+Method
+ENUM('Digital','Cash')
+
+Status
+ENUM('INIT','PAID','FAILED')
+
+Timestamp
+DATETIME
+
+ExternalRef
+VARCHAR(100), NULL
+From MoMo/OM/CAMPOST Money
+2.10 INVOICE
+Billing documents linked to payments.
+Attribute
+Type
+Notes
+InvoiceId
+UUID (PK)
+
+InvoiceNumber
+VARCHAR(50) UNIQUE
+
+TotalAmount
+DECIMAL(12,2)
+
+PdfLink
+VARCHAR(255), NULL
+
+IssuedAt
+DATETIME
+
+2.11 NOTIFICATION
+Messages sent to clients about parcel status.
+Attribute
+Type
+Notes
+NotifId
+UUID (PK)
+
+Channel
+ENUM('SMS','PUSH')
+
+Message
+TEXT
+
+Timestamp
+DATETIME
+
+Status
+ENUM('SENT','FAILED')
+
+2.12 TARIFF
+Reference pricing by service/zones/weight.
+Attribute
+Type
+Notes
+TariffId
+UUID (PK)
+
+ServiceType
+VARCHAR(30)
+
+OriginZone
+VARCHAR(50)
+
+DestinationZone
+VARCHAR(50)
+
+WeightBracket
+VARCHAR(30)
+
+Price
+DECIMAL(10,2)
+
+2.13 PRICING_DETAIL
+Immutable record of the exact tariff applied to a parcel at a time.
+Attribute
+Type
+Notes
+PricingDetailId
+UUID (PK)
+
+AppliedPrice
+DECIMAL(12,2)
+Snapshot price
+AppliedAt
+DATETIME
+When tariff was applied
+
+3. Relationships & Cardinalities
+Relationship
+Cardinality
+Meaning
+CLIENT → PARCEL
+1 → 0..*
+One client can send many parcels.
+CLIENT → ADDRESS
+1 → 0..*
+One client can store multiple addresses.
+PARCEL → ADDRESS (SenderAddress)
+1 → 1
+Each parcel has exactly one sender address.
+PARCEL → ADDRESS (RecipientAddress)
+1 → 1
+Each parcel has exactly one recipient address.
+PARCEL → PICKUP_REQUEST
+1 → 0..1
+A parcel may have at most one pickup request.
+PARCEL → SCAN_EVENT
+1 → 0..*
+A parcel generates multiple scan events.
+SCAN_EVENT → AGENCY
+0..1 → 0..*
+Each scan may occur at one agency/hub.
+SCAN_EVENT → AGENT
+0..1 → 0..*
+Each scan is performed by one agent.
+PARCEL → DELIVERY_PROOF
+1 → 0..1
+A parcel may have one final proof of delivery.
+PARCEL → PAYMENT
+1 → 0..*
+A parcel can have several payments.
+PAYMENT → INVOICE
+1 → 0..1
+A payment may issue one invoice.
+PARCEL → NOTIFICATION
+1 → 0..*
+A parcel triggers many notifications.
+CLIENT → NOTIFICATION
+1 → 0..*
+A client receives many notifications.
+TARIFF → PRICING_DETAIL
+1 → 0..*
+One tariff can be applied many times.
+PARCEL → PRICING_DETAIL
+1 → 0..*
+A parcel can have one or more applied tariff records.
+Notes
+Two distinct 1:1 relations from PARCEL to ADDRESS must be labeled with roles: SenderAddress and RecipientAddress.
+If you require multiple proofs (e.g., photo + signature), change PARCEL → DELIVERY_PROOF to 1 → 0..* and keep ProofType as the discriminator.
+PRICING_DETAIL plays the associative (and auditable) role between PARCEL and TARIFF.

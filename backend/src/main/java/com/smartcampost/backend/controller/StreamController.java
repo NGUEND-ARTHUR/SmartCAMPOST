@@ -21,4 +21,10 @@ public class StreamController {
     public SseEmitter streamScans() {
         return sseEmitters.createEmitter();
     }
+
+    @GetMapping(value = "/ai", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN')")
+    public SseEmitter streamAi() {
+        return sseEmitters.createEmitter();
+    }
 }

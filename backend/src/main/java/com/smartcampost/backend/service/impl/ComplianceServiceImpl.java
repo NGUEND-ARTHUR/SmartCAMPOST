@@ -103,41 +103,27 @@ public class ComplianceServiceImpl implements ComplianceService {
         Instant fromInstant = from.atStartOfDay().toInstant(ZoneOffset.UTC);
         Instant toInstant = to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
 
-        List<RiskAlert> all = riskAlertRepository.findAll();
+        // ✅ FIX: single-pass over date-filtered alerts instead of 5 separate streams over findAll()
+        List<RiskAlert> all = riskAlertRepository.findByCreatedAtBetween(fromInstant, toInstant);
 
-        long total = all.stream()
-                .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
-                .count();
+        long total      = all.size();
+        long unresolved = 0, highCritical = 0, amlCount = 0;
+        Map<String, Long> byType = new java.util.LinkedHashMap<>();
 
-        long unresolved = all.stream()
-                .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
-                .filter(a -> !a.isResolved())
-                .count();
-
-        long highCritical = all.stream()
-                .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
-                .filter(a -> a.getSeverity() == RiskSeverity.HIGH
-                        || a.getSeverity() == RiskSeverity.CRITICAL)
-                .count();
-
-        long amlCount = all.stream()
-                .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
-                .filter(a -> a.getAlertType() != null
-                        && a.getAlertType().name().toUpperCase().contains("AML"))
-                .count();
+        for (RiskAlert a : all) {
+            if (!a.isResolved()) unresolved++;
+            if (a.getSeverity() == RiskSeverity.HIGH || a.getSeverity() == RiskSeverity.CRITICAL) highCritical++;
+            if (a.getAlertType() != null && a.getAlertType().name().toUpperCase().contains("AML")) amlCount++;
+            if (a.getAlertType() != null) {
+                byType.merge(a.getAlertType().name(), 1L, Long::sum);
+            }
+        }
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalAlerts", total);
         stats.put("unresolvedAlerts", unresolved);
         stats.put("highOrCriticalAlerts", highCritical);
         stats.put("amlAlerts", amlCount);
-
-        Map<String, Long> byType = all.stream()
-                .filter(a -> isBetween(a.getCreatedAt(), fromInstant, toInstant))
-                .collect(Collectors.groupingBy(
-                        a -> a.getAlertType().name(),
-                        Collectors.counting()
-                ));
         stats.put("byType", byType);
 
         // Use the existing error codes in the report context

@@ -10,6 +10,11 @@ import com.smartcampost.backend.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -40,8 +45,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAccountResponse> listAllUsers() {
-        return userAccountRepository.findAll().stream()
+        // ✅ FIX: Added pagination to prevent memory OOM on large user tables
+        return userAccountRepository.findAll(PageRequest.of(0, 500))
+                .stream()
                 .map(this::toResponse)
                 .toList();
     }

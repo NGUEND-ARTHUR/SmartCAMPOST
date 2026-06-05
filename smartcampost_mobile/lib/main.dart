@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:smartcampost_mobile/core/constants.dart';
@@ -60,9 +59,6 @@ import 'package:smartcampost_mobile/screens/shared/placeholder_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Prevent google_fonts from fetching fonts at runtime (causes gray box on slow networks)
-  GoogleFonts.config.allowRuntimeFetching = false;
 
   final localeProvider = LocaleProvider();
   await localeProvider.init();

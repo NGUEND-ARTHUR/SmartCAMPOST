@@ -10,12 +10,14 @@ import {
   Scan,
   Camera,
   Keyboard,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
 import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
 import { useAuthStore } from "@/store/authStore";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 interface ScanEvent {
   id: string;
@@ -113,7 +115,7 @@ export default function ScanConsole() {
       return () => window.clearTimeout(id);
     }
   }, [statusOptions, selectedStatus]);
-  const [scanHistory, setScanHistory] = useState<ScanEvent[]>([]);
+  const [scanHistory, setScanHistory] = useLocalStorage<ScanEvent[]>("scanHistory", []);
   const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -138,8 +140,8 @@ export default function ScanConsole() {
     inputRef.current?.focus();
   }, []);
 
-  const handleScan = async () => {
-    if (!barcode.trim()) {
+  const handleScan = async (scannedCode: string) => {
+    if (!scannedCode.trim()) {
       toast.error(t("scan.error.enterTrackingNumber"));
       return;
     }
@@ -152,112 +154,21 @@ export default function ScanConsole() {
       return;
     }
 
-    recordScan.mutate(
-      {
-        parcelId: barcode,
-        eventType: selectedStatus,
-        locationNote: location,
-        latitude: gps.latitude,
-        longitude: gps.longitude,
-        locationSource: "DEVICE_GPS",
-        deviceTimestamp: new Date().toISOString(),
-      },
-      {
-        onSuccess: () => {
-          const newScan: ScanEvent = {
-            id: Date.now().toString(),
-            trackingNumber: barcode,
-            timestamp: new Date().toISOString(),
-            status: selectedStatus,
-            success: true,
-          };
-          setScanHistory([newScan, ...scanHistory]);
-          toast.success(t("scan.success.scanned", { barcode }), {
-            description: t("scan.success.eventType", {
-              status: selectedStatus,
-            }),
-          });
-          setBarcode("");
-          inputRef.current?.focus();
-        },
-        onError: (error) => {
-          const newScan: ScanEvent = {
-            id: Date.now().toString(),
-            trackingNumber: barcode,
-            timestamp: new Date().toISOString(),
-            status: selectedStatus,
-            success: false,
-          };
-          setScanHistory([newScan, ...scanHistory]);
-          toast.error(t("scan.error.failed"), {
-            description:
-              error instanceof Error ? error.message : t("scan.error.unknown"),
-          });
-        },
-      },
-    );
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      void handleScan();
-    }
-  };
-
-  const clearHistory = () => {
-    setScanHistory([]);
-    toast.info(t("scan.info.historyCleared"));
-  };
-
-  // Handle QR code scan from camera
-  const handleQRScan = (result: {
-    success: boolean;
-    data?: { trackingRef: string; parcelId?: string };
-    rawText?: string;
-  }) => {
-    if (!result.success || !result.data) return;
-
-    const trackingRef = result.data.trackingRef;
-    setBarcode(trackingRef);
-
-    // Auto-submit the scan (GPS required)
-    void (async () => {
-      let gps: { latitude: number; longitude: number };
-      try {
-        gps = await getGpsOrThrow();
-      } catch {
-        toast.error(t("scan.error.gpsRequired"));
-        return;
+    try {
+      // Step 1: Verify QR Code
+      const verificationResult = await verifyQrCodeContent(scannedCode);
+      if (!verificationResult.valid) {
+        throw new Error(verificationResult.error || t("scan.error.invalidQr"));
+      }
+      const { parcelId } = verificationResult;
+      if (!parcelId) {
+        throw new Error(t("scan.error.noParcelId"));
       }
 
-      // If this is a secure FINAL QR payload, verify with backend first.
-      // We must obtain parcelId (UUID) from the verification response.
-      let parcelIdForScan = result.data?.parcelId;
-      const raw = result.rawText || "";
-      if (raw.startsWith("V1|")) {
-        try {
-          const verification = await verifyQrCodeContent(raw);
-          if (!verification.valid || !verification.parcelId) {
-            toast.error(t("scan.error.qrVerificationFailed"), {
-              description: verification.message,
-            });
-            return;
-          }
-          parcelIdForScan = verification.parcelId;
-        } catch (e) {
-          toast.error(t("scan.error.qrVerificationFailed"));
-          return;
-        }
-      }
-
-      if (!parcelIdForScan) {
-        toast.error(t("scan.error.missingParcelId"));
-        return;
-      }
-
+      // Step 2: Record the scan event
       recordScan.mutate(
         {
-          parcelId: parcelIdForScan,
+          parcelId: parcelId,
           eventType: selectedStatus,
           locationNote: location,
           latitude: gps.latitude,
@@ -269,23 +180,24 @@ export default function ScanConsole() {
           onSuccess: () => {
             const newScan: ScanEvent = {
               id: Date.now().toString(),
-              trackingNumber: trackingRef,
+              trackingNumber: parcelId,
               timestamp: new Date().toISOString(),
               status: selectedStatus,
               success: true,
             };
             setScanHistory([newScan, ...scanHistory]);
-            toast.success(t("scan.success.qrScanned", { trackingRef }), {
+            toast.success(t("scan.success.scanned", { barcode: parcelId }), {
               description: t("scan.success.eventType", {
                 status: selectedStatus,
               }),
             });
             setBarcode("");
+            inputRef.current?.focus();
           },
           onError: (error) => {
             const newScan: ScanEvent = {
               id: Date.now().toString(),
-              trackingNumber: trackingRef,
+              trackingNumber: parcelId,
               timestamp: new Date().toISOString(),
               status: selectedStatus,
               success: false,
@@ -300,7 +212,31 @@ export default function ScanConsole() {
           },
         },
       );
-    })();
+    } catch (error) {
+      const newScan: ScanEvent = {
+        id: Date.now().toString(),
+        trackingNumber: scannedCode,
+        timestamp: new Date().toISOString(),
+        status: selectedStatus,
+        success: false,
+      };
+      setScanHistory([newScan, ...scanHistory]);
+      toast.error(t("scan.error.verificationFailed"), {
+        description:
+          error instanceof Error ? error.message : t("scan.error.unknown"),
+      });
+    }
+  };
+
+  const handleManualSubmit = () => {
+    handleScan(barcode);
+  };
+
+  const handleCameraScan = (result: string | null) => {
+    if (result) {
+      setBarcode(result);
+      handleScan(result);
+    }
   };
 
   return (
@@ -346,24 +282,21 @@ export default function ScanConsole() {
               {scanMode === "camera" ? (
                 /* Camera QR Scanner */
                 <div className="space-y-4">
-                  <QRCodeScanner
-                    onScan={handleQRScan}
-                    autoStart={true}
-                    continuous={true}
-                    scanDelay={3000}
-                    showHistory={false}
-                  />
+                  <div className="w-full max-w-md h-80 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
+                    <QRCodeScanner onScan={handleCameraScan} />
+                  </div>
 
                   {/* Status Selection for Camera Mode */}
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {t("scan.status.label")}
+                    <label htmlFor="scan-status" className="block text-sm font-medium text-foreground mb-2">
+                      {t("scan.status.label", { defaultValue: "Scan type" })}
                     </label>
                     <select
+                      id="scan-status"
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                       className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
-                      title={t("scan.status.selectTitle")}
+                      title={t("scan.status.selectTitle", { defaultValue: "Scan type" })}
                     >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -410,7 +343,11 @@ export default function ScanConsole() {
                         type="text"
                         value={barcode}
                         onChange={(e) => setBarcode(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === "Enter") {
+                            handleManualSubmit();
+                          }
+                        }}
                         placeholder={t("scan.trackingNumber.placeholder")}
                         className="w-full border-2 border-input bg-background text-foreground rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
@@ -419,15 +356,16 @@ export default function ScanConsole() {
 
                     {/* Status Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t("scan.status.label")}
+                      <label htmlFor="scan-status" className="block text-sm font-medium text-foreground mb-2">
+                        {t("scan.status.label", { defaultValue: "Scan type" })}
                       </label>
                       <select
+                        id="scan-status"
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
                         className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:ring-2 focus:ring-ring focus:border-transparent"
                         disabled={recordScan.isPending}
-                        title={t("scan.status.selectTitle")}
+                        title={t("scan.status.selectTitle", { defaultValue: "Scan type" })}
                       >
                         {statusOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -455,7 +393,7 @@ export default function ScanConsole() {
 
                     {/* Scan Button */}
                     <button
-                      onClick={() => void handleScan()}
+                      onClick={handleManualSubmit}
                       disabled={recordScan.isPending || !barcode.trim()}
                       className="w-full bg-primary text-primary-foreground py-4 rounded-lg hover:bg-primary/90 transition-colors font-semibold text-lg disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed flex items-center justify-center"
                     >

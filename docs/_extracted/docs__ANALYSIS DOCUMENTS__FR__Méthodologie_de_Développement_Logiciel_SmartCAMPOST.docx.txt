@@ -1,0 +1,40 @@
+Université ICT – Yaoundé, Cameroun
+Licence en Génie LogicielSection : Méthodologie de Développement LogicielAuteur : Nguend Arthur Johann
+Méthodologie de Développement Logiciel – Projet : Design and Implementation of SmartCAMPOST: An Intelligent Parcel Tracking, Collection, and Delivery System Using QR Code, GPS, and AI
+Pour le développement du système SmartCAMPOST, j’utilise une méthodologie hybride combinant Merise pour la phase d’analyse et de conception, et la méthodologie Agile pour la phase de développement. Cette approche me permet d’organiser le projet efficacement, de maintenir une grande flexibilité et de livrer un système de haute qualité, même en travaillant seul.
+Définition et Vue d’Ensemble Générale
+Une méthodologie de développement logiciel est un processus structuré qui guide les développeurs dans la planification, la conception, le développement, les tests et le déploiement des systèmes logiciels de manière efficace et systématique. Elle définit les étapes, les outils, les livrables et les interactions tout au long du cycle de vie du projet. Les principaux objectifs d’une méthodologie sont d’assurer l’organisation, d’améliorer la qualité, de faciliter le contrôle et de garantir que le produit final répond aux besoins des utilisateurs. En termes simples, une méthodologie répond à la question : « Comment développer ce logiciel du début à la fin — étape par étape ? »
+2. Phase d’Analyse et de Conception (Merise + UML)
+Avant de commencer le développement, je réalise une analyse et une conception détaillées du système en utilisant la méthode Merise, tout en intégrant des diagrammes UML pour une représentation plus complète et moderne. Cette phase permet de définir les structures de données, les processus et les exigences du système pour le projet SmartCAMPOST.
+Durant cette phase, je crée :- Le Modèle Conceptuel de Données (MCD) pour identifier les entités et leurs relations ;- Le Modèle Logique de Données (MLD) pour structurer les données logiquement ;- Un Plan Technique Détaillé (PTD) pour décrire l’architecture de la base de données et du système ;- Des diagrammes UML, notamment :  • Diagramme de cas d’utilisation (Use Case Diagram)  • Diagramme de classes (Class Diagram)  • Diagramme de séquence (Sequence Diagram)  • Diagramme d’activité (Activity Diagram)
+3. Phase de Développement Agile
+Pour la phase d’implémentation, j’applique la méthodologie Agile, inspirée des principes Scrum. Agile met l’accent sur l’itération, l’amélioration continue et l’adaptabilité, des qualités particulièrement utiles pour un projet développé en solo. Les principales étapes du cycle Agile sont :
+- Product Backlog : liste des fonctionnalités à implémenter classées par priorité.- Sprint Planning : planification des fonctionnalités à développer pendant chaque sprint.- Sprint Execution : développement et tests internes.- Sprint Review : évaluation et démonstration des fonctionnalités réalisées.- Sprint Retrospective : identification des améliorations à appliquer au sprint suivant.
+Exemple de Sprints pour le Projet SmartCAMPOST
+
+Sprint
+Durée
+Objectif
+Livrable
+Sprint 1
+1 semaine
+Mise en place de la base de données + système de connexion
+Module d’authentification fonctionnel
+Sprint 2
+1 semaine
+Interface de suivi des colis
+Module de recherche et affichage de colis
+Sprint 3
+1 semaine
+Gestion des transactions et paiements
+Système de transaction et de rapport fonctionnel
+Sprint 4
+1 semaine
+Tests + documentation
+Système entièrement testé et documenté
+
+Ce processus Agile permet de livrer des composants fonctionnels de manière itérative tout en conservant la flexibilité nécessaire pour ajuster ou corriger les problèmes à n’importe quelle étape.
+4. Avantages de l’Utilisation Combinée de Merise, UML et Agile
+En combinant Merise pour l’analyse, UML pour la modélisation et Agile pour le développement, je peux :- Établir une conception claire et structurée avant le codage ;- Travailler de manière itérative et flexible ;- Adapter facilement le projet aux changements ;- Suivre efficacement la progression à travers des cycles courts (sprints) ;- Produire une documentation technique complète et professionnelle. Cette approche hybride assure à la fois organisation, modularité et innovation.
+5. Conclusion
+L’utilisation conjointe de Merise, UML et Agile fournit une approche équilibrée et efficace pour le projet SmartCAMPOST. Cette méthodologie garantit que le système est bien conçu, adaptable et livré progressivement tout en respectant les exigences fonctionnelles et académiques. Elle est parfaitement adaptée à un environnement de développement individuel, où la structure et la flexibilité sont essentielles.
