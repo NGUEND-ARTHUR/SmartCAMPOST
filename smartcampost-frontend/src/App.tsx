@@ -8,6 +8,8 @@ const MapViewer = lazy(() => import("./pages/maps/MapViewer"));
 const PickupMap = lazy(() => import("./pages/maps/PickupMap"));
 const TrackingMap = lazy(() => import("./pages/maps/TrackingMap"));
 const RoleMapDashboard = lazy(() => import("./pages/maps/RoleMapDashboard"));
+// Lazy-load TrackingPage to avoid loading html5-qrcode WASM on every page
+const TrackingPage = lazy(() => import("./pages/common/TrackingPage"));
 
 import {
   BrowserRouter as Router,
@@ -18,7 +20,6 @@ import {
 
 // Common pages
 import { Landing } from "./pages/common";
-import TrackingPage from "./pages/common/TrackingPage";
 
 // Auth pages
 import { Login, LoginOtp, ResetPassword, Register } from "./pages/auth";

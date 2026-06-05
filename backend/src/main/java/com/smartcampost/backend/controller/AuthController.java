@@ -1,7 +1,9 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.auth.*;
+import com.smartcampost.backend.security.TokenBlacklistService;
 import com.smartcampost.backend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,17 @@ public class AuthController {
     private boolean exposeOtpCodeInResponse;
 
     private final AuthService authService;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    // =================== LOGOUT ===================
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            tokenBlacklistService.blacklist(header.substring(7));
+        }
+        return ResponseEntity.ok().build();
+    }
 
     // =================== REGISTER ===================
     @PostMapping("/register")

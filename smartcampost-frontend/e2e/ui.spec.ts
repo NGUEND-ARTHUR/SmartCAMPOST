@@ -30,7 +30,7 @@ test.describe('UI — Public landing page', () => {
   test('Register page loads', async ({ page }) => {
     await page.goto('/auth/register');
     await expect(page).toHaveURL(/\/auth\/register/);
-    await expect(page.locator('body')).toBeVisible();
+    await expect(page.locator('input').first()).toBeVisible({ timeout: 10_000 });
   });
 });
 

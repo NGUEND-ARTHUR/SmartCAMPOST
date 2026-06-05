@@ -135,10 +135,14 @@ test.describe('Registration — Validation Errors', () => {
   test('Duplicate phone shows PHONE_ALREADY_EXISTS error', async ({ page }) => {
     let capturedOtp = '';
     await page.route('**/api/auth/send-otp', async (route) => {
-      const response = await route.fetch();
-      const body = await response.json().catch(() => ({})) as { otp?: string };
-      capturedOtp = body.otp ?? '';
-      await route.fulfill({ response });
+      try {
+        const response = await route.fetch();
+        const body = await response.json().catch(() => ({})) as { otp?: string };
+        capturedOtp = body.otp ?? '';
+        await route.fulfill({ response });
+      } catch {
+        await route.continue().catch(() => {});
+      }
     });
 
     await page.goto('/auth/register');

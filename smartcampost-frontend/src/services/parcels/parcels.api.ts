@@ -28,6 +28,13 @@ export interface ParcelResponse {
   recipientCity?: string;
   recipientRegion?: string;
   recipientCountry?: string;
+  // Recipient GPS coordinates (for courier map navigation)
+  recipientLatitude?: number;
+  recipientLongitude?: number;
+  // Client info
+  clientName?: string;
+  clientPhone?: string;
+  [key: string]: unknown;
 }
 
 export interface ParcelDetailResponse {
@@ -71,6 +78,9 @@ export interface ParcelDetailResponse {
   // Pricing
   lastAppliedPrice?: number;
   pricingHistory?: PricingDetailDto[];
+  // Proof photo
+  proofUrl?: string;
+  photoUrl?: string;
 }
 
 export interface PricingDetailDto {
