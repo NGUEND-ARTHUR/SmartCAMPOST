@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   optimizeDeps: {
     // Exclude packages that cause esbuild pre-bundle resolution errors (e.g., raf/performance-now)
@@ -24,6 +24,8 @@ export default defineConfig({
     },
   },
   build: {
+    // SECURITY: Never expose source maps in production
+    sourcemap: mode === 'development',
     // Increase warning threshold and split large vendor chunks
     chunkSizeWarningLimit: 2200, // in KB
     rollupOptions: {
@@ -37,6 +39,15 @@ export default defineConfig({
             id.includes("@react-leaflet")
           ) {
             return "maps";
+          }
+
+          // Separate MapLibre GL into its own chunk (it's very large)
+          if (
+            id.includes("maplibre-gl") ||
+            id.includes("mapbox-gl") ||
+            id.includes("react-map-gl")
+          ) {
+            return "maplibre";
           }
 
           if (id.includes("recharts")) {
@@ -69,4 +80,4 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{js,ts,jsx,tsx}"],
     exclude: ["node_modules/**", "tests/e2e.spec.ts"],
   },
-} as any);
+}) as any);

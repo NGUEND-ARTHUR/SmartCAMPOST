@@ -1,6 +1,9 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.auth.*;
+import com.smartcampost.backend.model.UserAccount;
+import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.security.JwtService;
 import com.smartcampost.backend.security.TokenBlacklistService;
 import com.smartcampost.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ErrorCode;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,6 +30,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final JwtService jwtService;
+    private final UserAccountRepository userAccountRepository;
 
     // =================== LOGOUT ===================
     @PostMapping("/logout")
@@ -33,6 +41,40 @@ public class AuthController {
             tokenBlacklistService.blacklist(header.substring(7));
         }
         return ResponseEntity.ok().build();
+    }
+
+    // =================== TOKEN REFRESH ===================
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenRefreshResponse> refresh(@Valid @RequestBody TokenRefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        // Validate the refresh token signature and type
+        if (!jwtService.validateRefreshToken(refreshToken)) {
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid or expired refresh token");
+        }
+
+        // Reject blacklisted tokens (e.g. from a previous logout)
+        if (tokenBlacklistService.isBlacklisted(refreshToken)) {
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Refresh token has been revoked");
+        }
+
+        // Load user from the subject claim
+        String userId = jwtService.extractSubject(refreshToken);
+        UserAccount user = userAccountRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "User not found"));
+
+        // Issue fresh tokens (rotate refresh token for security)
+        String newAccessToken  = jwtService.generateToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        // Blacklist the old refresh token to prevent reuse (one-time use)
+        tokenBlacklistService.blacklist(refreshToken);
+
+        return ResponseEntity.ok(TokenRefreshResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .expiresIn(jwtService.getTokenValidityMs() / 1000)
+                .build());
     }
 
     // =================== REGISTER ===================
@@ -83,7 +125,12 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<VerifyOtpResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
         boolean verified = authService.verifyOtp(request.getPhone(), request.getOtp());
-        return ResponseEntity.ok(new VerifyOtpResponse(verified));
+        if (!verified) {
+            // SECURITY: Return 400 on OTP failure to allow proper client-side error handling
+            // and prevent silent brute-force attempts
+            return ResponseEntity.badRequest().body(new VerifyOtpResponse(false));
+        }
+        return ResponseEntity.ok(new VerifyOtpResponse(true));
     }
 
     // =================== PASSWORD RESET FLOW ===================

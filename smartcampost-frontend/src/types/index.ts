@@ -22,6 +22,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   user: User;
   token: string;
+  refreshToken?: string;
 }
 
 export interface AuthState {

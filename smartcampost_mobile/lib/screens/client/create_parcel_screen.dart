@@ -173,7 +173,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
 
               // Service type
               DropdownButtonFormField<String>(
-                initialValue: _serviceType,
+                value: _serviceType,
                 decoration: InputDecoration(
                   labelText: tr('service_type'),
                   prefixIcon: const Icon(Icons.local_shipping_outlined),
@@ -198,7 +198,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
 
               // Delivery option
               DropdownButtonFormField<String>(
-                initialValue: _deliveryOption,
+                value: _deliveryOption,
                 decoration: InputDecoration(
                   labelText: tr('delivery_option'),
                   prefixIcon: const Icon(Icons.delivery_dining),
@@ -219,7 +219,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
 
               // Payment option
               DropdownButtonFormField<String>(
-                initialValue: _paymentOption,
+                value: _paymentOption,
                 decoration: InputDecoration(
                   labelText: tr('payment_option'),
                   prefixIcon: const Icon(Icons.payment),
@@ -241,7 +241,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
               // Origin agency
               if (_agencies.isNotEmpty)
                 DropdownButtonFormField<String>(
-                  initialValue: _originAgencyId,
+                  value: _originAgencyId,
                   decoration: InputDecoration(
                     labelText: tr('origin_agency'),
                     prefixIcon: const Icon(Icons.store),
@@ -261,7 +261,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
               // Destination agency
               if (_agencies.isNotEmpty)
                 DropdownButtonFormField<String>(
-                  initialValue: _destinationAgencyId,
+                  value: _destinationAgencyId,
                   decoration: InputDecoration(
                     labelText: tr('destination_agency'),
                     prefixIcon: const Icon(Icons.store_mall_directory),
@@ -281,7 +281,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
               if (_myAddresses.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: _senderAddressId,
+                  value: _senderAddressId,
                   decoration: InputDecoration(
                     labelText: tr('sender_address'),
                     prefixIcon: const Icon(Icons.home),
@@ -302,7 +302,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
               if (_myAddresses.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: _recipientAddressId,
+                  value: _recipientAddressId,
                   decoration: InputDecoration(
                     labelText: tr('recipient_address'),
                     prefixIcon: const Icon(Icons.location_on),

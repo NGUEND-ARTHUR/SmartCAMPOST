@@ -62,7 +62,7 @@ class DeliveryService {
         'reason': reason,
         'latitude': latitude,
         'longitude': longitude,
-        'notes': ?notes,
+        if (notes != null) 'notes': notes,
       },
     );
   }

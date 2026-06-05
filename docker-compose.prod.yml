@@ -1,0 +1,138 @@
+# SmartCAMPOST — Production Docker Compose
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+#
+# Required environment variables (set in .env.prod or CI/CD secrets):
+#   MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD, SMARTCAMPOST_JWT_SECRET,
+#   GOOGLE_CLIENT_ID, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER,
+#   OPENAI_API_KEY, MTN_SUBSCRIPTION_KEY, ORANGE_CLIENT_ID, ORANGE_CLIENT_SECRET,
+#   CORS_ALLOWED_ORIGINS (comma-separated frontend URLs)
+
+version: "3.9"
+
+services:
+  # ═══════════════════════════════════════════════════
+  #  MySQL 8.0 — Primary Database
+  # ═══════════════════════════════════════════════════
+  db:
+    image: mysql:8.0
+    container_name: smartcampost-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: smartcampost
+      MYSQL_USER: smartcampost
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/SmartCampost.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - smartcampost-network
+
+  # ═══════════════════════════════════════════════════
+  #  Redis 7 — Token Blacklist & Rate Limiting Cache
+  # ═══════════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    container_name: smartcampost-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme_redis}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD:-changeme_redis}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartcampost-network
+
+  # ═══════════════════════════════════════════════════
+  #  Backend — Spring Boot 3.5.7 / Java 21
+  # ═══════════════════════════════════════════════════
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartcampost-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Spring profile
+      SPRING_PROFILES_ACTIVE: prod
+
+      # Database
+      DB_URL: jdbc:mysql://db:3306/smartcampost?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: smartcampost
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+
+      # JWT
+      SMARTCAMPOST_JWT_SECRET: ${SMARTCAMPOST_JWT_SECRET}
+      JWT_EXPIRATION_HOURS: 8
+      REFRESH_TOKEN_DAYS: 7
+
+      # Google OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+
+      # Twilio SMS
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+
+      # AI Services
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+
+      # Payment Gateways
+      MTN_SUBSCRIPTION_KEY: ${MTN_SUBSCRIPTION_KEY:-}
+      MTN_BASE_URL: ${MTN_BASE_URL:-https://sandbox.momodeveloper.mtn.com}
+      ORANGE_CLIENT_ID: ${ORANGE_CLIENT_ID:-}
+      ORANGE_CLIENT_SECRET: ${ORANGE_CLIENT_SECRET:-}
+
+      # CORS — comma-separated list of allowed frontend origins
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://smartcampost.vercel.app}
+
+      # Rate limiting
+      RATE_LIMIT_ENABLED: "true"
+
+      # Swagger — disable in production for security
+      SWAGGER_ENABLED: "false"
+
+      # JVM tuning
+      JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
+
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - smartcampost-network
+    labels:
+      com.smartcampost.service: "backend"
+      com.smartcampost.version: "1.0.0"
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  smartcampost-network:
+    driver: bridge
