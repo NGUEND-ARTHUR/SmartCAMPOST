@@ -45,6 +45,7 @@ type RawAuth = {
   fullName?: string;
   accessToken?: string;
   token?: string;
+  refreshToken?: string;
 };
 
 class ApiClient {
@@ -84,6 +85,7 @@ class ApiClient {
     return {
       user,
       token: auth.accessToken || auth.token || "",
+      refreshToken: auth.refreshToken,
     } as LoginResponse;
   }
 

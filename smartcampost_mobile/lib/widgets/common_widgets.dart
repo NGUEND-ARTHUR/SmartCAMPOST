@@ -285,7 +285,7 @@ class SectionTitle extends StatelessWidget {
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          ?trailing,
+          if (trailing != null) trailing!,
         ],
       ),
     );

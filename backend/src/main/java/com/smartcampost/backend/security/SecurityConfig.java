@@ -43,6 +43,7 @@ public class SecurityConfig {
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/logout",
+                            "/api/auth/refresh",
                             "/api/auth/google",
                             "/api/auth/send-otp",
                             "/api/auth/verify-otp",
@@ -59,6 +60,17 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/actuator/**")
                         .hasRole("ADMIN")
+
+                        // ===================================================
+                        //          SWAGGER / OPENAPI (dev/staging only)
+                        //  Disable in production by setting SWAGGER_ENABLED=false
+                        // ===================================================
+                        .requestMatchers(
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v3/api-docs",
+                            "/v3/api-docs/**"
+                        ).permitAll()
 
                         // ===================================================
                         //                    DASHBOARD MODULE
@@ -177,7 +189,7 @@ public class SecurityConfig {
                         .authenticated()
 
                         // --- Geolocation Routing ---
-                        .requestMatchers("/api/geolocation/**")
+                        .requestMatchers("/api/geo/**")
                         .authenticated()
 
                         // --- USSD Gateway ---
@@ -214,7 +226,10 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "http://localhost:5175",
-                "http://localhost:5176"
+                "http://localhost:5176",
+                // Production Vercel frontend
+                "https://smartcampost.vercel.app",
+                "https://smartcampost-frontend.vercel.app"
             ));
             // SECURITY: Do NOT use allowedOriginPatterns("*") - commented out for security
             // configuration.setAllowedOriginPatterns(List.of("*"));

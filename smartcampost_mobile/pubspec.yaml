@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.2+2
 
 environment:
-  sdk: ^3.11.1
+  sdk: ^3.0.0
 
 dependencies:
   flutter:
@@ -30,7 +30,7 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
   fl_chart: ^0.69.2
-  intl: ^0.20.2
+  intl: ^0.19.0
 
   # QR Code
   qr_flutter: ^4.1.0
@@ -59,10 +59,19 @@ dependencies:
   permission_handler: ^11.3.1
   pull_to_refresh_flutter3: ^2.0.2
 
+  # 🔔 Push Notifications (Firebase Cloud Messaging)
+  # SETUP: Run `flutterfire configure` and add google-services.json (Android)
+  # and GoogleService-Info.plist (iOS) before enabling these.
+  firebase_core: ^3.13.1
+  firebase_messaging: ^15.2.5
+  flutter_local_notifications: ^18.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
