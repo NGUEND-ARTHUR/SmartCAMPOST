@@ -68,9 +68,7 @@ export default function NotificationsDrawer() {
                     <li
                       key={n.id}
                       className={`p-2 border rounded cursor-pointer transition-colors ${
-                        n.read
-                          ? "bg-background"
-                          : "bg-blue-50 dark:bg-blue-950"
+                        n.read ? "bg-background" : "bg-blue-50 dark:bg-blue-950"
                       }`}
                       onClick={() => {
                         if (!n.read) markAsRead.mutate(n.id);

@@ -28,24 +28,19 @@ interface UseOfflineSyncResult {
  * Events are queued when offline and synced when back online.
  */
 export function useOfflineSync(): UseOfflineSyncResult {
-  const [queuedEvents, setQueuedEvents] = useState<OfflineScanEvent[]>([]);
+  const [queuedEvents, setQueuedEvents] = useState<OfflineScanEvent[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? (JSON.parse(stored) as OfflineScanEvent[]) : [];
+    } catch (e) {
+      console.error("Failed to load offline events:", e);
+      return [];
+    }
+  });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncResult, setLastSyncResult] =
     useState<OfflineSyncResult | null>(null);
-
-  // Load queued events from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const events = JSON.parse(stored) as OfflineScanEvent[];
-        setQueuedEvents(events);
-      }
-    } catch (e) {
-      console.error("Failed to load offline events:", e);
-    }
-  }, []);
 
   // Save queued events to localStorage whenever they change
   useEffect(() => {
@@ -115,7 +110,10 @@ export function useOfflineSync(): UseOfflineSyncResult {
   // Auto-sync when coming back online
   useEffect(() => {
     if (isOnline && queuedEvents.length > 0 && !isSyncing) {
-      syncNow();
+      const timer = window.setTimeout(() => {
+        void syncNow();
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
   }, [isOnline, isSyncing, queuedEvents.length, syncNow]);
 

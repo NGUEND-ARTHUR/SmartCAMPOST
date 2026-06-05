@@ -53,6 +53,7 @@ test.describe('Role-based UI access — CLIENT', () => {
     await expect(page).not.toHaveURL(/^http.*\/admin$/);
   });
 });
+<<<<<<< HEAD
 
 test.describe('Role-based UI access — ADMIN', () => {
   test.use({ storageState: AUTH_STATE.admin });
@@ -63,3 +64,5 @@ test.describe('Role-based UI access — ADMIN', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 });
+=======
+>>>>>>> ad71cf4 (Update SmartCAMPOST frontend and mobile modules)

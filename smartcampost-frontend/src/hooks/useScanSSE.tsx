@@ -7,7 +7,9 @@ function getAuthToken(): string | null {
       const parsed = JSON.parse(stored);
       return parsed?.state?.token || parsed?.token || null;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 

@@ -168,7 +168,9 @@ export default function Login() {
                   }
                 }}
                 onError={() => {
-                  toast.error(t("errors.googleSignInFailed", "Google sign-in failed"));
+                  toast.error(
+                    t("errors.googleSignInFailed", "Google sign-in failed"),
+                  );
                 }}
                 theme="outline"
                 size="large"
