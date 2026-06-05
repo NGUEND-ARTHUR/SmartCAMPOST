@@ -30,8 +30,17 @@ class AuthControllerGoogleTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-        @MockitoBean
+    @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private com.smartcampost.backend.security.TokenBlacklistService tokenBlacklistService;
+
+    @MockitoBean
+    private com.smartcampost.backend.security.JwtService jwtService;
+
+    @MockitoBean
+    private com.smartcampost.backend.repository.UserAccountRepository userAccountRepository;
 
     @Test
     void loginWithGoogle_shouldDelegateToAuthService() throws Exception {

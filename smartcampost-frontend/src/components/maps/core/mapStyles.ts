@@ -1,10 +1,52 @@
 /** Map style definitions for MapLibre GL JS */
 
-/** CARTO vector basemap styles — free, no API key needed */
+/** Basemap styles for MapLibre GL JS — using fast raster tiles */
 export const MAP_STYLES = {
-  light: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-} as const;
+  light: {
+    version: 8,
+    sources: {
+      "google-tiles": {
+        type: "raster",
+        tiles: [
+          "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+        ],
+        tileSize: 256,
+        attribution: "© Google"
+      }
+    },
+    layers: [
+      {
+        id: "google-layer",
+        type: "raster",
+        source: "google-tiles",
+        minzoom: 0,
+        maxzoom: 22
+      }
+    ]
+  },
+  dark: {
+    version: 8,
+    sources: {
+      "carto-dark-tiles": {
+        type: "raster",
+        tiles: [
+          "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png"
+        ],
+        tileSize: 256,
+        attribution: "© CARTO"
+      }
+    },
+    layers: [
+      {
+        id: "carto-dark-layer",
+        type: "raster",
+        source: "carto-dark-tiles",
+        minzoom: 0,
+        maxzoom: 22
+      }
+    ]
+  }
+} as any;
 
 /** Free AWS terrain-RGB tiles (no API key) for 3D elevation */
 export const TERRAIN_TILES_URL =

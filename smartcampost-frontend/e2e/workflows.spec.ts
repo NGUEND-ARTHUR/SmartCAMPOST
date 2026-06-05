@@ -61,7 +61,6 @@ test.describe('Admin creates staff → staff logs in and works', () => {
     const json = await loginRes.json();
     const token = json.accessToken ?? json.token;
 
-<<<<<<< HEAD
     const res = await request.get(`${API}/api/parcels`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -376,9 +375,4 @@ test.describe('Role transition — Sequential logins', () => {
     await page.goto('/admin');
     await expect(page).not.toHaveURL(/\/admin$/);
   });
-=======
-  // Logout
-  await page.click('button:text("Logout")');
-  await expect(page).toHaveURL(/login/);
->>>>>>> ad71cf4 (Update SmartCAMPOST frontend and mobile modules)
 });

@@ -32,27 +32,27 @@ class _DeliveryConfirmationScreenState
     super.dispose();
   }
 
-  Future<Position?> _getCurrentPosition() async {
-    try {
-      bool enabled = await Geolocator.isLocationServiceEnabled();
-      if (!enabled) return null;
-      LocationPermission perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied) {
-        perm = await Geolocator.requestPermission();
-      }
-      if (perm == LocationPermission.denied ||
-          perm == LocationPermission.deniedForever) {
-        return null;
-      }
-      return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
-        ),
-      );
-    } catch (_) {
-      return null;
+  Future<Position> _getCurrentPositionOrThrow() async {
+    bool enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      throw Exception('Location services are disabled. Please enable GPS.');
     }
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied) {
+      throw Exception('Location permission denied.');
+    }
+    if (perm == LocationPermission.deniedForever) {
+      throw Exception('Location permission permanently denied. Enable it in settings.');
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
   }
 
   Future<void> _sendOtp() async {
@@ -68,16 +68,16 @@ class _DeliveryConfirmationScreenState
       _error = null;
     });
     try {
-      final pos = await _getCurrentPosition();
+      final pos = await _getCurrentPositionOrThrow();
       await DeliveryService().sendDeliveryOtp(
         parcelId: widget.parcel.id,
         phoneNumber: phone,
-        latitude: pos?.latitude,
-        longitude: pos?.longitude,
+        latitude: pos.latitude,
+        longitude: pos.longitude,
       );
       if (mounted) setState(() => _otpSent = true);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     }
     if (mounted) setState(() => _isSending = false);
   }
@@ -95,12 +95,12 @@ class _DeliveryConfirmationScreenState
       _error = null;
     });
     try {
-      final pos = await _getCurrentPosition();
+      final pos = await _getCurrentPositionOrThrow();
       await DeliveryService().verifyDeliveryOtp(
         parcelId: widget.parcel.id,
         otpCode: code,
-        latitude: pos?.latitude,
-        longitude: pos?.longitude,
+        latitude: pos.latitude,
+        longitude: pos.longitude,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -114,7 +114,7 @@ class _DeliveryConfirmationScreenState
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     }
     if (mounted) setState(() => _isVerifying = false);
   }

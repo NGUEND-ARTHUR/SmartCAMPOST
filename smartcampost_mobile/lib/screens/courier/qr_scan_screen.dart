@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
+import 'package:geolocator/geolocator.dart';
 
 class QrScanScreen extends StatefulWidget {
   const QrScanScreen({super.key});
@@ -25,6 +26,29 @@ class _QrScanScreenState extends State<QrScanScreen> {
     super.dispose();
   }
 
+  Future<Position> _getCurrentPositionOrThrow() async {
+    bool enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      throw Exception('Location services are disabled. Please enable GPS.');
+    }
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied) {
+      throw Exception('Location permission denied.');
+    }
+    if (perm == LocationPermission.deniedForever) {
+      throw Exception('Location permission permanently denied. Enable it in settings.');
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
+  }
+
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_isProcessing) return;
     final barcodes = capture.barcodes;
@@ -37,7 +61,12 @@ class _QrScanScreenState extends State<QrScanScreen> {
     });
 
     try {
-      final response = await QrService().verifyQr(code);
+      // Get GPS position (GPS is mandatory)
+      final pos = await _getCurrentPositionOrThrow();
+      final lat = pos.latitude;
+      final lng = pos.longitude;
+
+      final response = await QrService().verifyQr(code, latitude: lat, longitude: lng);
       if (mounted) {
         setState(
           () => _result =
@@ -46,7 +75,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
         _scannerController.stop();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     }
     if (mounted) setState(() => _isProcessing = false);
   }

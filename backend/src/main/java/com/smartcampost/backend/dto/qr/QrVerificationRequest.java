@@ -34,4 +34,14 @@ public class QrVerificationRequest {
      * User agent (populated server-side)
      */
     private String userAgent;
+
+    /**
+     * Device latitude coordinate
+     */
+    private Double latitude;
+
+    /**
+     * Device longitude coordinate
+     */
+    private Double longitude;
 }
