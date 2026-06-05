@@ -47,8 +47,7 @@ export default defineConfig(({ mode }) => ({
           // Separate MapLibre GL into its own chunk (it's very large)
           if (
             id.includes("maplibre-gl") ||
-            id.includes("mapbox-gl") ||
-            id.includes("react-map-gl")
+            id.includes("mapbox-gl")
           ) {
             return "maplibre";
           }
