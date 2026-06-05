@@ -18,10 +18,12 @@ public class JwtService {
 
     private final SecretKey key;
     private final long tokenValidityMs;
+    private final long refreshTokenValidityMs;
 
     public JwtService(
             @Value("${smartcampost.jwt.secret:}") String jwtSecret,
-            @Value("${smartcampost.jwt.expiration-hours:8}") int expirationHours) {
+            @Value("${smartcampost.jwt.expiration-hours:8}") int expirationHours,
+            @Value("${smartcampost.jwt.refresh-token-days:7}") int refreshTokenDays) {
         // SECURITY: JWT secret MUST be provided via environment variable in production
         if (jwtSecret == null || jwtSecret.isBlank()) {
             throw new IllegalStateException(
@@ -33,13 +35,16 @@ public class JwtService {
         }
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.tokenValidityMs = expirationHours * 60L * 60L * 1000L;
+        this.refreshTokenValidityMs = refreshTokenDays * 24L * 60L * 60L * 1000L;
     }
 
+    /** Generate a short-lived access token (default 8h). */
     public String generateToken(UserAccount user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("phone", user.getPhone());
         claims.put("role", user.getRole().name());
         claims.put("entityId", user.getEntityId().toString());
+        claims.put("type", "access");
         if (user.getEmail() != null) {
             claims.put("email", user.getEmail());
         }
@@ -52,17 +57,48 @@ public class JwtService {
                 .setSubject(user.getId().toString())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(exp))
-                .signWith(key) // ✅ modern style, algorithm inferred
+                .signWith(key)
                 .compact();
     }
 
+    /** Generate a long-lived refresh token (default 7 days). */
+    public String generateRefreshToken(UserAccount user) {
+        long now = System.currentTimeMillis();
+        long exp = now + refreshTokenValidityMs;
+
+        return Jwts.builder()
+                .setClaims(Map.of("type", "refresh"))
+                .setSubject(user.getId().toString())
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(exp))
+                .signWith(key)
+                .compact();
+    }
+
+    /** Validate an access token (rejects refresh tokens). */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token);
-            return true;
+                    .parseClaimsJws(token)
+                    .getBody();
+            // Reject refresh tokens used as access tokens
+            return !"refresh".equals(claims.get("type", String.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Validate a refresh token specifically. */
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return "refresh".equals(claims.get("type", String.class));
         } catch (Exception e) {
             return false;
         }
@@ -74,5 +110,15 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    /** Extract userId (subject) from any token without role validation. */
+    public String extractSubject(String token) {
+        return extractClaims(token).getSubject();
+    }
+
+    /** Returns the access token validity in milliseconds. */
+    public long getTokenValidityMs() {
+        return tokenValidityMs;
     }
 }

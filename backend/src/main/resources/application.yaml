@@ -62,6 +62,7 @@ smartcampost:
   jwt:
     secret: ${SMARTCAMPOST_JWT_SECRET:}
     expiration-hours: ${JWT_EXPIRATION_HOURS:8}
+    refresh-token-days: ${REFRESH_TOKEN_DAYS:7}
 
   # Google OAuth Configuration
   google:
@@ -129,3 +130,15 @@ logging:
   # SECURITY: Don't log sensitive data
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 📖 SpringDoc / Swagger UI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:true}
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true

@@ -75,7 +75,7 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: serviceType,
+                value: serviceType,
                 decoration: const InputDecoration(
                   labelText: 'Service Type',
                   border: OutlineInputBorder(),

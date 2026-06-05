@@ -2,6 +2,8 @@ package com.smartcampost.backend.exception;
 
 import com.smartcampost.backend.dto.error.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +16,8 @@ import java.time.Instant;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // ================== AUTH EXCEPTIONS ==================
     @ExceptionHandler(AuthException.class)
@@ -201,7 +205,8 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request
     ) {
-        ex.printStackTrace(); // log serveur
+        log.error("Unhandled exception on {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         return buildErrorResponse(
                 "An unexpected error occurred",

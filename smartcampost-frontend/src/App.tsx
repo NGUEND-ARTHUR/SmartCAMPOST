@@ -1,7 +1,14 @@
 import React, { lazy, Suspense } from "react";
 import CreateFinancePage from "./pages/admin/CreateFinancePage";
 import CreateRiskPage from "./pages/admin/CreateRiskPage";
-import ApiCoverage from "./pages/debug/ApiCoverage";
+
+// Debug/dev-only pages — not bundled in production
+const ApiCoverage = import.meta.env.DEV
+  ? React.lazy(() => import("./pages/debug/ApiCoverage"))
+  : () => null;
+const MtnTest = import.meta.env.DEV
+  ? React.lazy(() => import("./pages/payments/MtnTest"))
+  : () => null;
 
 // Lazy-load heavy map pages so the MapLibre bundle only ships when needed
 const MapViewer = lazy(() => import("./pages/maps/MapViewer"));
@@ -74,7 +81,7 @@ import {
   SelfHealingDashboard,
 } from "./pages/admin";
 import { AIChatbot } from "./components/chat";
-import MtnTest from "./pages/payments/MtnTest";
+import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
 
 function App() {
   return (
@@ -194,7 +201,10 @@ function App() {
             }
           >
             <Route index element={<AdminDashboard />} />
-            <Route path="api-coverage" element={<ApiCoverage />} />
+            {/* Debug route — ApiCoverage renders null in production */}
+            {import.meta.env.DEV && (
+              <Route path="api-coverage" element={<ApiCoverage />} />
+            )}
             <Route path="parcels" element={<ParcelManagement />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
@@ -277,10 +287,15 @@ function App() {
           <Route path="/maps/viewer" element={<MapViewer />} />
           <Route path="/maps/pickups" element={<PickupMap />} />
           <Route path="/maps/tracking" element={<TrackingMap />} />
-          <Route path="/mtn-test" element={<MtnTest />} />
+          {/* Debug routes — only available in development */}
+          {import.meta.env.DEV && (
+            <Route path="/mtn-test" element={<MtnTest />} />
+          )}
         </Routes>
       </Suspense>
       {/* AI Chatbot - Available on all pages */}
+      {/* Session Timeout Monitor — silently refreshes token or warns user */}
+      <SessionTimeoutWarning />
       <AIChatbot />
     </Router>
   );

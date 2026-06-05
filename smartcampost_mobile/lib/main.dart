@@ -8,6 +8,7 @@ import 'package:smartcampost_mobile/models/parcel.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
+import 'package:smartcampost_mobile/services/push_notification_service.dart';
 
 // Auth screens
 import 'package:smartcampost_mobile/screens/auth/login_screen.dart';
@@ -60,6 +61,9 @@ import 'package:smartcampost_mobile/screens/shared/placeholder_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 🔥 Initialize Firebase (push notifications, crashlytics)
+  await PushNotificationService.initialize();
+
   final localeProvider = LocaleProvider();
   await localeProvider.init();
 
@@ -77,6 +81,7 @@ void main() async {
     ),
   );
 }
+
 
 class SmartCampostApp extends StatelessWidget {
   const SmartCampostApp({super.key});
