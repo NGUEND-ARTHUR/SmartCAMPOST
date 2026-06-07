@@ -53,8 +53,10 @@ export function ProtectedWrapper({ allowedRoles, children }: Props) {
       if (!allowedRoles?.length || allowedRoles.includes(persisted.user.role)) {
         return <>{children}</>;
       }
+      return <Navigate to="/" replace />;
     }
-    return null;
+    // No persisted auth — redirect immediately rather than hanging on null
+    return <Navigate to="/auth/login" replace />;
   }
 
   if (!isAuthenticated) {

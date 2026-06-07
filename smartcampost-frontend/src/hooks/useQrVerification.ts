@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import i18n from "@/i18n";
 import {
   verifyQrCodeContent,
   QrVerificationResponse,
@@ -37,7 +38,7 @@ export function useQrVerification(): UseQrVerificationReturn {
       if (!qrContent) {
         setState((prev) => ({
           ...prev,
-          error: "Contenu du QR code vide",
+          error: i18n.t("scan.error.emptyQrContent"),
           result: null,
         }));
         return null;
@@ -67,7 +68,7 @@ export function useQrVerification(): UseQrVerificationReturn {
           setState((prev) => ({
             ...prev,
             isVerifying: false,
-            error: "Format de QR code invalide",
+            error: i18n.t("scan.error.invalidQrFormat"),
             isForgery: true,
           }));
           return null;
@@ -97,7 +98,7 @@ export function useQrVerification(): UseQrVerificationReturn {
         return response;
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Erreur de vérification";
+          err instanceof Error ? err.message : i18n.t("scan.error.verificationError");
 
         setState({
           isVerifying: false,

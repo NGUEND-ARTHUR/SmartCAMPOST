@@ -184,7 +184,7 @@ export default function Login() {
                 to="/auth/login-otp"
                 className="text-sm text-blue-600 hover:underline block"
               >
-                {t("auth.sendOtp")}
+                {t("auth.loginWithOtpTitle")}
               </Link>
               <p className="text-sm text-muted-foreground">
                 {t("auth.noAccount")}{" "}

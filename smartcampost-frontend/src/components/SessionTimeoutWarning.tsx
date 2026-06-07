@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useAuthStore } from "@/store/authStore";
+import i18n from "@/i18n";
 
 const WARNING_BEFORE_MS = 15 * 60 * 1000; // Show warning 15 min before expiry
 const CHECK_INTERVAL_MS = 60 * 1000;       // Check every minute
@@ -62,11 +63,11 @@ export function SessionTimeoutWarning() {
 
 /** Show a subtle warning notification using the browser Notification API or console */
 function showSessionWarning(minutesLeft: number) {
-  const message = `Your session will expire in ${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""}. Please save your work.`;
+  const message = i18n.t("session.expireWarning", { count: minutesLeft });
 
   // Try browser notification (requires permission)
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("SmartCAMPOST — Session Expiring", {
+    new Notification(i18n.t("session.expireTitle", { defaultValue: "SmartCAMPOST — Session Expiring" }), {
       body: message,
       icon: "/favicon.ico",
     });
@@ -106,7 +107,7 @@ function injectWarningBanner(message: string) {
     <button
       onclick="document.getElementById('sc-session-warning').remove()"
       style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;"
-    >Dismiss</button>
+    >${i18n.t("common.dismiss", { defaultValue: "Dismiss" })}</button>
   `;
 
   document.body.prepend(banner);

@@ -844,7 +844,7 @@ export default function AIChatbot({
           id: `assistant-${Date.now()}`,
           role: "assistant",
           content:
-            aiResp.message || "Sorry, I couldn't process that right now.",
+            aiResp.message || t("errors.unknownError"),
           timestamp: new Date(),
           suggestions: aiResp.suggestions || [],
           feedback: null,

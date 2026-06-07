@@ -312,6 +312,9 @@
       },
       "toasts": {
         "selectAddresses": "Please select both sender and recipient addresses.",
+        "selectSenderAddress": "Please select a sender address before continuing.",
+        "selectRecipientAddress": "Please select a recipient address before continuing.",
+        "validWeight": "Please enter a valid weight for the parcel.",
         "created": "Parcel created successfully!",
         "createFailed": "Failed to create parcel"
       }
@@ -457,6 +460,7 @@
     },
     "toasts": {
       "requiredFields": "Please fill in all required fields",
+      "fillLabelCityRegion": "Please fill in label, city and region",
       "updated": "Address updated successfully",
       "added": "Address added successfully",
       "deleted": "Address deleted successfully"
@@ -714,6 +718,10 @@
       "card": "Card",
       "cash": "Cash",
       "bankTransfer": "Bank Transfer"
+    },
+    "errors": {
+      "missingParcelId": "Parcel ID missing",
+      "printWindowFailed": "Unable to open print window"
     }
   },
   "refunds": {
@@ -1398,7 +1406,10 @@
       "unknown": "Unknown error",
       "gpsRequired": "GPS is required to record scan events",
       "qrVerificationFailed": "QR verification failed",
-      "missingParcelId": "Missing parcelId in QR code"
+      "missingParcelId": "Missing parcelId in QR code",
+      "emptyQrContent": "QR code content is empty",
+      "invalidQrFormat": "Invalid QR code format",
+      "verificationError": "Verification error"
     },
     "success": {
       "scanned": "Scanned: {{barcode}}",
@@ -1439,7 +1450,18 @@
     "deleteFailed": "Failed to delete. Please try again.",
     "permissionDenied": "You do not have permission to perform this action.",
     "otpRequired": "Please send and enter the OTP code first",
-    "googleSignInFailed": "Google sign-in failed. Please try again."
+    "googleSignInFailed": "Google sign-in failed. Please try again.",
+    "sessionExpired": "Session expired. Please log in again.",
+    "noRefreshToken": "No refresh token available. Please log in again.",
+    "gpsUnavailable": "GPS is not available in this environment",
+    "gpsPermissionDenied": "GPS permission denied. Please enable location access.",
+    "gpsPositionUnavailable": "GPS position unavailable. Please check your device settings.",
+    "gpsTimeout": "GPS request timed out. Please try again.",
+    "gpsError": "GPS error: {{message}}"
+  },
+  "session": {
+    "expireTitle": "SmartCAMPOST — Session Expiring",
+    "expireWarning": "Your session will expire in {{count}} minute(s). Please save your work."
   },
   "messages": {
     "saveSuccess": "Saved successfully",
@@ -1958,6 +1980,13 @@
     "viewer": {
       "title": "Map Viewer",
       "subtitle": "OpenStreetMap powered map. Use it for pickup, tracking, and location."
+    },
+    "errors": {
+      "outsideCameroon": "Your current location appears outside Cameroon",
+      "selectWithinCameroon": "Please select a location within Cameroon",
+      "noResults": "No results found",
+      "searchFailed": "Search failed",
+      "resultOutsideCameroon": "Result is outside Cameroon"
     }
   }
 }
