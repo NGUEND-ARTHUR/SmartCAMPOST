@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMap } from "react-map-gl/maplibre";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,7 @@ export function MapSearch({
   placeholder?: string;
   onSelect?: (result: GeoSearchResult) => void;
 }) {
+  const { t } = useTranslation();
   const { current: map } = useMap();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeoSearchResult[]>([]);
@@ -48,7 +50,7 @@ export function MapSearch({
         setResults(res);
         setOpen(true);
       } catch {
-        toast.error("Search failed");
+        toast.error(t("maps.errors.searchFailed"));
         setResults([]);
         setOpen(false);
       } finally {
@@ -65,7 +67,7 @@ export function MapSearch({
     if (typeof lat !== "number" || typeof lng !== "number") return;
 
     if (!isWithinCameroon(lat, lng)) {
-      toast.error("Result is outside Cameroon");
+      toast.error(t("maps.errors.resultOutsideCameroon"));
       return;
     }
 

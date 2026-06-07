@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AuthState, User, LoginRequest, LoginResponse } from "@/types";
 import { apiClient } from "@/lib/api";
+import i18n from "@/i18n";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8082";
 
@@ -97,7 +98,7 @@ export const useAuthStore = create<AuthStore>()(
       refreshToken: async () => {
         const currentRefreshToken = get().refreshTokenValue;
         if (!currentRefreshToken) {
-          throw new Error("No refresh token available");
+          throw new Error(i18n.t("errors.noRefreshToken"));
         }
 
         const response = await fetch(`${API_BASE}/api/auth/refresh`, {
@@ -109,7 +110,7 @@ export const useAuthStore = create<AuthStore>()(
         if (!response.ok) {
           // Refresh failed — clear session
           get().logout();
-          throw new Error("Session expired. Please log in again.");
+          throw new Error(i18n.t("errors.sessionExpired"));
         }
 
         const data = await response.json();

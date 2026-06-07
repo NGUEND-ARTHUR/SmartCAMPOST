@@ -206,7 +206,7 @@ export default function DeliveryWorkflowStepper({
     longitude: number;
   }> => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      throw new Error("GPS is not available in this environment");
+      throw new Error(t("errors.gpsUnavailable"));
     }
     const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
