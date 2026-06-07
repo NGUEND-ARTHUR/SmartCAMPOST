@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ClientPayments() {
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
   const {
     data: paymentsResponse,
@@ -149,7 +151,7 @@ export default function ClientPayments() {
                               onClick={async () => {
                                 try {
                                   if (!p.parcelId) {
-                                    toast.error("Parcel ID missing");
+                                    toast.error(t("payments.errors.missingParcelId"));
                                     return;
                                   }
                                   const receipt =
@@ -158,7 +160,7 @@ export default function ClientPayments() {
                                     );
                                   const w = window.open("", "_blank");
                                   if (!w) {
-                                    toast.error("Unable to open print window");
+                                    toast.error(t("payments.errors.printWindowFailed"));
                                     return;
                                   }
                                   const currency = escapeHtml(

@@ -160,7 +160,7 @@ export default function LocationPicker({
         if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
           if (!hasWarnedOutsideRef.current) {
             hasWarnedOutsideRef.current = true;
-            toast.error("Your current location appears outside Cameroon");
+            toast.error(t("maps.errors.outsideCameroon"));
           }
           setIsFollowingUser(false);
           stopFollowingUser();
@@ -206,7 +206,7 @@ export default function LocationPicker({
         const lng = position.coords.longitude;
 
         if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
-          toast.error("Your current location appears outside Cameroon");
+          toast.error(t("maps.errors.outsideCameroon"));
           setIsFollowingUser(false);
           stopFollowingUser();
           setIsLocating(false);
@@ -234,7 +234,7 @@ export default function LocationPicker({
       setIsFollowingUser(false);
       stopFollowingUser();
       if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
-        toast.error("Please select a location within Cameroon");
+        toast.error(t("maps.errors.selectWithinCameroon"));
         return;
       }
       onLocationChange(lat, lng);
@@ -261,7 +261,7 @@ export default function LocationPicker({
       setIsResultsOpen(true);
 
       if (filtered.length === 0) {
-        toast.error("No results found");
+        toast.error(t("maps.errors.noResults"));
         return;
       }
 
@@ -274,7 +274,7 @@ export default function LocationPicker({
       setManualLng(String(top.longitude));
       setSearchResultLabel(top.displayName || null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Search failed");
+      toast.error(err instanceof Error ? err.message : t("maps.errors.searchFailed"));
     } finally {
       setIsSearching(false);
     }
@@ -305,7 +305,7 @@ export default function LocationPicker({
   const selectSearchResult = useCallback(
     (r: GeoSearchResult) => {
       if (restrictToCameroon && !isWithinCameroon(r.latitude, r.longitude)) {
-        toast.error("Please select a location within Cameroon");
+        toast.error(t("maps.errors.selectWithinCameroon"));
         return;
       }
       setIsFollowingUser(false);

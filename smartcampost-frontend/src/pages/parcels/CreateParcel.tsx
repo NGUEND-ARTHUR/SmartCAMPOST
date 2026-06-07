@@ -159,11 +159,11 @@ export function CreateParcel() {
   const validateCurrentStep = (): boolean => {
     if (currentStep === 0) {
       if (!senderAddressId) {
-        toast.error("Please select a sender address before continuing.");
+        toast.error(t("parcels.create.toasts.selectSenderAddress"));
         return false;
       }
       if (!recipientAddressId) {
-        toast.error("Please select a recipient address before continuing.");
+        toast.error(t("parcels.create.toasts.selectRecipientAddress"));
         return false;
       }
       return true;
@@ -171,7 +171,7 @@ export function CreateParcel() {
     if (currentStep === 1) {
       const weight = getValues("weight");
       if (!weight || weight <= 0) {
-        toast.error("Please enter a valid weight for the parcel.");
+        toast.error(t("parcels.create.toasts.validWeight"));
         return false;
       }
       return true;
@@ -251,7 +251,7 @@ export function CreateParcel() {
 
   const handleCreateAddress = async () => {
     if (!canSaveAddress) {
-      toast.error("Please fill in label, city and region");
+      toast.error(t("addresses.toasts.fillLabelCityRegion"));
       return;
     }
 
@@ -275,10 +275,10 @@ export function CreateParcel() {
         setRecipientAddressId(created.id);
       }
 
-      toast.success("Address added");
+      toast.success(t("addresses.toasts.added"));
       setIsAddAddressOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to add address");
+      toast.error(err instanceof Error ? err.message : t("addresses.toasts.requiredFields"));
     } finally {
       setIsSavingAddress(false);
     }

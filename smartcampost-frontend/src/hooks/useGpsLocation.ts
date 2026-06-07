@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import i18n from "@/i18n";
 import type { LocationData } from "../types";
 
 interface UseGpsLocationOptions {
@@ -30,13 +31,13 @@ function toLocationData(position: GeolocationPosition): LocationData {
 function geolocationErrorMessage(err: GeolocationPositionError): string {
   switch (err.code) {
     case err.PERMISSION_DENIED:
-      return "GPS permission denied. Please enable location access.";
+      return i18n.t("errors.gpsPermissionDenied");
     case err.POSITION_UNAVAILABLE:
-      return "GPS position unavailable. Please check your device settings.";
+      return i18n.t("errors.gpsPositionUnavailable");
     case err.TIMEOUT:
-      return "GPS request timed out. Please try again.";
+      return i18n.t("errors.gpsTimeout");
     default:
-      return `GPS error: ${err.message}`;
+      return i18n.t("errors.gpsError", { message: err.message });
   }
 }
 
@@ -97,7 +98,7 @@ export function useGpsLocation(
 
   const getCurrentPosition = useCallback(async (): Promise<LocationData> => {
     if (!isSupported) {
-      throw new Error("Geolocation is not supported by this browser");
+      throw new Error(i18n.t("errors.gpsUnavailable"));
     }
 
     setIsLoading(true);
