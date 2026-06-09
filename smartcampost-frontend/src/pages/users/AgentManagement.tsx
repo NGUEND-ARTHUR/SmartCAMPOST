@@ -105,7 +105,15 @@ export default function AgentManagement() {
       toast.error(t("agents.form.requiredFields"));
       return;
     }
-    createAgent.mutate(formData, {
+    // Build payload — omit blank optional fields so the backend doesn't receive empty strings
+    const agentPayload = {
+      fullName: formData.fullName,
+      phone: formData.phone,
+      password: formData.password,
+      ...(formData.email?.trim() ? { email: formData.email.trim() } : {}),
+      ...(formData.agencyId?.trim() ? { agencyId: formData.agencyId.trim() } : {}),
+    };
+    createAgent.mutate(agentPayload, {
       onSuccess: () => {
         toast.success(t("agents.create.success"));
         setIsCreateOpen(false);

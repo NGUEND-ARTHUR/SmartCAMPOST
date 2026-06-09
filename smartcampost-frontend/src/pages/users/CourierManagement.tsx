@@ -87,11 +87,13 @@ export default function CourierManagement() {
       toast.error(t("courierManagement.requiredFields"));
       return;
     }
-    // Auto-generate vehicleId if not provided
+    // Auto-generate vehicleId if not provided; uppercase user input to satisfy ^[A-Z0-9-]{3,20}$ pattern
+    const rawVehicleId = formData.vehicleId?.trim().toUpperCase();
     const payload = {
-      ...formData,
-      vehicleId:
-        formData.vehicleId || `VH-${Date.now().toString(36).toUpperCase()}`,
+      fullName: formData.fullName,
+      phone: formData.phone,
+      password: formData.password,
+      vehicleId: rawVehicleId || `VH-${Date.now().toString(36).toUpperCase()}`,
     };
     createCourier.mutate(payload, {
       onSuccess: () => {

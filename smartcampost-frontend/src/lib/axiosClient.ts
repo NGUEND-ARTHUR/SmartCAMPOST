@@ -4,7 +4,7 @@ const rawBase = import.meta.env.VITE_API_URL as string | undefined;
 
 function normalizeBase(url?: string) {
   // Prefer explicit VITE_API_URL from environment. If missing, fall back to localhost for dev.
-  const fallback = "http://localhost:8080/api";
+  const fallback = "http://localhost:8082/api";
   if (!url) return fallback;
   const trimmed = url.replace(/\/+$/, "");
   if (trimmed.endsWith("/api")) return trimmed;

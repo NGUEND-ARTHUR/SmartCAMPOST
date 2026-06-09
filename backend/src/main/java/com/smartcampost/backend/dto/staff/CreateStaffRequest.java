@@ -27,8 +27,8 @@ public class CreateStaffRequest {
     )
     private String role; // e.g. "ADMIN", "FINANCE", "RISK", "STAFF"
 
-    @NotBlank
-    @Email
+    // email is optional — staff accounts may be created without an email address
+    @Email(regexp = "^$|^[^@]+@[^@]+\\.[^@]+$", message = "email must be a valid email address")
     private String email;
 
     @NotBlank
