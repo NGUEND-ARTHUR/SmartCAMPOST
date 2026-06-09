@@ -20,19 +20,15 @@ function readPersistedAuth() {
 
 export function ProtectedRoute({ allowedRoles }: Props) {
   const { isAuthenticated, user, hydrated } = useAuthStore();
-  console.info(
-    "[ProtectedRoute] hydrated:",
-    hydrated,
-    "isAuthenticated:",
-    isAuthenticated,
-    "storeUserRole:",
-    user?.role,
-  );
 
   // Wait for the persisted auth store to finish hydrating before making
   // redirect decisions. This avoids a race where the app redirects to login
   // before Zustand restores the persisted auth state.
   if (!hydrated) return null;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
 
   if (
     allowedRoles?.length &&
