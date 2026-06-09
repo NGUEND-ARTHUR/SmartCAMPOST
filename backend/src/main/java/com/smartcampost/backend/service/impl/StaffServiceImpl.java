@@ -44,8 +44,13 @@ public class StaffServiceImpl implements StaffService {
         // ✅ Validate role: only STAFF-like roles are allowed for staff creation
         validateStaffUserRole(role);
 
+        // Normalise email: treat blank string as null
+        String email = (request.getEmail() != null && !request.getEmail().isBlank())
+                ? request.getEmail().trim()
+                : null;
+
         // Pré-calculer les conflits
-        boolean emailExists = staffRepository.existsByEmail(request.getEmail());
+        boolean emailExists = (email != null) && staffRepository.existsByEmail(email);
         boolean phoneExists = staffRepository.existsByPhone(request.getPhone())
                 || userAccountRepository.existsByPhone(request.getPhone());
 
@@ -57,7 +62,7 @@ public class StaffServiceImpl implements StaffService {
             );
         }
 
-        // Email unique
+        // Email unique (only when provided)
         if (emailExists) {
             throw new ConflictException(
                     "Email already in use",
@@ -80,7 +85,7 @@ public class StaffServiceImpl implements StaffService {
                 .id(UUID.randomUUID())
                 .fullName(request.getFullName())
                 .role(role.name()) // ✅ Staff.role is STRING in your model
-                .email(request.getEmail())
+                .email(email)      // null when not provided — column is nullable
                 .phone(request.getPhone())
                 .status(StaffStatus.ACTIVE)
                 .hiredAt(request.getHiredAt() != null ? request.getHiredAt() : LocalDate.now())

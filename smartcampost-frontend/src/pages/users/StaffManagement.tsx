@@ -212,8 +212,16 @@ export default function StaffManagement() {
         },
       );
     } else {
+      // Build payload — omit blank optional fields so the backend doesn't receive empty strings
+      const staffPayload = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        password: formData.password,
+        role: formData.role,
+        ...(formData.email?.trim() ? { email: formData.email.trim() } : {}),
+      };
       // Use staff creation for other roles
-      createStaff.mutate(formData, {
+      createStaff.mutate(staffPayload, {
         onSuccess: () => {
           toast.success(t("staffManagement.staffCreated"));
           setIsCreateOpen(false);
