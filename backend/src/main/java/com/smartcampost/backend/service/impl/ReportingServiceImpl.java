@@ -65,11 +65,7 @@ public class ReportingServiceImpl implements ReportingService {
             var fromInstant = from.atStartOfDay().toInstant(ZoneOffset.UTC);
             var toInstant   = to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
 
-            var payments = paymentRepository.findAll().stream()
-                .filter(p -> p.getTimestamp() != null
-                    && !p.getTimestamp().isBefore(fromInstant)
-                    && p.getTimestamp().isBefore(toInstant))
-                .toList();
+            var payments = paymentRepository.findByTimestampBetween(fromInstant, toInstant);
 
             double totalRevenue = payments.stream()
                 .filter(p -> PaymentStatus.SUCCESS.equals(p.getStatus()))
@@ -101,13 +97,12 @@ public class ReportingServiceImpl implements ReportingService {
     public Map<String, Object> getParcelVolumeByZone(LocalDate from, LocalDate to) {
         Map<String, Object> report = new LinkedHashMap<>();
         try {
-            // Aggregate parcel counts by destination agency city
-            var agencies = agencyRepository.findAll();
+            // Single aggregation query — avoids N+1 (one query instead of 1 + N)
             Map<String, Long> volumeByZone = new LinkedHashMap<>();
-            for (var agency : agencies) {
-                String zone = agency.getCity() != null ? agency.getCity() : "Unknown";
-                long count = parcelRepository.countByDestinationAgency_Id(agency.getId());
-                if (count > 0) volumeByZone.put(zone, count);
+            for (Object[] row : parcelRepository.countParcelsByDestinationAgencyCity()) {
+                String zone = row[0] != null ? (String) row[0] : "Unknown";
+                long count = ((Number) row[1]).longValue();
+                volumeByZone.put(zone, count);
             }
             report.put("period", Map.of("from", from.toString(), "to", to.toString()));
             report.put("volumeByZone", volumeByZone);

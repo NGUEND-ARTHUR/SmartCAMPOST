@@ -63,7 +63,6 @@ export default function Addresses() {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to load addresses";
       setError(errorMsg);
-      console.error("Address error:", err);
       setAddresses([]);
     } finally {
       setIsLoading(false);

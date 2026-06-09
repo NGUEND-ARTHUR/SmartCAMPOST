@@ -43,7 +43,7 @@ export default function SelfHealingDashboard() {
       setCongestionAlerts(alerts);
       setSuggestedActions(actions);
     } catch (error) {
-      console.error("Failed to fetch self-healing data:", error);
+      toast.error(error instanceof Error ? error.message : t("selfHealing.fetchError", "Failed to load self-healing data."));
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function SelfHealingDashboard() {
       // Refresh data after execution
       fetchData();
     } catch (error) {
-      console.error("Failed to execute action:", error);
+      toast.error(error instanceof Error ? error.message : t("selfHealing.executeError", "Failed to execute action."));
     } finally {
       setExecuting(null);
     }
@@ -86,7 +86,7 @@ export default function SelfHealingDashboard() {
         t("selfHealing.notifiedClients", { count: result.notifiedClients }),
       );
     } catch (error) {
-      console.error("Failed to notify clients:", error);
+      toast.error(error instanceof Error ? error.message : t("selfHealing.notifyError", "Failed to notify clients."));
     }
   };
 

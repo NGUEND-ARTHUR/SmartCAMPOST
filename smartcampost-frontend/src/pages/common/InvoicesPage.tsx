@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoiceService, type InvoiceResponse } from "@/services";
+import { toast } from "sonner";
 
 export default function InvoicesPage() {
   const { t } = useTranslation();
@@ -11,7 +12,7 @@ export default function InvoicesPage() {
       const data = await invoiceService.listMine();
       setInvoices(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.warn(e);
+      toast.error(e instanceof Error ? e.message : t("common.error", "An error occurred"));
     }
   }, []);
 

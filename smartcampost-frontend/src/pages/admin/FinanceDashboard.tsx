@@ -135,7 +135,6 @@ export default function FinanceDashboard() {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to load dashboard data";
       setError(errorMsg);
-      console.error("Dashboard error:", err);
     } finally {
       setIsLoading(false);
     }

@@ -6,6 +6,7 @@ import {
   ApprovalRequestDto,
 } from "@/services/approvals/approvals.api";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 export default function ApprovalsPage() {
   const { t } = useTranslation();
@@ -18,7 +19,7 @@ export default function ApprovalsPage() {
       const res = await approvalsApi.pending();
       setItems(res ?? []);
     } catch (e) {
-      console.error(e);
+      toast.error(e instanceof Error ? e.message : t("approvals.loadError", "Failed to load approval requests."));
     } finally {
       setLoading(false);
     }
@@ -36,7 +37,7 @@ export default function ApprovalsPage() {
       await approvalsApi.approve(id);
       await load();
     } catch (e) {
-      console.error(e);
+      toast.error(e instanceof Error ? e.message : t("approvals.approveError", "Failed to approve request."));
     }
   };
 
@@ -45,7 +46,7 @@ export default function ApprovalsPage() {
       await approvalsApi.deny(id);
       await load();
     } catch (e) {
-      console.error(e);
+      toast.error(e instanceof Error ? e.message : t("approvals.denyError", "Failed to deny request."));
     }
   };
 
@@ -86,13 +87,13 @@ export default function ApprovalsPage() {
                           variant="default"
                           onClick={() => handleApprove(it.id)}
                         >
-                          Approve
+                          {t("approvals.approve", "Approve")}
                         </Button>
                         <Button
                           variant="destructive"
                           onClick={() => handleDeny(it.id)}
                         >
-                          Deny
+                          {t("approvals.deny", "Deny")}
                         </Button>
                       </div>
                     </div>

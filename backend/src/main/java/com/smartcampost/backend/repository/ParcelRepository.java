@@ -40,6 +40,12 @@ public interface ParcelRepository extends JpaRepository<Parcel, UUID> {
     // ✅ FIX: Count parcels by destination agency for ReportingService zone volume
     long countByDestinationAgency_Id(UUID agencyId);
 
+    // Single aggregation query: returns [city, count] pairs — avoids N+1 in ReportingService
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT a.city, COUNT(p) FROM Parcel p JOIN p.destinationAgency a GROUP BY a.city ORDER BY COUNT(p) DESC"
+    )
+    List<Object[]> countParcelsByDestinationAgencyCity();
+
     // Find unlocked parcels (can be corrected)
     List<Parcel> findByLockedFalse();
 }
