@@ -4,6 +4,7 @@ import com.smartcampost.backend.service.AnalyticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -21,16 +22,19 @@ public class AnalyticsController {
     }
 
     @GetMapping("/payments/{paymentId}/anomaly")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','FINANCE','RISK')")
     public ResponseEntity<AnomalyCheckResponse> checkPaymentAnomaly(@PathVariable UUID paymentId) {
         return ResponseEntity.ok(analyticsService.checkPaymentAnomaly(paymentId));
     }
 
     @PostMapping("/demand-forecast")
-    public ResponseEntity<DemandForecastResponse> forecastDemand(@RequestBody DemandForecastRequest request) {
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','FINANCE','RISK')")
+    public ResponseEntity<DemandForecastResponse> forecastDemand(@Valid @RequestBody DemandForecastRequest request) {
         return ResponseEntity.ok(analyticsService.forecastDemand(request));
     }
 
     @GetMapping("/sentiment")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','FINANCE','RISK')")
     public ResponseEntity<SentimentAnalysisResponse> analyzeSentiment() {
         return ResponseEntity.ok(analyticsService.analyzeSentiment());
     }

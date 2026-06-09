@@ -39,11 +39,17 @@ public class ApprovalProcessor {
                 // Build actor
                 UUID actorId = null;
                 if (req.getActorId() != null) {
-                    try { actorId = UUID.fromString(req.getActorId()); } catch (Exception ignored) {}
+                    try { actorId = UUID.fromString(req.getActorId()); } catch (IllegalArgumentException e) {
+                        log.warn("Approval request {}: invalid actorId '{}', proceeding without actor", req.getId(), req.getActorId());
+                    }
                 }
                 AiActorContext actor = new AiActorContext(actorId, null, req.getActorRole(), Set.of());
 
-                Map<String, Object> params = (Map<String, Object>) payload.getOrDefault("parameters", Collections.emptyMap());
+                Object rawParams = payload.getOrDefault("parameters", Collections.emptyMap());
+                @SuppressWarnings("unchecked")
+                Map<String, Object> params = rawParams instanceof Map<?, ?> map
+                        ? (Map<String, Object>) map
+                        : Collections.emptyMap();
                 String tool = (String) payload.getOrDefault("tool", req.getToolName());
 
                 AiToolRequest toolRequest = new AiToolRequest(AiOperatingMode.REACTIVE, tool, actor, params, true, req.isApproved(), req.getId().toString(), UUID.randomUUID().toString(), null, java.time.Instant.now());
