@@ -42,8 +42,9 @@ public class AgentController {
         return ResponseEntity.ok(agentService.listAgents(page, size));
     }
 
-    // US12 : activer / désactiver / suspendre
+    // US12 : activer / désactiver / suspendre (ADMIN or STAFF)
     @PatchMapping("/{agentId}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<AgentResponse> updateStatus(
             @PathVariable UUID agentId,
             @Valid @RequestBody UpdateAgentStatusRequest request
@@ -51,8 +52,9 @@ public class AgentController {
         return ResponseEntity.ok(agentService.updateAgentStatus(agentId, request));
     }
 
-    // US11 : assigner une agence
+    // US11 : assigner une agence (ADMIN or STAFF)
     @PatchMapping("/{agentId}/agency")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<AgentResponse> assignAgency(
             @PathVariable UUID agentId,
             @Valid @RequestBody AssignAgentAgencyRequest request

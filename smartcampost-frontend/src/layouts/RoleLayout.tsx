@@ -56,6 +56,7 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/admin/integrations", labelKey: "nav.integrations" },
     { to: "/admin/accounts", labelKey: "nav.userAccounts" },
     { to: "/admin/self-healing", labelKey: "nav.selfHealing" },
+    { to: "/admin/approvals", labelKey: "nav.approvals" },
     { to: "/admin/notifications", labelKey: "nav.notifications" },
     { to: "/admin/analytics", labelKey: "nav.analytics" },
   ],
@@ -64,12 +65,16 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/finance/map", labelKey: "nav.map" },
     { to: "/finance/payments", labelKey: "nav.payments" },
     { to: "/finance/refunds", labelKey: "nav.refunds" },
+    { to: "/finance/analytics", labelKey: "nav.analytics" },
+    { to: "/finance/notifications", labelKey: "nav.notifications" },
   ],
   RISK: [
     { to: "/risk", labelKey: "nav.dashboard" },
     { to: "/risk/map", labelKey: "nav.map" },
     { to: "/risk/alerts", labelKey: "nav.riskAlerts" },
     { to: "/risk/compliance", labelKey: "nav.compliance" },
+    { to: "/risk/analytics", labelKey: "nav.analytics" },
+    { to: "/risk/notifications", labelKey: "nav.notifications" },
   ],
 };
 

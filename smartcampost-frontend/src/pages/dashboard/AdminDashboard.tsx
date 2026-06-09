@@ -46,7 +46,7 @@ export default function AdminDashboard() {
               {t("dashboard.admin.systemOverview")}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button asChild variant="default">
               <Link to="/admin/finance">
                 {t("dashboard.admin.financeDashboard")}
@@ -57,12 +57,22 @@ export default function AdminDashboard() {
                 {t("dashboard.admin.createFinance")}
               </Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to="/admin/users/staff">
+                {t("dashboard.admin.manageStaff", "Manage Staff")}
+              </Link>
+            </Button>
             <Button asChild className="bg-orange-600 hover:bg-orange-700">
               <Link to="/admin/risk">{t("dashboard.admin.riskDashboard")}</Link>
             </Button>
             <Button asChild className="bg-purple-600 hover:bg-purple-700">
               <Link to="/admin/risk/create">
-                {t("dashboard.admin.createRisk")}
+                {t("dashboard.admin.createRiskAlert", "Create Risk Alert")}
+              </Link>
+            </Button>
+            <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <Link to="/admin/approvals">
+                {t("dashboard.admin.approvals", "Approvals")}
               </Link>
             </Button>
           </div>

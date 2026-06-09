@@ -102,7 +102,8 @@
     "userAccounts": "User Accounts",
     "riskAlerts": "Risk Alerts",
     "compliance": "Compliance",
-    "selfHealing": "Self-healing"
+    "selfHealing": "Self-healing",
+    "approvals": "Approvals"
   },
   "auth": {
     "loginTitle": "Login to your account",
@@ -230,9 +231,12 @@
       "userStats": "User Statistics",
       "revenueStats": "Revenue Statistics",
       "financeDashboard": "Finance Dashboard",
-      "createFinance": "Create Finance",
+      "createFinance": "Create Finance User",
       "riskDashboard": "Risk Dashboard",
       "createRisk": "Create Risk",
+      "createRiskAlert": "Create Risk Alert",
+      "manageStaff": "Manage Staff",
+      "approvals": "Approvals",
       "liveScans": "Live Scans",
       "waitingForScans": "Waiting for scan events\u2026"
     },
@@ -1102,18 +1106,12 @@
     "tracking": "Tracking:"
   },
   "createFinancePage": {
-    "title": "Create Finance",
-    "name": "Name",
-    "namePlaceholder": "Finance name",
-    "description": "Description",
-    "descriptionPlaceholder": "Description of the finance entry",
-    "initialBalance": "Initial Balance",
-    "initialBalancePlaceholder": "0.00",
-    "creating": "Creating...",
-    "create": "Create Finance",
-    "success": "Finance created successfully!",
-    "requiredFields": "All fields are required and initial balance must be a number.",
-    "createFailed": "Failed to create finance entry"
+    "title": "Create Finance User",
+    "subtitle": "Create a new user with the Finance role who can view payments and refunds.",
+    "requiredFields": "Full name, phone, and password are required.",
+    "submit": "Create Finance User",
+    "success": "Finance user created successfully.",
+    "error": "Failed to create finance user."
   },
   "createRiskPage": {
     "title": "Create Risk Alert",

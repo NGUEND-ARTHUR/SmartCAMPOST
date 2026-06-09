@@ -46,6 +46,7 @@ public class StaffController {
 
     // Modifier le statut (ACTIVE / INACTIVE / SUSPENDED)
     @PatchMapping("/{staffId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StaffResponse> updateStaffStatus(
             @PathVariable UUID staffId,
             @Valid @RequestBody UpdateStaffStatusRequest request
@@ -55,6 +56,7 @@ public class StaffController {
 
     // Modifier le rôle (ADMIN, MANAGER, etc.)
     @PatchMapping("/{staffId}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StaffResponse> updateStaffRole(
             @PathVariable UUID staffId,
             @Valid @RequestBody UpdateStaffRoleRequest request

@@ -44,8 +44,9 @@ public class CourierController {
         return ResponseEntity.ok(courierService.listCouriers(page, size));
     }
 
-    // US19: update status
+    // US19: update status (ADMIN or STAFF)
     @PatchMapping("/{courierId}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<CourierResponse> updateCourierStatus(
             @PathVariable UUID courierId,
             @Valid @RequestBody UpdateCourierStatusRequest request
@@ -53,8 +54,9 @@ public class CourierController {
         return ResponseEntity.ok(courierService.updateCourierStatus(courierId, request));
     }
 
-    // US18: update vehicle identifier
+    // US18: update vehicle identifier (ADMIN or STAFF)
     @PatchMapping("/{courierId}/vehicle")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<CourierResponse> updateCourierVehicle(
             @PathVariable UUID courierId,
             @Valid @RequestBody UpdateCourierVehicleRequest request
