@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/delivery")
 @RequiredArgsConstructor
 @Tag(name = "Delivery", description = "Home delivery and agency pickup workflow endpoints")
+@PreAuthorize("hasAnyRole('COURIER','AGENT','STAFF','ADMIN')")
 public class DeliveryController {
 
     private final DeliveryOtpService deliveryOtpService;

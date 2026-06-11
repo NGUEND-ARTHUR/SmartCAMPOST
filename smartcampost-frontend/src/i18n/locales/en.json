@@ -1423,6 +1423,7 @@
     "invalidEmail": "Invalid email address",
     "invalidPhone": "Invalid phone number",
     "passwordTooShort": "Password must be at least 8 characters",
+    "passwordComplexity": "Password must contain uppercase, lowercase, and a number",
     "passwordMismatch": "Passwords do not match",
     "loginFailed": "Login failed. Please check your credentials.",
     "networkError": "Unable to connect to server. Please check your internet connection.",

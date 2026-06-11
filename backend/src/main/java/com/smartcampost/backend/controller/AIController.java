@@ -8,6 +8,7 @@ import com.smartcampost.backend.service.AiAgentRecommendationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class AIController {
     private final AIService aiService;
     private final AiAgentRecommendationService aiAgentRecommendationService;

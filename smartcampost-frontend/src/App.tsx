@@ -268,8 +268,22 @@ function App() {
           </Route>
 
           {/* Legacy/backward-compatible paths */}
-          <Route path="/courier/pickup/:id" element={<PickupDetail />} />
-          <Route path="/courier/delivery/:id" element={<DeliveryDetail />} />
+          <Route
+            path="/courier/pickup/:id"
+            element={
+              <ProtectedWrapper allowedRoles={["COURIER", "AGENT", "STAFF", "ADMIN"]}>
+                <PickupDetail />
+              </ProtectedWrapper>
+            }
+          />
+          <Route
+            path="/courier/delivery/:id"
+            element={
+              <ProtectedWrapper allowedRoles={["COURIER", "AGENT", "STAFF", "ADMIN"]}>
+                <DeliveryDetail />
+              </ProtectedWrapper>
+            }
+          />
           <Route
             path="/courier/agent"
             element={<Navigate to="/agent" replace />}
@@ -283,10 +297,31 @@ function App() {
           {/* Public tracking (number + QR) */}
           <Route path="/tracking" element={<TrackingPage />} />
 
+          <Route
+            path="/maps/viewer"
+            element={
+              <ProtectedWrapper allowedRoles={["CLIENT", "AGENT", "COURIER", "STAFF", "ADMIN", "FINANCE", "RISK"]}>
+                <MapViewer />
+              </ProtectedWrapper>
+            }
+          />
+          <Route
+            path="/maps/pickups"
+            element={
+              <ProtectedWrapper allowedRoles={["COURIER", "AGENT", "STAFF", "ADMIN"]}>
+                <PickupMap />
+              </ProtectedWrapper>
+            }
+          />
+          <Route
+            path="/maps/tracking"
+            element={
+              <ProtectedWrapper allowedRoles={["CLIENT", "AGENT", "COURIER", "STAFF", "ADMIN"]}>
+                <TrackingMap />
+              </ProtectedWrapper>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
-          <Route path="/maps/viewer" element={<MapViewer />} />
-          <Route path="/maps/pickups" element={<PickupMap />} />
-          <Route path="/maps/tracking" element={<TrackingMap />} />
           {/* Debug routes — only available in development */}
           {import.meta.env.DEV && (
             <Route path="/mtn-test" element={<MtnTest />} />

@@ -77,7 +77,12 @@ export default function TrackingPage() {
         const res = await axiosInstance.get<TrackingResponse>(
           `/track/parcel/${encodeURIComponent(trimmed)}`,
         );
-        setResult(res.data);
+        if (res.data) {
+          setResult(res.data);
+        } else {
+          setResult(null);
+          toast.error(t("trackingPage.toasts.notFound"));
+        }
       } catch {
         setResult(null);
         toast.error(t("trackingPage.toasts.notFound"));
@@ -97,7 +102,12 @@ export default function TrackingPage() {
         const res = await axiosInstance.post<TrackingResponse>(`/track/qr`, {
           code: trimmed,
         });
-        setResult(res.data);
+        if (res.data) {
+          setResult(res.data);
+        } else {
+          setResult(null);
+          toast.error(t("trackingPage.toasts.invalidQr"));
+        }
       } catch {
         setResult(null);
         toast.error(t("trackingPage.toasts.invalidQr"));
