@@ -95,6 +95,7 @@ public class ParcelController {
 
     // Change delivery option (AGENCY <-> HOME)
     @PatchMapping("/{parcelId}/delivery-option")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ParcelResponse> changeDeliveryOption(
             @PathVariable UUID parcelId,
             @Valid @RequestBody ChangeDeliveryOptionRequest request
@@ -104,6 +105,7 @@ public class ParcelController {
 
     // Update metadata (photo + comment)
     @PatchMapping("/{parcelId}/metadata")
+    @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<ParcelResponse> updateParcelMetadata(
             @PathVariable UUID parcelId,
             @RequestBody UpdateParcelMetadataRequest request

@@ -22,38 +22,38 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    // US35: init payment
     @PostMapping("/init")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PaymentResponse> initPayment(
             @Valid @RequestBody InitPaymentRequest request
     ) {
         return ResponseEntity.ok(paymentService.initPayment(request));
     }
 
-    // US36: confirm payment (callback interne)
     @PostMapping("/confirm")
+    @PreAuthorize("hasAnyRole('ADMIN','FINANCE','STAFF')")
     public ResponseEntity<PaymentResponse> confirmPayment(
             @Valid @RequestBody ConfirmPaymentRequest request
     ) {
         return ResponseEntity.ok(paymentService.confirmPayment(request));
     }
 
-    // Get one payment
     @GetMapping("/{paymentId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable UUID paymentId) {
         return ResponseEntity.ok(paymentService.getPaymentById(paymentId));
     }
 
-    // US37: Payment history for a parcel
     @GetMapping("/parcel/{parcelId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<PaymentResponse>> getPaymentsForParcel(
             @PathVariable UUID parcelId
     ) {
         return ResponseEntity.ok(paymentService.getPaymentsForParcel(parcelId));
     }
 
-    // Admin/staff: list all payments
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','FINANCE','STAFF')")
     public ResponseEntity<Page<PaymentResponse>> listAllPayments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
@@ -61,24 +61,16 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.listAllPayments(page, size));
     }
 
-    // ======================================================
-    // 🔥 SPRINT 16 — PAYMENT WORKFLOW INTEGRATION
-    // ======================================================
-
-    /**
-     * Create payment entry for parcel registration (PREPAID option)
-     */
     @PostMapping("/registration/{parcelId}")
+    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
     public ResponseEntity<PaymentResponse> createRegistrationPayment(
             @PathVariable UUID parcelId
     ) {
         return ResponseEntity.ok(paymentService.createRegistrationPayment(parcelId));
     }
 
-    /**
-     * Process payment collected during home pickup
-     */
     @PostMapping("/pickup/{parcelId}")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','STAFF','ADMIN')")
     public ResponseEntity<PaymentResponse> processPickupPayment(
             @PathVariable UUID parcelId,
             @RequestParam String paymentMethod,
@@ -87,10 +79,8 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.processPickupPayment(parcelId, paymentMethod, amount));
     }
 
-    /**
-     * Process COD payment at delivery
-     */
     @PostMapping("/delivery/{parcelId}")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','STAFF','ADMIN')")
     public ResponseEntity<PaymentResponse> processDeliveryPayment(
             @PathVariable UUID parcelId,
             @RequestParam String paymentMethod,
@@ -99,10 +89,8 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.processDeliveryPayment(parcelId, paymentMethod, amount));
     }
 
-    /**
-     * Get complete payment summary for a parcel
-     */
     @GetMapping("/summary/{parcelId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PaymentSummary> getPaymentSummary(
             @PathVariable UUID parcelId
     ) {

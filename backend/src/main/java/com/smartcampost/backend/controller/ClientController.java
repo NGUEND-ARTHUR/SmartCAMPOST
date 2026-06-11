@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -19,36 +20,36 @@ public class ClientController {
 
     private final ClientService clientService;
 
-    // US6: Mon profil (client connecté)
     @GetMapping("/me")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<ClientResponse> getMyProfile() {
         return ResponseEntity.ok(clientService.getMyProfile());
     }
 
-    // 🔥 Mettre à jour tout mon profil (nom, email, phone, langue)
     @PutMapping("/me")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<ClientResponse> updateMyProfile(
             @Valid @RequestBody UpdateClientProfileRequest request
     ) {
         return ResponseEntity.ok(clientService.updateMyProfile(request));
     }
 
-    // US9: Mettre à jour ma langue préférée
     @PatchMapping("/me/preferred-language")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<ClientResponse> updateMyPreferredLanguage(
             @Valid @RequestBody UpdatePreferredLanguageRequest request
     ) {
         return ResponseEntity.ok(clientService.updateMyPreferredLanguage(request));
     }
 
-    // Client par ID (pour admin/staff)
     @GetMapping("/{clientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ClientResponse> getClientById(@PathVariable UUID clientId) {
         return ResponseEntity.ok(clientService.getClientById(clientId));
     }
 
-    // US7: Liste paginée de tous les clients (admin/staff)
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<Page<ClientResponse>> listClients(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size

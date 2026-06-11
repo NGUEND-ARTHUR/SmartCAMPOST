@@ -152,6 +152,10 @@ public class InvoiceController {
         if (user.getRole() != UserRole.CLIENT) return;
 
         UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+        if (inv.getPayment() == null || inv.getPayment().getParcel() == null
+                || inv.getPayment().getParcel().getClient() == null) {
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "You cannot access this invoice");
+        }
         UUID invoiceClientId = inv.getPayment().getParcel().getClient().getId();
         if (!Objects.equals(clientId, invoiceClientId)) {
             throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "You cannot access this invoice");
