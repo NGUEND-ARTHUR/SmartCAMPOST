@@ -54,6 +54,11 @@ public class AgentServiceImpl implements AgentService {
             staffNumber = "AGT-" + System.currentTimeMillis();
         }
 
+        // Normalise email: treat blank string as null
+        String email = (request.getEmail() != null && !request.getEmail().isBlank())
+                ? request.getEmail().trim()
+                : null;
+
         // Pré-calculer les conflits
         boolean staffNumberExists = agentRepository.existsByStaffNumber(staffNumber);
         boolean phoneExists = agentRepository.existsByPhone(request.getPhone())
@@ -139,6 +144,7 @@ public class AgentServiceImpl implements AgentService {
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(request.getPhone())
+                .email(email) // persist email so login-by-email works
                 .passwordHash(encodedPassword)
                 .role(UserRole.AGENT)
                 .entityId(savedAgent.getId())

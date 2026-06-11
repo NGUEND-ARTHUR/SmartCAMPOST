@@ -37,6 +37,11 @@ public class CourierServiceImpl implements CourierService {
                 public CourierResponse createCourier(CreateCourierRequest request) {
                 Objects.requireNonNull(request, "request is required");
 
+        // Normalise email: treat blank string as null
+        String email = (request.getEmail() != null && !request.getEmail().isBlank())
+                ? request.getEmail().trim()
+                : null;
+
         // Unicité du téléphone (courier + user_account)
         if (courierRepository.existsByPhone(request.getPhone())
                 || userAccountRepository.existsByPhone(request.getPhone())) {
@@ -66,6 +71,7 @@ public class CourierServiceImpl implements CourierService {
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(request.getPhone())
+                .email(email) // persist email so login-by-email works
                 .passwordHash(encodedPassword)
                 .role(UserRole.COURIER)
                 .entityId(savedCourier.getId())

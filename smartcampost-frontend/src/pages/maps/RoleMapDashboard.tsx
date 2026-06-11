@@ -71,6 +71,9 @@ type TrackedParcelItem = {
   recipientCity?: string;
 };
 
+// CLIENT uses /parcels/me; COURIER and AGENT use /map/couriers/me (which allows both roles)
+const CLIENT_PARCEL_ROLES = new Set(["CLIENT"]);
+const COURIER_MAP_ROLES = new Set(["COURIER", "AGENT"]);
 const TRACKING_ROLES = new Set(["CLIENT", "COURIER", "AGENT"]);
 const REFRESH_INTERVAL_MS = 60000;
 
@@ -146,36 +149,18 @@ export default function RoleMapDashboard() {
       setError(null);
 
       try {
-        if (TRACKING_ROLES.has(role)) {
+        // ── CLIENT: list own parcels then fetch map data per parcel ──────────
+        if (CLIENT_PARCEL_ROLES.has(role)) {
           const myParcels = await parcelService.listMyParcels(0, 50);
           const items = myParcels.content ?? [];
 
-          const activeStatuses = new Set([
-            "ACCEPTED",
-            "TAKEN_IN_CHARGE",
-            "IN_TRANSIT",
-            "ARRIVED_HUB",
-            "ARRIVED_DEST_AGENCY",
-            "OUT_FOR_DELIVERY",
-            "RETURNED_TO_SENDER",
-          ]);
-
-          const filtered =
-            role === "COURIER" || role === "AGENT"
-              ? items.filter((p) =>
-                  activeStatuses.has((p.status ?? "").toUpperCase()),
-                )
-              : items;
-
-          const selectedInList = filtered.some(
-            (p) => p.id === selectedParcelId,
-          );
+          const selectedInList = items.some((p) => p.id === selectedParcelId);
           const candidateParcelId = selectedInList
             ? selectedParcelId
-            : (filtered[0]?.id ?? "");
+            : (items[0]?.id ?? "");
 
           const mapResults = await Promise.allSettled(
-            filtered.slice(0, 20).map((p) => mapService.getParcelMap(p.id)),
+            items.slice(0, 20).map((p) => mapService.getParcelMap(p.id)),
           );
           const resolved = mapResults
             .filter(
@@ -187,9 +172,7 @@ export default function RoleMapDashboard() {
           const mapMarkers = (
             await Promise.all(
               resolved.map(async (parcelMap) => {
-                const parcel = filtered.find(
-                  (p) => p.id === parcelMap.parcelId,
-                );
+                const parcel = items.find((p) => p.id === parcelMap.parcelId);
                 return await extractParcelMarker(parcelMap, {
                   senderCity: parcel?.senderCity,
                   recipientCity: parcel?.recipientCity,
@@ -200,7 +183,7 @@ export default function RoleMapDashboard() {
 
           setMarkers(mapMarkers);
           setTrackedParcels(
-            filtered.map((p) => ({
+            items.map((p) => ({
               id: p.id,
               trackingRef: p.trackingRef,
               status: p.status,
@@ -208,7 +191,6 @@ export default function RoleMapDashboard() {
               recipientCity: p.recipientCity,
             })),
           );
-
           const selectedMap = candidateParcelId
             ? (resolved.find((p) => p.parcelId === candidateParcelId) ?? null)
             : null;
@@ -218,41 +200,98 @@ export default function RoleMapDashboard() {
           return;
         }
 
-        const adminData = await mapService.getAdminOverview();
-        const recentLocationMarkers: MarkerItem[] = (
-          adminData.recentLocations ?? []
-        )
-          .filter(
-            (r) =>
-              typeof r.latitude === "number" && typeof r.longitude === "number",
-          )
-          .slice(0, 150)
-          .map((r) => ({
-            id: `loc-${r.id}`,
-            position: [r.latitude as number, r.longitude as number],
-            label: `${r.address ?? "Recent location"}`,
-          }));
+        // ── COURIER / AGENT: use dedicated /map/couriers/me endpoint ─────────
+        if (COURIER_MAP_ROLES.has(role)) {
+          const courierData = await mapService.getCourierMap();
 
-        const parcelMarkers: MarkerItem[] = (adminData.activeParcels ?? [])
-          .filter(
-            (p) =>
-              (typeof p.currentLatitude === "number" &&
-                typeof p.currentLongitude === "number") ||
-              (typeof p.creationLatitude === "number" &&
-                typeof p.creationLongitude === "number"),
-          )
-          .slice(0, 200)
-          .map((p) => ({
-            id: `parcel-${p.id}`,
-            position:
-              typeof p.currentLatitude === "number" &&
-              typeof p.currentLongitude === "number"
-                ? [p.currentLatitude, p.currentLongitude]
-                : [p.creationLatitude as number, p.creationLongitude as number],
-            label: `${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"}`,
-          }));
+          const locationMarkers: MarkerItem[] = (courierData.locations ?? [])
+            .filter(
+              (l) =>
+                typeof l.latitude === "number" &&
+                typeof l.longitude === "number",
+            )
+            .slice(0, 100)
+            .map((l, i) => ({
+              id: `loc-${l.id ?? i}`,
+              position: [l.latitude as number, l.longitude as number],
+              label: l.address ?? t("roleMap.myLocation"),
+            }));
 
-        setMarkers([...recentLocationMarkers, ...parcelMarkers]);
+          const parcelMarkers: MarkerItem[] = (
+            courierData.activeParcels ?? []
+          )
+            .filter(
+              (p) =>
+                typeof p.currentLatitude === "number" &&
+                typeof p.currentLongitude === "number",
+            )
+            .map((p) => ({
+              id: `parcel-${p.id}`,
+              position: [
+                p.currentLatitude as number,
+                p.currentLongitude as number,
+              ],
+              label: `📦 ${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"}`,
+            }));
+
+          setMarkers([...locationMarkers, ...parcelMarkers]);
+          setTrackedParcels([]);
+          setSelectedParcelMap(null);
+          setSelectedParcelId("");
+          setLastUpdatedAt(new Date());
+          return;
+        }
+
+        // ── ADMIN / STAFF: full overview map ─────────────────────────────────
+        if (role === "ADMIN" || role === "STAFF") {
+          const adminData = await mapService.getAdminOverview();
+          const recentLocationMarkers: MarkerItem[] = (
+            adminData.recentLocations ?? []
+          )
+            .filter(
+              (r) =>
+                typeof r.latitude === "number" &&
+                typeof r.longitude === "number",
+            )
+            .slice(0, 150)
+            .map((r) => ({
+              id: `loc-${r.id}`,
+              position: [r.latitude as number, r.longitude as number],
+              label: `${r.address ?? "Recent location"}`,
+            }));
+
+          const parcelMarkers: MarkerItem[] = (adminData.activeParcels ?? [])
+            .filter(
+              (p) =>
+                (typeof p.currentLatitude === "number" &&
+                  typeof p.currentLongitude === "number") ||
+                (typeof p.creationLatitude === "number" &&
+                  typeof p.creationLongitude === "number"),
+            )
+            .slice(0, 200)
+            .map((p) => ({
+              id: `parcel-${p.id}`,
+              position:
+                typeof p.currentLatitude === "number" &&
+                typeof p.currentLongitude === "number"
+                  ? [p.currentLatitude, p.currentLongitude]
+                  : [
+                      p.creationLatitude as number,
+                      p.creationLongitude as number,
+                    ],
+              label: `${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"}`,
+            }));
+
+          setMarkers([...recentLocationMarkers, ...parcelMarkers]);
+          setTrackedParcels([]);
+          setSelectedParcelMap(null);
+          setSelectedParcelId("");
+          setLastUpdatedAt(new Date());
+          return;
+        }
+
+        // ── FINANCE / RISK / other: show empty map (no tracking data access) ──
+        setMarkers([]);
         setTrackedParcels([]);
         setSelectedParcelMap(null);
         setSelectedParcelId("");
@@ -287,7 +326,7 @@ export default function RoleMapDashboard() {
     return t("roleMap.title.admin");
   }, [role, t]);
 
-  const canTrackParcels = TRACKING_ROLES.has(role);
+  const canTrackParcels = CLIENT_PARCEL_ROLES.has(role);
 
   return (
     <div className="space-y-6">

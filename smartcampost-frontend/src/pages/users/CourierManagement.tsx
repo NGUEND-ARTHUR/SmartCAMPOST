@@ -54,6 +54,7 @@ export default function CourierManagement() {
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
+    email: "",
     password: "",
     vehicleId: "",
   });
@@ -77,6 +78,7 @@ export default function CourierManagement() {
     setFormData({
       fullName: "",
       phone: "",
+      email: "",
       password: "",
       vehicleId: "",
     });
@@ -94,6 +96,7 @@ export default function CourierManagement() {
       phone: formData.phone,
       password: formData.password,
       vehicleId: rawVehicleId || `VH-${Date.now().toString(36).toUpperCase()}`,
+      ...(formData.email?.trim() ? { email: formData.email.trim() } : {}),
     };
     createCourier.mutate(payload, {
       onSuccess: () => {
@@ -170,16 +173,30 @@ export default function CourierManagement() {
                   placeholder={t("courierManagement.fullNamePlaceholder")}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">{t("courierManagement.phone")} *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder={t("courierManagement.phonePlaceholder")}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">{t("courierManagement.phone")} *</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    placeholder={t("courierManagement.phonePlaceholder")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t("courierManagement.email")}</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    placeholder={t("courierManagement.emailPlaceholder", { defaultValue: "email@example.com" })}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">

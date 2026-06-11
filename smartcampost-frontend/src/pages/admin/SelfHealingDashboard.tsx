@@ -17,6 +17,7 @@ import {
   Route,
   Activity,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { selfHealingService } from "../../services/ai/selfHealing.api";
 import type { CongestionAlert, SelfHealingAction } from "../../types";
@@ -30,11 +31,13 @@ export default function SelfHealingDashboard() {
   const [suggestedActions, setSuggestedActions] = useState<SelfHealingAction[]>(
     [],
   );
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [executing, setExecuting] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const [alerts, actions] = await Promise.all([
         selfHealingService.detectCongestion(),
@@ -43,7 +46,9 @@ export default function SelfHealingDashboard() {
       setCongestionAlerts(alerts);
       setSuggestedActions(actions);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("selfHealing.fetchError", "Failed to load self-healing data."));
+      const msg = error instanceof Error ? error.message : t("selfHealing.fetchError", "Failed to load self-healing data.");
+      setFetchError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -125,6 +130,23 @@ export default function SelfHealingDashboard() {
         </Button>
       </div>
 
+      {fetchError && (
+        <Card className="border-destructive">
+          <CardContent className="pt-4 flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            <span>{fetchError}</span>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center py-16 gap-3 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>{t("common.loading", "Loading…")}</span>
+        </div>
+      )}
+
+      {!loading && (<>
       {/* Congestion Alerts */}
       <Card>
         <CardHeader>
@@ -260,6 +282,7 @@ export default function SelfHealingDashboard() {
           )}
         </CardContent>
       </Card>
+      </>)}
     </div>
   );
 }

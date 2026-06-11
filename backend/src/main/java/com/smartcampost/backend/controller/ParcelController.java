@@ -28,9 +28,9 @@ public class ParcelController {
         return ResponseEntity.ok(parcelService.createParcel(request));
     }
 
-    // List parcels for connected client
+    // List parcels for connected user (CLIENT = own parcels; AGENT/COURIER = all parcels, filtered by service)
     @GetMapping("/me")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER')")
     public ResponseEntity<Page<ParcelResponse>> listMyParcels(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size

@@ -16,6 +16,8 @@ public class CreateCourierRequest {
     @NotBlank
     private String phone;
 
+    private String email; // optionnel : permet le login par email
+
     @NotBlank
     private String password;
 
