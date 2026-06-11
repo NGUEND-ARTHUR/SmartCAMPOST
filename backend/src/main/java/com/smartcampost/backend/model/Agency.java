@@ -23,10 +23,10 @@ public class Agency {
     @Column(name = "agency_code", nullable = false, length = 50, unique = true)
     private String agencyCode;
 
-    @Column(name = "city", nullable = false, length = 100)
+    @Column(name = "city", length = 100)
     private String city;
 
-    @Column(name = "region", nullable = false, length = 100)
+    @Column(name = "region", length = 100)
     private String region;
 
     @Column(name = "country", nullable = false, length = 100)

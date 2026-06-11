@@ -36,4 +36,15 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+axiosInstance.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const serverMessage = error?.response?.data?.message;
+    if (serverMessage && typeof serverMessage === "string") {
+      return Promise.reject(new Error(serverMessage));
+    }
+    return Promise.reject(error);
+  },
+);
+
 export default axiosInstance;

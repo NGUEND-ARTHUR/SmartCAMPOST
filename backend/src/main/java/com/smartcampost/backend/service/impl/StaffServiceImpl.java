@@ -100,6 +100,7 @@ public class StaffServiceImpl implements StaffService {
         UserAccount account = UserAccount.builder()
                 .id(UUID.randomUUID())
                 .phone(request.getPhone())
+                .email(email) // persist email so login-by-email works
                 .passwordHash(encodedPassword)
                 .role(role) // ✅ UserAccount.role is ENUM
                 .entityId(staff.getId())

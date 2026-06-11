@@ -1,18 +1,1240 @@
 {
-  "auth": {
-    "loginTitle": "Connexion",
-    "loginSubtitle": "Entrez vos identifiants pour accéder à votre compte",
-    "fullName": "Nom complet",
-    "phoneNumber": "Numéro de téléphone",
-    "password": "Mot de passe",
-    "login": "Se connecter",
-    "signIn": "Se connecter",
-    "rememberMe": "Se souvenir de moi",
-    "forgotPassword": "Mot de passe oublié ?"
-  },
   "common": {
     "loading": "Chargement...",
     "error": "Une erreur s'est produite",
-    "tryAgain": "Réessayer"
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "actions": "Actions",
+    "status": "Statut",
+    "date": "Date",
+    "name": "Nom",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "password": "Mot de passe",
+    "submit": "Soumettre",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "yes": "Oui",
+    "no": "Non",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "welcome": "Bienvenue",
+    "language": "Langue",
+    "theme": "Thème",
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre",
+    "french": "Français",
+    "english": "Anglais",
+    "all": "Tous",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "suspended": "Suspendu",
+    "pending": "En attente",
+    "completed": "Terminé",
+    "failed": "Échoué",
+    "success": "Succès",
+    "required": "Requis",
+    "optional": "Optionnel",
+    "noData": "Aucune donnée disponible",
+    "tryAgain": "Réessayer",
+    "featureUnavailable": "Cette fonctionnalité n'est pas encore disponible.",
+    "view": "Voir",
+    "details": "Détails",
+    "description": "Description",
+    "amount": "Montant",
+    "total": "Total",
+    "type": "Type",
+    "add": "Ajouter",
+    "remove": "Supprimer",
+    "update": "Mettre à jour",
+    "refresh": "Actualiser",
+    "noResults": "Aucun résultat trouvé",
+    "selectAll": "Tout sélectionner",
+    "pageOf": "Page {{page}} sur {{total}}",
+    "errorOccurred": "Une erreur s'est produite",
+    "errorLoading": "Erreur de chargement des données",
+    "export": "Exporter",
+    "inProgress": "En cours",
+    "manage": "Gérer",
+    "parcel": "Colis",
+    "action": "Action",
+    "customer": "Client",
+    "dismiss": "Ignorer",
+    "processing": "Traitement en cours…",
+    "notScheduled": "Non planifié",
+    "unknown": "Inconnu",
+    "or": "OU"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "parcels": "Colis",
+    "myParcels": "Mes colis",
+    "pickups": "Collectes",
+    "myPickups": "Mes collectes",
+    "deliveries": "Livraisons",
+    "myDeliveries": "Mes livraisons",
+    "payments": "Paiements",
+    "refunds": "Remboursements",
+    "support": "Assistance",
+    "notifications": "Notifications",
+    "analytics": "Analytique",
+    "tracking": "Suivi",
+    "map": "Carte",
+    "scanConsole": "Console de scan",
+    "staffDashboard": "Tableau de bord personnel",
+    "staffManagement": "Gestion du personnel",
+    "agentManagement": "Gestion des agents",
+    "courierManagement": "Gestion des coursiers",
+    "agencyManagement": "Gestion des agences",
+    "clientManagement": "Gestion des clients",
+    "tariffManagement": "Gestion des tarifs",
+    "integrations": "Intégrations",
+    "userAccounts": "Comptes utilisateurs",
+    "riskAlerts": "Alertes de risque",
+    "compliance": "Conformité",
+    "selfHealing": "Auto-guérison",
+    "approvals": "Approbations"
+  },
+  "auth": {
+    "loginTitle": "Connexion à votre compte",
+    "loginSubtitle": "Entrez vos identifiants pour accéder à votre compte",
+    "registerTitle": "Créer un compte",
+    "registerSubtitle": "Rejoignez SmartCAMPOST aujourd'hui",
+    "resetPasswordTitle": "Réinitialiser votre mot de passe",
+    "resetPasswordSubtitle": "Entrez votre e-mail pour recevoir un lien de réinitialisation",
+    "otpTitle": "Entrez le code OTP",
+    "otpSubtitle": "Nous avons envoyé un code sur votre téléphone",
+    "fullName": "Nom complet",
+    "phoneNumber": "Numéro de téléphone",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "signUp": "S'inscrire",
+    "signIn": "Se connecter",
+    "sendOtp": "Envoyer OTP",
+    "verifyOtp": "Vérifier OTP",
+    "resendOtp": "Renvoyer OTP",
+    "selectLanguage": "Sélectionnez votre langue préférée",
+    "preferredLanguage": "Langue préférée",
+    "loginWithOtpTitle": "Connexion avec OTP",
+    "loginWithOtpSubtitleRequest": "Entrez votre numéro de téléphone pour recevoir un OTP",
+    "loginWithOtpSubtitleConfirm": "Entrez l'OTP reçu",
+    "otp": "OTP",
+    "otpPlaceholder": "Entrez l'OTP",
+    "sending": "Envoi en cours...",
+    "verifying": "Vérification...",
+    "verifyAndLogin": "Vérifier et se connecter",
+    "backToPasswordLogin": "Retour à la connexion par mot de passe",
+    "resetPasswordOtpTitle": "Réinitialiser le mot de passe",
+    "resetPasswordOtpSubtitleRequest": "Demander un OTP pour réinitialiser votre mot de passe",
+    "resetPasswordOtpSubtitleConfirm": "Confirmer l'OTP et définir un nouveau mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Minimum 6 caractères",
+    "requesting": "Demande en cours...",
+    "requestOtp": "Demander OTP",
+    "saving": "Enregistrement...",
+    "confirmReset": "Confirmer la réinitialisation",
+    "backToLogin": "Retour à la connexion",
+    "login": "Se connecter",
+    "password": "Mot de passe",
+    "toasts": {
+      "otpSent": "OTP envoyé",
+      "otpSendFailed": "Échec de l'envoi de l'OTP",
+      "invalidOtp": "OTP invalide",
+      "resetRequestFailed": "Échec de la demande de réinitialisation",
+      "passwordResetSuccess": "Mot de passe réinitialisé avec succès",
+      "passwordResetFailed": "Échec de la réinitialisation du mot de passe"
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Services postaux intelligents pour le Cameroun",
+      "subtitle": "Suivez, envoyez et gérez vos colis facilement. Solutions logistiques modernes pour les particuliers et les entreprises.",
+      "cta": "Commencer",
+      "login": "Connexion"
+    },
+    "features": {
+      "title": "Nos services",
+      "tracking": {
+        "title": "Suivi en temps réel",
+        "description": "Suivez vos colis en temps réel avec notre système GPS avancé"
+      },
+      "delivery": {
+        "title": "Livraison rapide",
+        "description": "Options de livraison express dans toutes les régions du Cameroun"
+      },
+      "secure": {
+        "title": "Manipulation sécurisée",
+        "description": "Vos colis sont manipulés avec soin et entièrement assurés"
+      },
+      "support": {
+        "title": "Support 24h/24 7j/7",
+        "description": "Notre équipe de service client est toujours prête à vous aider"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Bienvenue",
+    "overview": "Aperçu",
+    "recentActivity": "Activité récente",
+    "quickActions": "Actions rapides",
+    "loadingError": "Erreur de chargement du tableau de bord",
+    "stats": {
+      "totalParcels": "Total colis",
+      "inTransit": "En transit",
+      "delivered": "Livré",
+      "pending": "En attente",
+      "totalRevenue": "Revenu total",
+      "todayPickups": "Collectes du jour",
+      "todayDeliveries": "Livraisons du jour",
+      "activeAlerts": "Alertes actives",
+      "activeCouriers": "Coursiers actifs",
+      "onDutyToday": "En service aujourd'hui",
+      "pendingIssues": "Problèmes en attente",
+      "requireAttention": "Nécessitent attention"
+    },
+    "client": {
+      "title": "Tableau de bord client",
+      "myParcels": "Mes colis",
+      "createParcel": "Créer un nouveau colis",
+      "trackParcel": "Suivre un colis",
+      "activeShipments": "Expéditions actives",
+      "awaitingPickup": "En attente de collecte",
+      "allTime": "Depuis le début",
+      "recentParcels": "Colis récents",
+      "noRecentParcels": "Aucun colis récent",
+      "createFirstParcel": "Créez votre premier colis"
+    },
+    "courier": {
+      "title": "Tableau de bord coursier",
+      "assignedPickups": "Collectes assignées",
+      "assignedDeliveries": "Livraisons assignées",
+      "completedToday": "Terminées aujourd'hui"
+    },
+    "staff": {
+      "title": "Tableau de bord personnel",
+      "pendingTasks": "Tâches en attente",
+      "processedToday": "Traitées aujourd'hui"
+    },
+    "admin": {
+      "title": "Tableau de bord administrateur",
+      "systemOverview": "Vue d'ensemble du système",
+      "userStats": "Statistiques utilisateurs",
+      "revenueStats": "Statistiques de revenus",
+      "financeDashboard": "Tableau de bord finances",
+      "createFinance": "Créer un utilisateur finance",
+      "riskDashboard": "Tableau de bord risques",
+      "createRisk": "Créer une alerte de risque",
+      "createRiskAlert": "Créer une alerte de risque",
+      "manageStaff": "Gérer le personnel",
+      "approvals": "Approbations",
+      "liveScans": "Scans en direct",
+      "waitingForScans": "En attente d'événements de scan…"
+    },
+    "finance": {
+      "title": "Tableau de bord finances",
+      "dailyRevenue": "Revenu journalier",
+      "pendingPayments": "Paiements en attente",
+      "refundRequests": "Demandes de remboursement"
+    },
+    "risk": {
+      "title": "Tableau de bord risques",
+      "activeAlerts": "Alertes actives",
+      "complianceScore": "Score de conformité",
+      "flaggedTransactions": "Transactions signalées"
+    }
+  },
+  "parcelList": {
+    "title": "Mes colis",
+    "subtitle": "Suivez et gérez vos colis",
+    "createParcel": "Créer un colis",
+    "searchPlaceholder": "Rechercher par numéro de suivi...",
+    "filterByStatus": "Filtrer par statut",
+    "status": {
+      "all": "Tous les statuts",
+      "created": "Créé",
+      "accepted": "Accepté",
+      "inTransit": "En transit",
+      "arrivedHub": "Arrivé au hub",
+      "outForDelivery": "En cours de livraison",
+      "delivered": "Livré",
+      "returned": "Retourné",
+      "cancelled": "Annulé"
+    },
+    "errorLoading": "Erreur de chargement des colis",
+    "noParcelsFound": "Aucun colis trouvé",
+    "tryAdjustingSearch": "Essayez d'ajuster votre recherche ou vos filtres",
+    "createFirstParcel": "Créez votre premier colis pour commencer",
+    "table": {
+      "tracking": "Suivi",
+      "service": "Service",
+      "delivery": "Livraison",
+      "status": "Statut",
+      "created": "Créé",
+      "actions": "Actions"
+    },
+    "actions": {
+      "viewDetails": "Voir les détails",
+      "track": "Suivre",
+      "printLabel": "Imprimer QR"
+    }
+  },
+  "parcels": {
+    "title": "Colis",
+    "createTitle": "Créer un nouveau colis",
+    "create": {
+      "subtitle": "Remplissez les détails pour créer une nouvelle expédition",
+      "steps": {
+        "addresses": "Adresses",
+        "parcelDetails": "Détails du colis",
+        "service": "Service",
+        "payment": "Paiement"
+      },
+      "toasts": {
+        "selectAddresses": "Veuillez sélectionner les adresses de l'expéditeur et du destinataire.",
+        "selectSenderAddress": "Veuillez sélectionner une adresse d'expéditeur avant de continuer.",
+        "selectRecipientAddress": "Veuillez sélectionner une adresse de destinataire avant de continuer.",
+        "validWeight": "Veuillez entrer un poids valide pour le colis.",
+        "created": "Colis créé avec succès !",
+        "createFailed": "Échec de la création du colis"
+      }
+    },
+    "detailTitle": "Détails du colis",
+    "detail": {
+      "backToParcels": "Retour aux colis",
+      "notFoundTitle": "Colis introuvable",
+      "notFoundDescription": "Le colis n'a pas pu être chargé",
+      "createdOn": "Créé le {{date}}",
+      "detailsTitle": "Détails du colis",
+      "weight": "Poids",
+      "dimensions": "Dimensions",
+      "declaredValue": "Valeur déclarée",
+      "fragile": "Fragile",
+      "serviceType": "Type de service",
+      "deliveryOption": "Option de livraison",
+      "paymentOption": "Option de paiement",
+      "quote": "Devis",
+      "description": "Description",
+      "expectedDelivery": "Livraison prévue :",
+      "na": "N/D",
+      "addresses": "Adresses",
+      "sender": "Expéditeur",
+      "recipient": "Destinataire",
+      "trackingMap": "Carte de suivi",
+      "trackingMapDescription": "Historique complet du trajet de ce colis",
+      "trackingTimeline": "Chronologie de suivi",
+      "trackingTimelineDescription": "Historique complet des scans et événements de statut",
+      "codPayment": "Paiement à la livraison",
+      "codPaymentDescription": "Statut du paiement à la livraison",
+      "amountDue": "Montant dû",
+      "alreadyPaid": "Déjà payé",
+      "markCodAsPaid": "Marquer COD comme payé",
+      "actions": {
+        "viewPhoto": "Voir la photo",
+        "downloadReceipt": "Télécharger le reçu",
+        "reportIssue": "Signaler un problème",
+        "accept": "Accepter",
+        "validateAccept": "Valider et accepter",
+        "validateLock": "Valider et verrouiller (QR final)",
+        "cancel": "Annuler le colis",
+        "noPhotoAvailable": "Aucune photo disponible pour ce colis",
+        "noReceiptAvailable": "Aucun reçu disponible pour ce colis",
+        "receiptDownloadFailed": "Échec du téléchargement du reçu"
+      },
+      "timeline": {
+        "unknownAgent": "Agent inconnu",
+        "viewProof": "Voir la photo preuve"
+      }
+    },
+    "toasts": {
+      "accepted": "Colis accepté",
+      "acceptFailed": "Échec de l'acceptation",
+      "validatedAccepted": "Colis validé et accepté",
+      "validationFailed": "Échec de la validation",
+      "lockedFinalQr": "Colis validé et verrouillé (QR FINAL)",
+      "validateLockFailed": "Échec de la validation et du verrouillage",
+      "cancelled": "Colis annulé",
+      "cancelledDescription": "Colis {{trackingRef}}",
+      "cancelFailed": "Échec de l'annulation du colis",
+      "codMarkedPaid": "COD marqué comme payé avec succès",
+      "codPaymentFailed": "Échec du marquage COD comme payé"
+    },
+    "trackingNumber": "Numéro de suivi",
+    "sender": "Expéditeur",
+    "recipient": "Destinataire",
+    "origin": "Origine",
+    "destination": "Destination",
+    "weight": "Poids",
+    "dimensions": "Dimensions",
+    "contents": "Contenu",
+    "value": "Valeur déclarée",
+    "status": {
+      "created": "Créé",
+      "atOrigin": "À l'agence d'origine",
+      "inTransit": "En transit",
+      "arrivedHub": "Arrivé au hub",
+      "departedHub": "Parti du hub",
+      "arrivedDestination": "Arrivé à destination",
+      "outForDelivery": "En cours de livraison",
+      "delivered": "Livré",
+      "returned": "Retourné"
+    },
+    "form": {
+      "recipientName": "Nom du destinataire",
+      "recipientPhone": "Téléphone du destinataire",
+      "pickupAddress": "Adresse de collecte",
+      "deliveryAddress": "Adresse de livraison",
+      "selectServiceType": "Sélectionner le type de service",
+      "estimatedPrice": "Prix estimé",
+      "createParcel": "Créer le colis"
+    }
+  },
+  "addresses": {
+    "page": {
+      "title": "Adresses enregistrées",
+      "subtitle": "Gérez vos adresses de livraison et de collecte",
+      "addAddress": "Ajouter une adresse"
+    },
+    "dialog": {
+      "addTitle": "Ajouter une nouvelle adresse",
+      "addDescription": "Entrez les détails de l'adresse ci-dessous",
+      "editTitle": "Modifier l'adresse",
+      "editDescription": "Mettez à jour les détails de l'adresse ci-dessous",
+      "addAction": "Ajouter l'adresse",
+      "updateAction": "Mettre à jour l'adresse",
+      "updating": "Mise à jour...",
+      "adding": "Ajout..."
+    },
+    "form": {
+      "label": "Libellé *",
+      "labelPlaceholder": "ex. : Domicile, Bureau, Entrepôt",
+      "street": "Adresse *",
+      "streetPlaceholder": "Adresse, bâtiment, appartement",
+      "city": "Ville *",
+      "cityPlaceholder": "Ville",
+      "region": "Région *",
+      "regionPlaceholder": "Région",
+      "country": "Pays *"
+    },
+    "empty": {
+      "title": "Aucune adresse enregistrée",
+      "description": "Ajoutez des adresses pour accélérer la création de colis",
+      "action": "Ajouter une adresse"
+    },
+    "toasts": {
+      "requiredFields": "Veuillez remplir tous les champs obligatoires",
+      "fillLabelCityRegion": "Veuillez remplir le libellé, la ville et la région",
+      "updated": "Adresse mise à jour avec succès",
+      "added": "Adresse ajoutée avec succès",
+      "deleted": "Adresse supprimée avec succès"
+    },
+    "loading": "Chargement des adresses..."
+  },
+  "pickups": {
+    "title": "Collectes",
+    "schedulePickup": "Planifier une collecte",
+    "pickupDate": "Date de collecte",
+    "pickupTime": "Heure de collecte",
+    "pickupAddress": "Adresse de collecte",
+    "assignCourier": "Assigner un coursier",
+    "page": {
+      "title": "Demandes de collecte",
+      "subtitle": "Planifiez des collectes pour vos colis",
+      "requestPickup": "Demander une collecte",
+      "dialog": {
+        "description": "Planifier un coursier pour récupérer votre colis",
+        "selectParcel": "Sélectionner le colis *",
+        "chooseParcel": "Choisir un colis",
+        "pickupDate": "Date de collecte *",
+        "pickupDateTitle": "Sélectionner la date de collecte",
+        "pickupDatePlaceholder": "Sélectionner une date",
+        "timeWindow": "Créneau horaire *",
+        "chooseTimeWindow": "Choisir un créneau horaire",
+        "timeWindows": {
+          "morning": "Matin (09h00 - 12h00)",
+          "afternoon": "Après-midi (12h00 - 15h00)",
+          "evening": "Soir (15h00 - 18h00)"
+        },
+        "instructions": "Instructions supplémentaires (optionnel)",
+        "instructionsPlaceholder": "Instructions spéciales pour le coursier...",
+        "manualOverride": "Remplacer la localisation manuellement",
+        "chooseOnMap": "Choisir sur la carte",
+        "latitude": "Latitude",
+        "longitude": "Longitude"
+      },
+      "toasts": {
+        "requiredFields": "Veuillez remplir tous les champs obligatoires",
+        "requestSubmitted": "Demande de collecte soumise avec succès !",
+        "createFailed": "Échec de la création de la collecte",
+        "cancelled": "Collecte annulée avec succès",
+        "cancelFailed": "Échec de l'annulation de la collecte"
+      },
+      "submitRequest": "Soumettre la demande",
+      "errorTitle": "Erreur de chargement des collectes",
+      "noPickups": "Aucune demande de collecte",
+      "noPickupsDescription": "Planifiez une collecte pour vos colis",
+      "requestedOn": "Demandé le"
+    },
+    "management": {
+      "title": "Gestion des collectes",
+      "subtitle": "Toutes les demandes de collecte et l'assignation des coursiers",
+      "allPickups": "Toutes les collectes",
+      "searchPlaceholder": "Rechercher des collectes...",
+      "filterByStatus": "Filtrer par statut",
+      "assign": "Assigner",
+      "status": {
+        "all": "Tous les statuts",
+        "requested": "Demandé",
+        "assigned": "Assigné",
+        "completed": "Terminé",
+        "cancelled": "Annulé"
+      },
+      "dialog": {
+        "title": "Assigner un coursier",
+        "description": "Sélectionnez un coursier pour cette demande de collecte",
+        "courier": "Coursier",
+        "selectCourier": "Sélectionner un coursier"
+      },
+      "toasts": {
+        "selectCourier": "Veuillez sélectionner un coursier",
+        "courierAssigned": "Coursier assigné",
+        "assignFailed": "Échec de l'assignation du coursier"
+      }
+    },
+    "status": {
+      "requested": "Demandé",
+      "assigned": "Assigné",
+      "inProgress": "En cours",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    }
+  },
+  "deliveries": {
+    "title": "Livraisons",
+    "confirmDelivery": "Confirmer la livraison",
+    "deliveryAddress": "Adresse de livraison",
+    "deliveryDate": "Date de livraison",
+    "courier": {
+      "title": "Mes livraisons",
+      "subtitle_one": "{{count}} livraison assignée",
+      "subtitle_other": "{{count}} livraisons assignées",
+      "noDeliveries": "Aucune livraison",
+      "noDeliveriesDescription": "Les livraisons qui vous sont assignées apparaîtront ici",
+      "recipient": "Destinataire",
+      "toasts": {
+        "markedComplete": "Livraison {{id}} marquée comme terminée",
+        "completeFailed": "Échec de la complétion de la livraison"
+      }
+    },
+    "status": {
+      "pending": "En attente",
+      "assigned": "Assigné",
+      "inProgress": "En cours",
+      "completed": "Terminé",
+      "failed": "Échoué"
+    }
+  },
+  "payments": {
+    "title": "Paiements",
+    "subtitle": "Consultez et gérez votre historique de paiements",
+    "amount": "Montant",
+    "paymentMethod": "Méthode de paiement",
+    "transactionId": "ID de transaction",
+    "paymentDate": "Date de paiement",
+    "totalPaid": "Total payé",
+    "successfulPayments": "paiements réussis",
+    "pending": "En attente",
+    "pendingPayments": "paiements en attente",
+    "totalTransactions": "Total des transactions",
+    "allTime": "Depuis le début",
+    "searchPlaceholder": "Rechercher par ID paiement ou colis...",
+    "filterByStatus": "Filtrer par statut",
+    "errorTitle": "Erreur de chargement des paiements",
+    "noPayments": "Aucun paiement trouvé",
+    "adjustFilters": "Essayez d'ajuster votre recherche ou vos filtres",
+    "status": {
+      "pending": "En attente",
+      "completed": "Terminé",
+      "failed": "Échoué",
+      "refunded": "Remboursé"
+    },
+    "methods": {
+      "mobileMoney": "Mobile Money",
+      "card": "Carte",
+      "cash": "Espèces",
+      "bankTransfer": "Virement bancaire"
+    }
+  },
+  "refunds": {
+    "title": "Remboursements",
+    "subtitle": "Gérer les demandes de remboursement",
+    "requestRefund": "Demander un remboursement",
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter"
+    },
+    "toasts": {
+      "approved": "Remboursement approuvé",
+      "rejected": "Remboursement rejeté",
+      "approveFailed": "Échec de l'approbation",
+      "rejectFailed": "Échec du rejet"
+    },
+    "status": {
+      "requested": "Demandé",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "processed": "Traité"
+    }
+  },
+  "support": {
+    "title": "Centre d'assistance",
+    "subtitle": "Obtenez de l'aide pour vos colis et votre compte",
+    "add": "Nouveau ticket",
+    "searchPlaceholder": "Rechercher par ID ou sujet...",
+    "open": "Ouvert",
+    "inProgress": "En cours",
+    "resolved": "Résolu",
+    "closed": "Fermé",
+    "category": {
+      "delivery_issue": "Problème de livraison",
+      "payment_issue": "Problème de paiement",
+      "damaged_goods": "Marchandises endommagées",
+      "lost_parcel": "Colis perdu",
+      "technical_support": "Support technique",
+      "general_inquiry": "Demande générale"
+    },
+    "create": {
+      "title": "Créer un nouveau ticket de support",
+      "subtitle": "Décrivez votre problème et notre équipe vous répondra.",
+      "action": "Créer le ticket",
+      "creating": "Création...",
+      "success": "Ticket créé",
+      "error": "Échec de la création du ticket"
+    },
+    "form": {
+      "requiredFields": "Veuillez remplir tous les champs obligatoires.",
+      "category": "Catégorie",
+      "categoryPlaceholder": "Sélectionnez une catégorie",
+      "parcel": "Colis (optionnel)",
+      "parcelPlaceholder": "Sélectionnez un colis",
+      "subject": "Sujet",
+      "subjectPlaceholder": "Résumé court de votre problème",
+      "description": "Description",
+      "descriptionPlaceholder": "Expliquez votre problème avec autant de détails que possible"
+    },
+    "stats": {
+      "open": "Ouverts",
+      "inProgress": "En cours",
+      "resolved": "Résolus",
+      "total": "Total"
+    },
+    "list": {
+      "searchPlaceholder": "Rechercher par sujet ou ID ticket...",
+      "statusPlaceholder": "Statut",
+      "errorTitle": "Impossible de charger les tickets",
+      "emptyTitle": "Aucun ticket",
+      "emptyDefault": "Vous n'avez pas encore créé de tickets de support.",
+      "emptyFiltered": "Aucun ticket ne correspond à votre recherche.",
+      "createAction": "Créer un ticket",
+      "ticketId": "Ticket #{{id}}",
+      "created": "Créé",
+      "viewDetails": "Voir les détails"
+    },
+    "status": {
+      "all": "Tous",
+      "open": "Ouvert",
+      "inProgress": "En cours",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Vous avez {{count}} notification(s) non lue(s)",
+    "noLogs": "Aucune notification",
+    "noLogsDescription": "Nous vous informerons lorsque quelque chose d'important se produira.",
+    "markAllRead": "Tout marquer comme lu",
+    "markedAllRead": "Toutes les notifications marquées comme lues",
+    "errorLoading": "Erreur de chargement des notifications"
+  },
+  "staffManagement": {
+    "title": "Gestion du personnel",
+    "subtitle": "Gérer les comptes du personnel et des coursiers",
+    "addStaff": "Ajouter du personnel",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Jean Dupont",
+    "phone": "Téléphone",
+    "phonePlaceholder": "+237 6XX XXX XXX",
+    "email": "E-mail",
+    "emailPlaceholder": "personnel@campost.cm",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "role": "Rôle",
+    "selectRole": "Sélectionner un rôle",
+    "vehicleId": "ID du véhicule (optionnel)",
+    "vehicleIdPlaceholder": "VH-XXXXX (généré automatiquement si vide)",
+    "agencyOptional": "Agence (optionnel)",
+    "selectAgency": "Sélectionner une agence",
+    "create": {
+      "title": "Créer un nouveau membre du personnel",
+      "subtitle": "Ajouter un nouveau membre du personnel ou administrateur au système",
+      "actionStaff": "Créer le personnel",
+      "actionCourier": "Créer le coursier"
+    },
+    "list": {
+      "title": "Tout le personnel et les coursiers",
+      "searchPlaceholder": "Rechercher...",
+      "member": "Membre",
+      "contact": "Contact",
+      "role": "Rôle",
+      "status": "Statut",
+      "actions": "Actions",
+      "errorTitle": "Erreur de chargement du personnel",
+      "emptyTitle": "Aucun personnel ou coursier trouvé",
+      "emptyFiltered": "Essayez d'ajuster vos filtres",
+      "emptyDefault": "Ajoutez votre premier membre du personnel ou coursier"
+    },
+    "filter": {
+      "allRoles": "Tous les rôles",
+      "allStatus": "Tous les statuts"
+    },
+    "requiredFields": "Veuillez remplir tous les champs obligatoires",
+    "courierCreated": "Coursier créé avec succès",
+    "failedCreateCourier": "Échec de la création du coursier",
+    "staffCreated": "Personnel créé avec succès",
+    "failedCreateStaff": "Échec de la création du personnel",
+    "failedUpdateStatus": "Échec de la mise à jour du statut",
+    "failedUpdateRole": "Échec de la mise à jour du rôle",
+    "toasts": {
+      "courierStatusUpdated": "Statut du coursier mis à jour : {{status}}",
+      "staffStatusUpdated": "Statut du personnel mis à jour : {{status}}",
+      "staffRoleUpdated": "Rôle du personnel mis à jour : {{role}}"
+    }
+  },
+  "agents": {
+    "title": "Gestion des agents",
+    "subtitle": "Gérer les agents et leurs agences",
+    "add": "Ajouter un agent",
+    "create": {
+      "title": "Créer un nouvel agent",
+      "subtitle": "Ajouter un nouvel agent postal au système",
+      "action": "Créer l'agent",
+      "success": "Agent créé avec succès",
+      "error": "Échec de la création de l'agent"
+    },
+    "form": {
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "Entrez le nom complet",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+237 6XX XXX XXX",
+      "email": "E-mail",
+      "emailPlaceholder": "agent@campost.cm",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "••••••••",
+      "assignAgency": "Assigner à une agence",
+      "selectAgencyPlaceholder": "Sélectionner une agence",
+      "requiredFields": "Veuillez remplir tous les champs obligatoires"
+    },
+    "list": {
+      "title": "Tous les agents",
+      "searchPlaceholder": "Rechercher des agents...",
+      "statusPlaceholder": "Filtrer par statut",
+      "agent": "Agent",
+      "contact": "Contact",
+      "agency": "Agence",
+      "status": "Statut",
+      "actions": "Actions",
+      "errorTitle": "Erreur de chargement des agents",
+      "emptyTitle": "Aucun agent trouvé",
+      "emptyFiltered": "Essayez d'ajuster votre recherche ou vos filtres",
+      "emptyDefault": "Ajoutez votre premier agent pour commencer"
+    },
+    "status": {
+      "all": "Tous les statuts",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "suspended": "Suspendu",
+      "updated": "Statut de l'agent mis à jour : {{status}}",
+      "error": "Échec de la mise à jour du statut de l'agent"
+    },
+    "assign": {
+      "title": "Assigner l'agent à une agence",
+      "subtitle": "Sélectionnez l'agence pour cet agent",
+      "action": "Assigner à l'agence",
+      "selectAgency": "Veuillez sélectionner une agence",
+      "success": "Agent assigné à l'agence avec succès",
+      "error": "Échec de l'assignation de l'agent"
+    }
+  },
+  "agencies": {
+    "title": "Gestion des agences",
+    "subtitle": "Gérer les agences postales et leurs emplacements",
+    "add": "Ajouter une agence",
+    "create": {
+      "title": "Créer une nouvelle agence",
+      "subtitle": "Ajouter une nouvelle agence postale au système",
+      "action": "Créer l'agence",
+      "success": "Agence créée avec succès",
+      "error": "Échec de la création de l'agence"
+    },
+    "update": {
+      "title": "Modifier l'agence",
+      "subtitle": "Mettre à jour les détails de l'agence",
+      "action": "Mettre à jour l'agence",
+      "success": "Agence mise à jour avec succès",
+      "error": "Échec de la mise à jour de l'agence"
+    },
+    "form": {
+      "name": "Nom de l'agence",
+      "namePlaceholder": "ex. : Poste centrale de Yaoundé",
+      "code": "Code de l'agence",
+      "codePlaceholder": "ex. : YDE-001",
+      "address": "Adresse",
+      "addressPlaceholder": "Adresse postale",
+      "city": "Ville",
+      "cityPlaceholder": "ex. : Yaoundé",
+      "region": "Région",
+      "regionPlaceholder": "ex. : Centre",
+      "country": "Pays",
+      "countryPlaceholder": "ex. : Cameroun",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+237 XXX XXX XXX",
+      "email": "E-mail",
+      "emailPlaceholder": "agence@campost.cm",
+      "requiredFields": "Le nom de l'agence est obligatoire"
+    },
+    "list": {
+      "title": "Toutes les agences",
+      "searchPlaceholder": "Rechercher des agences...",
+      "agency": "Agence",
+      "location": "Emplacement",
+      "contact": "Contact",
+      "status": "Statut",
+      "actions": "Actions",
+      "errorTitle": "Erreur de chargement des agences",
+      "emptyTitle": "Aucune agence trouvée",
+      "emptyFiltered": "Essayez d'ajuster votre recherche",
+      "emptyDefault": "Ajoutez votre première agence pour commencer"
+    }
+  },
+  "courierManagement": {
+    "title": "Gestion des coursiers",
+    "subtitle": "Gérer les coursiers de livraison",
+    "addCourier": "Ajouter un coursier",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Entrez le nom complet",
+    "phone": "Téléphone",
+    "phonePlaceholder": "+237 6XX XXX XXX",
+    "email": "E-mail",
+    "emailPlaceholder": "coursier@campost.cm",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "vehicleIdOptional": "ID du véhicule (optionnel)",
+    "vehicleIdPlaceholder": "ex. : VH-ABC123",
+    "searchPlaceholder": "Rechercher des coursiers...",
+    "statusPlaceholder": "Filtrer par statut",
+    "requiredFields": "Veuillez remplir tous les champs obligatoires",
+    "courierCreated": "Coursier créé avec succès",
+    "failedCreateCourier": "Échec de la création du coursier",
+    "statusUpdated": "Statut du coursier mis à jour : {{status}}",
+    "failedUpdateStatus": "Échec de la mise à jour du statut",
+    "create": {
+      "title": "Créer un nouveau coursier",
+      "subtitle": "Ajouter un nouveau coursier de livraison au système",
+      "action": "Créer le coursier"
+    },
+    "list": {
+      "title": "Tous les coursiers",
+      "courier": "Coursier",
+      "phone": "Téléphone",
+      "vehicle": "Véhicule",
+      "status": "Statut",
+      "actions": "Actions",
+      "notAssigned": "Non assigné",
+      "errorTitle": "Erreur de chargement des coursiers",
+      "emptyTitle": "Aucun coursier trouvé",
+      "emptyFiltered": "Essayez d'ajuster vos filtres",
+      "emptyDefault": "Ajoutez votre premier coursier pour commencer"
+    },
+    "status": {
+      "all": "Tous les statuts",
+      "active": "Actif",
+      "available": "Disponible",
+      "onDelivery": "En livraison",
+      "inactive": "Inactif",
+      "suspended": "Suspendu"
+    }
+  },
+  "clientManagement": {
+    "title": "Gestion des clients",
+    "subtitle": "Voir et gérer les comptes clients enregistrés",
+    "searchPlaceholder": "Rechercher par nom, téléphone ou e-mail...",
+    "errorLoading": "Erreur de chargement des clients",
+    "noClientsFound": "Aucun client trouvé",
+    "tryAdjustingSearch": "Essayez d'ajuster votre recherche",
+    "list": {
+      "title": "Tous les clients",
+      "client": "Client",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "joined": "Inscrit",
+      "actions": "Actions",
+      "view": "Voir"
+    }
+  },
+  "tariffManagement": {
+    "title": "Gestion des tarifs",
+    "subtitle": "Configurer les tarifs de prix pour les services de colis",
+    "addTariff": "Ajouter un tarif",
+    "createTitle": "Créer un nouveau tarif",
+    "serviceType": "Type de service",
+    "originZone": "Zone d'origine",
+    "destinationZone": "Zone de destination",
+    "weightBracket": "Tranche de poids",
+    "basePrice": "Prix de base",
+    "standard": "Standard",
+    "express": "Express",
+    "createTariff": "Créer le tarif",
+    "allTariffs": "Tous les tarifs",
+    "errorLoading": "Erreur de chargement des tarifs",
+    "noTariffs": "Aucun tarif trouvé",
+    "price": "Prix",
+    "actions": "Actions",
+    "editTitle": "Modifier le tarif",
+    "priceXAF": "Prix (XAF)",
+    "saveChanges": "Enregistrer les modifications"
+  },
+  "userAccountManagement": {
+    "title": "Gestion des comptes utilisateurs",
+    "subtitle": "Voir tous les comptes utilisateurs et gérer le statut de gel",
+    "allAccounts": "Tous les comptes",
+    "searchPlaceholder": "Rechercher des utilisateurs...",
+    "allRoles": "Tous les rôles",
+    "errorLoading": "Erreur de chargement des utilisateurs",
+    "noUsersFound": "Aucun utilisateur trouvé",
+    "user": "Utilisateur",
+    "contact": "Contact",
+    "role": "Rôle",
+    "status": "Statut",
+    "created": "Créé",
+    "actions": "Actions",
+    "frozen": "Gelé",
+    "activeStatus": "Actif",
+    "unfreeze": "Dégeler",
+    "freeze": "Geler"
+  },
+  "roles": {
+    "staff": "Personnel",
+    "admin": "Administrateur",
+    "finance": "Finance",
+    "riskManager": "Gestionnaire des risques",
+    "courier": "Coursier",
+    "agent": "Agent",
+    "client": "Client"
+  },
+  "analytics": {
+    "title": "Analytique",
+    "subtitle": "Voir les statistiques et les rapports",
+    "dateRange": "Plage de dates",
+    "exportReport": "Exporter le rapport",
+    "page": {
+      "title": "Analytique",
+      "subtitle": "Prédictions ETA alimentées par l'IA et détection d'anomalies de paiement"
+    }
+  },
+  "trackingPage": {
+    "title": "Suivi de colis",
+    "tabs": {
+      "number": "Numéro de suivi",
+      "qr": "Scanner QR"
+    },
+    "numberPlaceholder": "Entrez le numéro de suivi",
+    "lookup": "Rechercher",
+    "tracking": "Suivi",
+    "status": "Statut",
+    "timeline": "Chronologie",
+    "map": "Carte"
+  },
+  "scan": {
+    "title": "Console de scan",
+    "subtitle": "Scannez les colis et mettez à jour leur statut",
+    "defaultLocation": "Comptoir de l'agence",
+    "status": {
+      "created": "Créé",
+      "atOriginAgency": "À l'agence d'origine (Dépôt)",
+      "takenInCharge": "Pris en charge (Collecte)",
+      "inTransit": "En transit",
+      "arrivedHub": "Arrivé au hub",
+      "departedHub": "Parti du hub",
+      "arrivedDestination": "Arrivé à destination",
+      "outForDelivery": "En cours de livraison",
+      "delivered": "Livré",
+      "pickedUpAtAgency": "Récupéré à l'agence",
+      "returned": "Retourné",
+      "deliveryFailed": "Livraison échouée",
+      "label": "Type de scan",
+      "selectTitle": "Type de scan"
+    },
+    "error": {
+      "enterTrackingNumber": "Veuillez entrer un numéro de suivi",
+      "failed": "Scan échoué",
+      "unknown": "Erreur inconnue",
+      "gpsRequired": "Le GPS est requis pour enregistrer les événements de scan",
+      "qrVerificationFailed": "Échec de la vérification QR",
+      "verificationError": "Erreur de vérification"
+    },
+    "success": {
+      "scanned": "Scanné : {{barcode}}",
+      "eventType": "Type d'événement : {{status}}"
+    },
+    "quickScan": "Scan rapide",
+    "trackingNumber": {
+      "label": "Numéro de suivi",
+      "placeholder": "Entrez ou scannez le numéro de suivi"
+    },
+    "location": {
+      "label": "Emplacement",
+      "placeholder": "Comptoir de l'agence",
+      "title": "Emplacement actuel"
+    },
+    "button": {
+      "scanning": "Scan en cours...",
+      "scanAndUpdate": "Scanner et mettre à jour"
+    },
+    "tips": {
+      "title": "Conseils",
+      "barcodeScanner": "Utilisez un lecteur de codes-barres pour plus de rapidité",
+      "pressEnter": "Appuyez sur Entrée après la saisie",
+      "autoFocus": "La saisie est mise en focus automatiquement"
+    },
+    "todaysScans": "Scans du jour",
+    "successRate": "Taux de succès",
+    "history": {
+      "title": "Historique des scans",
+      "noScans": "Aucun scan pour l'instant",
+      "hint": "Scannez un colis pour commencer",
+      "clear": "Effacer l'historique",
+      "cleared": "Historique effacé",
+      "status": "Statut : {{status}}"
+    },
+    "mode": {
+      "camera": "Caméra",
+      "manual": "Manuel"
+    }
+  },
+  "selfHealing": {
+    "title": "Tableau de bord auto-guérison",
+    "description": "Surveiller et gérer la santé du système automatiquement",
+    "fetchError": "Échec du chargement des données auto-guérison.",
+    "executeError": "Échec de l'exécution de l'action.",
+    "notifyError": "Échec de la notification des clients.",
+    "notifyMessage": "En raison d'un volume élevé à l'agence {{agencyName}}, votre colis peut subir un léger retard. Nous vous prions de nous excuser pour la gêne occasionnée.",
+    "notifiedClients": "{{count}} clients notifiés",
+    "congestionAlerts": "Alertes de congestion",
+    "congestionDescription": "Agences avec volumes élevés de colis",
+    "noCongestion": "Toutes les agences fonctionnent normalement",
+    "suggestedActions": "Actions suggérées",
+    "actionsDescription": "Interventions recommandées par l'IA",
+    "noActions": "Aucune action requise pour le moment",
+    "notifyClients": "Notifier les clients concernés",
+    "execute": "Exécuter",
+    "levels": {
+      "critical": "Critique",
+      "high": "Élevé",
+      "medium": "Moyen",
+      "normal": "Normal"
+    }
+  },
+  "roleMap": {
+    "title": {
+      "courier": "Carte en direct du coursier",
+      "agent": "Suivi de colis de l'agent",
+      "client": "Emplacements de mes colis",
+      "admin": "Vue d'ensemble de la carte des opérations"
+    },
+    "subtitle": {
+      "client": "Suivez l'emplacement de vos colis à partir des événements GPS.",
+      "courier": "Affichez les positions des colis en livraison active.",
+      "agent": "Suivez les colis acceptés et en transit.",
+      "admin": "Surveillez l'activité de la flotte et des colis sur toute la plateforme."
+    },
+    "loadFailed": "Échec du chargement des données cartographiques",
+    "liveUpdates": "Mises à jour en direct toutes les {{seconds}}s",
+    "trackedParcels": "Colis suivis",
+    "selectParcel": "Sélectionner un colis",
+    "locationMap": "Carte de localisation",
+    "noGpsData": "Aucune donnée GPS disponible. Les événements de scan apparaîtront ici.",
+    "detailedRoute": "Itinéraire de suivi détaillé",
+    "myLocation": "Ma position"
+  },
+  "agentDashboard": {
+    "title": "Tableau de bord agent",
+    "subtitle": "Vos collectes, livraisons et tâches de scan",
+    "openScanConsole": "Ouvrir la console de scan",
+    "pending": "En attente",
+    "inProgress": "En cours",
+    "completedToday": "Terminées aujourd'hui",
+    "taskQueue": "File de tâches du jour",
+    "viewParcel": "Voir le colis",
+    "failedLoadTasks": "Échec du chargement des tâches",
+    "welcome": "Tableau de bord agent",
+    "overview": "Gérez vos tâches et colis assignés",
+    "scanParcel": "Scanner un colis"
+  },
+  "courierDashboard": {
+    "title": "Tableau de bord coursier",
+    "subtitle": "Vos collectes, livraisons et aperçu de l'itinéraire",
+    "noTasksFound": "Aucune tâche trouvée",
+    "stats": {
+      "pendingPickups": "Collectes en attente",
+      "pendingDeliveries": "Livraisons en attente",
+      "completedToday": "Terminées aujourd'hui",
+      "distanceKm": "Distance (km)"
+    }
+  },
+  "staffDashboard": {
+    "title": "Tableau de bord personnel",
+    "subtitle": "Vue d'ensemble du personnel opérationnel",
+    "totalStaff": "Total du personnel",
+    "active": "Actif",
+    "agents": "Agents",
+    "searchPlaceholder": "Rechercher par nom ou ID…",
+    "manage": "Gérer",
+    "errorTitle": "Erreur de chargement du personnel",
+    "emptyTitle": "Aucun personnel trouvé"
+  },
+  "financeDashboard": {
+    "title": "Tableau de bord finances",
+    "subtitle": "Instantané des revenus et des paiements",
+    "totalRevenue": "Revenu total",
+    "pendingAmount": "Montant en attente",
+    "recentTransactions": "Transactions récentes",
+    "noTransactions": "Aucune transaction"
+  },
+  "riskDashboard": {
+    "title": "Tableau de bord risques",
+    "subtitle": "Signaux de fraude et alertes de risque opérationnel",
+    "openAlerts": "Alertes ouvertes",
+    "investigating": "En investigation",
+    "critical": "Critique",
+    "resolved": "Résolu",
+    "riskAlerts": "Alertes de risque",
+    "noAlerts": "Aucune alerte de risque",
+    "investigate": "Investiguer",
+    "dismiss": "Ignorer"
+  },
+  "createFinancePage": {
+    "title": "Créer un utilisateur finance",
+    "subtitle": "Créer un nouvel utilisateur avec le rôle Finance.",
+    "requiredFields": "Le nom complet, le téléphone et le mot de passe sont obligatoires.",
+    "submit": "Créer l'utilisateur finance",
+    "success": "Utilisateur finance créé avec succès.",
+    "error": "Échec de la création de l'utilisateur finance."
+  },
+  "createRiskPage": {
+    "title": "Créer une alerte de risque",
+    "riskType": "Type de risque",
+    "selectType": "Sélectionner le type de risque",
+    "severity": "Sévérité",
+    "selectSeverity": "Sélectionner la sévérité",
+    "description": "Description",
+    "descriptionPlaceholder": "Décrivez le risque en détail...",
+    "submit": "Créer l'alerte",
+    "success": "Alerte de risque créée avec succès.",
+    "requiredFields": "Tous les champs sont obligatoires.",
+    "createFailed": "Échec de la création de l'alerte de risque."
+  },
+  "riskAlerts": {
+    "title": "Alertes de risque",
+    "subtitle": "Examiner les activités suspectes et les signaux de risque opérationnel.",
+    "alertsTitle": "Alertes",
+    "table": {
+      "severity": "Sévérité",
+      "description": "Description",
+      "user": "Utilisateur",
+      "parcel": "Colis",
+      "created": "Créé"
+    },
+    "states": {
+      "errorTitle": "Erreur de chargement des alertes",
+      "emptyTitle": "Aucune alerte",
+      "emptyDescription": "Les alertes de risque apparaîtront ici lorsqu'elles seront détectées."
+    }
+  },
+  "compliance": {
+    "title": "Conformité",
+    "subtitle": "Alertes et rapports de conformité",
+    "generateReport": "Générer un rapport",
+    "alertsTitle": "Alertes de conformité",
+    "states": {
+      "emptyTitle": "Aucune alerte de conformité",
+      "emptyDescription": "Tout est en ordre ! Aucun problème de conformité détecté."
+    }
+  },
+  "errors": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Adresse e-mail invalide",
+    "invalidPhone": "Numéro de téléphone invalide",
+    "passwordTooShort": "Le mot de passe doit comporter au moins 8 caractères",
+    "loginFailed": "Échec de la connexion. Veuillez vérifier vos identifiants.",
+    "networkError": "Impossible de se connecter au serveur. Vérifiez votre connexion Internet.",
+    "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action",
+    "notFound": "Ressource introuvable",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+    "invalidCredentials": "Numéro de téléphone ou mot de passe invalide. Veuillez réessayer.",
+    "userNotFound": "Aucun compte trouvé avec ce numéro de téléphone.",
+    "accountLocked": "Votre compte a été verrouillé. Veuillez contacter le support.",
+    "unknownError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+    "permissionDenied": "Vous n'avez pas la permission d'effectuer cette action.",
+    "sessionExpired": "Session expirée. Veuillez vous reconnecter."
+  },
+  "messages": {
+    "saveSuccess": "Enregistré avec succès",
+    "deleteSuccess": "Supprimé avec succès",
+    "updateSuccess": "Mis à jour avec succès",
+    "createSuccess": "Créé avec succès",
+    "loginSuccess": "Connexion réussie",
+    "logoutSuccess": "Déconnexion réussie",
+    "operationFailed": "Opération échouée"
+  },
+  "trackingMap": {
+    "title": "Suivi en direct",
+    "noData": "Aucune donnée de suivi disponible",
+    "legend": {
+      "title": "Légende",
+      "origin": "Origine",
+      "checkpoint": "Point de contrôle",
+      "currentPosition": "Position actuelle",
+      "destination": "Destination"
+    }
+  },
+  "invoices": {
+    "title": "Mes factures",
+    "invoiceNumber": "Facture",
+    "total": "Total",
+    "downloadPdf": "Télécharger PDF"
+  },
+  "maps": {
+    "errors": {
+      "outsideCameroon": "Votre position actuelle semble être hors du Cameroun",
+      "selectWithinCameroon": "Veuillez sélectionner une localisation au Cameroun",
+      "noResults": "Aucun résultat trouvé",
+      "searchFailed": "Échec de la recherche"
+    }
+  },
+  "session": {
+    "expireTitle": "SmartCAMPOST — Session expirant",
+    "expireWarning": "Votre session expirera dans {{count}} minute(s). Veuillez enregistrer votre travail."
   }
 }

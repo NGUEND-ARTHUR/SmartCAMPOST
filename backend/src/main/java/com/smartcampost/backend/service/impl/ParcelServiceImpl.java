@@ -216,13 +216,16 @@ public class ParcelServiceImpl implements ParcelService {
     @Override
     public Page<ParcelResponse> listMyParcels(int page, int size) {
         UserAccount user = getCurrentUserAccount();
-        if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
+
+        // CLIENT: return their own parcels
+        if (user.getRole() == UserRole.CLIENT) {
+            UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+            return parcelRepository.findByClient_Id(clientId, PageRequest.of(page, size))
+                    .map(this::toResponse);
         }
 
-        UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
-        return parcelRepository.findByClient_Id(clientId, PageRequest.of(page, size))
-                .map(this::toResponse);
+        // AGENT / COURIER: return empty page — they use dedicated map/scan endpoints
+        return Page.empty(PageRequest.of(page, size));
     }
 
     // ================== LIST ALL (ADMIN/STAFF) ==================
