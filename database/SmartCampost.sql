@@ -28,13 +28,17 @@ CREATE DATABASE IF NOT EXISTS smartcampostDB;
 CREATE TABLE IF NOT EXISTS user_account (
   id             BINARY(16)    NOT NULL,
   phone          VARCHAR(20)   NOT NULL,
+  email          VARCHAR(150)  NULL,                          -- FIX-1: added email column (matches UserAccount.java)
   password_hash  VARCHAR(255)  NOT NULL,
   role           ENUM('CLIENT','AGENT','STAFF','COURIER','ADMIN','FINANCE','RISK') NOT NULL,
+  auth_provider  ENUM('LOCAL','GOOGLE') NOT NULL DEFAULT 'LOCAL', -- FIX-1: added auth_provider (matches AuthProvider.java enum)
+  google_id      VARCHAR(255)  NULL,                          -- FIX-1: added google_id for Google OAuth users
   entity_id      BINARY(16)    NOT NULL,
   frozen         BOOLEAN       NOT NULL DEFAULT FALSE,
   created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_user_account PRIMARY KEY (id),
-  CONSTRAINT uq_user_phone UNIQUE (phone)
+  CONSTRAINT uq_user_phone UNIQUE (phone),
+  CONSTRAINT uq_user_email UNIQUE (email)
 ) ENGINE=InnoDB;
 
 
@@ -1260,6 +1264,42 @@ CREATE INDEX ix_intent_active ON intent_action_mapping(active);
 -- =========================================================
 -- DONE - SmartCAMPOST Complete Schema (All Migrations Applied)
 -- =========================================================
+
+-- =========================================================
+-- FIX-3: AI Agent Tables (AiAgentState + AiDecisionLog)
+-- Matches AiAgentState.java and AiDecisionLog.java JPA entities
+-- =========================================================
+CREATE TABLE IF NOT EXISTS ai_agent_state (
+  id              BINARY(16)    NOT NULL,
+  agent_type      VARCHAR(100)  NOT NULL COMMENT 'e.g. SELF_HEALING, RECOMMENDATION, CHAT',
+  state           TEXT          NOT NULL COMMENT 'JSON serialized agent state',
+  iteration_count INT           NOT NULL DEFAULT 0,
+  last_input      TEXT          NULL,
+  last_output     TEXT          NULL,
+  created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT pk_ai_agent_state PRIMARY KEY (id)
+) ENGINE=InnoDB COMMENT='Stores running state for LangGraph-style AI agent loops';
+
+CREATE INDEX ix_ai_agent_type ON ai_agent_state(agent_type);
+CREATE INDEX ix_ai_agent_updated ON ai_agent_state(updated_at);
+
+CREATE TABLE IF NOT EXISTS ai_decision_log (
+  id              BINARY(16)    NOT NULL,
+  agent_state_id  BINARY(16)    NULL,
+  decision        VARCHAR(255)  NOT NULL COMMENT 'The decision taken by the AI agent',
+  reasoning       TEXT          NULL COMMENT 'Chain-of-thought explanation',
+  outcome         VARCHAR(100)  NULL COMMENT 'SUCCESS / FAILED / PENDING',
+  confidence      DECIMAL(5,4)  NULL COMMENT 'AI confidence score 0.0-1.0',
+  created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_ai_decision_log PRIMARY KEY (id),
+  CONSTRAINT fk_ai_decision_state
+    FOREIGN KEY (agent_state_id) REFERENCES ai_agent_state(id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB COMMENT='Audit trail of all AI agent decisions and their outcomes';
+
+CREATE INDEX ix_ai_decision_state  ON ai_decision_log(agent_state_id);
+CREATE INDEX ix_ai_decision_created ON ai_decision_log(created_at);
 
 
 -- =========================================================

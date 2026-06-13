@@ -215,7 +215,7 @@ export default function TrackingMap({
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center text-muted-foreground">
             <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>{t("trackingMap.noData")}</p>
+            <p>{t("trackingMap.noData", "No tracking data available")}</p>
           </div>
         </CardContent>
       </Card>
@@ -223,72 +223,79 @@ export default function TrackingMap({
   }
 
   const progressPct = animState ? Math.round(animState.progress * 100) : 0;
+  
+  // Safe center and zoom with fallbacks
+  const safeCenter: [number, number] = (mapCenter && Array.isArray(mapCenter) && mapCenter.length === 2) 
+    ? [Number(mapCenter[0]) || 7.3697, Number(mapCenter[1]) || 12.3547]
+    : [7.3697, 12.3547];
+  const safeZoom = Math.max(1, Math.min(20, mapZoom || 10));
 
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="flex items-center gap-2">
-            <Navigation className="w-5 h-5" />
-            {t("trackingMap.title")}
-            {trackingId && ` - ${trackingId}`}
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {fullRoute.length >= 2 && (
-              <Button
-                variant={isAnimating ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsAnimating(!isAnimating)}
-              >
-                {isAnimating ? (
-                  <>
-                    <Pause className="w-4 h-4 mr-1" />
-                    {t("trackingMap.pause")}
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-1" />
-                    {t("trackingMap.animate")}
-                  </>
-                )}
-              </Button>
-            )}
-            <Badge variant="secondary">
-              {t("trackingMap.checkpoints", { count: scanEvents.length })}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        {fullRoute.length >= 2 && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-              <div
-                ref={(el) => {
-                  if (el) el.style.width = `${progressPct}%`;
-                }}
-                className="h-full rounded-full bg-primary transition-[width] duration-300"
-              />
+  try {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <Navigation className="w-5 h-5" />
+              {t("trackingMap.title", "Tracking Map")}
+              {trackingId && ` - ${trackingId}`}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {fullRoute.length >= 2 && (
+                <Button
+                  variant={isAnimating ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsAnimating(!isAnimating)}
+                >
+                  {isAnimating ? (
+                    <>
+                      <Pause className="w-4 h-4 mr-1" />
+                      {t("trackingMap.pause", "Pause")}
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-1" />
+                      {t("trackingMap.animate", "Animate")}
+                    </>
+                  )}
+                </Button>
+              )}
+              <Badge variant="secondary">
+                {t("trackingMap.checkpoints", { count: scanEvents.length, defaultValue: `${scanEvents.length} checkpoints` })}
+              </Badge>
             </div>
-            <span className="text-xs text-muted-foreground tabular-nums w-9 text-right">
-              {progressPct}%
-            </span>
           </div>
-        )}
-      </CardHeader>
 
-      <CardContent className="p-0">
-        <div className="h-100 relative">
-          <CameroonMap
-            center={mapCenter}
-            zoom={mapZoom}
-            height="100%"
-            showControls
-            showSearch={false}
-            className="rounded-none border-0"
-            pitch={35}
-            show3DBuildings
-          >
+          {/* Progress bar */}
+          {fullRoute.length >= 2 && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  ref={(el) => {
+                    if (el) el.style.width = `${progressPct}%`;
+                  }}
+                  className="h-full rounded-full bg-primary transition-[width] duration-300"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground tabular-nums w-9 text-right">
+                {progressPct}%
+              </span>
+            </div>
+          )}
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <div className="h-100 relative">
+            <CameroonMap
+              center={safeCenter}
+              zoom={safeZoom}
+              height="100%"
+              showControls
+              showSearch={false}
+              className="rounded-none border-0"
+              pitch={35}
+              show3DBuildings
+            >
             <AnimatedView center={mapCenter} zoom={mapZoom} />
             <FollowPosition
               position={animState?.position ?? null}
@@ -455,29 +462,46 @@ export default function TrackingMap({
           {/* Legend overlay */}
           <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-2 text-xs border border-border">
             <div className="font-semibold mb-2">
-              {t("trackingMap.legend.title")}
+              {t("trackingMap.legend.title", "Legend")}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span>📍</span> {t("trackingMap.legend.origin")}
+                <span>📍</span> {t("trackingMap.legend.origin", "Origin")}
               </div>
               <div className="flex items-center gap-2">
-                <span>🚚</span> {t("trackingMap.legend.checkpoint")}
+                <span>🚚</span> {t("trackingMap.legend.checkpoint", "Checkpoint")}
               </div>
               <div className="flex items-center gap-2">
-                <span>📦</span> {t("trackingMap.legend.currentPosition")}
+                <span>📦</span> {t("trackingMap.legend.currentPosition", "Current Position")}
               </div>
               <div className="flex items-center gap-2">
-                <span>🏁</span> {t("trackingMap.legend.destination")}
+                <span>🏁</span> {t("trackingMap.legend.destination", "Destination")}
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="inline-block w-4 h-0.5 rounded bg-[#3b82f6]" />
-                {t("trackingMap.legend.traveled", { defaultValue: "Traveled" })}
+                {t("trackingMap.legend.traveled", "Traveled")}
               </div>
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+    );
+  } catch (error) {
+    console.error("[TrackingMap] Render error:", error);
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-center text-destructive">
+            <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>{t("trackingMap.renderError", "Failed to render tracking map")}</p>
+            {import.meta.env.DEV && error instanceof Error && (
+              <p className="text-xs text-muted-foreground mt-2">{error.message}</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 }
+
