@@ -5,24 +5,27 @@ export const MAP_STYLES = {
   light: {
     version: 8,
     sources: {
-      "google-tiles": {
+      "osm-tiles": {
         type: "raster",
         tiles: [
-          "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
         ],
         tileSize: 256,
-        attribution: "© Google"
-      }
+        attribution: "© OpenStreetMap contributors",
+        maxzoom: 19,
+      },
     },
     layers: [
       {
-        id: "google-layer",
+        id: "osm-layer",
         type: "raster",
-        source: "google-tiles",
+        source: "osm-tiles",
         minzoom: 0,
-        maxzoom: 22
-      }
-    ]
+        maxzoom: 19,
+      },
+    ],
   },
   dark: {
     version: 8,
@@ -30,11 +33,14 @@ export const MAP_STYLES = {
       "carto-dark-tiles": {
         type: "raster",
         tiles: [
-          "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png"
+          "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
         ],
         tileSize: 256,
-        attribution: "© CARTO"
-      }
+        attribution: "© CARTO © OpenStreetMap contributors",
+        maxzoom: 19,
+      },
     },
     layers: [
       {
@@ -42,10 +48,10 @@ export const MAP_STYLES = {
         type: "raster",
         source: "carto-dark-tiles",
         minzoom: 0,
-        maxzoom: 22
-      }
-    ]
-  }
+        maxzoom: 19,
+      },
+    ],
+  },
 } as any;
 
 /** Free AWS terrain-RGB tiles (no API key) for 3D elevation */
