@@ -34,6 +34,7 @@ export default function ScanConsole() {
   const [barcode, setBarcode] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [location, setLocation] = useState(t("scan.defaultLocation"));
+  const [error, setError] = useState<string | null>(null);
 
   // All possible scan event types with labels
   const allStatusOptions = useMemo(
@@ -144,8 +145,18 @@ export default function ScanConsole() {
   }, []);
 
   const handleScan = async (scannedCode: string) => {
+    setError(null);
     if (!scannedCode.trim()) {
-      toast.error(t("scan.error.enterTrackingNumber"));
+      const errorMsg = t("scan.error.enterTrackingNumber", "Please enter a tracking number");
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    if (!selectedStatus) {
+      const errorMsg = t("scan.error.selectStatus", "Please select a scan type");
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -153,7 +164,9 @@ export default function ScanConsole() {
     try {
       gps = await getGpsOrThrow();
     } catch {
-      toast.error(t("scan.error.gpsRequired"));
+      const errorMsg = t("scan.error.gpsRequired", "GPS access required for scanning");
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -161,13 +174,15 @@ export default function ScanConsole() {
       // Step 1: Verify QR Code
       const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
       if (!verificationResult.valid) {
-        throw new Error(
-          verificationResult.message || t("scan.error.invalidQr"),
-        );
+        const errorMsg = verificationResult.message || t("scan.error.invalidQr", "Invalid QR code");
+        setError(errorMsg);
+        throw new Error(errorMsg);
       }
       const { parcelId } = verificationResult;
       if (!parcelId) {
-        throw new Error(t("scan.error.noParcelId"));
+        const errorMsg = t("scan.error.noParcelId", "No parcel ID found");
+        setError(errorMsg);
+        throw new Error(errorMsg);
       }
 
       // Step 2: Record the scan event
@@ -191,6 +206,7 @@ export default function ScanConsole() {
               success: true,
             };
             setScanHistory([newScan, ...scanHistory]);
+            setError(null);
             toast.success(t("scan.success.scanned", { barcode: parcelId }), {
               description: t("scan.success.eventType", {
                 status: selectedStatus,
@@ -208,11 +224,12 @@ export default function ScanConsole() {
               success: false,
             };
             setScanHistory([newScan, ...scanHistory]);
-            toast.error(t("scan.error.failed"), {
-              description:
-                error instanceof Error
-                  ? error.message
-                  : t("scan.error.unknown"),
+            const errorMsg = error instanceof Error
+              ? error.message
+              : t("scan.error.unknown", "Unknown error");
+            setError(errorMsg);
+            toast.error(t("scan.error.failed", "Failed to record scan"), {
+              description: errorMsg,
             });
           },
         },
@@ -226,9 +243,10 @@ export default function ScanConsole() {
         success: false,
       };
       setScanHistory([newScan, ...scanHistory]);
-      toast.error(t("scan.error.verificationFailed"), {
-        description:
-          error instanceof Error ? error.message : t("scan.error.unknown"),
+      const errorMsg = error instanceof Error ? error.message : t("scan.error.unknown", "Unknown error");
+      setError(errorMsg);
+      toast.error(t("scan.error.verificationFailed", "Verification failed"), {
+        description: errorMsg,
       });
     }
   };
@@ -257,6 +275,24 @@ export default function ScanConsole() {
           <h1 className="mb-2">{t("scan.title")}</h1>
           <p className="text-muted-foreground">{t("scan.subtitle")}</p>
         </div>
+
+        {error && (
+          <div className="mb-6 bg-destructive/10 border border-destructive text-destructive rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="font-medium">{t("common.error", "Error")}</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-xs font-medium hover:opacity-75 transition-opacity"
+              >
+                {t("common.dismiss", "Dismiss")}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Scan Panel */}

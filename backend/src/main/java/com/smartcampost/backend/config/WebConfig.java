@@ -30,6 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
         // ✅ FIX: Explicit safe dev origins — never falls through to wildcard "*"
         // In production, set CORS_ALLOWED_ORIGINS env var on Render
         mapping.allowedOrigins(
+            "http://localhost:4173",
             "http://localhost:5173",
             "http://localhost:5174",
             "http://localhost:5175",

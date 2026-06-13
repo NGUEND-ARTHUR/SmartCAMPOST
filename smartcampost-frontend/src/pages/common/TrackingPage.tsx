@@ -51,6 +51,7 @@ export default function TrackingPage() {
   const [activeTab, setActiveTab] = useState<"number" | "qr">("number");
   const [result, setResult] = useState<TrackingResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const roleUpper = (user?.role ?? "").toUpperCase();
   const canSeeAudit = roleUpper === "ADMIN" || roleUpper === "STAFF";
@@ -73,6 +74,7 @@ export default function TrackingPage() {
       const trimmed = tracking.trim();
       if (!trimmed) return;
       setLoading(true);
+      setError(null);
       try {
         const res = await axiosInstance.get<TrackingResponse>(
           `/track/parcel/${encodeURIComponent(trimmed)}`,
@@ -81,11 +83,14 @@ export default function TrackingPage() {
           setResult(res.data);
         } else {
           setResult(null);
-          toast.error(t("trackingPage.toasts.notFound"));
+          setError(t("trackingPage.toasts.notFound", "Parcel not found"));
+          toast.error(t("trackingPage.toasts.notFound", "Parcel not found"));
         }
-      } catch {
+      } catch (err) {
         setResult(null);
-        toast.error(t("trackingPage.toasts.notFound"));
+        const errorMsg = err instanceof Error ? err.message : "Error loading parcel";
+        setError(errorMsg);
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -98,6 +103,7 @@ export default function TrackingPage() {
       const trimmed = code.trim();
       if (!trimmed) return;
       setLoading(true);
+      setError(null);
       try {
         const res = await axiosInstance.post<TrackingResponse>(`/track/qr`, {
           code: trimmed,
@@ -106,11 +112,14 @@ export default function TrackingPage() {
           setResult(res.data);
         } else {
           setResult(null);
-          toast.error(t("trackingPage.toasts.invalidQr"));
+          setError(t("trackingPage.toasts.invalidQr", "Invalid QR code"));
+          toast.error(t("trackingPage.toasts.invalidQr", "Invalid QR code"));
         }
-      } catch {
+      } catch (err) {
         setResult(null);
-        toast.error(t("trackingPage.toasts.invalidQr"));
+        const errorMsg = err instanceof Error ? err.message : "Error scanning QR";
+        setError(errorMsg);
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -133,9 +142,16 @@ export default function TrackingPage() {
     <div className="max-w-3xl mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>{t("trackingPage.title")}</CardTitle>
+          <CardTitle>{t("trackingPage.title", "Track Your Parcel")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <div className="bg-destructive/10 border border-destructive text-destructive rounded-lg p-4">
+              <p className="font-medium">{t("common.error", "Error")}</p>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
+          )}
+          
           <Tabs
             value={activeTab}
             onValueChange={(v) => setActiveTab(v === "qr" ? "qr" : "number")}
@@ -149,7 +165,7 @@ export default function TrackingPage() {
                     : undefined
                 }
               >
-                {t("trackingPage.tabs.number")}
+                {t("trackingPage.tabs.number", "By Number")}
               </TabsTrigger>
               <TabsTrigger
                 value="qr"
@@ -157,7 +173,7 @@ export default function TrackingPage() {
                   activeTab === "qr" ? "bg-blue-50 text-blue-700" : undefined
                 }
               >
-                {t("trackingPage.tabs.qr")}
+                {t("trackingPage.tabs.qr", "By QR")}
               </TabsTrigger>
             </TabsList>
 
@@ -166,8 +182,9 @@ export default function TrackingPage() {
                 <Input
                   value={number}
                   onChange={(e) => setNumber(e.target.value)}
-                  placeholder={t("trackingPage.numberPlaceholder")}
+                  placeholder={t("trackingPage.numberPlaceholder", "Enter tracking number...")}
                   onKeyDown={(e) => e.key === "Enter" && lookupByNumber(number)}
+                  disabled={loading}
                 />
                 <Button
                   onClick={() => lookupByNumber(number)}
@@ -176,7 +193,7 @@ export default function TrackingPage() {
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    t("trackingPage.lookup")
+                    t("trackingPage.lookup", "Search")
                   )}
                 </Button>
               </div>
@@ -189,7 +206,10 @@ export default function TrackingPage() {
                   if (!res?.success) return;
                   lookupByQrContent(res.rawText);
                 }}
-                onError={(err) => toast.error(err)}
+                onError={(err) => {
+                  setError(err);
+                  toast.error(err);
+                }}
               />
             </TabsContent>
           </Tabs>
@@ -199,19 +219,19 @@ export default function TrackingPage() {
               <div className="text-sm">
                 <div>
                   <span className="font-semibold">
-                    {t("trackingPage.tracking")}:
+                    {t("trackingPage.tracking", "Tracking")}:
                   </span>{" "}
                   {(result.trackingRef || result.trackingNumber) ?? "—"}
                 </div>
                 <div>
                   <span className="font-semibold">
-                    {t("trackingPage.status")}:
+                    {t("trackingPage.status", "Status")}:
                   </span>{" "}
                   {result.status ?? "—"}
                 </div>
                 <div>
                   <span className="font-semibold">
-                    {t("trackingPage.lastNote")}:
+                    {t("trackingPage.lastNote", "Last Note")}:
                   </span>{" "}
                   {result.lastLocationNote ?? "—"}
                 </div>
@@ -219,39 +239,47 @@ export default function TrackingPage() {
 
               <div>
                 <div className="font-semibold mb-2">
-                  {t("trackingPage.timeline")}
+                  {t("trackingPage.timeline", "Timeline")}
                 </div>
                 <ul className="text-sm space-y-1">
-                  {(result.timeline ?? []).map((e, i) => (
-                    <li key={e.id || i} className="border rounded p-2">
-                      <div className="font-medium">{e.eventType}</div>
-                      <div className="text-muted-foreground">
-                        {new Date(e.timestamp).toLocaleString()}
-                        {e.locationNote ? ` — ${e.locationNote}` : ""}
-                      </div>
+                  {(result.timeline ?? []).length > 0 ? (
+                    (result.timeline ?? []).map((e, i) => (
+                      <li key={e.id || i} className="border rounded p-2">
+                        <div className="font-medium">{e.eventType}</div>
+                        <div className="text-muted-foreground">
+                          {new Date(e.timestamp).toLocaleString()}
+                          {e.locationNote ? ` — ${e.locationNote}` : ""}
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-muted-foreground italic">
+                      {t("trackingPage.noEvents", "No scan events yet")}
                     </li>
-                  ))}
+                  )}
                 </ul>
               </div>
 
-              <div>
-                <div className="font-semibold mb-2">
-                  {t("trackingPage.map")}
+              {(result.timeline ?? []).length > 0 && (
+                <div>
+                  <div className="font-semibold mb-2">
+                    {t("trackingPage.map", "Map")}
+                  </div>
+                  <TrackingMap
+                    trackingId={
+                      (result.trackingRef || result.trackingNumber) ?? undefined
+                    }
+                    currentStatus={result.status}
+                    scanEvents={scanEventsForMap}
+                    showAnimation={false}
+                  />
                 </div>
-                <TrackingMap
-                  trackingId={
-                    (result.trackingRef || result.trackingNumber) ?? undefined
-                  }
-                  currentStatus={result.status}
-                  scanEvents={scanEventsForMap}
-                  showAnimation={false}
-                />
-              </div>
+              )}
 
               {canSeeAudit && result.parcelId && (
                 <div>
                   <div className="font-semibold mb-2">
-                    {t("trackingPage.audit")}
+                    {t("trackingPage.audit", "Audit Trail")}
                   </div>
                   <AuditTrail parcelId={result.parcelId} showFull={true} />
                 </div>

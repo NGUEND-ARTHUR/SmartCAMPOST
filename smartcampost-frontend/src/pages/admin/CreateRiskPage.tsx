@@ -65,6 +65,17 @@ export default function CreateRiskPage() {
     }
   };
 
+  // Fallback rendering for dropdowns to ensure they always show options
+  const typeOptions = RISK_TYPES.map((rt) => ({
+    value: rt,
+    label: t(`riskType.${rt.toLowerCase()}`, rt),
+  }));
+
+  const severityOptions = SEVERITIES.map((s) => ({
+    value: s,
+    label: t(`severity.${s.toLowerCase()}`, s),
+  }));
+
   return (
     <div className="max-w-lg mx-auto mt-10">
       <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
@@ -89,7 +100,7 @@ export default function CreateRiskPage() {
                 {t("createRiskPage.riskType", "Risk Type")} *
               </Label>
               <Select value={type} onValueChange={setType}>
-                <SelectTrigger id="risk-type">
+                <SelectTrigger id="risk-type" className="z-50">
                   <SelectValue
                     placeholder={t(
                       "createRiskPage.selectType",
@@ -97,14 +108,19 @@ export default function CreateRiskPage() {
                     )}
                   />
                 </SelectTrigger>
-                <SelectContent>
-                  {RISK_TYPES.map((rt) => (
-                    <SelectItem key={rt} value={rt}>
-                      {t(`riskType.${rt.toLowerCase()}`, rt)}
+                <SelectContent className="z-50 max-h-64">
+                  {typeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {!type && (
+                <p className="text-xs text-muted-foreground">
+                  {typeOptions.map((o) => `${o.label}`).join(", ")}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -112,7 +128,7 @@ export default function CreateRiskPage() {
                 {t("createRiskPage.severity", "Severity")} *
               </Label>
               <Select value={severity} onValueChange={setSeverity}>
-                <SelectTrigger id="risk-severity">
+                <SelectTrigger id="risk-severity" className="z-40">
                   <SelectValue
                     placeholder={t(
                       "createRiskPage.selectSeverity",
@@ -120,14 +136,19 @@ export default function CreateRiskPage() {
                     )}
                   />
                 </SelectTrigger>
-                <SelectContent>
-                  {SEVERITIES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {t(`severity.${s.toLowerCase()}`, s)}
+                <SelectContent className="z-40 max-h-64">
+                  {severityOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {!severity && (
+                <p className="text-xs text-muted-foreground">
+                  {severityOptions.map((o) => `${o.label}`).join(", ")}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

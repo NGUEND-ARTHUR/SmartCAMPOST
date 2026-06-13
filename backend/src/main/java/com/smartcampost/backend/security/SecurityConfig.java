@@ -223,6 +223,7 @@ public class SecurityConfig {
         } else {
             // Development only - strict localhost origins
             configuration.setAllowedOrigins(List.of(
+                "http://localhost:4173",
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "http://localhost:5175",
