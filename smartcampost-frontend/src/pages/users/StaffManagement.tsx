@@ -52,10 +52,18 @@ import {
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
+  // Staff statuses
   ACTIVE:
     "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   INACTIVE: "bg-muted text-muted-foreground",
   SUSPENDED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  // Courier statuses
+  AVAILABLE:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  ON_ROUTE:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  BUSY: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  OFFLINE: "bg-muted text-muted-foreground",
 };
 
 const roleColors: Record<string, string> = {
@@ -622,15 +630,31 @@ export default function StaffManagement() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ACTIVE">
-                                {t("common.active")}
-                              </SelectItem>
-                              <SelectItem value="INACTIVE">
-                                {t("common.inactive")}
-                              </SelectItem>
-                              <SelectItem value="SUSPENDED">
-                                {t("common.suspended")}
-                              </SelectItem>
+                              {member.isCourier ? (
+                                <>
+                                  <SelectItem value="AVAILABLE">
+                                    {t("courierManagement.status.available", "Available")}
+                                  </SelectItem>
+                                  <SelectItem value="INACTIVE">
+                                    {t("courierManagement.status.inactive", "Inactive")}
+                                  </SelectItem>
+                                  <SelectItem value="OFFLINE">
+                                    {t("courierManagement.status.offline", "Offline")}
+                                  </SelectItem>
+                                </>
+                              ) : (
+                                <>
+                                  <SelectItem value="ACTIVE">
+                                    {t("common.active")}
+                                  </SelectItem>
+                                  <SelectItem value="INACTIVE">
+                                    {t("common.inactive")}
+                                  </SelectItem>
+                                  <SelectItem value="SUSPENDED">
+                                    {t("common.suspended")}
+                                  </SelectItem>
+                                </>
+                              )}
                             </SelectContent>
                           </Select>
                           {!member.isCourier && (
