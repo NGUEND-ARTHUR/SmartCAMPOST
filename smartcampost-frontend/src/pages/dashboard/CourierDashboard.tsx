@@ -52,7 +52,7 @@ export default function CourierDashboard() {
       id: p.id,
       type: "pickup" as const,
       trackingNumber: p.trackingRef || p.id.slice(0, 10),
-      address: p.clientName || p.clientId.slice(0, 8),
+      address: p.clientName || p.clientId?.slice(0, 8) || "—",
       customerName: p.clientName || "Client",
       customerPhone: "",
       scheduledTime: p.requestedDate || "",

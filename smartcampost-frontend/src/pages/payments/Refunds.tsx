@@ -112,7 +112,7 @@ export default function Refunds() {
                       <TableCell className="font-medium">
                         {refund.id.slice(0, 8)}
                       </TableCell>
-                      <TableCell>{refund.paymentId.slice(0, 8)}</TableCell>
+                      <TableCell>{refund.paymentId?.slice(0, 8) ?? "—"}</TableCell>
                       <TableCell className="font-medium">
                         {refund.amount.toLocaleString()} {refund.currency}
                       </TableCell>

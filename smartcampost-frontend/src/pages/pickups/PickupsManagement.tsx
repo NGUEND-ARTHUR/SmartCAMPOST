@@ -208,10 +208,10 @@ export default function PickupsManagement() {
                         {pickup.id.slice(0, 8)}
                       </TableCell>
                       <TableCell>
-                        {pickup.clientName ?? pickup.clientId.slice(0, 8)}
+                        {pickup.clientName ?? pickup.clientId?.slice(0, 8) ?? "—"}
                       </TableCell>
                       <TableCell>
-                        {pickup.trackingRef ?? pickup.parcelId.slice(0, 8)}
+                        {pickup.trackingRef ?? pickup.parcelId?.slice(0, 8) ?? "—"}
                       </TableCell>
                       <TableCell>
                         <Badge
