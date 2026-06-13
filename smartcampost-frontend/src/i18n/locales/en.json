@@ -1151,14 +1151,19 @@
   },
   "createRiskPage": {
     "title": "Create Risk Alert",
+    "subtitle": "Flag a compliance or operational risk for review.",
+    "riskType": "Risk Type",
+    "selectType": "Select risk type",
     "type": "Type",
     "typePlaceholder": "e.g., FRAUD, COMPLIANCE",
     "severity": "Severity",
+    "selectSeverity": "Select severity",
     "severityPlaceholder": "e.g., HIGH, MEDIUM, LOW",
     "description": "Description",
     "descriptionPlaceholder": "Describe the risk alert",
     "creating": "Creating...",
     "create": "Create Risk Alert",
+    "submit": "Create Alert",
     "success": "Risk alert created successfully!",
     "requiredFields": "All fields are required",
     "createFailed": "Failed to create risk alert"
@@ -1420,7 +1425,29 @@
     "scanResult": "Scan Result",
     "updateStatus": "Update Status",
     "defaultLocation": "Agency Counter",
+    "quickScan": "Quick Scan",
+    "todaysScans": "Today's Scans",
+    "successRate": "Success Rate",
+    "mode": {
+      "camera": "Camera",
+      "manual": "Manual"
+    },
+    "trackingNumber": {
+      "label": "Tracking Number / Barcode",
+      "placeholder": "Scan or type tracking number..."
+    },
+    "location": {
+      "label": "Location",
+      "title": "Location",
+      "placeholder": "e.g. Agency Counter"
+    },
+    "button": {
+      "scanning": "Scanning...",
+      "scanAndUpdate": "Scan & Update Status"
+    },
     "status": {
+      "label": "Scan Type",
+      "selectTitle": "Select scan type",
       "created": "Created",
       "atOriginAgency": "At Origin Agency (Drop-off)",
       "takenInCharge": "Taken In Charge (Pickup)",
@@ -1434,8 +1461,26 @@
       "returned": "Returned",
       "deliveryFailed": "Delivery Failed"
     },
+    "history": {
+      "title": "Scan History",
+      "noScans": "No scans yet",
+      "hint": "Scanned parcels will appear here",
+      "clear": "Clear History",
+      "cleared": "History cleared",
+      "status": "Status: {{status}}"
+    },
+    "tips": {
+      "title": "Tips",
+      "barcodeScanner": "Use a barcode scanner for faster input",
+      "pressEnter": "Press Enter to submit",
+      "autoFocus": "Input is auto-focused on load"
+    },
     "error": {
       "enterTrackingNumber": "Please enter a tracking number",
+      "selectStatus": "Please select a scan type",
+      "noParcelId": "No parcel ID found in QR code",
+      "invalidQr": "Invalid QR code format",
+      "verificationFailed": "QR code verification failed",
       "failed": "Scan failed",
       "unknown": "Unknown error",
       "gpsRequired": "GPS is required to record scan events",

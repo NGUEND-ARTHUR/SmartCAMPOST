@@ -100,7 +100,7 @@ export default function CreateRiskPage() {
                 {t("createRiskPage.riskType", "Risk Type")} *
               </Label>
               <Select value={type} onValueChange={setType}>
-                <SelectTrigger id="risk-type" className="z-50">
+                <SelectTrigger id="risk-type">
                   <SelectValue
                     placeholder={t(
                       "createRiskPage.selectType",
@@ -108,7 +108,7 @@ export default function CreateRiskPage() {
                     )}
                   />
                 </SelectTrigger>
-                <SelectContent className="z-50 max-h-64">
+                <SelectContent className="max-h-64">
                   {typeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -128,7 +128,7 @@ export default function CreateRiskPage() {
                 {t("createRiskPage.severity", "Severity")} *
               </Label>
               <Select value={severity} onValueChange={setSeverity}>
-                <SelectTrigger id="risk-severity" className="z-40">
+                <SelectTrigger id="risk-severity">
                   <SelectValue
                     placeholder={t(
                       "createRiskPage.selectSeverity",
@@ -136,7 +136,7 @@ export default function CreateRiskPage() {
                     )}
                   />
                 </SelectTrigger>
-                <SelectContent className="z-40 max-h-64">
+                <SelectContent className="max-h-64">
                   {severityOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}

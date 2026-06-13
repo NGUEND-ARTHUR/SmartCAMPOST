@@ -120,7 +120,7 @@ export default function ScanConsole() {
     "scanHistory",
     [],
   );
-  const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
+  const [scanMode, setScanMode] = useState<"camera" | "manual">("manual");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const recordScan = useRecordScanEvent();

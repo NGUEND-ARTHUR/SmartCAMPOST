@@ -996,6 +996,10 @@
     },
     "error": {
       "enterTrackingNumber": "Veuillez entrer un numéro de suivi",
+      "selectStatus": "Veuillez sélectionner un type de scan",
+      "noParcelId": "Aucun identifiant de colis trouvé dans le QR code",
+      "invalidQr": "Format de QR code invalide",
+      "verificationFailed": "Échec de la vérification du QR code",
       "failed": "Scan échoué",
       "unknown": "Erreur inconnue",
       "gpsRequired": "Le GPS est requis pour enregistrer les événements de scan",
@@ -1161,6 +1165,7 @@
   },
   "createRiskPage": {
     "title": "Créer une alerte de risque",
+    "subtitle": "Signaler un risque de conformité ou opérationnel pour examen.",
     "riskType": "Type de risque",
     "selectType": "Sélectionner le type de risque",
     "severity": "Sévérité",
