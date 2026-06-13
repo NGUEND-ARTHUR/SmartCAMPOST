@@ -585,6 +585,13 @@
       "inProgress": "In Progress",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "courier": {
+      "subtitle": "Assigned pickup requests",
+      "listTitle": "Pickups",
+      "noSchedule": "No schedule",
+      "emptyTitle": "No pickups",
+      "emptyDescription": "Pickups assigned to you will appear here"
     }
   },
   "pickupDetail": {

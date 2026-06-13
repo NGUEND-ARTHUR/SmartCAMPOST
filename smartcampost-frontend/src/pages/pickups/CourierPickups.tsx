@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Truck, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ const statusColors: Record<string, string> = {
 
 export default function CourierPickups() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useCourierPickups(page, 20);
 
@@ -38,23 +40,23 @@ export default function CourierPickups() {
         lng: p.pickupLongitude as number,
       },
       parcelId: p.parcelId,
-      trackingCode: p.trackingRef ?? p.parcelId.slice(0, 8),
-      clientName: p.clientName ?? p.clientId.slice(0, 8),
+      trackingCode: p.trackingRef ?? p.parcelId?.slice(0, 8) ?? "—",
+      clientName: p.clientName ?? p.clientId?.slice(0, 8) ?? "—",
       clientPhone: p.clientPhone ?? "—",
     }));
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My Pickups</h1>
-        <p className="text-muted-foreground">Assigned pickup requests</p>
+        <h1 className="text-3xl font-bold">{t("nav.myPickups")}</h1>
+        <p className="text-muted-foreground">{t("pickups.courier.subtitle")}</p>
       </div>
 
       {stops.length > 0 && <CourierNavigationMap stops={stops} />}
 
       <Card>
         <CardHeader>
-          <CardTitle>Pickups</CardTitle>
+          <CardTitle>{t("pickups.courier.listTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -64,16 +66,16 @@ export default function CourierPickups() {
           ) : error ? (
             <EmptyState
               icon={Truck}
-              title="Error loading pickups"
+              title={t("pickups.page.errorTitle")}
               description={
-                error instanceof Error ? error.message : "An error occurred"
+                error instanceof Error ? error.message : t("common.errorOccurred")
               }
             />
           ) : pickups.length === 0 ? (
             <EmptyState
               icon={Truck}
-              title="No pickups"
-              description="Pickups assigned to you will appear here"
+              title={t("pickups.courier.emptyTitle")}
+              description={t("pickups.courier.emptyDescription")}
             />
           ) : (
             <>
@@ -85,13 +87,13 @@ export default function CourierPickups() {
                   >
                     <div>
                       <div className="font-medium">
-                        Pickup #{p.id.slice(0, 8)}
+                        {t("pickups.page.pickupId", { id: p.id.slice(0, 8) })}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {p.trackingRef ?? p.parcelId.slice(0, 8)} •{" "}
+                        {p.trackingRef ?? p.parcelId?.slice(0, 8) ?? "—"} •{" "}
                         {p.requestedDate
                           ? new Date(p.requestedDate).toLocaleDateString()
-                          : "No schedule"}
+                          : t("pickups.courier.noSchedule")}
                         {p.timeWindow ? ` (${p.timeWindow})` : ""}
                       </div>
                     </div>
@@ -108,7 +110,7 @@ export default function CourierPickups() {
                         variant="outline"
                         onClick={() => navigate(`/courier/pickups/${p.id}`)}
                       >
-                        Open
+                        {t("common.view")}
                       </Button>
                     </div>
                   </div>
@@ -122,10 +124,10 @@ export default function CourierPickups() {
                     disabled={page === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
-                    Previous
+                    {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    Page {page + 1} of {totalPages}
+                    {t("common.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"
@@ -133,7 +135,7 @@ export default function CourierPickups() {
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next
+                    {t("common.next")}
                   </Button>
                 </div>
               )}

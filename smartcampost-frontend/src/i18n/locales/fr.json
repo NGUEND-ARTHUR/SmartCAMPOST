@@ -519,6 +519,13 @@
       "inProgress": "En cours",
       "completed": "Terminé",
       "cancelled": "Annulé"
+    },
+    "courier": {
+      "subtitle": "Demandes de collecte assignées",
+      "listTitle": "Collectes",
+      "noSchedule": "Pas de planning",
+      "emptyTitle": "Aucune collecte",
+      "emptyDescription": "Les collectes qui vous sont assignées apparaîtront ici"
     }
   },
   "deliveries": {
