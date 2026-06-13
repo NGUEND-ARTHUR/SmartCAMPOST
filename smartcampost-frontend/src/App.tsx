@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import CreateFinancePage from "./pages/admin/CreateFinancePage";
 import CreateRiskPage from "./pages/admin/CreateRiskPage";
+import CreateRiskUserPage from "./pages/admin/CreateRiskUserPage";
 
 // Debug/dev-only pages — not bundled in production
 const ApiCoverage = import.meta.env.DEV
@@ -230,6 +231,7 @@ function App() {
             {/* Risk Management */}
             <Route path="risk" element={<RiskDashboard />} />
             <Route path="risk/create" element={<CreateRiskPage />} />
+            <Route path="risk/create-user" element={<CreateRiskUserPage />} />
             {/* Self-Healing System (SPEC SECTION 15) */}
             <Route path="self-healing" element={<SelfHealingDashboard />} />
             <Route path="approvals" element={<ApprovalsPage />} />

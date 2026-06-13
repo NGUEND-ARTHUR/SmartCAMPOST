@@ -237,6 +237,7 @@
       "riskDashboard": "Tableau de bord risques",
       "createRisk": "Créer une alerte de risque",
       "createRiskAlert": "Créer une alerte de risque",
+      "createRiskUser": "Créer un analyste risque",
       "manageStaff": "Gérer le personnel",
       "approvals": "Approbations",
       "liveScans": "Scans en direct",
@@ -869,11 +870,11 @@
     },
     "status": {
       "all": "Tous les statuts",
-      "active": "Actif",
       "available": "Disponible",
-      "onDelivery": "En livraison",
+      "onRoute": "En route",
+      "busy": "Occupé",
       "inactive": "Inactif",
-      "suspended": "Suspendu"
+      "offline": "Hors ligne"
     }
   },
   "clientManagement": {
@@ -1141,6 +1142,14 @@
     "submit": "Créer l'utilisateur finance",
     "success": "Utilisateur finance créé avec succès.",
     "error": "Échec de la création de l'utilisateur finance."
+  },
+  "createRiskUserPage": {
+    "title": "Créer un analyste risque",
+    "subtitle": "Créer un nouvel utilisateur avec le rôle Risque qui peut gérer les alertes et la conformité.",
+    "requiredFields": "Le nom complet, le téléphone et le mot de passe sont obligatoires.",
+    "submit": "Créer l'analyste risque",
+    "success": "Analyste risque créé avec succès.",
+    "error": "Échec de la création de l'analyste risque."
   },
   "createRiskPage": {
     "title": "Créer une alerte de risque",

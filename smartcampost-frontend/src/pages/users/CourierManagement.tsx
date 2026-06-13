@@ -35,14 +35,14 @@ import { useCouriers, useCreateCourier, useUpdateCourierStatus } from "@/hooks";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
-  ACTIVE:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  INACTIVE: "bg-muted text-muted-foreground",
-  SUSPENDED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  ON_DELIVERY:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   AVAILABLE:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  ON_ROUTE:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  BUSY:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  INACTIVE: "bg-muted text-muted-foreground",
+  OFFLINE: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
 export default function CourierManagement() {
@@ -266,20 +266,20 @@ export default function CourierManagement() {
                   <SelectItem value="ALL">
                     {t("courierManagement.status.all")}
                   </SelectItem>
-                  <SelectItem value="ACTIVE">
-                    {t("courierManagement.status.active")}
-                  </SelectItem>
                   <SelectItem value="AVAILABLE">
                     {t("courierManagement.status.available")}
                   </SelectItem>
-                  <SelectItem value="ON_DELIVERY">
-                    {t("courierManagement.status.onDelivery")}
+                  <SelectItem value="ON_ROUTE">
+                    {t("courierManagement.status.onRoute", { defaultValue: "On Route" })}
+                  </SelectItem>
+                  <SelectItem value="BUSY">
+                    {t("courierManagement.status.busy", { defaultValue: "Busy" })}
                   </SelectItem>
                   <SelectItem value="INACTIVE">
                     {t("courierManagement.status.inactive")}
                   </SelectItem>
-                  <SelectItem value="SUSPENDED">
-                    {t("courierManagement.status.suspended")}
+                  <SelectItem value="OFFLINE">
+                    {t("courierManagement.status.offline", { defaultValue: "Offline" })}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -371,20 +371,20 @@ export default function CourierManagement() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ACTIVE">
-                              {t("courierManagement.status.active")}
-                            </SelectItem>
                             <SelectItem value="AVAILABLE">
                               {t("courierManagement.status.available")}
                             </SelectItem>
-                            <SelectItem value="ON_DELIVERY">
-                              {t("courierManagement.status.onDelivery")}
+                            <SelectItem value="ON_ROUTE">
+                              {t("courierManagement.status.onRoute", { defaultValue: "On Route" })}
+                            </SelectItem>
+                            <SelectItem value="BUSY">
+                              {t("courierManagement.status.busy", { defaultValue: "Busy" })}
                             </SelectItem>
                             <SelectItem value="INACTIVE">
                               {t("courierManagement.status.inactive")}
                             </SelectItem>
-                            <SelectItem value="SUSPENDED">
-                              {t("courierManagement.status.suspended")}
+                            <SelectItem value="OFFLINE">
+                              {t("courierManagement.status.offline", { defaultValue: "Offline" })}
                             </SelectItem>
                           </SelectContent>
                         </Select>

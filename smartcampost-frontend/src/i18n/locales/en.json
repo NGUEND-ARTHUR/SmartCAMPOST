@@ -235,6 +235,7 @@
       "riskDashboard": "Risk Dashboard",
       "createRisk": "Create Risk",
       "createRiskAlert": "Create Risk Alert",
+      "createRiskUser": "Create Risk Analyst",
       "manageStaff": "Manage Staff",
       "approvals": "Approvals",
       "liveScans": "Live Scans",
@@ -1113,6 +1114,14 @@
     "success": "Finance user created successfully.",
     "error": "Failed to create finance user."
   },
+  "createRiskUserPage": {
+    "title": "Create Risk Analyst",
+    "subtitle": "Create a new user with the Risk role who can manage risk alerts and compliance.",
+    "requiredFields": "Full name, phone, and password are required.",
+    "submit": "Create Risk Analyst",
+    "success": "Risk analyst created successfully.",
+    "error": "Failed to create risk analyst."
+  },
   "createRiskPage": {
     "title": "Create Risk Alert",
     "type": "Type",
@@ -1664,13 +1673,15 @@
       "emptyFiltered": "Try adjusting your filters",
       "emptyDefault": "Add your first courier to get started"
     },
+    "email": "Email",
+    "emailPlaceholder": "courier@example.com",
     "status": {
       "all": "All Status",
-      "active": "Active",
       "available": "Available",
-      "onDelivery": "On Delivery",
+      "onRoute": "On Route",
+      "busy": "Busy",
       "inactive": "Inactive",
-      "suspended": "Suspended"
+      "offline": "Offline"
     }
   },
   "clientManagement": {

@@ -70,6 +70,11 @@ export default function AdminDashboard() {
                 {t("dashboard.admin.createRiskAlert", "Create Risk Alert")}
               </Link>
             </Button>
+            <Button asChild className="bg-red-700 hover:bg-red-800">
+              <Link to="/admin/risk/create-user">
+                {t("dashboard.admin.createRiskUser", "Create Risk Analyst")}
+              </Link>
+            </Button>
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
               <Link to="/admin/approvals">
                 {t("dashboard.admin.approvals", "Approvals")}
