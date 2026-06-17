@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Filter, Shield, User, Users, Loader2 } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ const statusBadge: Record<StaffStatus, string> = {
 export default function StaffDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const userRole = useAuthStore((s) => s.user?.role?.toUpperCase() ?? "");
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"ALL" | StaffRole>("ALL");
@@ -195,7 +197,7 @@ export default function StaffDashboard() {
                     <TableHead>{t("staffDashboard.action")}</TableHead>
                     <TableHead>{t("agentDashboard.status")}</TableHead>
                     <TableHead>{t("staffManagement.email")}</TableHead>
-                    <TableHead>{t("common.action")}</TableHead>
+                    {userRole === "ADMIN" && <TableHead>{t("common.action")}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -230,15 +232,17 @@ export default function StaffDashboard() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm">{s.email}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate(`/admin/users/staff`)}
-                        >
-                          {t("common.manage")}
-                        </Button>
-                      </TableCell>
+                      {userRole === "ADMIN" && (
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => navigate(`/admin/users/staff`)}
+                          >
+                            {t("common.manage")}
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

@@ -353,49 +353,50 @@ export function QRCodeScanner({
       <CardContent className="space-y-4">
         {/* Scanner View */}
         <div className="relative">
+          {/* Keep #qr-reader free of React children — html5-qrcode directly mutates its DOM */}
           <div
             id="qr-reader"
             ref={containerRef}
             className="w-full aspect-square bg-muted rounded-lg overflow-hidden min-h-75"
-          >
-            {!isScanning && !isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground z-10">
-                {cameraError ? (
-                  <>
-                    <XCircle className="h-12 w-12 mb-2 text-destructive" />
-                    <p className="text-center px-4">{cameraError}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                      onClick={() => {
-                        setCameraError(null);
-                        startScanning();
-                      }}
-                    >
-                      Retry
-                    </Button>
-                  </>
-                ) : hasCamera ? (
-                  <>
-                    <CameraOff className="h-12 w-12 mb-2" />
-                    <p>Camera stopped</p>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-12 w-12 mb-2 text-destructive" />
-                    <p>No camera available</p>
-                  </>
-                )}
-              </div>
-            )}
-            {isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10">
-                <Loader2 className="h-8 w-8 animate-spin mb-2" />
-                <p>Activating camera...</p>
-              </div>
-            )}
-          </div>
+          />
+
+          {!isScanning && !isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground z-10 bg-muted rounded-lg">
+              {cameraError ? (
+                <>
+                  <XCircle className="h-12 w-12 mb-2 text-destructive" />
+                  <p className="text-center px-4">{cameraError}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                    onClick={() => {
+                      setCameraError(null);
+                      startScanning();
+                    }}
+                  >
+                    Retry
+                  </Button>
+                </>
+              ) : hasCamera ? (
+                <>
+                  <CameraOff className="h-12 w-12 mb-2" />
+                  <p>Camera stopped</p>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-12 w-12 mb-2 text-destructive" />
+                  <p>No camera available</p>
+                </>
+              )}
+            </div>
+          )}
+          {isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10 rounded-lg">
+              <Loader2 className="h-8 w-8 animate-spin mb-2" />
+              <p>Activating camera...</p>
+            </div>
+          )}
 
           {/* Scan overlay */}
           {isScanning && (

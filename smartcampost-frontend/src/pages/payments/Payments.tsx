@@ -215,7 +215,7 @@ export default function Payments() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          {payment.parcelId.slice(0, 8)}
+                          {payment.parcelId?.slice(0, 8) ?? "—"}
                         </span>
                       </TableCell>
                       <TableCell className="font-medium">

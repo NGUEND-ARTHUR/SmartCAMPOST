@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
 import { useAuthStore } from "@/store/authStore";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -120,7 +121,8 @@ export default function ScanConsole() {
     "scanHistory",
     [],
   );
-  const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
+  const [scanMode, setScanMode] = useState<"camera" | "manual">("manual");
+  const [cameraBoundaryKey, setCameraBoundaryKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const recordScan = useRecordScanEvent();
@@ -329,10 +331,32 @@ export default function ScanConsole() {
                 /* Camera QR Scanner */
                 <div className="space-y-4">
                   <div className="w-full max-w-md h-80 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
-                    <QRCodeScanner onScan={handleCameraScan} />
+                    <ErrorBoundary
+                      key={cameraBoundaryKey}
+                      fallback={
+                        <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center text-muted-foreground">
+                          <Camera className="w-12 h-12 text-destructive" />
+                          <p className="font-medium text-foreground">
+                            {t("scan.error.cameraFailed", "Camera failed to start")}
+                          </p>
+                          <p className="text-sm">
+                            {t("scan.error.cameraRetry", "Try reloading or switch to manual mode")}
+                          </p>
+                          <button
+                            onClick={() => setCameraBoundaryKey((k) => k + 1)}
+                            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                          >
+                            {t("scan.error.retryCamera", "Retry Camera")}
+                          </button>
+                        </div>
+                      }
+                    >
+                      <QRCodeScanner onScan={handleCameraScan} />
+                    </ErrorBoundary>
                   </div>
 
                   {/* Status Selection for Camera Mode */}
+
                   <div>
                     <label
                       htmlFor="scan-status"

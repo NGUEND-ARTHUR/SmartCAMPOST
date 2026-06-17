@@ -58,7 +58,7 @@ class RiskAgentServiceImplTest {
         );
 
         when(riskAlertRepository.findTopByParcel_IdAndAlertTypeAndResolvedFalseOrderByCreatedAtDesc(
-                parcelId, RiskAlertType.DELIVERY_DELAY
+                parcelId, RiskAlertType.OPERATIONAL
         )).thenReturn(Optional.empty());
 
         when(riskAlertRepository.save(any(RiskAlert.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -76,7 +76,7 @@ class RiskAgentServiceImplTest {
 
         verify(riskAlertRepository, atLeastOnce()).save(riskAlertCaptor.capture());
         RiskAlert saved = riskAlertCaptor.getAllValues().stream()
-                .filter(a -> a.getAlertType() == RiskAlertType.DELIVERY_DELAY)
+                .filter(a -> a.getAlertType() == RiskAlertType.OPERATIONAL)
                 .findFirst()
                 .orElseThrow();
 
@@ -98,7 +98,7 @@ class RiskAgentServiceImplTest {
         );
 
         when(riskAlertRepository.findTopByParcel_IdAndAlertTypeAndResolvedFalseOrderByCreatedAtDesc(
-                parcelId, RiskAlertType.REPEATED_DELIVERY_FAILURE
+                parcelId, RiskAlertType.OPERATIONAL
         )).thenReturn(Optional.empty());
 
         when(riskAlertRepository.save(any(RiskAlert.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -115,7 +115,7 @@ class RiskAgentServiceImplTest {
 
         verify(riskAlertRepository, atLeastOnce()).save(riskAlertCaptor.capture());
         RiskAlert saved = riskAlertCaptor.getAllValues().stream()
-                .filter(a -> a.getAlertType() == RiskAlertType.REPEATED_DELIVERY_FAILURE)
+                .filter(a -> a.getAlertType() == RiskAlertType.OPERATIONAL)
                 .findFirst()
                 .orElseThrow();
 

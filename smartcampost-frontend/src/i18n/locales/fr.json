@@ -237,6 +237,7 @@
       "riskDashboard": "Tableau de bord risques",
       "createRisk": "Créer une alerte de risque",
       "createRiskAlert": "Créer une alerte de risque",
+      "createRiskUser": "Créer un analyste risque",
       "manageStaff": "Gérer le personnel",
       "approvals": "Approbations",
       "liveScans": "Scans en direct",
@@ -518,6 +519,13 @@
       "inProgress": "En cours",
       "completed": "Terminé",
       "cancelled": "Annulé"
+    },
+    "courier": {
+      "subtitle": "Demandes de collecte assignées",
+      "listTitle": "Collectes",
+      "noSchedule": "Pas de planning",
+      "emptyTitle": "Aucune collecte",
+      "emptyDescription": "Les collectes qui vous sont assignées apparaîtront ici"
     }
   },
   "deliveries": {
@@ -869,11 +877,11 @@
     },
     "status": {
       "all": "Tous les statuts",
-      "active": "Actif",
       "available": "Disponible",
-      "onDelivery": "En livraison",
+      "onRoute": "En route",
+      "busy": "Occupé",
       "inactive": "Inactif",
-      "suspended": "Suspendu"
+      "offline": "Hors ligne"
     }
   },
   "clientManagement": {
@@ -988,11 +996,18 @@
     },
     "error": {
       "enterTrackingNumber": "Veuillez entrer un numéro de suivi",
+      "selectStatus": "Veuillez sélectionner un type de scan",
+      "noParcelId": "Aucun identifiant de colis trouvé dans le QR code",
+      "invalidQr": "Format de QR code invalide",
+      "verificationFailed": "Échec de la vérification du QR code",
       "failed": "Scan échoué",
       "unknown": "Erreur inconnue",
       "gpsRequired": "Le GPS est requis pour enregistrer les événements de scan",
       "qrVerificationFailed": "Échec de la vérification QR",
-      "verificationError": "Erreur de vérification"
+      "verificationError": "Erreur de vérification",
+      "cameraFailed": "Échec du démarrage de la caméra",
+      "cameraRetry": "Essayez de recharger ou passez en mode manuel",
+      "retryCamera": "Réessayer la caméra"
     },
     "success": {
       "scanned": "Scanné : {{barcode}}",
@@ -1130,6 +1145,7 @@
     "critical": "Critique",
     "resolved": "Résolu",
     "riskAlerts": "Alertes de risque",
+    "recentAlerts": "Alertes de risque récentes",
     "noAlerts": "Aucune alerte de risque",
     "investigate": "Investiguer",
     "dismiss": "Ignorer"
@@ -1142,8 +1158,26 @@
     "success": "Utilisateur finance créé avec succès.",
     "error": "Échec de la création de l'utilisateur finance."
   },
+  "createRiskUserPage": {
+    "title": "Créer un analyste risque",
+    "subtitle": "Créer un nouvel utilisateur avec le rôle Risque qui peut gérer les alertes et la conformité.",
+    "requiredFields": "Le nom complet, le téléphone et le mot de passe sont obligatoires.",
+    "submit": "Créer l'analyste risque",
+    "success": "Analyste risque créé avec succès.",
+    "error": "Échec de la création de l'analyste risque."
+  },
+  "riskType": {
+    "fraud": "Fraude",
+    "aml": "LBA / Lutte contre le blanchiment",
+    "operational": "Opérationnel",
+    "regulatory": "Réglementaire",
+    "credit": "Crédit",
+    "market": "Marché",
+    "other": "Autre"
+  },
   "createRiskPage": {
     "title": "Créer une alerte de risque",
+    "subtitle": "Signaler un risque de conformité ou opérationnel pour examen.",
     "riskType": "Type de risque",
     "selectType": "Sélectionner le type de risque",
     "severity": "Sévérité",
@@ -1367,8 +1401,18 @@
   "adminFinanceDashboard": {
     "title": "Tableau de bord finances",
     "subtitle": "Surveiller les paiements, les revenus et les remboursements",
+    "overview": "Aperçu financier et analytique",
+    "generateReport": "Actualiser",
     "totalRevenue": "Revenu total",
     "vsLastMonth": "vs le mois dernier",
+    "monthlyGrowthDesc": "vs le mois dernier",
+    "outstandingPayments": "Paiements en attente",
+    "outstandingPaymentsDesc": "En attente de traitement",
+    "profitMargin": "Paiements complétés",
+    "profitMarginDesc": "Traités avec succès",
+    "agencyRevenue": "Remboursements en attente",
+    "revenueByService": "En attente d'approbation",
+    "financialReports": "Tendance des revenus",
     "pendingPayments": "Paiements en attente",
     "awaitingProcessing": "En attente de traitement",
     "completedPayments": "Paiements complétés",
@@ -1387,10 +1431,19 @@
   "adminRiskDashboard": {
     "title": "Tableau de bord gestion des risques",
     "subtitle": "Surveiller et gérer les alertes de sécurité et la conformité",
+    "overview": "Sécurité, conformité et surveillance des fraudes",
     "activeAlerts": "Alertes actives",
     "resolvedAlerts": "Alertes résolues",
     "complianceScore": "Score de conformité",
     "fraudDetected": "Fraude détectée",
+    "totalIncidents": "Incidents actifs",
+    "resolvedIncidents": "Incidents résolus",
+    "systemRiskLevel": "Score de conformité",
+    "pendingReview": "Fraude détectée",
+    "incidentManagement": "Tendance hebdomadaire des alertes",
+    "riskPolicies": "Alertes par type",
+    "auditLog": "Suivi",
+    "createIncident": "Investiguer",
     "weeklyAlertTrend": "Tendance hebdomadaire des alertes",
     "alertsByType": "Alertes par type",
     "recentRiskAlerts": "Alertes de risque récentes",

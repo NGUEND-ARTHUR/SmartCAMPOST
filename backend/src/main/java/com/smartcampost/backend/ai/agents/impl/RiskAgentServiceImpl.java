@@ -110,7 +110,7 @@ public class RiskAgentServiceImpl implements RiskAgentService {
                 : (overdueHours >= 24 ? RiskSeverity.HIGH : RiskSeverity.MEDIUM);
 
         String description = "Predicted delivery ETA has passed (overdue by ~" + overdueHours + "h).";
-        upsertParcelRiskAlert(id, RiskAlertType.DELIVERY_DELAY, severity, description);
+        upsertParcelRiskAlert(id, RiskAlertType.OPERATIONAL, severity, description);
     }
 
     private void evaluateRepeatedDeliveryFailures(UUID parcelId) {
@@ -138,7 +138,7 @@ public class RiskAgentServiceImpl implements RiskAgentService {
                 : (failedAttempts >= 3 ? RiskSeverity.HIGH : RiskSeverity.MEDIUM);
 
         String description = "Repeated failed delivery attempts detected (failedAttempts=" + failedAttempts + ").";
-        upsertParcelRiskAlert(id, RiskAlertType.REPEATED_DELIVERY_FAILURE, severity, description);
+        upsertParcelRiskAlert(id, RiskAlertType.OPERATIONAL, severity, description);
     }
 
     private void upsertParcelRiskAlert(UUID parcelId, RiskAlertType type, RiskSeverity severity, String description) {

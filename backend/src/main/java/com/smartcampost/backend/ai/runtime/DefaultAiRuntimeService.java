@@ -179,7 +179,7 @@ public class DefaultAiRuntimeService implements AiRuntimeService {
             case PARCEL_CREATED -> {
                 if (isHighValueParcel(request.payload())) {
                         actions.add(executeTool(buildToolRequest(AiToolName.DETECT_FRAUD, request, mapOf(
-                            "type", RiskAlertType.HIGH_VALUE.name(),
+                            "type", RiskAlertType.AML.name(),
                             "severity", RiskSeverity.MEDIUM.name(),
                             "description", "High-value parcel created"
                     ))));
@@ -223,7 +223,7 @@ public class DefaultAiRuntimeService implements AiRuntimeService {
                     "message", "The operational event was processed successfully: " + eventType.name()
             ))));
                     case PAYMENT_FAILED -> actions.add(executeTool(buildToolRequest(AiToolName.DETECT_FRAUD, request, mapOf(
-                    "type", RiskAlertType.MULTIPLE_FAILED_PAYMENTS.name(),
+                    "type", RiskAlertType.CREDIT.name(),
                     "severity", RiskSeverity.HIGH.name(),
                     "description", "Payment failure observed in the event stream"
             ))));

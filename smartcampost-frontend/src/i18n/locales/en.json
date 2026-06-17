@@ -235,6 +235,7 @@
       "riskDashboard": "Risk Dashboard",
       "createRisk": "Create Risk",
       "createRiskAlert": "Create Risk Alert",
+      "createRiskUser": "Create Risk Analyst",
       "manageStaff": "Manage Staff",
       "approvals": "Approvals",
       "liveScans": "Live Scans",
@@ -584,6 +585,13 @@
       "inProgress": "In Progress",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "courier": {
+      "subtitle": "Assigned pickup requests",
+      "listTitle": "Pickups",
+      "noSchedule": "No schedule",
+      "emptyTitle": "No pickups",
+      "emptyDescription": "Pickups assigned to you will appear here"
     }
   },
   "pickupDetail": {
@@ -1057,6 +1065,7 @@
     "resolved": "Resolved",
     "closedItems": "Closed items",
     "riskAlerts": "Risk Alerts",
+    "recentAlerts": "Recent Risk Alerts",
     "noAlerts": "No risk alerts",
     "alertsAppear": "Risk alerts will appear here",
     "type": "Type",
@@ -1073,8 +1082,18 @@
   "adminFinanceDashboard": {
     "title": "Finance Dashboard",
     "subtitle": "Monitor payments, revenue, and refunds",
+    "overview": "Financial overview and analytics",
+    "generateReport": "Refresh",
     "totalRevenue": "Total Revenue",
     "vsLastMonth": "vs last month",
+    "monthlyGrowthDesc": "vs last month",
+    "outstandingPayments": "Outstanding Payments",
+    "outstandingPaymentsDesc": "Awaiting processing",
+    "profitMargin": "Completed Payments",
+    "profitMarginDesc": "Successfully processed",
+    "agencyRevenue": "Pending Refunds",
+    "revenueByService": "Awaiting approval",
+    "financialReports": "Revenue Trend",
     "pendingPayments": "Pending Payments",
     "awaitingProcessing": "Awaiting processing",
     "completedPayments": "Completed Payments",
@@ -1093,10 +1112,19 @@
   "adminRiskDashboard": {
     "title": "Risk Management Dashboard",
     "subtitle": "Monitor and manage security alerts and compliance",
+    "overview": "Security, compliance and fraud monitoring",
     "activeAlerts": "Active Alerts",
     "resolvedAlerts": "Resolved Alerts",
     "complianceScore": "Compliance Score",
     "fraudDetected": "Fraud Detected",
+    "totalIncidents": "Active Incidents",
+    "resolvedIncidents": "Resolved Incidents",
+    "systemRiskLevel": "Compliance Score",
+    "pendingReview": "Fraud Detected",
+    "incidentManagement": "Weekly Alert Trend",
+    "riskPolicies": "Alerts by Type",
+    "auditLog": "Tracking",
+    "createIncident": "Investigate",
     "weeklyAlertTrend": "Weekly Alert Trend",
     "alertsByType": "Alerts by Type",
     "recentRiskAlerts": "Recent Risk Alerts",
@@ -1113,16 +1141,38 @@
     "success": "Finance user created successfully.",
     "error": "Failed to create finance user."
   },
+  "createRiskUserPage": {
+    "title": "Create Risk Analyst",
+    "subtitle": "Create a new user with the Risk role who can manage risk alerts and compliance.",
+    "requiredFields": "Full name, phone, and password are required.",
+    "submit": "Create Risk Analyst",
+    "success": "Risk analyst created successfully.",
+    "error": "Failed to create risk analyst."
+  },
+  "riskType": {
+    "fraud": "Fraud",
+    "aml": "AML / Anti-Money Laundering",
+    "operational": "Operational",
+    "regulatory": "Regulatory",
+    "credit": "Credit",
+    "market": "Market",
+    "other": "Other"
+  },
   "createRiskPage": {
     "title": "Create Risk Alert",
+    "subtitle": "Flag a compliance or operational risk for review.",
+    "riskType": "Risk Type",
+    "selectType": "Select risk type",
     "type": "Type",
     "typePlaceholder": "e.g., FRAUD, COMPLIANCE",
     "severity": "Severity",
+    "selectSeverity": "Select severity",
     "severityPlaceholder": "e.g., HIGH, MEDIUM, LOW",
     "description": "Description",
     "descriptionPlaceholder": "Describe the risk alert",
     "creating": "Creating...",
     "create": "Create Risk Alert",
+    "submit": "Create Alert",
     "success": "Risk alert created successfully!",
     "requiredFields": "All fields are required",
     "createFailed": "Failed to create risk alert"
@@ -1384,7 +1434,29 @@
     "scanResult": "Scan Result",
     "updateStatus": "Update Status",
     "defaultLocation": "Agency Counter",
+    "quickScan": "Quick Scan",
+    "todaysScans": "Today's Scans",
+    "successRate": "Success Rate",
+    "mode": {
+      "camera": "Camera",
+      "manual": "Manual"
+    },
+    "trackingNumber": {
+      "label": "Tracking Number / Barcode",
+      "placeholder": "Scan or type tracking number..."
+    },
+    "location": {
+      "label": "Location",
+      "title": "Location",
+      "placeholder": "e.g. Agency Counter"
+    },
+    "button": {
+      "scanning": "Scanning...",
+      "scanAndUpdate": "Scan & Update Status"
+    },
     "status": {
+      "label": "Scan Type",
+      "selectTitle": "Select scan type",
       "created": "Created",
       "atOriginAgency": "At Origin Agency (Drop-off)",
       "takenInCharge": "Taken In Charge (Pickup)",
@@ -1398,8 +1470,26 @@
       "returned": "Returned",
       "deliveryFailed": "Delivery Failed"
     },
+    "history": {
+      "title": "Scan History",
+      "noScans": "No scans yet",
+      "hint": "Scanned parcels will appear here",
+      "clear": "Clear History",
+      "cleared": "History cleared",
+      "status": "Status: {{status}}"
+    },
+    "tips": {
+      "title": "Tips",
+      "barcodeScanner": "Use a barcode scanner for faster input",
+      "pressEnter": "Press Enter to submit",
+      "autoFocus": "Input is auto-focused on load"
+    },
     "error": {
       "enterTrackingNumber": "Please enter a tracking number",
+      "selectStatus": "Please select a scan type",
+      "noParcelId": "No parcel ID found in QR code",
+      "invalidQr": "Invalid QR code format",
+      "verificationFailed": "QR code verification failed",
       "failed": "Scan failed",
       "unknown": "Unknown error",
       "gpsRequired": "GPS is required to record scan events",
@@ -1407,7 +1497,10 @@
       "missingParcelId": "Missing parcelId in QR code",
       "emptyQrContent": "QR code content is empty",
       "invalidQrFormat": "Invalid QR code format",
-      "verificationError": "Verification error"
+      "verificationError": "Verification error",
+      "cameraFailed": "Camera failed to start",
+      "cameraRetry": "Try reloading or switch to manual mode",
+      "retryCamera": "Retry Camera"
     },
     "success": {
       "scanned": "Scanned: {{barcode}}",
@@ -1664,13 +1757,15 @@
       "emptyFiltered": "Try adjusting your filters",
       "emptyDefault": "Add your first courier to get started"
     },
+    "email": "Email",
+    "emailPlaceholder": "courier@example.com",
     "status": {
       "all": "All Status",
-      "active": "Active",
       "available": "Available",
-      "onDelivery": "On Delivery",
+      "onRoute": "On Route",
+      "busy": "Busy",
       "inactive": "Inactive",
-      "suspended": "Suspended"
+      "offline": "Offline"
     }
   },
   "clientManagement": {

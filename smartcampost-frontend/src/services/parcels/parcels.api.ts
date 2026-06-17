@@ -208,7 +208,7 @@ export const parcelService = {
   },
 
   trackByRef(trackingRef: string): Promise<ParcelDetailResponse> {
-    return httpClient.get(`/track/${trackingRef}`);
+    return httpClient.get(`/track/parcel/${trackingRef}`);
   },
 
   updateStatus(

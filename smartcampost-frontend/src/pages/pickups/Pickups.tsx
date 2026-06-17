@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Truck, Plus, Calendar, Clock, Package, Loader2 } from "lucide-react";
+import { Truck, Plus, Calendar, Package, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -402,7 +402,7 @@ export default function Pickups() {
                           <span>
                             {t("pickups.page.parcelLabel")}{" "}
                             <span className="font-medium text-foreground">
-                              {pickup.parcelId.slice(0, 8)}
+                              {pickup.parcelId?.slice(0, 8) ?? "—"}
                             </span>
                           </span>
                         </div>
