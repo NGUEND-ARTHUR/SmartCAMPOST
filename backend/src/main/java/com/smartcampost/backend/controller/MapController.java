@@ -3,11 +3,13 @@ package com.smartcampost.backend.controller;
 import com.smartcampost.backend.model.Location;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.repository.ParcelRepository;
+import com.smartcampost.backend.security.ParcelAuthorizationService;
 import com.smartcampost.backend.service.LocationService;
 import com.smartcampost.backend.dto.scan.ScanEventResponse;
 import com.smartcampost.backend.service.ScanEventService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,19 +31,27 @@ public class MapController {
     private final ParcelRepository parcelRepository;
     private final ScanEventService scanEventService;
     private final LocationService locationService;
+    private final ParcelAuthorizationService parcelAuthorizationService;
 
-    public MapController(ParcelRepository parcelRepository, ScanEventService scanEventService, LocationService locationService) {
+    public MapController(
+            ParcelRepository parcelRepository,
+            ScanEventService scanEventService,
+            LocationService locationService,
+            ParcelAuthorizationService parcelAuthorizationService
+    ) {
         this.parcelRepository = parcelRepository;
         this.scanEventService = scanEventService;
         this.locationService = locationService;
+        this.parcelAuthorizationService = parcelAuthorizationService;
     }
 
     @GetMapping("/parcels/{parcelId}")
     @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN','RISK')")
-    public ResponseEntity<?> parcelMap(@PathVariable String parcelId) {
+    public ResponseEntity<?> parcelMap(@PathVariable String parcelId, Authentication authentication) {
         java.util.UUID pid;
         try { pid = java.util.UUID.fromString(parcelId); } catch (Exception e) { return ResponseEntity.badRequest().build(); }
         pid = Objects.requireNonNull(pid, "parcelId is required");
+        parcelAuthorizationService.requireReadableParcel(pid, authentication);
         return parcelRepository.findById(pid)
                 .map(p -> {
                     Map<String, Object> out = new HashMap<>();

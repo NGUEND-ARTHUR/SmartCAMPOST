@@ -14,6 +14,9 @@ build/
 # Java / Spring Boot
 target/
 *.log
+backend/storage/
+storage/
+docs/_extracted/backend__storage__*.txt
 
 # Flutter / Android
 build/
@@ -33,6 +36,8 @@ build/
 smartcampost-frontend/e2e/.auth/
 smartcampost-frontend/playwright-report/
 smartcampost-frontend/test-results/
+/smartcampost-frontend/playwright-report/
+/smartcampost-frontend/test-results/
 /test-results/
 /playwright-report/
 /blob-report/

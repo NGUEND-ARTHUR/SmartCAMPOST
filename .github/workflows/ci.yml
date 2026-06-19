@@ -58,7 +58,7 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: local
           SMARTCAMPOST_JWT_SECRET: ci-test-secret-32-characters-long!!
-          SMARTCAMPOST_OTP_EXPOSE_CODE_IN_RESPONSE: "true"
+          SMARTCAMPOST_OTP_EXPOSE_CODE: "true"
           RATE_LIMIT_ENABLED: "false"
 
       - name: Package JAR

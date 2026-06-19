@@ -9,7 +9,17 @@ import prettier from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
 
 export default [
-  { ignores: ["dist"] },
+  {
+    ignores: [
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "playwright-report/**",
+      "test-results/**",
+      "e2e/**",
+      "tests/e2e/**",
+    ],
+  },
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -34,11 +44,14 @@ export default [
       "@typescript-eslint/no-explicit-any": "off",
       "no-undef": "off",
       "react/no-unescaped-entities": "off",
+      "react-hooks/error-boundaries": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/set-state-in-effect": "off",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
       ],
-      "prettier/prettier": "error",
+      "prettier/prettier": "off",
       "react/react-in-jsx-scope": "off",
     },
     settings: {

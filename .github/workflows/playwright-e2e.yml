@@ -28,13 +28,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Cache npm
         uses: actions/cache@v4
@@ -59,6 +59,11 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: local
           PORT: 8082
+          PAYMENT_GATEWAY: mock
+          RATE_LIMIT_ENABLED: "false"
+          SMARTCAMPOST_JWT_SECRET: ci-test-secret-32-characters-long!!
+          QR_SECRET_KEY: ci-test-qr-secret-32-characters-long
+          SMARTCAMPOST_OTP_EXPOSE_CODE: "true"
           TEST_ADMIN_PHONE: ${{ env.TEST_ADMIN_PHONE }}
           TEST_ADMIN_PASSWORD: ${{ env.TEST_ADMIN_PASSWORD }}
           TEST_ADMIN_EMAIL: ${{ env.TEST_ADMIN_EMAIL }}

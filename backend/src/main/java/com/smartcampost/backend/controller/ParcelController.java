@@ -1,12 +1,14 @@
 package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.parcel.*;
+import com.smartcampost.backend.security.ParcelAuthorizationService;
 import com.smartcampost.backend.service.ParcelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class ParcelController {
 
     private final ParcelService parcelService;
+    private final ParcelAuthorizationService parcelAuthorizationService;
 
     // US20: client creates a parcel (generates partial QR)
     @PostMapping
@@ -41,8 +44,10 @@ public class ParcelController {
     // Parcel detail by ID
     @GetMapping("/{parcelId}")
     public ResponseEntity<ParcelDetailResponse> getParcelById(
-            @PathVariable UUID parcelId
+            @PathVariable UUID parcelId,
+            Authentication authentication
     ) {
+        parcelAuthorizationService.requireReadableParcel(parcelId, authentication);
         return ResponseEntity.ok(parcelService.getParcelById(parcelId));
     }
 
@@ -66,7 +71,7 @@ public class ParcelController {
 
     // US21: update status
     @PatchMapping("/{parcelId}/status")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<ParcelResponse> updateParcelStatus(
             @PathVariable UUID parcelId,
             @Valid @RequestBody UpdateParcelStatusRequest request
@@ -95,11 +100,13 @@ public class ParcelController {
 
     // Change delivery option (AGENCY <-> HOME)
     @PatchMapping("/{parcelId}/delivery-option")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('CLIENT','STAFF','ADMIN')")
     public ResponseEntity<ParcelResponse> changeDeliveryOption(
             @PathVariable UUID parcelId,
-            @Valid @RequestBody ChangeDeliveryOptionRequest request
+            @Valid @RequestBody ChangeDeliveryOptionRequest request,
+            Authentication authentication
     ) {
+        parcelAuthorizationService.requireReadableParcel(parcelId, authentication);
         return ResponseEntity.ok(parcelService.changeDeliveryOption(parcelId, request));
     }
 
@@ -138,8 +145,10 @@ public class ParcelController {
     @GetMapping("/{parcelId}/can-correct")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> canCorrectParcel(
-            @PathVariable UUID parcelId
+            @PathVariable UUID parcelId,
+            Authentication authentication
     ) {
+        parcelAuthorizationService.requireReadableParcel(parcelId, authentication);
         boolean canCorrect = parcelService.canCorrectParcel(parcelId);
         return ResponseEntity.ok(Map.of("canCorrect", canCorrect));
     }

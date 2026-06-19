@@ -65,7 +65,7 @@ public class SecurityConfig {
 
                         // ===================================================
                         //          SWAGGER / OPENAPI (dev/staging only)
-                        //  Disable in production by setting SWAGGER_ENABLED=false
+                        //  Enable only outside production by setting SWAGGER_ENABLED=true
                         // ===================================================
                         .requestMatchers(
                             "/swagger-ui.html",
@@ -154,6 +154,9 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "STAFF")
 
                         .requestMatchers("/api/pricing/**")
+                        .authenticated()
+
+                        .requestMatchers("/api/pricing-details/**")
                         .authenticated()
 
                         // ===================================================
