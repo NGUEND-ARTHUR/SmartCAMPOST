@@ -12,8 +12,11 @@ export class AdminUserManagementPage {
 
 
   async findUserInList(text: string) {
-    await this.page.waitForSelector('table');
-    const found = await this.page.isVisible(`text=${text}`);
-    return found;
+    const table = this.page.locator('table');
+    const hasTable = await table.isVisible({ timeout: 5000 }).catch(() => false);
+    if (!hasTable) {
+      return false;
+    }
+    return this.page.isVisible(`text=${text}`);
   }
 }
