@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { BellRing, Clock3, Loader2, MessageCircle, Phone, Send, ShieldCheck, Star, Truck, UserRound } from "lucide-react";
 import QRCodeScanner from "@/components/qrcode/QRCodeScanner";
 import TrackingMap from "@/components/maps/TrackingMap";
 import AuditTrail from "@/components/delivery/AuditTrail";
@@ -52,6 +52,10 @@ export default function TrackingPage() {
   const [result, setResult] = useState<TrackingResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessage, setChatMessage] = useState("");
+  const [rating, setRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState("");
 
   const roleUpper = (user?.role ?? "").toUpperCase();
   const canSeeAudit = roleUpper === "ADMIN" || roleUpper === "STAFF";
@@ -68,6 +72,42 @@ export default function TrackingPage() {
       location: e.locationNote,
     }));
   }, [result]);
+
+  const currentContact = useMemo(() => {
+    const timeline = result?.timeline ?? [];
+    const latestActor = [...timeline]
+      .reverse()
+      .find((event) => event.agentName || event.agencyName);
+    return {
+      name: latestActor?.agentName || latestActor?.agencyName || t("trackingPage.assignedContact", "Assigned contact"),
+      role: latestActor?.agentName ? "AGENT" : "AGENCY",
+      phone: "",
+    };
+  }, [result, t]);
+
+  const brandedTrackingInsights = useMemo(() => {
+    const events = result?.timeline ?? [];
+    const delivered = (result?.status ?? "").toUpperCase().includes("DELIVERED");
+    const moving = (result?.status ?? "").toUpperCase().includes("TRANSIT")
+      || (result?.status ?? "").toUpperCase().includes("OUT");
+    const lastUpdate = result?.updatedAt || events[events.length - 1]?.timestamp;
+    const hoursSinceUpdate = lastUpdate
+      ? Math.max(0, (Date.now() - new Date(lastUpdate).getTime()) / 36e5)
+      : 0;
+    const delayRisk = !delivered && hoursSinceUpdate > 24;
+    const etaHours = delivered ? 0 : Math.max(2, 18 - events.length * 2 + (delayRisk ? 8 : 0));
+    return {
+      delivered,
+      moving,
+      delayRisk,
+      etaLabel: delivered
+        ? t("trackingPage.insights.delivered", "Delivered")
+        : t("trackingPage.insights.etaHours", "{{count}}h estimated", { count: etaHours }),
+      alertLabel: delayRisk
+        ? t("trackingPage.insights.delayAlert", "Delay risk: proactive notification recommended")
+        : t("trackingPage.insights.onTrack", "On track: customer visibility is healthy"),
+    };
+  }, [result, t]);
 
   const lookupByNumber = useCallback(
     async (tracking: string) => {
@@ -127,6 +167,50 @@ export default function TrackingPage() {
     [t],
   );
 
+  const startConversation = async () => {
+    const message = chatMessage.trim();
+    if (!message) return;
+    try {
+      await axiosInstance.post("/conversations", {
+        channel: "WEB",
+        message,
+        contextData: JSON.stringify({
+          trackingRef: result?.trackingRef || result?.trackingNumber,
+          contact: currentContact,
+        }),
+      });
+      toast.success(t("trackingPage.chat.sent", "Message sent"));
+      setChatMessage("");
+      setChatOpen(false);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t("trackingPage.chat.failed", "Unable to send message"),
+      );
+    }
+  };
+
+  const submitRating = async () => {
+    if (rating < 1) return;
+    try {
+      await axiosInstance.post("/ratings", {
+        score: rating,
+        comment: ratingComment,
+        trackingRef: result?.trackingRef || result?.trackingNumber,
+        ratedRole: currentContact.role,
+      });
+      toast.success(t("trackingPage.rating.thanks", "Thanks for your feedback"));
+      setRatingComment("");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t("trackingPage.rating.failed", "Unable to save rating"),
+      );
+    }
+  };
+
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (!ref) return;
@@ -139,7 +223,7 @@ export default function TrackingPage() {
   }, [lookupByNumber, searchParams]);
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className="mx-auto max-w-6xl p-4">
       <Card>
         <CardHeader>
           <CardTitle>{t("trackingPage.title", "Track Your Parcel")}</CardTitle>
@@ -215,7 +299,8 @@ export default function TrackingPage() {
           </Tabs>
 
           {result && (
-            <div className="space-y-3">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <div className="space-y-3">
               <div className="text-sm">
                 <div>
                   <span className="font-semibold">
@@ -234,6 +319,52 @@ export default function TrackingPage() {
                     {t("trackingPage.lastNote", "Last Note")}:
                   </span>{" "}
                   {result.lastLocationNote ?? "—"}
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-lg border bg-primary/5 p-4">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Truck className="h-4 w-4 text-primary" />
+                    {t("trackingPage.insights.branded", "Branded live tracking")}
+                  </div>
+                  <p className="mt-2 text-2xl font-semibold">
+                    {brandedTrackingInsights.moving
+                      ? t("trackingPage.insights.inMotion", "In motion")
+                      : result.status ?? t("common.status", "Status")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    SmartCAMPOST branded journey page with live parcel context.
+                  </p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Clock3 className="h-4 w-4 text-amber-600" />
+                    {t("trackingPage.insights.dynamicEta", "Dynamic ETA")}
+                  </div>
+                  <p className="mt-2 text-2xl font-semibold">
+                    {brandedTrackingInsights.etaLabel}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    ETA adapts from scan history and delay risk.
+                  </p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {brandedTrackingInsights.delivered ? (
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <BellRing className="h-4 w-4 text-blue-600" />
+                    )}
+                    {brandedTrackingInsights.delivered
+                      ? t("trackingPage.insights.proof", "Proof of delivery")
+                      : t("trackingPage.insights.alerts", "Proactive alerts")}
+                  </div>
+                  <p className="mt-2 text-sm font-semibold">
+                    {brandedTrackingInsights.delivered
+                      ? t("trackingPage.insights.proofReady", "Delivery proof available after confirmation")
+                      : brandedTrackingInsights.alertLabel}
+                  </p>
                 </div>
               </div>
 
@@ -271,7 +402,7 @@ export default function TrackingPage() {
                     }
                     currentStatus={result.status}
                     scanEvents={scanEventsForMap}
-                    showAnimation={false}
+                    showAnimation
                   />
                 </div>
               )}
@@ -284,6 +415,103 @@ export default function TrackingPage() {
                   <AuditTrail parcelId={result.parcelId} showFull={true} />
                 </div>
               )}
+              </div>
+
+              <aside className="space-y-4">
+                <Card className="sc-animate-fade-up">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <UserRound className="h-5 w-5" />
+                      {t("trackingPage.contact.title", "Delivery contact")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <UserRound className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">{currentContact.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {currentContact.role}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => setChatOpen((open) => !open)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        {t("trackingPage.contact.chat", "Chat")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => toast.info(t("trackingPage.contact.callSoon", "Calling will use the assigned phone number when available."))}
+                      >
+                        <Phone className="h-4 w-4" />
+                        {t("trackingPage.contact.call", "Call")}
+                      </Button>
+                    </div>
+                    {chatOpen && (
+                      <div className="space-y-2">
+                        <textarea
+                          className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                          value={chatMessage}
+                          placeholder={t("trackingPage.chat.placeholder", "Write a message about this parcel...")}
+                          onChange={(event) => setChatMessage(event.target.value)}
+                        />
+                        <Button className="w-full gap-2" onClick={startConversation}>
+                          <Send className="h-4 w-4" />
+                          {t("trackingPage.chat.send", "Send message")}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="sc-animate-fade-up sc-delay-1">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Star className="h-5 w-5" />
+                      {t("trackingPage.rating.title", "Rate this service")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          className="rounded p-1 text-amber-500 transition hover:scale-110"
+                          aria-label={`${score} stars`}
+                          onClick={() => setRating(score)}
+                        >
+                          <Star
+                            className="h-6 w-6"
+                            fill={score <= rating ? "currentColor" : "none"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                      value={ratingComment}
+                      placeholder={t("trackingPage.rating.placeholder", "Share delivery feedback...")}
+                      onChange={(event) => setRatingComment(event.target.value)}
+                    />
+                    <Button
+                      className="w-full"
+                      disabled={rating < 1}
+                      onClick={submitRating}
+                    >
+                      {t("trackingPage.rating.submit", "Submit rating")}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </aside>
             </div>
           )}
         </CardContent>

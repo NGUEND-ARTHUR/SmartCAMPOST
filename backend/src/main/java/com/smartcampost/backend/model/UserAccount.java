@@ -26,6 +26,9 @@ public class UserAccount {
     @Column(name = "email", unique = true, length = 255)
     private String email;
 
+    @Column(name = "photo_url", length = 1000)
+    private String photoUrl;
+
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 

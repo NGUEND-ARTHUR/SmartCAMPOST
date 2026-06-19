@@ -16,6 +16,7 @@ const MapViewer = lazy(() => import("./pages/maps/MapViewer"));
 const PickupMap = lazy(() => import("./pages/maps/PickupMap"));
 const TrackingMap = lazy(() => import("./pages/maps/TrackingMap"));
 const RoleMapDashboard = lazy(() => import("./pages/maps/RoleMapDashboard"));
+const OperationsIntelligencePage = lazy(() => import("./pages/ops/OperationsIntelligencePage"));
 // Lazy-load TrackingPage to avoid loading html5-qrcode WASM on every page
 const TrackingPage = lazy(() => import("./pages/common/TrackingPage"));
 
@@ -28,6 +29,7 @@ import {
 
 // Common pages
 import { Landing } from "./pages/common";
+import Addresses from "./pages/common/Addresses";
 
 // Auth pages
 import { Login, LoginOtp, ResetPassword, Register } from "./pages/auth";
@@ -65,6 +67,36 @@ import { Payments, ClientPayments, Refunds } from "./pages/payments";
 import { Notifications } from "./pages/notifications";
 import { Analytics } from "./pages/analytics";
 import { Compliance, RiskAlerts } from "./pages/compliance";
+import InvoicesPage from "./pages/common/InvoicesPage";
+import {
+  AdvancedAnalyticsPage,
+  AiAutomationDiscoveryPage,
+  DistancePricingPage,
+  AgentCounterCreatePage,
+  AgentPickupsPage,
+  FailedDeliveryReportPage,
+  FinanceExceptionsPage,
+  GpsTrackersPage,
+  GrantRbacPermissionPage,
+  HubBulkScanPage,
+  IotGpsIngestionPage,
+  LiveLogisticsPage,
+  MobileGpsUpdatePage,
+  NotificationTemplatesPage,
+  OtpLogsPage,
+  PickupRecommendationPage,
+  ProfileSettingsPage,
+  PublicQrVerificationPage,
+  RbacPermissionsPage,
+  RegisterGpsTrackerPage,
+  RiskCasesPage,
+  RouteOptimizationPage,
+  StaffDeliveryMonitoringPage,
+  StaffFinanceOverviewPage,
+  StaffPaymentsPage,
+  StaffSupportInboxPage,
+  UssdMonitorPage,
+} from "./pages/ops";
 
 import { ProtectedWrapper } from "./components/auth/ProtectedRoute";
 import { RoleLayout } from "./layouts/RoleLayout";
@@ -83,6 +115,7 @@ import {
 } from "./pages/admin";
 import { AIChatbot } from "./components/chat";
 import { SessionTimeoutWarning } from "./components/SessionTimeoutWarning";
+import { GlobalBackTrail } from "./components/GlobalBackTrail";
 
 function App() {
   return (
@@ -101,6 +134,7 @@ function App() {
           <Route path="/auth/login-otp" element={<LoginOtp />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/auth/register" element={<Register />} />
+          <Route path="/qr/verify" element={<PublicQrVerificationPage />} />
 
           <Route
             path="/client/parcels/:parcelId/print-label"
@@ -129,15 +163,21 @@ function App() {
           >
             <Route index element={<ClientDashboard />} />
             <Route path="parcels" element={<ParcelList />} />
+            <Route path="parcels/new" element={<CreateParcel />} />
             <Route path="parcels/create" element={<CreateParcel />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
             <Route path="pickups" element={<Pickups />} />
             <Route path="payments" element={<ClientPayments />} />
+            <Route path="invoices" element={<InvoicesPage />} />
+            <Route path="addresses" element={<Addresses />} />
             <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="track" element={<TrackingPage />} />
             <Route path="tracking" element={<TrackingPage />} />
             <Route path="support" element={<Support />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="settings" element={<ProfileSettingsPage />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           <Route
@@ -153,10 +193,17 @@ function App() {
             <Route path="pickups/:id" element={<PickupDetail />} />
             <Route path="deliveries" element={<CourierDeliveries />} />
             <Route path="deliveries/:id" element={<DeliveryDetail />} />
+            <Route path="deliveries/:id/confirm" element={<ConfirmDelivery />} />
             <Route path="deliveries/confirm" element={<ConfirmDelivery />} />
+            <Route path="deliveries/failed" element={<FailedDeliveryReportPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="live-logistics" element={<LiveLogisticsPage />} />
+            <Route path="gps" element={<MobileGpsUpdatePage />} />
+            <Route path="route-optimization" element={<RouteOptimizationPage />} />
             <Route path="scan" element={<ScanConsole />} />
+            <Route path="scans" element={<ScanConsole />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           <Route
@@ -168,9 +215,36 @@ function App() {
             }
           >
             <Route index element={<AgentDashboard />} />
+            <Route
+              path="parcels/new"
+              element={
+                <>
+                  <AgentCounterCreatePage />
+                  <CreateParcel />
+                </>
+              }
+            />
+            <Route
+              path="parcels/create"
+              element={
+                <>
+                  <AgentCounterCreatePage />
+                  <CreateParcel />
+                </>
+              }
+            />
+            <Route path="parcels" element={<ParcelManagement />} />
+            <Route path="parcels/:id" element={<ParcelDetail />} />
+            <Route path="pickups" element={<AgentPickupsPage />} />
+            <Route path="delivery-tools" element={<FailedDeliveryReportPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="live-logistics" element={<LiveLogisticsPage />} />
+            <Route path="gps" element={<MobileGpsUpdatePage />} />
+            <Route path="route-optimization" element={<RouteOptimizationPage />} />
             <Route path="scan" element={<ScanConsole />} />
+            <Route path="scans" element={<ScanConsole />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           <Route
@@ -183,14 +257,36 @@ function App() {
           >
             <Route index element={<StaffDashboard />} />
             <Route path="pickups" element={<PickupsManagement />} />
+            <Route path="deliveries" element={<StaffDeliveryMonitoringPage />} />
+            <Route path="payments" element={<StaffPaymentsPage />} />
+            <Route path="finance" element={<StaffFinanceOverviewPage />} />
+            <Route path="support" element={<StaffSupportInboxPage />} />
             <Route path="parcels" element={<ParcelManagement />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
             <Route path="tracking" element={<TrackingPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="live-logistics" element={<LiveLogisticsPage />} />
+            <Route path="gps" element={<MobileGpsUpdatePage />} />
+            <Route path="gps-trackers" element={<GpsTrackersPage />} />
+            <Route path="gps-trackers/new" element={<RegisterGpsTrackerPage />} />
+            <Route path="iot-gps" element={<IotGpsIngestionPage />} />
+            <Route path="route-optimization" element={<RouteOptimizationPage />} />
+            <Route path="pickup-recommendations" element={<PickupRecommendationPage />} />
+            <Route path="distance-pricing" element={<DistancePricingPage />} />
             <Route path="scan" element={<ScanConsole />} />
+            <Route path="scans" element={<ScanConsole />} />
+            <Route path="bulk-scans" element={<HubBulkScanPage />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="notification-templates" element={<NotificationTemplatesPage />} />
+            <Route path="otp-logs" element={<OtpLogsPage />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="advanced-analytics" element={<AdvancedAnalyticsPage />} />
+            <Route path="operations-intelligence" element={<OperationsIntelligencePage />} />
+            <Route path="ai-discovery" element={<AiAutomationDiscoveryPage />} />
+            <Route path="rbac-permissions" element={<RbacPermissionsPage />} />
+            <Route path="integrations" element={<IntegrationManagement />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           <Route
@@ -209,22 +305,50 @@ function App() {
             <Route path="parcels" element={<ParcelManagement />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
+            <Route path="pickups" element={<PickupsManagement />} />
+            <Route path="deliveries" element={<StaffDeliveryMonitoringPage />} />
+            <Route path="payments" element={<Payments />} />
+            <Route path="support" element={<StaffSupportInboxPage />} />
             <Route path="tracking" element={<TrackingPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
+            <Route path="live-logistics" element={<LiveLogisticsPage />} />
+            <Route path="gps" element={<MobileGpsUpdatePage />} />
+            <Route path="gps-trackers" element={<GpsTrackersPage />} />
+            <Route path="gps-trackers/new" element={<RegisterGpsTrackerPage />} />
+            <Route path="iot-gps" element={<IotGpsIngestionPage />} />
+            <Route path="route-optimization" element={<RouteOptimizationPage />} />
+            <Route path="pickup-recommendations" element={<PickupRecommendationPage />} />
+            <Route path="distance-pricing" element={<DistancePricingPage />} />
             <Route path="scan" element={<ScanConsole />} />
+            <Route path="scans" element={<ScanConsole />} />
+            <Route path="bulk-scans" element={<HubBulkScanPage />} />
             <Route path="staff" element={<StaffDashboard />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="notification-templates" element={<NotificationTemplatesPage />} />
+            <Route path="otp-logs" element={<OtpLogsPage />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="advanced-analytics" element={<AdvancedAnalyticsPage />} />
+            <Route path="operations-intelligence" element={<OperationsIntelligencePage />} />
+            <Route path="ai-discovery" element={<AiAutomationDiscoveryPage />} />
+            <Route path="rbac-permissions" element={<RbacPermissionsPage />} />
+            <Route path="rbac-permissions/grant" element={<GrantRbacPermissionPage />} />
             {/* User Management Routes */}
             <Route path="users/clients" element={<ClientManagement />} />
             <Route path="users/agents" element={<AgentManagement />} />
             <Route path="users/agencies" element={<AgencyManagement />} />
             <Route path="users/staff" element={<StaffManagement />} />
             <Route path="users/couriers" element={<CourierManagement />} />
+            <Route path="clients" element={<ClientManagement />} />
+            <Route path="agents" element={<AgentManagement />} />
+            <Route path="agencies" element={<AgencyManagement />} />
+            <Route path="staff-management" element={<StaffManagement />} />
+            <Route path="couriers" element={<CourierManagement />} />
             {/* System Management Routes */}
             <Route path="tariffs" element={<TariffManagement />} />
             <Route path="integrations" element={<IntegrationManagement />} />
+            <Route path="ussd" element={<UssdMonitorPage />} />
             <Route path="accounts" element={<UserAccountManagement />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
             {/* Finance Management */}
             <Route path="finance" element={<FinanceDashboard />} />
             <Route path="finance/create" element={<CreateFinancePage />} />
@@ -247,10 +371,16 @@ function App() {
           >
             <Route index element={<FinanceDashboard />} />
             <Route path="payments" element={<Payments />} />
+            <Route path="payments/:paymentId" element={<Payments />} />
             <Route path="refunds" element={<Refunds />} />
+            <Route path="refunds/:refundId" element={<Refunds />} />
+            <Route path="invoices" element={<InvoicesPage />} />
+            <Route path="invoices/:invoiceId" element={<InvoicesPage />} />
+            <Route path="exceptions" element={<FinanceExceptionsPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           <Route
@@ -263,10 +393,15 @@ function App() {
           >
             <Route index element={<RiskDashboard />} />
             <Route path="alerts" element={<RiskAlerts />} />
+            <Route path="alerts/:riskAlertId" element={<RiskAlerts />} />
             <Route path="map" element={<RoleMapDashboard />} />
             <Route path="compliance" element={<Compliance />} />
+            <Route path="compliance/new" element={<Compliance />} />
+            <Route path="cases" element={<RiskCasesPage />} />
+            <Route path="integrations" element={<IntegrationManagement />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           {/* Legacy/backward-compatible paths */}
@@ -333,6 +468,7 @@ function App() {
       {/* AI Chatbot - Available on all pages */}
       {/* Session Timeout Monitor — silently refreshes token or warns user */}
       <SessionTimeoutWarning />
+      <GlobalBackTrail />
       <AIChatbot />
     </Router>
   );

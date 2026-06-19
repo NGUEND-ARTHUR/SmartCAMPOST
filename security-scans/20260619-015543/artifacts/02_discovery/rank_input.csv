@@ -1,0 +1,9 @@
+row_id,area,paths,reason,status
+backend-auth,backend auth/security,"backend/src/main/java/com/smartcampost/backend/security;backend/src/main/java/com/smartcampost/backend/controller/AuthController.java","JWT, OTP, role routing, public auth endpoints",open
+backend-api-authz,backend API authorization,"backend/src/main/java/com/smartcampost/backend/controller","IDOR and missing method-level authorization",open
+backend-payments,backend payments/webhooks,"backend/src/main/java/com/smartcampost/backend/controller/*Payment*;backend/src/main/java/com/smartcampost/backend/service/impl/*Payment*","payment state changes and webhook forgery",open
+backend-ai,backend AI tools,"backend/src/main/java/com/smartcampost/backend/ai;backend/src/main/java/com/smartcampost/backend/service/impl/AIServiceImpl.java","AI tool execution and permission boundary",open
+backend-files,backend files/QR/invoices,"backend/src/main/java/com/smartcampost/backend/service/impl/*QR*;backend/src/main/java/com/smartcampost/backend/service/impl/*Invoice*;backend/storage","file generation/serving and PII",open
+frontend-web,React frontend,"smartcampost-frontend/src","XSS, token storage, API routes, QR scanner",open
+mobile-app,Flutter mobile,"smartcampost_mobile/lib","secure storage, API calls, PII/logging",open
+config-secrets,config/deployment/secrets,".gitignore;.env*;backend/.env*;docker-compose*.yml;vercel.json;docs;logs","committed secrets and production defaults",open

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -90,16 +91,30 @@ public class QrCodeController {
     @Operation(summary = "Verify QR code authenticity (anti-forgery)",
                description = "Server-side verification of scanned QR code. Validates the unique token and HMAC signature to detect forgery attempts.")
     @PostMapping("/verify")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<QrVerificationResponse> verifyQrCode(
-            @RequestBody QrVerificationRequest request,
+            @RequestBody Map<String, Object> request,
             HttpServletRequest httpRequest) {
-        
-        // Populate client info for audit trail
-        request.setClientIp(getClientIp(httpRequest));
-        request.setUserAgent(httpRequest.getHeader("User-Agent"));
-        
-        return ResponseEntity.ok(qrSecurityService.verifyQrCode(request));
+        String clientIp = getClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+        String qrContent = stringValue(request.get("qrContent"));
+        Double latitude = doubleValue(request.get("latitude"));
+        Double longitude = doubleValue(request.get("longitude"));
+
+        if (qrContent != null && !qrContent.isBlank()) {
+            return ResponseEntity.ok(qrSecurityService.verifyQrCodeContent(qrContent, clientIp, userAgent, latitude, longitude));
+        }
+
+        QrVerificationRequest verificationRequest = QrVerificationRequest.builder()
+                .token(stringValue(request.get("token")))
+                .signature(stringValue(request.get("signature")))
+                .trackingRef(stringValue(request.get("trackingRef")))
+                .clientIp(clientIp)
+                .userAgent(userAgent)
+                .latitude(latitude)
+                .longitude(longitude)
+                .build();
+
+        return ResponseEntity.ok(qrSecurityService.verifyQrCode(verificationRequest));
     }
 
     @Operation(summary = "Verify QR code from scanned content",
@@ -160,5 +175,14 @@ public class QrCodeController {
             return xRealIp;
         }
         return request.getRemoteAddr();
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private Double doubleValue(Object value) {
+        String text = stringValue(value);
+        return text == null || text.isBlank() ? null : Double.valueOf(text);
     }
 }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
+import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -82,7 +83,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final tr = context.read<LocaleProvider>().tr;
 
     return Scaffold(
-      appBar: AppBar(title: Text(tr('register'))),
+      appBar: AppBar(
+        title: Text(tr('register')),
+        actions: const [LanguageSwitchAction()],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

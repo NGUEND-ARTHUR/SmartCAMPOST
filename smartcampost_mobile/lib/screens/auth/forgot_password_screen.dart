@@ -125,7 +125,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.lock_reset, size: 64, color: AppTheme.primaryColor),
+                const Icon(
+                  Icons.lock_reset,
+                  size: 64,
+                  color: AppTheme.primaryColor,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   tr('reset_password_instruction'),

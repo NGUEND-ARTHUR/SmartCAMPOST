@@ -30,4 +30,31 @@ class PaymentService {
         .map((e) => Payment.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<List<Payment>> getPayments({int page = 0, int size = 50}) async {
+    final data = await _api.get<dynamic>(
+      '/payments',
+      queryParameters: {'page': page, 'size': size},
+    );
+    final items = _extractItems(data);
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(Payment.fromJson)
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> getPaymentSummary(String parcelId) async {
+    return _api.get<Map<String, dynamic>>('/payments/summary/$parcelId');
+  }
+
+  List<dynamic> _extractItems(dynamic data) {
+    if (data is List) return data;
+    if (data is Map<String, dynamic>) {
+      final content = data['content'];
+      if (content is List) return content;
+      final items = data['items'];
+      if (items is List) return items;
+    }
+    return const [];
+  }
 }

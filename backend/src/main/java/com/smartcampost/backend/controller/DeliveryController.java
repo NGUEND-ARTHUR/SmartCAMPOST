@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -170,6 +171,20 @@ public class DeliveryController {
             @RequestParam Double longitude,
             @RequestParam(required = false) String notes
     ) {
+        return ResponseEntity.ok(deliveryService.markDeliveryFailed(parcelId, reason, latitude, longitude, notes));
+    }
+
+    @Operation(summary = "Mark delivery as failed from form payload",
+               description = "Compatibility endpoint used by web and mobile operational forms")
+    @PostMapping("/failed")
+    public ResponseEntity<DeliveryStatusResponse> markDeliveryFailedFromPayload(
+            @RequestBody Map<String, Object> request
+    ) {
+        UUID parcelId = UUID.fromString(String.valueOf(request.get("parcelId")));
+        String reason = String.valueOf(request.getOrDefault("reason", "FAILED_DELIVERY"));
+        Double latitude = Double.valueOf(String.valueOf(request.get("latitude")));
+        Double longitude = Double.valueOf(String.valueOf(request.get("longitude")));
+        String notes = request.get("notes") == null ? null : String.valueOf(request.get("notes"));
         return ResponseEntity.ok(deliveryService.markDeliveryFailed(parcelId, reason, latitude, longitude, notes));
     }
 

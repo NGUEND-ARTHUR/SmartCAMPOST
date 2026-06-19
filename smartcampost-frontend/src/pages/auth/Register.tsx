@@ -313,7 +313,7 @@ export function Register() {
                 }}
                 theme="outline"
                 size="large"
-                width="100%"
+                width="260"
                 text="signup_with"
               />
             </div>

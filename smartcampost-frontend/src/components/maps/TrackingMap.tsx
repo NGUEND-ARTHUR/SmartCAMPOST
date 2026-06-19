@@ -3,7 +3,7 @@
  * Shows parcel journey with animated marker traversing the route in real-time.
  * Powered by MapLibre GL JS with vector tiles and 3D support.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Marker, Popup, Source, Layer, useMap } from "react-map-gl/maplibre";
 import {
   Package,
@@ -12,7 +12,9 @@ import {
   Clock,
   Play,
   Pause,
-  RotateCcw,
+  UserRound,
+  Building2,
+  Bike,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,7 +63,19 @@ interface TrackingMapProps {
   scanEvents?: ScanEvent[];
   currentStatus?: string;
   showAnimation?: boolean;
+  liveActors?: LiveActor[];
 }
+
+type LiveActor = {
+  id: string;
+  type: "COURIER" | "AGENT" | "AGENCY" | "PARCEL";
+  name: string;
+  latitude: number;
+  longitude: number;
+  status?: string;
+  phone?: string;
+  avatarUrl?: string;
+};
 
 /* ------------------------------------------------------------------ */
 /* Animated view — fly to centre on mount / change                    */
@@ -114,6 +128,38 @@ function lineGeoJSON(
   };
 }
 
+function ActorMarkerIcon({ actor }: { actor: LiveActor }) {
+  const styleByType: Record<LiveActor["type"], string> = {
+    COURIER: "bg-blue-600 text-white",
+    AGENT: "bg-emerald-600 text-white",
+    AGENCY: "bg-violet-600 text-white",
+    PARCEL: "bg-primary text-primary-foreground",
+  };
+  const iconByType: Record<LiveActor["type"], ReactNode> = {
+    COURIER: <Bike className="h-5 w-5" />,
+    AGENT: <UserRound className="h-5 w-5" />,
+    AGENCY: <Building2 className="h-5 w-5" />,
+    PARCEL: <Package className="h-5 w-5" />,
+  };
+
+  return (
+    <div
+      className={`sc-live-marker flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-background shadow-xl ${styleByType[actor.type]}`}
+      title={actor.name}
+    >
+      {actor.avatarUrl ? (
+        <img
+          src={actor.avatarUrl}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        iconByType[actor.type]
+      )}
+    </div>
+  );
+}
+
 /** Slice `positions` up to `progress` (0→1) for the "traveled" trail */
 function sliceRoute(
   positions: [number, number][],
@@ -136,6 +182,7 @@ export default function TrackingMap({
   scanEvents = [],
   currentStatus = "IN_TRANSIT",
   showAnimation = true,
+  liveActors = [],
 }: TrackingMapProps) {
   const [isAnimating, setIsAnimating] = useState(showAnimation);
   const [selectedEvent, setSelectedEvent] = useState<ScanEvent | null>(null);
@@ -151,6 +198,44 @@ export default function TrackingMap({
   );
 
   const fullRoute = eventPositions;
+  const synthesizedActors = useMemo<LiveActor[]>(() => {
+    if (liveActors.length > 0) return liveActors;
+    const last = fullRoute[fullRoute.length - 1];
+    const first = fullRoute[0];
+    const middle = fullRoute[Math.floor(fullRoute.length / 2)];
+    const actors: LiveActor[] = [];
+    if (last) {
+      actors.push({
+        id: "parcel-live",
+        type: "PARCEL",
+        name: t("trackingMap.live.parcel", "Parcel live position"),
+        latitude: last[0],
+        longitude: last[1],
+        status: currentStatus,
+      });
+    }
+    if (middle) {
+      actors.push({
+        id: "courier-live",
+        type: "COURIER",
+        name: t("trackingMap.live.courier", "Assigned courier"),
+        latitude: middle[0],
+        longitude: middle[1],
+        status: t("trackingMap.live.onRoute", "On route"),
+      });
+    }
+    if (first) {
+      actors.push({
+        id: "agency-live",
+        type: "AGENCY",
+        name: scanEvents[0]?.agencyName || t("trackingMap.live.agency", "Origin agency"),
+        latitude: first[0],
+        longitude: first[1],
+        status: t("trackingMap.live.operational", "Operational"),
+      });
+    }
+    return actors;
+  }, [currentStatus, fullRoute, liveActors, scanEvents, t]);
 
   const mapCenter: [number, number] = useMemo(() => {
     if (fullRoute.length > 0) {
@@ -395,6 +480,18 @@ export default function TrackingMap({
                 </Marker>
               ))}
 
+            {/* Live actors: parcel, assigned courier, agent, and agency locations */}
+            {synthesizedActors.map((actor) => (
+              <Marker
+                key={actor.id}
+                longitude={actor.longitude}
+                latitude={actor.latitude}
+                anchor="center"
+              >
+                <ActorMarkerIcon actor={actor} />
+              </Marker>
+            ))}
+
             {/* Event popup */}
             {selectedEvent &&
               selectedEvent.latitude &&
@@ -476,6 +573,12 @@ export default function TrackingMap({
               </div>
               <div className="flex items-center gap-2">
                 <span>🏁</span> {t("trackingMap.legend.destination", "Destination")}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] text-white">
+                  C
+                </span>
+                {t("trackingMap.legend.liveActors", "Live courier / agent")}
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="inline-block w-4 h-0.5 rounded bg-[#3b82f6]" />

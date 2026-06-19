@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/ussd")
 @RequiredArgsConstructor
@@ -19,5 +23,25 @@ public class UssdController {
             @Valid @RequestBody UssdRequest request
     ) {
         return ResponseEntity.ok(ussdService.handleUssdRequest(request));
+    }
+
+    @GetMapping("/sessions")
+    public ResponseEntity<List<Map<String, Object>>> sessions() {
+        return ResponseEntity.ok(List.of(
+                Map.of(
+                        "sessionId", "USSD-DEMO-TRACK",
+                        "phone", "****0000",
+                        "flow", "TRACK_PARCEL",
+                        "status", "READY",
+                        "updatedAt", Instant.now()
+                ),
+                Map.of(
+                        "sessionId", "USSD-DEMO-PICKUP",
+                        "phone", "****0001",
+                        "flow", "PICKUP_REQUEST",
+                        "status", "READY",
+                        "updatedAt", Instant.now()
+                )
+        ));
     }
 }

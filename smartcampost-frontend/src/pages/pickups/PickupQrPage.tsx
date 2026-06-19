@@ -35,7 +35,7 @@ export default function PickupQrPage() {
       try {
         setLoading(true);
         const data = await apiClient.post<TemporaryQrData>(
-          `/api/qr/pickup/${pickupId}/temporary`,
+          `/qr/pickup/${pickupId}/temporary`,
         );
         if (!mounted) return;
         setQrData(data);

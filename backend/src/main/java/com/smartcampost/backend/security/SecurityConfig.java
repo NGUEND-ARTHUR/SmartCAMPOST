@@ -40,6 +40,7 @@ public class SecurityConfig {
                         // ===================================================
                         .requestMatchers(
                             "/api/payments/mtn/**",
+                            "/api/payments/webhooks/camerpay",
                             "/api/track/**",
                             "/api/auth/register",
                             "/api/auth/login",
@@ -90,6 +91,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/risk/**")
                         .hasAnyRole("RISK", "ADMIN")
+
+                        .requestMatchers("/api/rbac/**")
+                        .hasRole("ADMIN")
 
                         // ===================================================
                         //                    CLIENT MODULE

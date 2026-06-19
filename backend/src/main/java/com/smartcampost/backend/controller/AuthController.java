@@ -11,9 +11,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -133,6 +137,34 @@ public class AuthController {
         return ResponseEntity.ok(new VerifyOtpResponse(true));
     }
 
+    @PatchMapping("/me/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> updateMyAccountProfile(@RequestBody Map<String, Object> request) {
+        UserAccount user = getCurrentUser();
+        String email = stringValue(request.get("email"));
+        String phone = stringValue(request.get("phone"));
+        String photoUrl = stringValue(request.get("photoUrl"));
+        if (email != null && !email.isBlank()) {
+            user.setEmail(email.trim());
+        }
+        if (phone != null && !phone.isBlank()) {
+            user.setPhone(phone.trim());
+        }
+        if (photoUrl != null && !photoUrl.isBlank()) {
+            user.setPhotoUrl(photoUrl.trim());
+        }
+        UserAccount saved = userAccountRepository.save(user);
+        return ResponseEntity.ok(Map.of(
+                "id", saved.getId(),
+                "phone", saved.getPhone() == null ? "" : saved.getPhone(),
+                "email", saved.getEmail() == null ? "" : saved.getEmail(),
+                "photoUrl", saved.getPhotoUrl() == null ? "" : saved.getPhotoUrl(),
+                "role", saved.getRole() == null ? "" : saved.getRole().name(),
+                "entityId", saved.getEntityId(),
+                "frozen", saved.getFrozen() != null && saved.getFrozen()
+        ));
+    }
+
     // =================== PASSWORD RESET FLOW ===================
 
     // Step 1 — demander OTP pour reset
@@ -147,5 +179,26 @@ public class AuthController {
     public ResponseEntity<Void> confirmPasswordReset(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseEntity.ok().build();
+    }
+
+    private UserAccount getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Not authenticated");
+        }
+        String principal = auth.getName();
+        return userAccountRepository.findByPhone(principal)
+                .or(() -> {
+                    try {
+                        return userAccountRepository.findById(UUID.fromString(principal));
+                    } catch (IllegalArgumentException ex) {
+                        return java.util.Optional.empty();
+                    }
+                })
+                .orElseThrow(() -> new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "User not found"));
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

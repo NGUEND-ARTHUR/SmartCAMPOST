@@ -73,7 +73,8 @@
     "processing": "Traitement en cours…",
     "notScheduled": "Non planifié",
     "unknown": "Inconnu",
-    "or": "OU"
+    "or": "OU",
+    "rightsReserved": "Tous droits réservés."
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -103,7 +104,110 @@
     "riskAlerts": "Alertes de risque",
     "compliance": "Conformité",
     "selfHealing": "Auto-guérison",
-    "approvals": "Approbations"
+    "approvals": "Approbations",
+    "addresses": "Adresses",
+    "invoices": "Factures",
+    "newParcel": "Nouveau colis",
+    "ussd": "USSD",
+    "finance": "Finance",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "deliveryTools": "Outils de livraison",
+    "failedDelivery": "Livraison échouée",
+    "bulkScans": "Scans groupés",
+    "notificationTemplates": "Modèles de notification",
+    "otpLogs": "Journaux OTP",
+    "advancedAnalytics": "Analytique avancée",
+    "operationsIntelligence": "Intelligence opérationnelle",
+    "exceptions": "Exceptions",
+    "cases": "Cas",
+    "liveLogistics": "Logistique en direct",
+    "mobileGps": "GPS mobile",
+    "gpsTrackers": "Traceurs GPS",
+    "registerGpsTracker": "Enregistrer traceur",
+    "iotGps": "GPS IoT",
+    "routeOptimization": "Optimisation d'itinéraire",
+    "pickupRecommendations": "Recommandations de collecte",
+    "distancePricing": "Tarification distance",
+    "aiDiscovery": "Découverte IA",
+    "rbacPermissions": "Permissions RBAC",
+    "grantPermission": "Accorder permission"
+  },
+  "tracking": {
+    "quickTrack": "Suivre un colis"
+  },
+  "ops": {
+    "columns": {
+      "pickup": "Collecte",
+      "client": "Client",
+      "parcel": "Colis",
+      "state": "État",
+      "courier": "Coursier",
+      "requested": "Demandé le",
+      "payment": "Paiement",
+      "method": "Méthode",
+      "ticket": "Ticket",
+      "subject": "Sujet",
+      "category": "Catégorie",
+      "priority": "Priorité",
+      "created": "Créé le",
+      "tracking": "Suivi",
+      "route": "Itinéraire",
+      "expected": "Prévu le",
+      "session": "Session",
+      "menu": "Menu",
+      "updated": "Mis à jour"
+    },
+    "errors": {
+      "pickups": "Impossible de charger les collectes",
+      "payments": "Impossible de charger les paiements",
+      "tickets": "Impossible de charger les tickets",
+      "deliveries": "Impossible de charger les livraisons",
+      "ussd": "Impossible de charger les sessions USSD"
+    },
+    "agentPickups": {
+      "title": "Collectes agent",
+      "description": "File des collectes de l'agence avec visibilité sur l'affectation des coursiers.",
+      "queue": "File des collectes",
+      "search": "Rechercher collecte, colis ou client"
+    },
+    "staffPayments": {
+      "title": "Opérations de paiement",
+      "description": "Vue opérationnelle des encaissements, transactions en attente et échecs.",
+      "search": "Rechercher paiement ou colis"
+    },
+    "staffSupport": {
+      "title": "Boîte support du personnel",
+      "description": "File de triage des tickets pour les équipes support et opérations.",
+      "tickets": "Tickets",
+      "search": "Rechercher ticket, sujet, statut"
+    },
+    "staffDeliveries": {
+      "title": "Suivi des livraisons",
+      "description": "Suivre les colis en livraison, livrés, retournés et en exception.",
+      "watchlist": "Liste de surveillance des livraisons",
+      "search": "Rechercher livraison ou client"
+    },
+    "ussd": {
+      "title": "Moniteur USSD",
+      "description": "Surface de supervision des sessions client USSD et Mobile Money.",
+      "sessions": "Sessions",
+      "search": "Rechercher téléphone, session, état",
+      "emptyTitle": "Aucune session USSD",
+      "emptyDescription": "Les sessions apparaîtront ici lorsque le backend les retournera."
+    },
+    "counterCreate": {
+      "title": "Enregistrement au guichet",
+      "description": "Créer un colis pour un client présent au guichet de l'agence.",
+      "note": "Utilisez le formulaire colis ci-dessous. Les clients existants peuvent être sélectionnés par téléphone lorsque le backend retourne une correspondance ; les nouveaux détails expéditeur/destinataire peuvent être saisis directement."
+    },
+    "staffFinance": {
+      "title": "Vue finance du personnel",
+      "description": "Contexte opérationnel des paiements et remboursements pour le personnel.",
+      "openPayments": "Ouvrir les opérations de paiement",
+      "reports": "Rapports",
+      "note": "Utilisez le rôle finance pour traiter les remboursements et les factures."
+    }
   },
   "auth": {
     "loginTitle": "Connexion à votre compte",

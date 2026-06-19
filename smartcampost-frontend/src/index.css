@@ -87,6 +87,116 @@
   animation-delay: 300ms;
 }
 
+@keyframes sc-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sc-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes sc-pulse-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.72);
+  }
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes sc-route-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.sc-animate-fade-up {
+  animation: sc-fade-up 560ms ease both;
+}
+
+.sc-animate-float {
+  animation: sc-float 4s ease-in-out infinite;
+}
+
+.sc-delay-1 {
+  animation-delay: 100ms;
+}
+
+.sc-delay-2 {
+  animation-delay: 200ms;
+}
+
+.sc-delay-3 {
+  animation-delay: 300ms;
+}
+
+.sc-interactive {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.sc-interactive:hover {
+  transform: translateY(-2px);
+}
+
+.sc-interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.sc-live-marker {
+  position: relative;
+  isolation: isolate;
+}
+
+.sc-live-marker::before,
+.sc-live-marker::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  animation: sc-pulse-ring 1.8s ease-out infinite;
+}
+
+.sc-live-marker::after {
+  animation-delay: 0.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-animate-fade-up,
+  .sc-animate-float,
+  .sc-live-marker::before,
+  .sc-live-marker::after {
+    animation: none;
+  }
+
+  .sc-interactive,
+  .sc-interactive:hover,
+  .sc-interactive:active {
+    transform: none;
+  }
+}
+
 /* Map viewport helpers */
 .map-viewport {
   height: 60vh;

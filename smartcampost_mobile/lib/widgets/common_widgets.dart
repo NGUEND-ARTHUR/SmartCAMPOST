@@ -41,16 +41,79 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          if (message != null) ...[
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.88, end: 1),
+        duration: const Duration(milliseconds: 700),
+        curve: Curves.easeOutBack,
+        builder: (context, scale, child) => Transform.scale(
+          scale: scale,
+          child: child,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(18),
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+            ),
             const SizedBox(height: 16),
-            Text(message!, style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              message ?? context.read<LocaleProvider>().tr('loading'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ],
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class GlobalBackTrailOverlay extends StatelessWidget {
+  final Widget child;
+
+  const GlobalBackTrailOverlay({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        Positioned(
+          left: 14,
+          top: MediaQuery.of(context).padding.top + 12,
+          child: SafeArea(
+            child: AnimatedOpacity(
+              opacity: Navigator.of(context).canPop() ? 1 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: IgnorePointer(
+                ignoring: !Navigator.of(context).canPop(),
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+                  elevation: 6,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: context.read<LocaleProvider>().tr('back'),
+                    icon: const Icon(Icons.arrow_upward_rounded),
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -136,6 +199,32 @@ class ErrorRetryWidget extends StatelessWidget {
               label: Text(context.read<LocaleProvider>().tr('retry')),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class LanguageSwitchAction extends StatelessWidget {
+  const LanguageSwitchAction({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.watch<LocaleProvider>();
+    final isFr = locale.locale.languageCode == 'fr';
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: TextButton(
+        onPressed: locale.toggleLocale,
+        style: TextButton.styleFrom(
+          foregroundColor: AppTheme.primaryColor,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          minimumSize: const Size(56, 36),
+        ),
+        child: Text(
+          isFr ? 'FR' : 'EN',
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
     );

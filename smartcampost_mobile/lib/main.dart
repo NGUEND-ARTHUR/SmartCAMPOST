@@ -47,7 +47,6 @@ import 'package:smartcampost_mobile/screens/admin/tariff_management_screen.dart'
 
 // Finance screens
 import 'package:smartcampost_mobile/screens/finance/finance_dashboard_screen.dart';
-import 'package:smartcampost_mobile/screens/finance/payments_screen.dart';
 
 // Risk screens
 import 'package:smartcampost_mobile/screens/risk/risk_dashboard_screen.dart';
@@ -56,7 +55,11 @@ import 'package:smartcampost_mobile/screens/risk/compliance_alerts_screen.dart';
 // Shared screens
 import 'package:smartcampost_mobile/screens/shared/notifications_screen.dart';
 import 'package:smartcampost_mobile/screens/shared/profile_screen.dart';
-import 'package:smartcampost_mobile/screens/shared/placeholder_screen.dart';
+import 'package:smartcampost_mobile/screens/shared/operational_screens.dart';
+import 'package:smartcampost_mobile/widgets/common_widgets.dart';
+
+String _tr(BuildContext context, String key) =>
+    context.watch<LocaleProvider>().tr(key);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,7 +85,6 @@ void main() async {
   );
 }
 
-
 class SmartCampostApp extends StatelessWidget {
   const SmartCampostApp({super.key});
 
@@ -99,7 +101,9 @@ class SmartCampostApp extends StatelessWidget {
         final isAuthRoute =
             state.matchedLocation == '/login' ||
             state.matchedLocation == '/register' ||
-            state.matchedLocation == '/otp-login';
+            state.matchedLocation == '/otp-login' ||
+            state.matchedLocation == '/forgot-password' ||
+            state.matchedLocation == '/qr-verify';
 
         // Not authenticated → force to login
         if (!isAuth && !isAuthRoute) return '/login';
@@ -140,6 +144,10 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const CreateParcelScreen(),
             ),
             GoRoute(
+              path: 'parcels/new',
+              builder: (context, state) => const CreateParcelScreen(),
+            ),
+            GoRoute(
               path: 'parcels/:id',
               builder: (context, state) {
                 final id = state.pathParameters['id'] ?? '';
@@ -151,18 +159,36 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const TrackParcelScreen(),
             ),
             GoRoute(
+              path: 'tracking',
+              builder: (context, state) => const TrackParcelScreen(),
+            ),
+            GoRoute(
               path: 'pickups',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'pickups',
-                icon: Icons.local_shipping,
-              ),
+              builder: (context, state) => const ClientPickupsScreen(),
+            ),
+            GoRoute(
+              path: 'payments',
+              builder: (context, state) => const PaymentsListScreen(),
+            ),
+            GoRoute(
+              path: 'invoices',
+              builder: (context, state) => const InvoicesScreen(),
+            ),
+            GoRoute(
+              path: 'addresses',
+              builder: (context, state) => const AddressBookScreen(),
             ),
             GoRoute(
               path: 'support',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'support',
-                icon: Icons.support_agent,
-              ),
+              builder: (context, state) => const SupportCenterScreen(),
+            ),
+            GoRoute(
+              path: 'settings',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+            GoRoute(
+              path: 'profile',
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
@@ -188,14 +214,60 @@ class SmartCampostApp extends StatelessWidget {
               },
             ),
             GoRoute(
+              path: 'deliveries/failed',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'failed_delivery_report'),
+                endpoint: '/delivery/failed',
+                icon: Icons.report_problem_outlined,
+                fields: const [
+                  'parcelId',
+                  'reason',
+                  'photoUrl',
+                  'latitude',
+                  'longitude',
+                  'notes',
+                ],
+                submitLabel: _tr(context, 'submit_report'),
+              ),
+            ),
+            GoRoute(
               path: 'scan',
               builder: (context, state) => const QrScanScreen(),
             ),
             GoRoute(
+              path: 'scans',
+              builder: (context, state) => const QrScanScreen(),
+            ),
+            GoRoute(
               path: 'map',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'delivery_map',
-                icon: Icons.map,
+              builder: (context, state) => const CourierMapScreen(),
+            ),
+            GoRoute(
+              path: 'live-logistics',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'live_logistics'),
+                endpoint: '/logistics/live',
+                icon: Icons.radar,
+                emptyTitle: _tr(context, 'no_live_logistics'),
+              ),
+            ),
+            GoRoute(
+              path: 'gps',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'mobile_gps_update'),
+                endpoint: '/logistics/gps/mobile',
+                icon: Icons.my_location,
+                fields: const ['latitude', 'longitude', 'speed', 'heading'],
+                submitLabel: _tr(context, 'send_gps_update'),
+              ),
+            ),
+            GoRoute(
+              path: 'route-optimization',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'route_optimization'),
+                endpoint: '/logistics/route-optimization',
+                icon: Icons.route,
+                emptyTitle: _tr(context, 'no_route_recommendations'),
               ),
             ),
           ],
@@ -215,6 +287,10 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const ScanIntakeScreen(),
             ),
             GoRoute(
+              path: 'scans',
+              builder: (context, state) => const ScanIntakeScreen(),
+            ),
+            GoRoute(
               path: 'intake',
               builder: (context, state) => const ScanIntakeScreen(),
             ),
@@ -223,11 +299,62 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const ParcelValidationScreen(),
             ),
             GoRoute(
-              path: 'assign-courier',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'assign_courier',
-                icon: Icons.person_add,
+              path: 'parcels/new',
+              builder: (context, state) => const CreateParcelScreen(),
+            ),
+            GoRoute(
+              path: 'pickups',
+              builder: (context, state) => const ClientPickupsScreen(),
+            ),
+            GoRoute(
+              path: 'map',
+              builder: (context, state) => const CourierMapScreen(),
+            ),
+            GoRoute(
+              path: 'live-logistics',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'live_logistics'),
+                endpoint: '/logistics/live',
+                icon: Icons.radar,
+                emptyTitle: _tr(context, 'no_live_logistics'),
               ),
+            ),
+            GoRoute(
+              path: 'gps',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'mobile_gps_update'),
+                endpoint: '/logistics/gps/mobile',
+                icon: Icons.my_location,
+                fields: const ['latitude', 'longitude', 'speed', 'heading'],
+                submitLabel: _tr(context, 'send_gps_update'),
+              ),
+            ),
+            GoRoute(
+              path: 'route-optimization',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'route_optimization'),
+                endpoint: '/logistics/route-optimization',
+                icon: Icons.route,
+                emptyTitle: _tr(context, 'no_route_recommendations'),
+              ),
+            ),
+            GoRoute(
+              path: 'assign-courier',
+              builder: (context, state) => const AssignCourierScreen(),
+            ),
+            GoRoute(
+              path: 'delivery-tools',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'delivery_otp_tools'),
+                endpoint: '/delivery/otp/send',
+                icon: Icons.password,
+                fields: const ['parcelId', 'phoneNumber'],
+                submitLabel: _tr(context, 'send_otp'),
+              ),
+            ),
+            GoRoute(
+              path: 'profile',
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
@@ -250,15 +377,157 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const PickupAssignmentsScreen(),
             ),
             GoRoute(
+              path: 'deliveries',
+              builder: (context, state) => const StaffDeliveryMonitoringScreen(),
+            ),
+            GoRoute(
+              path: 'payments',
+              builder: (context, state) => const PaymentsListScreen(),
+            ),
+            GoRoute(
+              path: 'finance',
+              builder: (context, state) => const FinanceDashboardScreen(),
+            ),
+            GoRoute(
+              path: 'support',
+              builder: (context, state) => const StaffSupportInboxScreen(),
+            ),
+            GoRoute(
               path: 'track',
               builder: (context, state) => const TrackParcelScreen(),
             ),
             GoRoute(
-              path: 'congestion',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'congestion',
-                icon: Icons.warning_amber,
+              path: 'live-logistics',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'live_logistics'),
+                endpoint: '/logistics/live',
+                icon: Icons.radar,
+                emptyTitle: _tr(context, 'no_live_logistics'),
               ),
+            ),
+            GoRoute(
+              path: 'gps-trackers',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'gps_trackers'),
+                endpoint: '/logistics/trackers',
+                icon: Icons.gps_fixed,
+                emptyTitle: _tr(context, 'no_gps_trackers'),
+              ),
+            ),
+            GoRoute(
+              path: 'gps-trackers/new',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'register_gps_tracker'),
+                endpoint: '/logistics/trackers',
+                icon: Icons.add_location_alt,
+                fields: const ['deviceId', 'imei', 'label', 'assignedType', 'assignedId', 'vehicleId'],
+                submitLabel: _tr(context, 'register_gps_tracker'),
+              ),
+            ),
+            GoRoute(
+              path: 'iot-gps',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'iot_gps_update'),
+                endpoint: '/logistics/gps/iot',
+                icon: Icons.settings_input_antenna,
+                fields: const ['deviceId', 'imei', 'latitude', 'longitude', 'speed', 'heading'],
+                submitLabel: _tr(context, 'send_gps_update'),
+              ),
+            ),
+            GoRoute(
+              path: 'route-optimization',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'route_optimization'),
+                endpoint: '/logistics/route-optimization',
+                icon: Icons.route,
+                emptyTitle: _tr(context, 'no_route_recommendations'),
+              ),
+            ),
+            GoRoute(
+              path: 'pickup-recommendations',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'pickup_recommendations'),
+                endpoint: '/logistics/pickup-assignment/recommendations?latitude=3.848&longitude=11.502',
+                icon: Icons.assignment_ind,
+                emptyTitle: _tr(context, 'no_pickup_recommendations'),
+              ),
+            ),
+            GoRoute(
+              path: 'distance-pricing',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'distance_pricing'),
+                endpoint: '/logistics/pricing/distance-quote',
+                icon: Icons.payments,
+                fields: const ['distanceKm', 'weightKg', 'complexity'],
+                submitLabel: _tr(context, 'calculate_price'),
+              ),
+            ),
+            GoRoute(
+              path: 'scans',
+              builder: (context, state) => const ScanIntakeScreen(),
+            ),
+            GoRoute(
+              path: 'congestion',
+              builder: (context, state) => const CongestionScreen(),
+            ),
+            GoRoute(
+              path: 'bulk-scans',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'hub_bulk_scan'),
+                endpoint: '/scan-events/bulk',
+                icon: Icons.qr_code_scanner,
+                fields: const ['bagId', 'eventType', 'agencyId', 'trackingRefs'],
+                submitLabel: _tr(context, 'submit_bulk_scan'),
+              ),
+            ),
+            GoRoute(
+              path: 'notification-templates',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'notification_templates'),
+                endpoint: '/notifications/templates',
+                icon: Icons.notifications_active_outlined,
+                emptyTitle: _tr(context, 'no_notification_templates'),
+              ),
+            ),
+            GoRoute(
+              path: 'otp-logs',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'otp_logs'),
+                endpoint: '/otp/logs',
+                icon: Icons.history,
+                emptyTitle: _tr(context, 'no_otp_logs'),
+              ),
+            ),
+            GoRoute(
+              path: 'advanced-analytics',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'ai_route_analytics'),
+                endpoint: '/analytics/route-optimization',
+                icon: Icons.auto_graph,
+                emptyTitle: _tr(context, 'no_ai_analytics'),
+              ),
+            ),
+            GoRoute(
+              path: 'ai-discovery',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'ai_discovery'),
+                endpoint: '/ai/runtime/discovery/automation-opportunities',
+                icon: Icons.psychology,
+                emptyTitle: _tr(context, 'no_ai_discovery'),
+              ),
+            ),
+            GoRoute(
+              path: 'rbac-permissions',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'rbac_permissions'),
+                endpoint: '/rbac/roles/ADMIN/permissions',
+                icon: Icons.verified_user,
+                emptyTitle: _tr(context, 'no_rbac_permissions'),
+              ),
+            ),
+            GoRoute(
+              path: 'profile',
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
@@ -273,6 +542,35 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const UserManagementScreen(),
             ),
             GoRoute(
+              path: 'accounts',
+              builder: (context, state) => const AuditLogsScreen(),
+            ),
+            GoRoute(
+              path: 'clients',
+              builder: (context, state) => const UserManagementScreen(),
+            ),
+            GoRoute(
+              path: 'agents',
+              builder: (context, state) => const UserManagementScreen(),
+            ),
+            GoRoute(
+              path: 'agencies',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'agencies'),
+                endpoint: '/agencies',
+                icon: Icons.business,
+                emptyTitle: _tr(context, 'no_agencies'),
+              ),
+            ),
+            GoRoute(
+              path: 'staff-management',
+              builder: (context, state) => const UserManagementScreen(),
+            ),
+            GoRoute(
+              path: 'couriers',
+              builder: (context, state) => const UserManagementScreen(),
+            ),
+            GoRoute(
               path: 'tariffs',
               builder: (context, state) => const TariffManagementScreen(),
             ),
@@ -281,14 +579,170 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const ParcelManagementScreen(),
             ),
             GoRoute(
+              path: 'pickups',
+              builder: (context, state) => const PickupAssignmentsScreen(),
+            ),
+            GoRoute(
+              path: 'deliveries',
+              builder: (context, state) => const StaffDeliveryMonitoringScreen(),
+            ),
+            GoRoute(
+              path: 'payments',
+              builder: (context, state) => const PaymentsListScreen(),
+            ),
+            GoRoute(
+              path: 'support',
+              builder: (context, state) => const StaffSupportInboxScreen(),
+            ),
+            GoRoute(
+              path: 'scans',
+              builder: (context, state) => const ScanIntakeScreen(),
+            ),
+            GoRoute(
               path: 'analytics',
               builder: (context, state) => const AnalyticsScreen(),
             ),
             GoRoute(
               path: 'audit',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'audit_logs',
+              builder: (context, state) => const AuditLogsScreen(),
+            ),
+            GoRoute(
+              path: 'integrations',
+              builder: (context, state) => const IntegrationsScreen(),
+            ),
+            GoRoute(
+              path: 'ussd',
+              builder: (context, state) => const UssdMonitorScreen(),
+            ),
+            GoRoute(
+              path: 'live-logistics',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'live_logistics'),
+                endpoint: '/logistics/live',
+                icon: Icons.radar,
+                emptyTitle: _tr(context, 'no_live_logistics'),
+              ),
+            ),
+            GoRoute(
+              path: 'gps-trackers',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'gps_trackers'),
+                endpoint: '/logistics/trackers',
+                icon: Icons.gps_fixed,
+                emptyTitle: _tr(context, 'no_gps_trackers'),
+              ),
+            ),
+            GoRoute(
+              path: 'gps-trackers/new',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'register_gps_tracker'),
+                endpoint: '/logistics/trackers',
+                icon: Icons.add_location_alt,
+                fields: const ['deviceId', 'imei', 'label', 'assignedType', 'assignedId', 'vehicleId'],
+                submitLabel: _tr(context, 'register_gps_tracker'),
+              ),
+            ),
+            GoRoute(
+              path: 'iot-gps',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'iot_gps_update'),
+                endpoint: '/logistics/gps/iot',
+                icon: Icons.settings_input_antenna,
+                fields: const ['deviceId', 'imei', 'latitude', 'longitude', 'speed', 'heading'],
+                submitLabel: _tr(context, 'send_gps_update'),
+              ),
+            ),
+            GoRoute(
+              path: 'route-optimization',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'route_optimization'),
+                endpoint: '/logistics/route-optimization',
+                icon: Icons.route,
+                emptyTitle: _tr(context, 'no_route_recommendations'),
+              ),
+            ),
+            GoRoute(
+              path: 'pickup-recommendations',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'pickup_recommendations'),
+                endpoint: '/logistics/pickup-assignment/recommendations?latitude=3.848&longitude=11.502',
+                icon: Icons.assignment_ind,
+                emptyTitle: _tr(context, 'no_pickup_recommendations'),
+              ),
+            ),
+            GoRoute(
+              path: 'distance-pricing',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'distance_pricing'),
+                endpoint: '/logistics/pricing/distance-quote',
+                icon: Icons.payments,
+                fields: const ['distanceKm', 'weightKg', 'complexity'],
+                submitLabel: _tr(context, 'calculate_price'),
+              ),
+            ),
+            GoRoute(
+              path: 'bulk-scans',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'hub_bulk_scan'),
+                endpoint: '/scan-events/bulk',
+                icon: Icons.qr_code_scanner,
+                fields: const ['bagId', 'eventType', 'agencyId', 'trackingRefs'],
+                submitLabel: _tr(context, 'submit_bulk_scan'),
+              ),
+            ),
+            GoRoute(
+              path: 'notification-templates',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'notification_templates'),
+                endpoint: '/notifications/templates',
+                icon: Icons.notifications_active_outlined,
+                emptyTitle: _tr(context, 'no_notification_templates'),
+              ),
+            ),
+            GoRoute(
+              path: 'otp-logs',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'otp_logs'),
+                endpoint: '/otp/logs',
                 icon: Icons.history,
+                emptyTitle: _tr(context, 'no_otp_logs'),
+              ),
+            ),
+            GoRoute(
+              path: 'advanced-analytics',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'ai_route_analytics'),
+                endpoint: '/analytics/route-optimization',
+                icon: Icons.auto_graph,
+                emptyTitle: _tr(context, 'no_ai_analytics'),
+              ),
+            ),
+            GoRoute(
+              path: 'ai-discovery',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'ai_discovery'),
+                endpoint: '/ai/runtime/discovery/automation-opportunities',
+                icon: Icons.psychology,
+                emptyTitle: _tr(context, 'no_ai_discovery'),
+              ),
+            ),
+            GoRoute(
+              path: 'rbac-permissions',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'rbac_permissions'),
+                endpoint: '/rbac/roles/ADMIN/permissions',
+                icon: Icons.verified_user,
+                emptyTitle: _tr(context, 'no_rbac_permissions'),
+              ),
+            ),
+            GoRoute(
+              path: 'rbac-permissions/grant',
+              builder: (context, state) => EndpointActionScreen(
+                title: _tr(context, 'grant_permission'),
+                endpoint: '/rbac/roles/ADMIN/permissions',
+                icon: Icons.admin_panel_settings,
+                fields: const ['permission', 'description'],
+                submitLabel: _tr(context, 'grant_permission'),
               ),
             ),
             GoRoute(
@@ -305,25 +759,32 @@ class SmartCampostApp extends StatelessWidget {
           routes: [
             GoRoute(
               path: 'payments',
-              builder: (context, state) => const PaymentsScreen(),
+              builder: (context, state) => const PaymentsListScreen(),
             ),
             GoRoute(
               path: 'refunds',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'refunds',
-                icon: Icons.undo,
-              ),
+              builder: (context, state) => const RefundsScreen(),
             ),
             GoRoute(
               path: 'invoices',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'invoices',
-                icon: Icons.receipt_long,
-              ),
+              builder: (context, state) => const InvoicesScreen(),
             ),
             GoRoute(
               path: 'analytics',
               builder: (context, state) => const AnalyticsScreen(),
+            ),
+            GoRoute(
+              path: 'exceptions',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'finance_exceptions'),
+                endpoint: '/payments/exceptions',
+                icon: Icons.warning_amber,
+                emptyTitle: _tr(context, 'no_finance_exceptions'),
+              ),
+            ),
+            GoRoute(
+              path: 'profile',
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
@@ -347,10 +808,24 @@ class SmartCampostApp extends StatelessWidget {
             ),
             GoRoute(
               path: 'audit',
-              builder: (context, state) => const PlaceholderScreen(
-                titleKey: 'audit_logs',
-                icon: Icons.history,
+              builder: (context, state) => const AuditLogsScreen(),
+            ),
+            GoRoute(
+              path: 'cases',
+              builder: (context, state) => EndpointListScreen(
+                title: _tr(context, 'cases_investigations'),
+                endpoint: '/risk/cases',
+                icon: Icons.gavel,
+                emptyTitle: _tr(context, 'no_investigation_cases'),
               ),
+            ),
+            GoRoute(
+              path: 'integrations',
+              builder: (context, state) => const IntegrationsScreen(),
+            ),
+            GoRoute(
+              path: 'profile',
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
@@ -366,14 +841,21 @@ class SmartCampostApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/support',
-          builder: (context, state) => const PlaceholderScreen(
-            titleKey: 'support',
-            icon: Icons.support_agent,
-          ),
+          builder: (context, state) => const SupportCenterScreen(),
         ),
         GoRoute(
           path: '/forgot-password',
           builder: (context, state) => const ForgotPasswordScreen(),
+        ),
+        GoRoute(
+          path: '/qr-verify',
+          builder: (context, state) => EndpointActionScreen(
+            title: _tr(context, 'qr_verification'),
+            endpoint: '/qr/verify',
+            icon: Icons.qr_code_2,
+            fields: const ['qrContent', 'latitude', 'longitude'],
+            submitLabel: _tr(context, 'verify_qr'),
+          ),
         ),
       ],
     );
@@ -385,6 +867,9 @@ class SmartCampostApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
       routerConfig: router,
+      builder: (context, child) => GlobalBackTrailOverlay(
+        child: child ?? const SizedBox.shrink(),
+      ),
       locale: localeProvider.locale,
       supportedLocales: const [Locale('en'), Locale('fr')],
     );

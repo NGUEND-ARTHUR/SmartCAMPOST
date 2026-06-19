@@ -47,7 +47,7 @@ mtn:
   token-url: ${MTN_TOKEN_URL:http://localhost:9200/token}
   init-url: ${MTN_INIT_URL:http://localhost:9200/init}
 
-# Payment gateway selection (mtn | orange | mock)
+# Payment gateway selection (mtn | orange | camerpay | mock)
 payment:
   gateway: ${PAYMENT_GATEWAY:mtn}
 
@@ -56,6 +56,17 @@ orange:
   api-key: ${ORANGE_API_KEY:}
   init-url: ${ORANGE_INIT_URL:}
   verify-url: ${ORANGE_VERIFY_URL:}
+
+# CamerPay Mobile Money gateway (OM + MTN)
+camerpay:
+  api:
+    token: ${CAMERPAY_API_TOKEN:}
+  hmac:
+    secret: ${CAMERPAY_HMAC_SECRET:}
+  init-url: ${CAMERPAY_INIT_URL:}
+  verify-url: ${CAMERPAY_VERIFY_URL:}
+  callback-url: ${CAMERPAY_CALLBACK_URL:}
+  return-url: ${CAMERPAY_RETURN_URL:}
 
 # SmartCAMPOST Security Configuration
 smartcampost:

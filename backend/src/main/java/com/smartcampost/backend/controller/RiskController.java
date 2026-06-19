@@ -41,6 +41,14 @@ public class RiskController {
         return ResponseEntity.ok(riskService.listRiskAlerts(page, size));
     }
 
+    @GetMapping("/cases")
+    public ResponseEntity<Page<?>> listRiskCases(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(riskService.listRiskAlerts(page, size));
+    }
+
     // ✅ Update alert (description/severity)
     @PatchMapping("/alerts/{alertId}")
     public ResponseEntity<Object> updateRiskAlert(

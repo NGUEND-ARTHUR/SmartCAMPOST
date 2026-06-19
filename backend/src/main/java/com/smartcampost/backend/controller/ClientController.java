@@ -34,6 +34,14 @@ public class ClientController {
         return ResponseEntity.ok(clientService.updateMyProfile(request));
     }
 
+    @PatchMapping("/me/profile")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<ClientResponse> patchMyProfile(
+            @Valid @RequestBody UpdateClientProfileRequest request
+    ) {
+        return ResponseEntity.ok(clientService.updateMyProfile(request));
+    }
+
     @PatchMapping("/me/preferred-language")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<ClientResponse> updateMyPreferredLanguage(

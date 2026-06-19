@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
+import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -72,6 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final tr = context.read<LocaleProvider>().tr;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: const [LanguageSwitchAction()],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -83,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Logo/Brand
-                  Icon(
+                  const Icon(
                     Icons.local_post_office_rounded,
                     size: 72,
                     color: AppTheme.primaryColor,
@@ -93,9 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     'SmartCAMPOST',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(

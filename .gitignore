@@ -5,12 +5,10 @@ Thumbs.db
 .idea/
 *.iml
 
-# Node / Vue
+# Node / frontend
 node_modules/
 dist/
 build/
-
-# TypeScript incremental build artifacts
 *.tsbuildinfo
 
 # Java / Spring Boot
@@ -23,13 +21,16 @@ build/
 
 # Environment / secrets
 .env
+.env.*
+!.env.example
+!.env.prod.example
 *.pem
-.vercel
-.env*.local
 
-# Playwright auth state (contains session tokens — never commit)
+# Vercel
+.vercel/
+
+# Playwright auth state and output artifacts
 smartcampost-frontend/e2e/.auth/
-# Playwright output artifacts
 smartcampost-frontend/playwright-report/
 smartcampost-frontend/test-results/
 /test-results/

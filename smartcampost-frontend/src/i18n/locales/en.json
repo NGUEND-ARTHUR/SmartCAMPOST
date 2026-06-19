@@ -73,7 +73,8 @@
     "processing": "Processing…",
     "notScheduled": "Not scheduled",
     "unknown": "Unknown",
-    "or": "OR"
+    "or": "OR",
+    "rightsReserved": "All rights reserved."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -103,7 +104,110 @@
     "riskAlerts": "Risk Alerts",
     "compliance": "Compliance",
     "selfHealing": "Self-healing",
-    "approvals": "Approvals"
+    "approvals": "Approvals",
+    "addresses": "Addresses",
+    "invoices": "Invoices",
+    "newParcel": "New Parcel",
+    "ussd": "USSD",
+    "finance": "Finance",
+    "settings": "Settings",
+    "profile": "Profile",
+    "deliveryTools": "Delivery Tools",
+    "failedDelivery": "Failed Delivery",
+    "bulkScans": "Bulk Scans",
+    "notificationTemplates": "Notification Templates",
+    "otpLogs": "OTP Logs",
+    "advancedAnalytics": "Advanced Analytics",
+    "operationsIntelligence": "Operations Intelligence",
+    "exceptions": "Exceptions",
+    "cases": "Cases",
+    "liveLogistics": "Live Logistics",
+    "mobileGps": "Mobile GPS",
+    "gpsTrackers": "GPS Trackers",
+    "registerGpsTracker": "Register Tracker",
+    "iotGps": "IoT GPS",
+    "routeOptimization": "Route Optimization",
+    "pickupRecommendations": "Pickup Recommendations",
+    "distancePricing": "Distance Pricing",
+    "aiDiscovery": "AI Discovery",
+    "rbacPermissions": "RBAC Permissions",
+    "grantPermission": "Grant Permission"
+  },
+  "tracking": {
+    "quickTrack": "Track parcel"
+  },
+  "ops": {
+    "columns": {
+      "pickup": "Pickup",
+      "client": "Client",
+      "parcel": "Parcel",
+      "state": "State",
+      "courier": "Courier",
+      "requested": "Requested",
+      "payment": "Payment",
+      "method": "Method",
+      "ticket": "Ticket",
+      "subject": "Subject",
+      "category": "Category",
+      "priority": "Priority",
+      "created": "Created",
+      "tracking": "Tracking",
+      "route": "Route",
+      "expected": "Expected",
+      "session": "Session",
+      "menu": "Menu",
+      "updated": "Updated"
+    },
+    "errors": {
+      "pickups": "Failed to load pickups",
+      "payments": "Failed to load payments",
+      "tickets": "Failed to load tickets",
+      "deliveries": "Failed to load deliveries",
+      "ussd": "Failed to load USSD sessions"
+    },
+    "agentPickups": {
+      "title": "Agent pickups",
+      "description": "Read-only agency pickup queue with courier assignment visibility.",
+      "queue": "Pickup queue",
+      "search": "Search pickup, parcel, or client"
+    },
+    "staffPayments": {
+      "title": "Staff payment operations",
+      "description": "Operational view of payment collection, pending transactions, and failures.",
+      "search": "Search payment or parcel"
+    },
+    "staffSupport": {
+      "title": "Staff support inbox",
+      "description": "Ticket triage queue for support staff and operators.",
+      "tickets": "Tickets",
+      "search": "Search ticket, subject, status"
+    },
+    "staffDeliveries": {
+      "title": "Delivery monitoring",
+      "description": "Track out-for-delivery, delivered, returned, and exception parcels.",
+      "watchlist": "Delivery watchlist",
+      "search": "Search delivery or client"
+    },
+    "ussd": {
+      "title": "USSD monitor",
+      "description": "Live support surface for mobile money and USSD customer sessions.",
+      "sessions": "Sessions",
+      "search": "Search phone, session, state",
+      "emptyTitle": "No USSD sessions",
+      "emptyDescription": "Sessions will appear here when the backend returns them."
+    },
+    "counterCreate": {
+      "title": "Counter parcel registration",
+      "description": "Create a parcel on behalf of a walk-in client at the agency counter.",
+      "note": "Use the parcel form below. Existing clients can be selected by phone when the backend returns a match; new sender/recipient details can be entered inline."
+    },
+    "staffFinance": {
+      "title": "Staff finance overview",
+      "description": "Payment and refund operational context for staff.",
+      "openPayments": "Open payment operations",
+      "reports": "Reports",
+      "note": "Use the finance role for refunds and invoice processing."
+    }
   },
   "auth": {
     "loginTitle": "Login to your account",

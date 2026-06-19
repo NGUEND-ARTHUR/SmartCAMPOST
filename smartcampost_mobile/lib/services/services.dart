@@ -27,7 +27,11 @@ class ScanService {
 class QrService {
   final ApiClient _api = ApiClient();
 
-  Future<Map<String, dynamic>> verifyQr(String qrData, {double? latitude, double? longitude}) async {
+  Future<Map<String, dynamic>> verifyQr(
+    String qrData, {
+    double? latitude,
+    double? longitude,
+  }) async {
     String path = '/qr/verify/${Uri.encodeComponent(qrData)}';
     final queryParams = <String>[];
     if (latitude != null) queryParams.add('latitude=$latitude');
@@ -128,6 +132,14 @@ class SupportService {
       fromJson: (d) => SupportTicket.fromJson(d),
     );
   }
+
+  Future<SupportTicket> replyToTicket(String id, String message) async {
+    return _api.post(
+      '/support/tickets/$id/reply',
+      data: {'message': message},
+      fromJson: (d) => SupportTicket.fromJson(d),
+    );
+  }
 }
 
 class DashboardService {
@@ -173,11 +185,30 @@ class ComplianceService {
   final ApiClient _api = ApiClient();
 
   Future<List<dynamic>> getAlerts() async {
-    return _api.get<List<dynamic>>('/compliance/alerts');
+    return _extractItems(await _api.get<dynamic>('/compliance/alerts'));
   }
 
   Future<List<dynamic>> getRiskAlerts() async {
-    return _api.get<List<dynamic>>('/risk/alerts');
+    return _extractItems(await _api.get<dynamic>('/risk/alerts'));
+  }
+
+  Future<List<dynamic>> getReports() async {
+    return _extractItems(await _api.get<dynamic>('/compliance/reports'));
+  }
+
+  Future<void> updateAlert(String id, Map<String, dynamic> data) async {
+    await _api.patch('/compliance/alerts/$id', data: data);
+  }
+
+  Future<void> freezeAccount(String userId, {String? reason}) async {
+    await _api.post(
+      '/compliance/accounts/$userId/freeze',
+      data: {'reason': reason ?? 'Mobile risk action'},
+    );
+  }
+
+  Future<void> unfreezeAccount(String userId) async {
+    await _api.post('/compliance/accounts/$userId/unfreeze');
   }
 }
 
@@ -203,4 +234,94 @@ class UserManagementService {
   Future<List<dynamic>> getAgencies() async {
     return _api.get<List<dynamic>>('/agencies');
   }
+
+  Future<List<dynamic>> getIntegrations() async {
+    return _extractItems(await _api.get<dynamic>('/integrations'));
+  }
+}
+
+class RefundService {
+  final ApiClient _api = ApiClient();
+
+  Future<List<dynamic>> getRefunds({int page = 0, int size = 50}) async {
+    return _extractItems(
+      await _api.get<dynamic>(
+        '/refunds',
+        queryParameters: {'page': page, 'size': size},
+      ),
+    );
+  }
+
+  Future<void> updateStatus(String refundId, String status) async {
+    await _api.patch('/refunds/$refundId/status', data: {'status': status});
+  }
+}
+
+class InvoiceService {
+  final ApiClient _api = ApiClient();
+
+  Future<List<dynamic>> getMyInvoices() async {
+    return _extractItems(await _api.get<dynamic>('/invoices/me'));
+  }
+
+  Future<List<dynamic>> getInvoicesByParcel(String parcelId) async {
+    return _extractItems(
+      await _api.get<dynamic>('/invoices/by-parcel/$parcelId'),
+    );
+  }
+}
+
+class AuditService {
+  final ApiClient _api = ApiClient();
+
+  Future<Map<String, dynamic>> getParcelAudit(String parcelId) async {
+    return _api.get<Map<String, dynamic>>('/audit/parcel/$parcelId');
+  }
+
+  Future<List<dynamic>> getActorAudit(String actorId) async {
+    return _extractItems(await _api.get<dynamic>('/audit/actor/$actorId'));
+  }
+
+  Future<List<dynamic>> getAgencyAudit(String agencyId) async {
+    return _extractItems(await _api.get<dynamic>('/audit/agency/$agencyId'));
+  }
+}
+
+class SelfHealingService {
+  final ApiClient _api = ApiClient();
+
+  Future<List<dynamic>> getCongestion() async {
+    return _extractItems(await _api.get<dynamic>('/self-healing/congestion'));
+  }
+
+  Future<List<dynamic>> getActions() async {
+    return _extractItems(await _api.get<dynamic>('/self-healing/actions'));
+  }
+
+  Future<Map<String, dynamic>> getCourierRoute(String courierId) async {
+    return _api.get<Map<String, dynamic>>(
+      '/self-healing/route/courier/$courierId',
+    );
+  }
+}
+
+class GeolocationService {
+  final ApiClient _api = ApiClient();
+
+  Future<Map<String, dynamic>> routeEta(Map<String, dynamic> data) async {
+    return _api.post<Map<String, dynamic>>('/geo/route-eta', data: data);
+  }
+}
+
+List<dynamic> _extractItems(dynamic data) {
+  if (data is List) return data;
+  if (data is Map<String, dynamic>) {
+    final content = data['content'];
+    if (content is List) return content;
+    final items = data['items'];
+    if (items is List) return items;
+    final dataItems = data['data'];
+    if (dataItems is List) return dataItems;
+  }
+  return const [];
 }

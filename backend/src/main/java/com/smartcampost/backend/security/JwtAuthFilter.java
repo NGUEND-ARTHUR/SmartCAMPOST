@@ -13,9 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.smartcampost.backend.service.DynamicPermissionService;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -26,6 +27,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired(required = false)
     private TokenBlacklistService tokenBlacklistService;
+
+    @Autowired(required = false)
+    private DynamicPermissionService dynamicPermissionService;
 
     @Override
     protected void doFilterInternal(
@@ -75,11 +79,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         : userId;
 
                 // ✅ Build authorities: ROLE_ADMIN / ROLE_STAFF / ROLE_FINANCE / ROLE_RISK ...
-                List<SimpleGrantedAuthority> authorities = Collections.emptyList();
+                List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 if (role != null && !role.trim().isEmpty()) {
                     String normalized = role.trim().toUpperCase();
                     String authority = normalized.startsWith("ROLE_") ? normalized : "ROLE_" + normalized;
-                    authorities = List.of(new SimpleGrantedAuthority(authority));
+                    authorities.add(new SimpleGrantedAuthority(authority));
+                    if (dynamicPermissionService != null) {
+                        dynamicPermissionService.permissionsForRole(normalized).stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .forEach(authorities::add);
+                    }
                 }
 
                 UsernamePasswordAuthenticationToken auth =

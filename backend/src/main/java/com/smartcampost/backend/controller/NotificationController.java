@@ -9,7 +9,9 @@ import com.smartcampost.backend.dto.common.PageResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -32,6 +34,44 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<PageResponse<NotificationResponse>> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(notificationService.listNotifications(page, size));
+    }
+
+    @GetMapping("/templates")
+    public ResponseEntity<List<Map<String, Object>>> listTemplates() {
+        return ResponseEntity.ok(List.of(
+                Map.of(
+                        "code", "PARCEL_CREATED",
+                        "channel", "SMS_EMAIL",
+                        "language", "FR_EN",
+                        "subject", "Parcel registration confirmation",
+                        "status", "ACTIVE",
+                        "updatedAt", Instant.now()
+                ),
+                Map.of(
+                        "code", "OUT_FOR_DELIVERY",
+                        "channel", "SMS",
+                        "language", "FR_EN",
+                        "subject", "Delivery OTP notification",
+                        "status", "ACTIVE",
+                        "updatedAt", Instant.now()
+                ),
+                Map.of(
+                        "code", "PICKUP_READY",
+                        "channel", "SMS_EMAIL",
+                        "language", "FR_EN",
+                        "subject", "Agency pickup ready",
+                        "status", "ACTIVE",
+                        "updatedAt", Instant.now()
+                )
+        ));
+    }
+
+    @GetMapping("/otp/logs")
+    public ResponseEntity<PageResponse<NotificationResponse>> listOtpLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {

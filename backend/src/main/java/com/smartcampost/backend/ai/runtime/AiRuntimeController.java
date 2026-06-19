@@ -2,6 +2,7 @@ package com.smartcampost.backend.ai.runtime;
 
 import com.smartcampost.backend.dto.ai.ChatRequest;
 import com.smartcampost.backend.dto.ai.ChatResponse;
+import com.smartcampost.backend.service.DynamicPermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
 public class AiRuntimeController {
 
     private final AiRuntimeService aiRuntimeService;
+    private final DynamicPermissionService dynamicPermissionService;
+    private final ProjectAutomationDiscoveryService projectAutomationDiscoveryService;
 
     @PostMapping("/reactive/chat")
     @PreAuthorize("isAuthenticated()")
@@ -59,6 +62,12 @@ public class AiRuntimeController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<java.util.List<AiToolDescriptor>> listTools() {
         return ResponseEntity.ok(aiRuntimeService.listTools());
+    }
+
+    @GetMapping("/discovery/automation-opportunities")
+    @PreAuthorize("hasAuthority('ai:discover') or hasRole('ADMIN')")
+    public ResponseEntity<AutomationDiscoveryReport> discoverAutomationOpportunities() {
+        return ResponseEntity.ok(projectAutomationDiscoveryService.discover());
     }
 
     private AiToolRequest enrichRequest(AiToolRequest request) {
@@ -97,6 +106,8 @@ public class AiRuntimeController {
                 .map(grantedAuthority -> grantedAuthority.getAuthority().replaceFirst("^ROLE_", ""))
                 .findFirst()
                 .orElse("UNKNOWN");
+
+        permissions.addAll(dynamicPermissionService.permissionsForRole(role));
 
         return new AiActorContext(actorId, authentication.getName(), role, permissions);
     }

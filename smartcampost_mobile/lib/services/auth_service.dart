@@ -10,7 +10,7 @@ class AuthService {
       '428837425425-hvbdljimv02i2kapehk51haap4160v68.apps.googleusercontent.com';
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
-    serverClientId: String.fromEnvironment(
+    serverClientId: const String.fromEnvironment(
       'GOOGLE_CLIENT_ID',
       defaultValue: _defaultGoogleClientId,
     ),

@@ -14,7 +14,7 @@ import 'package:flutter/foundation.dart';
 /// Until Firebase is configured, this service gracefully no-ops.
 class PushNotificationService {
   static String? _fcmToken;
-  static bool _initialized = false;
+  static const bool _initialized = false;
 
   /// Initialize Firebase and request notification permissions.
   /// Call this from main() before runApp().
@@ -72,14 +72,14 @@ class PushNotificationService {
 
   /// Send the FCM device token to the SmartCAMPOST backend
   /// so the server can send targeted push notifications.
-  static Future<void> _sendTokenToBackend(String token) async {
+  static Future<void> sendTokenToBackend(String token) async {
     // TODO: Call PATCH /api/clients/me/fcm-token with the token
     // This requires authentication, so defer until after login.
     debugPrint('[FCM] Token to send to backend: $token');
   }
 
   /// Handle a notification received while the app is in the foreground.
-  static void _handleForegroundMessage(dynamic message) {
+  static void handleForegroundMessage(dynamic message) {
     debugPrint('[FCM] Foreground message: ${message.notification?.title}');
     // TODO: Show a local notification using flutter_local_notifications
     // or update app state directly (e.g., increment notification badge)

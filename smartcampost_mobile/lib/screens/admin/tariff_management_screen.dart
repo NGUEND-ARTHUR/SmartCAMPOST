@@ -75,7 +75,7 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: serviceType,
+                initialValue: serviceType,
                 decoration: const InputDecoration(
                   labelText: 'Service Type',
                   border: OutlineInputBorder(),
@@ -158,43 +158,45 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
         child: _isLoading
             ? const LoadingIndicator()
             : _error != null
-            ? ErrorRetryWidget(message: _error!, onRetry: _loadTariffs)
-            : _tariffs.isEmpty
-            ? const EmptyStateWidget(
-                icon: Icons.calculate_outlined,
-                title: 'No tariffs configured',
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _tariffs.length,
-                itemBuilder: (_, i) {
-                  final t = _tariffs[i];
-                  if (t is! Map) return const SizedBox.shrink();
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppTheme.primaryColor.withValues(
-                          alpha: 0.1,
-                        ),
-                        child: const Icon(
-                          Icons.calculate,
-                          color: AppTheme.primaryColor,
-                        ),
+                ? ErrorRetryWidget(message: _error!, onRetry: _loadTariffs)
+                : _tariffs.isEmpty
+                    ? const EmptyStateWidget(
+                        icon: Icons.calculate_outlined,
+                        title: 'No tariffs configured',
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: _tariffs.length,
+                        itemBuilder: (_, i) {
+                          final t = _tariffs[i];
+                          if (t is! Map) return const SizedBox.shrink();
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor:
+                                    AppTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                child: const Icon(
+                                  Icons.calculate,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              title: Text(
+                                '${t['serviceType'] ?? t['name'] ?? 'Tariff'}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                'Weight: ${t['minWeight'] ?? 0}-${t['maxWeight'] ?? '∞'} kg\n'
+                                'Price: ${t['pricePerKg'] ?? t['basePrice'] ?? '-'} XAF/kg',
+                              ),
+                              isThreeLine: true,
+                            ),
+                          );
+                        },
                       ),
-                      title: Text(
-                        '${t['serviceType'] ?? t['name'] ?? 'Tariff'}',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        'Weight: ${t['minWeight'] ?? 0}-${t['maxWeight'] ?? '∞'} kg\n'
-                        'Price: ${t['pricePerKg'] ?? t['basePrice'] ?? '-'} XAF/kg',
-                      ),
-                      isThreeLine: true,
-                    ),
-                  );
-                },
-              ),
       ),
     );
   }

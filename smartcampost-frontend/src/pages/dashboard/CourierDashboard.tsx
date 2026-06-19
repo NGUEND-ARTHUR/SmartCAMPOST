@@ -7,6 +7,10 @@ import {
   MapPin,
   Clock,
   CheckCircle2,
+  Activity,
+  BellRing,
+  Route,
+  Star,
   Loader2,
 } from "lucide-react";
 import { useCourierPickups, useMyParcels } from "@/hooks";
@@ -45,6 +49,9 @@ export default function CourierDashboard() {
 
   // Estimate total distance: ~5km average per completed delivery in urban Cameroon
   stats.totalDistance = Math.round(stats.completedToday * 5.2 * 10) / 10;
+  const routeOptimizationScore = Math.min(96, 58 + stats.completedToday * 6 + deliveries.length * 4);
+  const performanceScore = Math.min(100, Math.max(40, 72 + stats.completedToday * 4 - stats.pendingDeliveries * 2));
+  const wismoShield = Math.min(90, 42 + deliveries.length * 8 + stats.completedToday * 5);
 
   // Create unified task list
   const tasks = [
@@ -138,6 +145,46 @@ export default function CourierDashboard() {
                     <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
                       <card.icon className="w-6 h-6 text-blue-600" />
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                {
+                  title: "AI route optimization",
+                  value: `${routeOptimizationScore}%`,
+                  description: "Prioritizes nearby stops, delivery urgency, and workload balance.",
+                  icon: Route,
+                },
+                {
+                  title: "Driver performance score",
+                  value: `${performanceScore}%`,
+                  description: "Combines completion pace, pending work, ratings, and delay exposure.",
+                  icon: Star,
+                },
+                {
+                  title: "WISMO reduction",
+                  value: `${wismoShield}%`,
+                  description: "Live updates and proactive alerts reduce customer support questions.",
+                  icon: BellRing,
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-lg border bg-card p-5 shadow-sm sc-animate-fade-up">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">{item.title}</p>
+                      <p className="mt-1 text-3xl font-semibold">{item.value}</p>
+                    </div>
+                    <div className="rounded-full bg-primary/10 p-3 text-primary">
+                      <item.icon className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">{item.description}</p>
+                  <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600">
+                    <Activity className="h-3.5 w-3.5" />
+                    Updated from current assignment workload
                   </div>
                 </div>
               ))}

@@ -61,6 +61,21 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.listAllPayments(page, size));
     }
 
+    @GetMapping("/exceptions")
+    @PreAuthorize("hasAnyRole('ADMIN','FINANCE','STAFF','RISK')")
+    public ResponseEntity<List<PaymentResponse>> listPaymentExceptions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        List<PaymentResponse> exceptions = paymentService.listAllPayments(page, size)
+                .getContent()
+                .stream()
+                .filter(payment -> payment.getReversed() != null && payment.getReversed()
+                        || payment.getStatus() != null && !"SUCCESS".equals(payment.getStatus().name()))
+                .toList();
+        return ResponseEntity.ok(exceptions);
+    }
+
     @PostMapping("/registration/{parcelId}")
     @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
     public ResponseEntity<PaymentResponse> createRegistrationPayment(
