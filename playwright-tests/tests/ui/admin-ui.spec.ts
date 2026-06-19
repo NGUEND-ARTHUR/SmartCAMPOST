@@ -89,12 +89,12 @@ test.describe('Admin UI workflows', () => {
     await adminPage.goto();
     await expect(page.getByRole('heading', { name: roleHeadings.ADMIN_ACCOUNTS })).toBeVisible();
     if (adminToken) {
-      const foundStaff = await adminPage.findUserInList(staffPayload.email);
+      const foundStaff = await adminPage.findUserInList(staffPayload.phone);
 
       // Verify via API that the created users exist in backend
       const backendStaff = await (await request.get(apiUrl('/admin/users'), { headers: { Authorization: `Bearer ${adminToken}` } })).json().catch(() => null);
       const usersList = backendStaff?.data || backendStaff || [];
-      const exists = (usersList || []).some((u: any) => u.email === staffPayload.email);
+      const exists = (usersList || []).some((u: any) => u.phone === staffPayload.phone);
       expect(foundStaff || exists).toBeTruthy();
     } else {
       // Backend unavailable — ensure we render an empty or placeholder state without failing
