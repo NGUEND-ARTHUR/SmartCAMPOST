@@ -3,10 +3,10 @@ import { login, createStaff, createAgent, createCourier, extractToken } from '..
 
 test.describe('Admin workflows (API + basic UI checks)', () => {
   test('Admin can login and create staff/agent/courier (happy path)', async ({ request }) => {
-    const adminEmail = process.env.TEST_ADMIN_EMAIL || 'admin@smartcampost.cm';
+    const adminLogin = process.env.TEST_ADMIN_PHONE || process.env.TEST_ADMIN_EMAIL || '+237690000000';
     const adminPassword = process.env.TEST_ADMIN_PASSWORD || 'Admin@SmartCAMPOST2026';
 
-    const res = await login(request, adminEmail, adminPassword);
+    const res = await login(request, adminLogin, adminPassword);
     if (!res.ok()) {
       const txt = await res.text();
       console.log('LOGIN FAILED:', res.status(), txt);
@@ -39,9 +39,9 @@ test.describe('Admin workflows (API + basic UI checks)', () => {
   });
 
   test('Admin creation: invalid payloads produce validation errors', async ({ request }) => {
-    const adminEmail = process.env.TEST_ADMIN_EMAIL || 'admin@smartcampost.cm';
+    const adminLogin = process.env.TEST_ADMIN_PHONE || process.env.TEST_ADMIN_EMAIL || '+237690000000';
     const adminPassword = process.env.TEST_ADMIN_PASSWORD || 'Admin@SmartCAMPOST2026';
-    const res = await login(request, adminEmail, adminPassword);
+    const res = await login(request, adminLogin, adminPassword);
     const token = await extractToken(res);
     // Missing required fields
     const badStaff = { phone: 'invalid' };

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { apiUrl, login, extractToken } from '../../test-utils/api';
 
 const roleCredentials: Record<string, { username: string; password: string } | null> = {
-  ADMIN: { username: process.env.TEST_ADMIN_EMAIL || 'admin@smartcampost.cm', password: process.env.TEST_ADMIN_PASSWORD || 'Admin@SmartCAMPOST2026' },
+  ADMIN: { username: process.env.TEST_ADMIN_PHONE || process.env.TEST_ADMIN_EMAIL || '+237690000000', password: process.env.TEST_ADMIN_PASSWORD || 'Admin@SmartCAMPOST2026' },
   FINANCE: process.env.TEST_FINANCE_CREDENTIALS ? JSON.parse(process.env.TEST_FINANCE_CREDENTIALS) : null,
   RISK: process.env.TEST_RISK_CREDENTIALS ? JSON.parse(process.env.TEST_RISK_CREDENTIALS) : null,
   STAFF: process.env.TEST_STAFF_CREDENTIALS ? JSON.parse(process.env.TEST_STAFF_CREDENTIALS) : null,

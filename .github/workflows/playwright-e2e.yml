@@ -18,7 +18,7 @@ jobs:
     env:
       E2E_BASE_URL: http://127.0.0.1:5173
       E2E_API_BASE_URL: http://127.0.0.1:8082
-      TEST_ADMIN_PHONE: +237690000000
+      TEST_ADMIN_PHONE: "+237690000000"
       TEST_ADMIN_PASSWORD: Admin@SmartCAMPOST2026
       TEST_ADMIN_EMAIL: admin@smartcampost.cm
     steps:
