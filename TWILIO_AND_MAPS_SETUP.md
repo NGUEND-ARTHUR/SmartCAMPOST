@@ -39,7 +39,7 @@ This guide provides setup instructions for:
    TWILIO_ACCOUNT_SID=AC1234567890abcdef
    TWILIO_AUTH_TOKEN=your_auth_token_here
    TWILIO_FROM_NUMBER=+1234567890
-   SMARTCAMPOST_WEBOTP_DOMAIN=smartcampost.vercel.app
+   SMARTCAMPOST_WEBOTP_DOMAIN=smartcampost-frontend.vercel.app
    ```
 
 4. Click Deploy → redeploy service

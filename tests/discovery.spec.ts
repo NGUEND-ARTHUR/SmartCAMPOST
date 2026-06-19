@@ -2,8 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Application Discovery', () => {
   test('Explore accessible pages without login and identify login method', async ({ page }) => {
-    await page.goto('https://smartcampost-frontend.vercel.app/');
-    await page.waitForLoadState('networkidle');
+    test.setTimeout(90_000);
+    await page.goto('https://smartcampost-frontend.vercel.app/', {
+      waitUntil: 'domcontentloaded',
+      timeout: 60_000,
+    });
+    await expect(page.getByText('SmartCAMPOST').first()).toBeVisible();
     await page.screenshot({ path: 'screenshots/discovery-homepage.png' });
 
     console.log('Exploring navigation links...');

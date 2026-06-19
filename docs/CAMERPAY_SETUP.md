@@ -22,7 +22,7 @@ CAMERPAY_HMAC_SECRET=<your-hmac-secret>
 CAMERPAY_INIT_URL=https://camerpay.biz/api/payment/initiate
 CAMERPAY_VERIFY_URL=https://camerpay.biz/api/payment/{externalRef}/status
 CAMERPAY_CALLBACK_URL=https://smartcampost-backend.onrender.com/api/payments/webhooks/camerpay
-CAMERPAY_RETURN_URL=https://smartcampost.vercel.app/client/payments
+CAMERPAY_RETURN_URL=https://smartcampost-frontend.vercel.app/client/payments
 ```
 
 Restart the Render service after saving the variables.

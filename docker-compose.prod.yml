@@ -102,7 +102,7 @@ services:
       ORANGE_CLIENT_SECRET: ${ORANGE_CLIENT_SECRET:-}
 
       # CORS — comma-separated list of allowed frontend origins
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://smartcampost.vercel.app}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://smartcampost-frontend.vercel.app}
 
       # Rate limiting
       RATE_LIMIT_ENABLED: "true"
