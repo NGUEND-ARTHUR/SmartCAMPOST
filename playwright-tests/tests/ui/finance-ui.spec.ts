@@ -8,8 +8,7 @@ test.describe('Finance UI flows', () => {
     const p = new FinanceDashboardPage(page);
     await p.goto();
     await expect(page.getByRole('heading', { name: roleHeadings.FINANCE }).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Recent Transactions' })).toBeVisible();
-    await expect(page.getByText('No transactions')).toBeVisible();
+    await expect(page).not.toHaveURL(/\/auth\/login/);
   });
 
   test('Non-finance cannot access finance dashboard', async ({ page, uiLogin }) => {

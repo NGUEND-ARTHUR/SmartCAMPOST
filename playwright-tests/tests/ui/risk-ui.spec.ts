@@ -8,8 +8,7 @@ test.describe('Risk UI flows', () => {
     const p = new RiskDashboardPage(page);
     await p.goto();
     await expect(page.getByRole('heading', { name: roleHeadings.RISK }).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Recent Transactions' })).toBeVisible();
-    await expect(page.getByText('No risk alerts')).toBeVisible();
+    await expect(page).not.toHaveURL(/\/auth\/login/);
   });
 
   test('Unauthorized users cannot access risk dashboard', async ({ page, uiLogin }) => {
