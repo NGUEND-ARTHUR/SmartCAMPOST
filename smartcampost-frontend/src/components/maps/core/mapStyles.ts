@@ -4,6 +4,7 @@
 export const MAP_STYLES = {
   light: {
     version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     sources: {
       "osm-tiles": {
         type: "raster",
@@ -29,6 +30,7 @@ export const MAP_STYLES = {
   },
   dark: {
     version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     sources: {
       "carto-dark-tiles": {
         type: "raster",

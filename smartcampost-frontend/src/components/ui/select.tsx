@@ -6,6 +6,8 @@ type SelectContextType<T = string> = {
   onValueChange?: ((v: T) => void) | React.Dispatch<React.SetStateAction<T>>;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedLabel?: React.ReactNode;
+  setSelectedLabel: React.Dispatch<React.SetStateAction<React.ReactNode>>;
 };
 
 const SelectContext = React.createContext<SelectContextType<any> | null>(null);
@@ -26,9 +28,19 @@ export function Select<T = string>({
   ...props
 }: SelectProps<T>) {
   const [open, setOpen] = React.useState(false);
+  const [selectedLabel, setSelectedLabel] = React.useState<React.ReactNode>();
 
   return (
-    <SelectContext.Provider value={{ value, onValueChange, open, setOpen }}>
+    <SelectContext.Provider
+      value={{
+        value,
+        onValueChange,
+        open,
+        setOpen,
+        selectedLabel,
+        setSelectedLabel,
+      }}
+    >
       <div className={cn("inline-block w-full relative", className)} {...props}>
         {children}
       </div>
@@ -50,16 +62,26 @@ export const SelectTrigger = ({
   return (
     <button
       type="button"
+      role="combobox"
+      aria-expanded={ctx?.open ?? false}
+      aria-haspopup="listbox"
       onClick={() => ctx?.setOpen?.((v: boolean) => !v)}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          ctx?.setOpen?.(true);
+        }
+        if (event.key === "Escape") {
+          ctx?.setOpen?.(false);
+        }
+      }}
       className={cn(
         "w-full rounded-md border border-input px-3 py-2 text-left flex items-center justify-between bg-background",
         className,
       )}
       {...props}
     >
-      <span className="text-sm text-foreground">
-        {(ctx?.value as unknown as React.ReactNode) ?? placeholder ?? children}
-      </span>
+      <span className="text-sm text-foreground">{children ?? placeholder}</span>
       <svg
         className={cn(
           "w-4 h-4 text-muted-foreground",
@@ -84,9 +106,12 @@ export const SelectValue = ({
   placeholder?: React.ReactNode;
 }) => {
   const ctx = React.useContext(SelectContext);
+  const value = ctx?.selectedLabel ?? ctx?.value;
+  const hasValue =
+    value !== undefined && value !== null && String(value).trim() !== "";
   return (
-    <span className="text-sm text-muted-foreground">
-      {(ctx?.value as unknown as React.ReactNode) ?? placeholder}
+    <span className={cn("text-sm", hasValue ? "text-foreground" : "text-muted-foreground")}>
+      {hasValue ? (value as React.ReactNode) : placeholder}
     </span>
   );
 };
@@ -100,8 +125,9 @@ export const SelectContent = ({
 
   return (
     <div
+      role="listbox"
       className={cn(
-        "absolute left-0 right-0 z-10 mt-1 rounded-md border border-border bg-popover text-popover-foreground shadow-sm",
+        "absolute left-0 right-0 z-50 mt-1 rounded-md border border-border bg-popover text-popover-foreground shadow-sm",
         className,
       )}
     >
@@ -117,13 +143,23 @@ export const SelectItem = ({
   const ctx = React.useContext(SelectContext);
   const handleClick = () => {
     ctx?.onValueChange?.(value);
+    ctx?.setSelectedLabel?.(children);
     ctx?.setOpen?.(false);
   };
 
   return (
     <div
+      role="option"
+      tabIndex={0}
+      aria-selected={ctx?.value === value}
       className="px-3 py-2 cursor-pointer hover:bg-accent"
       onClick={handleClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleClick();
+        }
+      }}
     >
       {children}
     </div>

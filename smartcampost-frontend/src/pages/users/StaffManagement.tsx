@@ -1,5 +1,6 @@
 ﻿import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
 import {
   Users,
   Plus,
@@ -118,7 +119,15 @@ export default function StaffManagement() {
     vehicleId: "",
   });
 
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() || statusFilter !== "ALL" || roleFilter !== "ALL",
+  );
   const { data, isLoading, error } = useStaffList(page, 20);
+  const {
+    data: searchableStaffData,
+    isLoading: searchableStaffLoading,
+    error: searchableStaffError,
+  } = useStaffList(0, 200);
   const { data: couriersData, isLoading: couriersLoading } = useCouriers(
     0,
     100,
@@ -130,12 +139,22 @@ export default function StaffManagement() {
   const updateRole = useUpdateStaffRole();
   const updateCourierStatus = useUpdateCourierStatus();
 
-  const staffList = useMemo(() => data?.content ?? [], [data]);
+  useEffect(() => {
+    if (hasActiveFilters) setPage(0);
+  }, [hasActiveFilters]);
+
+  const staffList = useMemo(
+    () =>
+      hasActiveFilters
+        ? (searchableStaffData?.content ?? [])
+        : (data?.content ?? []),
+    [data, hasActiveFilters, searchableStaffData],
+  );
   const courierList = useMemo(
     () => couriersData?.content ?? [],
     [couriersData],
   );
-  const totalPages = data?.totalPages ?? 0;
+  const totalPages = hasActiveFilters ? 1 : (data?.totalPages ?? 0);
   const agencies = useMemo(() => agenciesData?.content ?? [], [agenciesData]);
 
   // Merge staff and couriers into a unified list
@@ -167,7 +186,9 @@ export default function StaffManagement() {
   const filteredMembers = unifiedList.filter((m) => {
     const matchesSearch =
       m.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.phone.includes(searchQuery);
+      m.phone.includes(searchQuery) ||
+      (m.email ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m.vehicleId ?? "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || m.status === statusFilter;
     const matchesRole = roleFilter === "ALL" || m.role === roleFilter;
     return matchesSearch && matchesStatus && matchesRole;
@@ -529,18 +550,22 @@ export default function StaffManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading || couriersLoading ? (
+          {isLoading ||
+          couriersLoading ||
+          (hasActiveFilters && searchableStaffLoading) ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : error ? (
+          ) : error || (hasActiveFilters && searchableStaffError) ? (
             <EmptyState
               icon={Users}
               title={t("staffManagement.list.errorTitle")}
               description={
                 error instanceof Error
                   ? error.message
-                  : t("common.errorOccurred")
+                  : searchableStaffError instanceof Error
+                    ? searchableStaffError.message
+                    : t("common.errorOccurred")
               }
             />
           ) : filteredMembers.length === 0 ? (

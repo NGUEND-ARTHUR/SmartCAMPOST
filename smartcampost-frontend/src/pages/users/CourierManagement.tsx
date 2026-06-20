@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { Truck, Plus, Loader2, Search, Filter } from "lucide-react";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -59,17 +60,30 @@ export default function CourierManagement() {
     vehicleId: "",
   });
 
+  const hasActiveFilters = Boolean(searchQuery.trim() || statusFilter !== "ALL");
   const { data, isLoading, error } = useCouriers(page, 20);
+  const {
+    data: searchableCouriersData,
+    isLoading: searchableCouriersLoading,
+    error: searchableCouriersError,
+  } = useCouriers(0, 200);
   const createCourier = useCreateCourier();
   const updateStatus = useUpdateCourierStatus();
 
-  const couriers = data?.content ?? [];
-  const totalPages = data?.totalPages ?? 0;
+  useEffect(() => {
+    if (hasActiveFilters) setPage(0);
+  }, [hasActiveFilters]);
+
+  const couriers = hasActiveFilters
+    ? (searchableCouriersData?.content ?? [])
+    : (data?.content ?? []);
+  const totalPages = hasActiveFilters ? 1 : (data?.totalPages ?? 0);
 
   const filteredCouriers = couriers.filter((c) => {
     const matchesSearch =
       c.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.phone.includes(searchQuery);
+      c.phone.includes(searchQuery) ||
+      (c.vehicleId ?? "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || c.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -287,17 +301,19 @@ export default function CourierManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoading || (hasActiveFilters && searchableCouriersLoading) ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : error ? (
+          ) : error || (hasActiveFilters && searchableCouriersError) ? (
             <EmptyState
               icon={Truck}
               title={t("courierManagement.list.errorTitle")}
               description={
                 error instanceof Error
                   ? error.message
+                  : searchableCouriersError instanceof Error
+                    ? searchableCouriersError.message
                   : t("common.errorOccurred")
               }
             />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   UserCheck,
   Plus,
@@ -72,20 +72,33 @@ export default function AgentManagement() {
     agencyId: "",
   });
 
+  const hasActiveFilters = Boolean(searchQuery.trim() || statusFilter !== "ALL");
   const { data, isLoading, error } = useAgents(page, 20);
+  const {
+    data: searchableAgentsData,
+    isLoading: searchableAgentsLoading,
+    error: searchableAgentsError,
+  } = useAgents(0, 200);
   const { data: agenciesData } = useAgencies(0, 100);
   const createAgent = useCreateAgent();
   const updateStatus = useUpdateAgentStatus();
   const assignAgency = useAssignAgentAgency();
 
-  const agents = data?.content ?? [];
-  const totalPages = data?.totalPages ?? 0;
+  useEffect(() => {
+    if (hasActiveFilters) setPage(0);
+  }, [hasActiveFilters]);
+
+  const agents = hasActiveFilters
+    ? (searchableAgentsData?.content ?? [])
+    : (data?.content ?? []);
+  const totalPages = hasActiveFilters ? 1 : (data?.totalPages ?? 0);
   const agencies = agenciesData?.content ?? [];
 
   const filteredAgents = agents.filter((a) => {
     const matchesSearch =
       a.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.phone.includes(searchQuery);
+      a.phone.includes(searchQuery) ||
+      (a.email ?? "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || a.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -321,17 +334,19 @@ export default function AgentManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoading || (hasActiveFilters && searchableAgentsLoading) ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : error ? (
+          ) : error || (hasActiveFilters && searchableAgentsError) ? (
             <EmptyState
               icon={UserCheck}
               title={t("agents.list.errorTitle")}
               description={
                 error instanceof Error
                   ? error.message
+                  : searchableAgentsError instanceof Error
+                    ? searchableAgentsError.message
                   : t("common.errorOccurred")
               }
             />
