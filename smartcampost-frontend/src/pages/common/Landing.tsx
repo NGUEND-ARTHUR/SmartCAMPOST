@@ -158,7 +158,7 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/70 bg-background/95 backdrop-blur">
+      <header className="relative z-50 border-b border-border/70 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <button
             type="button"

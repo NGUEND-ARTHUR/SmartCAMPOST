@@ -100,7 +100,11 @@ async function loginAsAdmin(page) {
   await page.goto(`${baseUrl}/auth/login`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await fillFirst(page, 'input[type="text"], input[type="email"], input[name*="phone" i], input[name*="email" i]', adminIdentity.phoneOrEmail);
   await fillFirst(page, 'input[type="password"]', adminIdentity.password);
-  await page.getByRole("button", { name: /login|connecter|sign in/i }).click();
+  await page
+    .locator('button[type="submit"]')
+    .filter({ hasText: /login|connecter|sign in/i })
+    .first()
+    .click();
   await page.waitForURL(/\/admin|\/client|\/staff|\/agent|\/courier|\/finance|\/risk/, { timeout: 60_000 });
 }
 

@@ -118,7 +118,7 @@ export function LanguageSwitcher({
   // Compact variant - just globe icon with dropdown
   if (variant === "compact") {
     return (
-      <div ref={dropdownRef} className="relative">
+      <div ref={dropdownRef} className="relative z-50">
         <Button
           type="button"
           variant="ghost"
@@ -130,7 +130,7 @@ export function LanguageSwitcher({
           <Globe className="h-4 w-4" />
         </Button>
         {open && (
-          <div className="absolute right-0 mt-2 w-40 rounded-md border bg-popover shadow-lg z-50">
+          <div className="absolute right-0 z-[80] mt-2 w-40 rounded-md border bg-popover shadow-lg">
             {languages.map((lang) => (
               <button
                 key={lang.code}
@@ -153,7 +153,7 @@ export function LanguageSwitcher({
 
   // Default variant - globe + flag + label with dropdown
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative z-50">
       <Button
         type="button"
         variant="outline"
@@ -167,7 +167,7 @@ export function LanguageSwitcher({
         {currentLang.label}
       </Button>
       {open && (
-        <div className="absolute right-0 mt-2 w-40 rounded-md border bg-popover shadow-lg z-50">
+        <div className="absolute right-0 z-[80] mt-2 w-40 rounded-md border bg-popover shadow-lg">
           {languages.map((lang) => (
             <button
               key={lang.code}
