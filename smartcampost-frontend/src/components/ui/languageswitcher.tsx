@@ -26,12 +26,16 @@ export function LanguageSwitcher({
     { code: "en", label: t("common.english"), flag: "🇬🇧" },
   ];
 
+  const activeLanguage = (i18n.resolvedLanguage || i18n.language || "fr")
+    .split("-")[0]
+    .toLowerCase();
   const currentLang =
-    languages.find((l) => l.code === i18n.language) || languages[0];
+    languages.find((l) => l.code === activeLanguage) || languages[0];
 
   const changeLanguage = (langCode: string) => {
-    i18n.changeLanguage(langCode);
+    void i18n.changeLanguage(langCode);
     localStorage.setItem("i18nextLng", langCode);
+    document.documentElement.lang = langCode;
     if (isAuthenticated && user?.role === "CLIENT") {
       updatePreferredLanguage.mutate(
         { language: langCode },
@@ -70,10 +74,11 @@ export function LanguageSwitcher({
         {languages.map((lang) => (
           <button
             key={lang.code}
+            type="button"
             onClick={() => changeLanguage(lang.code)}
             className={cn(
               "px-3 py-1 text-sm font-medium rounded-md transition-colors",
-              i18n.language === lang.code
+              activeLanguage === lang.code
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
@@ -97,7 +102,7 @@ export function LanguageSwitcher({
             <Button
               key={lang.code}
               type="button"
-              variant={i18n.language === lang.code ? "default" : "outline"}
+              variant={activeLanguage === lang.code ? "default" : "outline"}
               onClick={() => changeLanguage(lang.code)}
               className="flex-1"
             >
@@ -115,10 +120,12 @@ export function LanguageSwitcher({
     return (
       <div ref={dropdownRef} className="relative">
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className={className}
           onClick={() => setOpen(!open)}
+          aria-label={t("common.language")}
         >
           <Globe className="h-4 w-4" />
         </Button>
@@ -127,10 +134,11 @@ export function LanguageSwitcher({
             {languages.map((lang) => (
               <button
                 key={lang.code}
+                type="button"
                 onClick={() => changeLanguage(lang.code)}
                 className={cn(
                   "w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2",
-                  i18n.language === lang.code && "bg-accent",
+                  activeLanguage === lang.code && "bg-accent",
                 )}
               >
                 <span>{lang.flag}</span>
@@ -147,10 +155,12 @@ export function LanguageSwitcher({
   return (
     <div ref={dropdownRef} className="relative">
       <Button
+        type="button"
         variant="outline"
         size="sm"
         className={className}
         onClick={() => setOpen(!open)}
+        aria-label={t("common.language")}
       >
         <Globe className="h-4 w-4 mr-2" />
         <span className="mr-1">{currentLang.flag}</span>
@@ -161,10 +171,11 @@ export function LanguageSwitcher({
           {languages.map((lang) => (
             <button
               key={lang.code}
+              type="button"
               onClick={() => changeLanguage(lang.code)}
               className={cn(
                 "w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2",
-                i18n.language === lang.code && "bg-accent",
+                activeLanguage === lang.code && "bg-accent",
               )}
             >
               <span>{lang.flag}</span>

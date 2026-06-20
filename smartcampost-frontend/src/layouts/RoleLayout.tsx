@@ -206,7 +206,6 @@ export function RoleLayout({ role }: { role: AppRole }) {
             ))}
           </div>
         </div>
-        <LanguageSwitcher variant="default" className="w-full justify-start" />
         <Button variant="outline" className="w-full" onClick={() => logout()}>
           {t("common.logout")}
         </Button>

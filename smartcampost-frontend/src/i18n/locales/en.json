@@ -266,6 +266,21 @@
       "cta": "Get Started",
       "login": "Login"
     },
+    "heroVisual": {
+      "liveNetwork": "Live network",
+      "route": "Yaounde - Douala",
+      "gpsLive": "GPS live",
+      "routeAria": "Animated parcel route",
+      "origin": "Origin",
+      "agency": "Agency A",
+      "courier": "Courier",
+      "eta": "ETA 24 min",
+      "destination": "Destination",
+      "clientDoor": "Client door",
+      "dynamicEta": "Dynamic ETA",
+      "proofReady": "Proof ready",
+      "delayAlerts": "Delay alerts"
+    },
     "features": {
       "title": "Our Services",
       "tracking": {

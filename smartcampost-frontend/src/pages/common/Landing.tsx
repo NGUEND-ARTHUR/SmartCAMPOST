@@ -9,6 +9,7 @@ import {
   Package,
   Search,
   Sun,
+  CheckCircle2,
   Truck,
 } from "lucide-react";
 
@@ -49,6 +50,99 @@ const themeOptions: Array<{ value: ThemeMode; icon: typeof Sun }> = [
   { value: "dark", icon: Moon },
   { value: "system", icon: Monitor },
 ];
+
+function HeroLogisticsVisual() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="sc-animate-fade-up sc-delay-2 relative min-h-[26rem] overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,hsl(var(--primary)/0.16),transparent_32%),radial-gradient(circle_at_82%_26%,hsl(158_64%_42%/0.15),transparent_28%),linear-gradient(135deg,hsl(var(--muted)/0.65),transparent)]" />
+      <div className="relative flex h-full min-h-[23rem] flex-col justify-between">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">
+              {t("landing.heroVisual.liveNetwork")}
+            </p>
+            <p className="text-2xl font-bold text-foreground">
+              {t("landing.heroVisual.route")}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+            <span className="sc-live-marker h-2 w-2 rounded-full bg-emerald-500 text-emerald-500" />
+            {t("landing.heroVisual.gpsLive")}
+          </span>
+        </div>
+
+        <div className="relative mx-auto h-56 w-full max-w-xl">
+          <svg
+            viewBox="0 0 520 220"
+            className="absolute inset-0 h-full w-full"
+            role="img"
+            aria-label={t("landing.heroVisual.routeAria")}
+          >
+            <path
+              d="M38 172 C118 72 192 124 254 82 C334 28 382 78 482 42"
+              fill="none"
+              stroke="hsl(var(--border))"
+              strokeLinecap="round"
+              strokeWidth="18"
+            />
+            <path
+              className="sc-route-line"
+              d="M38 172 C118 72 192 124 254 82 C334 28 382 78 482 42"
+              fill="none"
+              stroke="hsl(var(--primary))"
+              strokeDasharray="10 14"
+              strokeLinecap="round"
+              strokeWidth="5"
+            />
+          </svg>
+
+          <div className="absolute left-[5%] top-[66%] rounded-md border border-border bg-background px-3 py-2 shadow-sm">
+            <p className="text-xs text-muted-foreground">
+              {t("landing.heroVisual.origin")}
+            </p>
+            <p className="text-sm font-semibold">
+              {t("landing.heroVisual.agency")}
+            </p>
+          </div>
+          <div className="absolute left-[43%] top-[26%] rounded-md border border-border bg-background px-3 py-2 shadow-sm">
+            <p className="text-xs text-muted-foreground">
+              {t("landing.heroVisual.courier")}
+            </p>
+            <p className="text-sm font-semibold">
+              {t("landing.heroVisual.eta")}
+            </p>
+          </div>
+          <div className="absolute right-[4%] top-[4%] rounded-md border border-border bg-background px-3 py-2 shadow-sm">
+            <p className="text-xs text-muted-foreground">
+              {t("landing.heroVisual.destination")}
+            </p>
+            <p className="text-sm font-semibold">
+              {t("landing.heroVisual.clientDoor")}
+            </p>
+          </div>
+
+          <div className="sc-route-parcel absolute left-[7%] top-[68%] flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+            <Package className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {(["dynamicEta", "proofReady", "delayAlerts"] as const).map((key) => (
+            <div
+              key={key}
+              className="flex items-center gap-2 rounded-md border border-border bg-background/80 px-3 py-2 text-sm font-medium"
+            >
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              {t(`landing.heroVisual.${key}`)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Landing() {
   const navigate = useNavigate();
@@ -158,29 +252,7 @@ export function Landing() {
               </div>
             </div>
 
-            <div className="grid content-center gap-4 sm:grid-cols-2">
-              {features.map(({ key, icon: Icon, tone }) => (
-                <div
-                  key={key}
-                  className="sc-animate-fade-up sc-interactive rounded-lg border border-border bg-card p-5 shadow-sm"
-                >
-                  <div
-                    className={cn(
-                      "mb-4 flex h-12 w-12 items-center justify-center rounded-md",
-                      tone,
-                    )}
-                  >
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="font-semibold text-card-foreground">
-                    {t(`landing.features.${key}.title`)}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {t(`landing.features.${key}.description`)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <HeroLogisticsVisual />
           </div>
         </section>
 

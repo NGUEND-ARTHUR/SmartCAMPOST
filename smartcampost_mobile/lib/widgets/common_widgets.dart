@@ -78,11 +78,19 @@ class LoadingIndicator extends StatelessWidget {
 
 class GlobalBackTrailOverlay extends StatelessWidget {
   final Widget child;
+  final GlobalKey<NavigatorState> navigatorKey;
 
-  const GlobalBackTrailOverlay({super.key, required this.child});
+  const GlobalBackTrailOverlay({
+    super.key,
+    required this.child,
+    required this.navigatorKey,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final navigator = navigatorKey.currentState;
+    final canPop = navigator?.canPop() ?? false;
+
     return Stack(
       children: [
         child,
@@ -91,10 +99,10 @@ class GlobalBackTrailOverlay extends StatelessWidget {
           top: MediaQuery.of(context).padding.top + 12,
           child: SafeArea(
             child: AnimatedOpacity(
-              opacity: Navigator.of(context).canPop() ? 1 : 0,
+              opacity: canPop ? 1 : 0,
               duration: const Duration(milliseconds: 180),
               child: IgnorePointer(
-                ignoring: !Navigator.of(context).canPop(),
+                ignoring: !canPop,
                 child: Material(
                   color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
                   elevation: 6,
@@ -103,9 +111,8 @@ class GlobalBackTrailOverlay extends StatelessWidget {
                     tooltip: context.read<LocaleProvider>().tr('back'),
                     icon: const Icon(Icons.arrow_upward_rounded),
                     onPressed: () {
-                      if (Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop();
-                      }
+                      final nav = navigatorKey.currentState;
+                      if (nav?.canPop() ?? false) nav!.pop();
                     },
                   ),
                 ),

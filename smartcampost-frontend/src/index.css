@@ -126,12 +126,36 @@
   }
 }
 
+@keyframes sc-route-parcel {
+  0%,
+  100% {
+    left: 7%;
+    top: 68%;
+  }
+  38% {
+    left: 46%;
+    top: 29%;
+  }
+  72% {
+    left: 84%;
+    top: 8%;
+  }
+}
+
 .sc-animate-fade-up {
   animation: sc-fade-up 560ms ease both;
 }
 
 .sc-animate-float {
   animation: sc-float 4s ease-in-out infinite;
+}
+
+.sc-route-line {
+  animation: sc-route-dash 1.1s linear infinite;
+}
+
+.sc-route-parcel {
+  animation: sc-route-parcel 7s ease-in-out infinite;
 }
 
 .sc-delay-1 {
@@ -185,6 +209,8 @@
 @media (prefers-reduced-motion: reduce) {
   .sc-animate-fade-up,
   .sc-animate-float,
+  .sc-route-line,
+  .sc-route-parcel,
   .sc-live-marker::before,
   .sc-live-marker::after {
     animation: none;

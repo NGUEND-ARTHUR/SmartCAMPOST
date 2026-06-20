@@ -61,6 +61,8 @@ import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 String _tr(BuildContext context, String key) =>
     context.watch<LocaleProvider>().tr(key);
 
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -94,6 +96,7 @@ class SmartCampostApp extends StatelessWidget {
     final localeProvider = context.watch<LocaleProvider>();
 
     final router = GoRouter(
+      navigatorKey: _rootNavigatorKey,
       initialLocation: '/login',
       refreshListenable: authProvider,
       redirect: (context, state) {
@@ -868,6 +871,7 @@ class SmartCampostApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       routerConfig: router,
       builder: (context, child) => GlobalBackTrailOverlay(
+        navigatorKey: _rootNavigatorKey,
         child: child ?? const SizedBox.shrink(),
       ),
       locale: localeProvider.locale,
