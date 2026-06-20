@@ -284,7 +284,6 @@ function App() {
             <Route path="advanced-analytics" element={<AdvancedAnalyticsPage />} />
             <Route path="operations-intelligence" element={<OperationsIntelligencePage />} />
             <Route path="ai-discovery" element={<AiAutomationDiscoveryPage />} />
-            <Route path="rbac-permissions" element={<RbacPermissionsPage />} />
             <Route path="integrations" element={<IntegrationManagement />} />
             <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>

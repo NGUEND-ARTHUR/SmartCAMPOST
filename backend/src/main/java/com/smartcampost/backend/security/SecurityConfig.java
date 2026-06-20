@@ -236,10 +236,15 @@ public class SecurityConfig {
             // Development only - strict localhost origins
             configuration.setAllowedOrigins(List.of(
                 "http://localhost:4173",
+                "http://127.0.0.1:4173",
                 "http://localhost:5173",
+                "http://127.0.0.1:5173",
                 "http://localhost:5174",
+                "http://127.0.0.1:5174",
                 "http://localhost:5175",
+                "http://127.0.0.1:5175",
                 "http://localhost:5176",
+                "http://127.0.0.1:5176",
                 // Production Vercel frontend
                 "https://smartcampost.vercel.app",
                 "https://smartcampost-frontend.vercel.app"

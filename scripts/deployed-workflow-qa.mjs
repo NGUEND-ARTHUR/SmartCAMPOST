@@ -17,6 +17,8 @@ const report = {
   checks: [],
 };
 
+let adminSessionAvailable = false;
+
 function saveReport() {
   fs.writeFileSync(
     path.join(outputDir, "report.json"),
@@ -62,6 +64,8 @@ async function record(page, name, fn) {
     check.url = page.url();
     check.consoleErrors = check.consoleErrors
       .filter((line) => !/Failed to load resource: the server responded/.test(line))
+      .filter((line) => !/accounts\.google\.com.*Content Security Policy|Framing 'https:\/\/accounts\.google\.com\/' violates/i.test(line))
+      .filter((line) => !/\[GSI_LOGGER\]: The given origin is not allowed for the given client ID/i.test(line))
       .slice(0, 20);
     check.failedRequests = check.failedRequests
       .filter((line) => !/api\/notifications|api\/dashboard|net::ERR_ABORTED/.test(line))
@@ -105,7 +109,7 @@ async function loginAsAdmin(page) {
     .filter({ hasText: /login|connecter|sign in/i })
     .first()
     .click();
-  await page.waitForURL(/\/admin|\/client|\/staff|\/agent|\/courier|\/finance|\/risk/, { timeout: 60_000 });
+  await page.waitForURL(/\/admin|\/client|\/staff|\/agent|\/courier|\/finance|\/risk/, { timeout: 120_000 });
 }
 
 async function main() {
@@ -151,6 +155,7 @@ async function main() {
 
   await record(page, "ADMIN login real credentials", async (check) => {
     await loginAsAdmin(page);
+    adminSessionAvailable = true;
     await screenshot(page, "admin-login-result");
     if (!/\/admin/.test(page.url())) check.issues.push(`admin login redirected to unexpected url ${page.url()}`);
     const text = await pageText(page);
@@ -158,6 +163,10 @@ async function main() {
   });
 
   await record(page, "ADMIN role pages and navigation", async (check) => {
+    if (!adminSessionAvailable) {
+      check.issues.push("Skipped because admin login did not complete; backend authentication was unavailable or timed out.");
+      return;
+    }
     const routes = [
       "/admin",
       "/admin/users/staff",

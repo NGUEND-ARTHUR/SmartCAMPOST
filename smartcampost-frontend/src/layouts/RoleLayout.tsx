@@ -75,7 +75,6 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/staff/advanced-analytics", labelKey: "nav.advancedAnalytics" },
     { to: "/staff/operations-intelligence", labelKey: "nav.operationsIntelligence" },
     { to: "/staff/ai-discovery", labelKey: "nav.aiDiscovery" },
-    { to: "/staff/rbac-permissions", labelKey: "nav.rbacPermissions" },
     { to: "/staff/integrations", labelKey: "nav.integrations" },
     { to: "/staff/profile", labelKey: "nav.profile" },
   ],
