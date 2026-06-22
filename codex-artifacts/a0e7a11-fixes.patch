@@ -1,0 +1,959 @@
+From a0e7a11d48887a0fde172aabf443f2199697e625 Mon Sep 17 00:00:00 2001
+From: NGUEND-ARTHUR <nguend.johann@ictuniversity.edu.cm>
+Date: Sat, 20 Jun 2026 01:35:04 +0100
+Subject: [PATCH] fix landing i18n and mobile navigation QA
+
+---
+ .gitignore                                    |   3 +
+ scripts/deployed-manual-qa.mjs                | 163 ++++++++++++++
+ scripts/deployed-workflow-qa.mjs              | 213 ++++++++++++++++++
+ .../src/components/GlobalBackTrail.tsx        |  32 ++-
+ .../src/components/ui/languageswitcher.tsx    |  23 +-
+ .../ui/languageswitcher.ui.test.tsx           |  41 ++++
+ .../src/i18n/locales/en.json                  |  15 ++
+ .../src/i18n/locales/fr.json                  |  15 ++
+ smartcampost-frontend/src/index.css           |  26 +++
+ .../src/layouts/RoleLayout.tsx                |   1 -
+ .../src/pages/common/Landing.tsx              | 118 ++++++++--
+ smartcampost_mobile/lib/main.dart             |   4 +
+ .../lib/widgets/common_widgets.dart           |  19 +-
+ 13 files changed, 634 insertions(+), 39 deletions(-)
+ create mode 100644 scripts/deployed-manual-qa.mjs
+ create mode 100644 scripts/deployed-workflow-qa.mjs
+ create mode 100644 smartcampost-frontend/src/components/ui/languageswitcher.ui.test.tsx
+
+diff --git a/.gitignore b/.gitignore
+index 18a804f..8970a4f 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -43,3 +43,6 @@ smartcampost-frontend/test-results/
+ /blob-report/
+ /playwright/.cache/
+ /playwright/.auth/
++
++# Manual QA output
++/qa-artifacts/
+diff --git a/scripts/deployed-manual-qa.mjs b/scripts/deployed-manual-qa.mjs
+new file mode 100644
+index 0000000..318f90a
+--- /dev/null
++++ b/scripts/deployed-manual-qa.mjs
+@@ -0,0 +1,163 @@
++import fs from "node:fs";
++import path from "node:path";
++import { chromium } from "playwright";
++
++const baseUrl = process.env.FRONTEND_URL ?? "https://smartcampost-frontend.vercel.app";
++const outputDir = path.resolve("qa-artifacts", "deployed-manual-qa");
++fs.mkdirSync(outputDir, { recursive: true });
++
++const publicRoutes = [
++  "/",
++  "/auth/login",
++  "/auth/register",
++  "/auth/login-otp",
++  "/auth/reset-password",
++  "/tracking",
++  "/qr/verify",
++];
++
++const roleRoutes = {
++  CLIENT: ["/client", "/client/parcels/new", "/client/parcels", "/client/map", "/client/tracking", "/client/pickups", "/client/payments", "/client/invoices", "/client/addresses", "/client/support", "/client/settings"],
++  AGENT: ["/agent", "/agent/parcels/new", "/agent/parcels", "/agent/pickups", "/agent/map", "/agent/live-logistics", "/agent/gps", "/agent/route-optimization", "/agent/scan", "/agent/delivery-tools", "/agent/profile"],
++  COURIER: ["/courier", "/courier/map", "/courier/live-logistics", "/courier/gps", "/courier/route-optimization", "/courier/pickups", "/courier/deliveries", "/courier/deliveries/failed", "/courier/scan", "/courier/profile"],
++  STAFF: ["/staff", "/staff/map", "/staff/live-logistics", "/staff/gps", "/staff/gps-trackers", "/staff/gps-trackers/new", "/staff/iot-gps", "/staff/route-optimization", "/staff/pickup-recommendations", "/staff/distance-pricing", "/staff/parcels", "/staff/tracking", "/staff/pickups", "/staff/deliveries", "/staff/payments", "/staff/support", "/staff/scan", "/staff/bulk-scans", "/staff/notifications", "/staff/notification-templates", "/staff/otp-logs", "/staff/analytics", "/staff/advanced-analytics", "/staff/operations-intelligence", "/staff/ai-discovery", "/staff/rbac-permissions", "/staff/integrations", "/staff/profile"],
++  ADMIN: ["/admin", "/admin/map", "/admin/live-logistics", "/admin/gps", "/admin/gps-trackers", "/admin/gps-trackers/new", "/admin/iot-gps", "/admin/route-optimization", "/admin/pickup-recommendations", "/admin/distance-pricing", "/admin/parcels", "/admin/pickups", "/admin/deliveries", "/admin/payments", "/admin/support", "/admin/tracking", "/admin/scan", "/admin/bulk-scans", "/admin/staff", "/admin/users/staff", "/admin/users/agents", "/admin/users/couriers", "/admin/users/agencies", "/admin/users/clients", "/admin/tariffs", "/admin/integrations", "/admin/ussd", "/admin/accounts", "/admin/self-healing", "/admin/approvals", "/admin/notifications", "/admin/notification-templates", "/admin/otp-logs", "/admin/analytics", "/admin/advanced-analytics", "/admin/operations-intelligence", "/admin/ai-discovery", "/admin/rbac-permissions", "/admin/rbac-permissions/grant", "/admin/profile"],
++  FINANCE: ["/finance", "/finance/map", "/finance/payments", "/finance/refunds", "/finance/invoices", "/finance/exceptions", "/finance/analytics", "/finance/notifications", "/finance/profile"],
++  RISK: ["/risk", "/risk/map", "/risk/alerts", "/risk/compliance", "/risk/cases", "/risk/integrations", "/risk/analytics", "/risk/notifications", "/risk/profile"],
++};
++
++const report = {
++  startedAt: new Date().toISOString(),
++  baseUrl,
++  results: [],
++};
++
++function reportPath() {
++  return path.join(outputDir, "report.json");
++}
++
++function saveReport() {
++  fs.writeFileSync(reportPath(), JSON.stringify({ ...report, updatedAt: new Date().toISOString() }, null, 2));
++}
++
++function fakeAuthScript(role) {
++  return ({ roleName }) => {
++    localStorage.setItem("i18nextLng", "en");
++    localStorage.setItem(
++      "auth-storage",
++      JSON.stringify({
++        state: {
++          user: {
++            id: `manual-qa-${String(roleName).toLowerCase()}`,
++            name: `Manual QA ${roleName}`,
++            role: roleName,
++            phone: "+237690000000",
++          },
++          token: `manual-qa-${String(roleName).toLowerCase()}`,
++          isAuthenticated: true,
++        },
++        version: 0,
++      }),
++    );
++  };
++}
++
++async function inspectRoute(browser, route, role = "PUBLIC", viewport = { width: 1440, height: 950 }) {
++  const context = await browser.newContext({ viewport, ignoreHTTPSErrors: true });
++  if (role !== "PUBLIC") {
++    await context.addInitScript(fakeAuthScript(role), { roleName: role });
++  }
++  const page = await context.newPage();
++  const consoleErrors = [];
++  const failedRequests = [];
++  page.on("console", (msg) => {
++    if (msg.type() === "error") consoleErrors.push(msg.text());
++  });
++  page.on("pageerror", (error) => consoleErrors.push(error.message));
++  page.on("requestfailed", (request) => {
++    const url = request.url();
++    if (!url.includes("tile.openstreetmap") && !url.includes("basemaps.cartocdn")) {
++      failedRequests.push(`${request.method()} ${url} :: ${request.failure()?.errorText}`);
++    }
++  });
++
++  const result = { role, route, viewport, issues: [], consoleErrors: [], failedRequests: [] };
++  const url = `${baseUrl}${route}`;
++  try {
++    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90_000 });
++    await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
++    await page
++      .waitForFunction(() => (document.body?.innerText || "").trim().length > 20, {
++        timeout: 12_000,
++      })
++      .catch(() => {});
++  } catch (error) {
++    result.issues.push(`navigation failed or timed out: ${error instanceof Error ? error.message : String(error)}`);
++  }
++
++  try {
++    const bodyText = await page
++      .evaluate(() => (document.body?.innerText || "").trim())
++      .catch(() => "");
++    const finalUrl = page.url();
++    const pathname = finalUrl ? new URL(finalUrl).pathname : "";
++    const h1 = await page.locator("h1").first().textContent({ timeout: 2_000 }).catch(() => "");
++    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth).catch(() => 0);
++    const screenshotName = `${role.toLowerCase()}-${route.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "home"}-${viewport.width}.png`;
++    await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true }).catch(() => {});
++
++    Object.assign(result, {
++      finalUrl,
++      pathname,
++      h1,
++      textLength: bodyText.length,
++      overflow,
++      screenshot: screenshotName,
++    });
++
++    if (bodyText.length < 20) result.issues.push("blank or nearly blank screen");
++    if (/Cannot read properties|is not a function|ReferenceError|TypeError|Something went wrong/i.test(bodyText)) result.issues.push("visible runtime error text");
++    if (pathname.startsWith("/auth/login") && role !== "PUBLIC") result.issues.push("protected role route redirected to login");
++    if (overflow > 8) result.issues.push(`horizontal overflow ${overflow}px`);
++  } catch (error) {
++    result.issues.push(`inspection failed: ${error instanceof Error ? error.message : String(error)}`);
++  }
++
++  result.consoleErrors = consoleErrors.filter((line) => !/Failed to load resource: the server responded with a status of (401|403|404|500)/.test(line)).slice(0, 20);
++  result.failedRequests = failedRequests.filter((line) => !/net::ERR_ABORTED|favicon|api\//.test(line)).slice(0, 20);
++  if (result.consoleErrors.length) result.issues.push(`${result.consoleErrors.length} serious console error(s)`);
++  if (result.failedRequests.length) result.issues.push(`${result.failedRequests.length} serious failed request(s)`);
++
++  await context.close().catch(() => {});
++  return result;
++}
++
++const browser = await chromium.launch({ headless: true });
++try {
++  for (const route of publicRoutes) {
++    const result = await inspectRoute(browser, route, "PUBLIC");
++    report.results.push(result);
++    console.log(`[${result.issues.length ? "ISSUE" : "OK"}] PUBLIC ${route} ${result.issues.join(" | ")}`);
++    saveReport();
++  }
++
++  report.results.push(await inspectRoute(browser, "/", "PUBLIC", { width: 390, height: 844 }));
++  saveReport();
++
++  for (const [role, routes] of Object.entries(roleRoutes)) {
++    for (const route of routes) {
++      const result = await inspectRoute(browser, route, role);
++      report.results.push(result);
++      console.log(`[${result.issues.length ? "ISSUE" : "OK"}] ${role} ${route} ${result.issues.join(" | ")}`);
++      saveReport();
++    }
++  }
++} finally {
++  await browser.close().catch(() => {});
++  report.finishedAt = new Date().toISOString();
++  saveReport();
++}
++
++const issueCount = report.results.reduce((sum, result) => sum + (result.issues?.length ? 1 : 0), 0);
++console.log(`QA complete. Routes checked: ${report.results.length}. Routes with issues: ${issueCount}. Report: ${reportPath()}`);
++if (issueCount > 0) process.exitCode = 1;
+diff --git a/scripts/deployed-workflow-qa.mjs b/scripts/deployed-workflow-qa.mjs
+new file mode 100644
+index 0000000..e01631f
+--- /dev/null
++++ b/scripts/deployed-workflow-qa.mjs
+@@ -0,0 +1,213 @@
++import fs from "node:fs";
++import path from "node:path";
++import { chromium } from "playwright";
++
++const baseUrl = process.env.FRONTEND_URL ?? "https://smartcampost-frontend.vercel.app";
++const outputDir = path.resolve("qa-artifacts", "deployed-workflow-qa");
++fs.mkdirSync(outputDir, { recursive: true });
++
++const adminIdentity = {
++  phoneOrEmail: process.env.QA_ADMIN_LOGIN ?? "admin@smartcampost.cm",
++  password: process.env.QA_ADMIN_PASSWORD ?? "Admin@SmartCAMPOST2026",
++};
++
++const report = {
++  startedAt: new Date().toISOString(),
++  baseUrl,
++  checks: [],
++};
++
++function saveReport() {
++  fs.writeFileSync(
++    path.join(outputDir, "report.json"),
++    JSON.stringify({ ...report, updatedAt: new Date().toISOString() }, null, 2),
++  );
++}
++
++async function record(page, name, fn) {
++  const check = {
++    name,
++    status: "ok",
++    url: page.url(),
++    issues: [],
++    consoleErrors: [],
++    failedRequests: [],
++  };
++
++  const onConsole = (msg) => {
++    if (msg.type() === "error") check.consoleErrors.push(msg.text());
++  };
++  const onPageError = (error) => check.consoleErrors.push(error.message);
++  const onRequestFailed = (request) => {
++    const url = request.url();
++    if (!/favicon|tile.openstreetmap|basemaps.cartocdn/.test(url)) {
++      check.failedRequests.push(
++        `${request.method()} ${url} :: ${request.failure()?.errorText}`,
++      );
++    }
++  };
++
++  page.on("console", onConsole);
++  page.on("pageerror", onPageError);
++  page.on("requestfailed", onRequestFailed);
++  try {
++    await fn(check);
++  } catch (error) {
++    check.status = "failed";
++    check.issues.push(error instanceof Error ? error.message : String(error));
++  } finally {
++    page.off("console", onConsole);
++    page.off("pageerror", onPageError);
++    page.off("requestfailed", onRequestFailed);
++    check.url = page.url();
++    check.consoleErrors = check.consoleErrors
++      .filter((line) => !/Failed to load resource: the server responded/.test(line))
++      .slice(0, 20);
++    check.failedRequests = check.failedRequests
++      .filter((line) => !/api\/notifications|api\/dashboard|net::ERR_ABORTED/.test(line))
++      .slice(0, 20);
++    if (check.consoleErrors.length) check.issues.push(`${check.consoleErrors.length} console error(s)`);
++    if (check.failedRequests.length) check.issues.push(`${check.failedRequests.length} failed request(s)`);
++    if (check.issues.length) check.status = "failed";
++    report.checks.push(check);
++    console.log(`[${check.status.toUpperCase()}] ${name}${check.issues.length ? ` :: ${check.issues.join(" | ")}` : ""}`);
++    saveReport();
++  }
++}
++
++async function screenshot(page, name) {
++  await page.screenshot({
++    path: path.join(outputDir, `${name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase()}.png`),
++    fullPage: true,
++  });
++}
++
++async function pageText(page) {
++  return page.evaluate(() => (document.body?.innerText || "").trim());
++}
++
++async function visibleText(page, pattern, timeout = 15_000) {
++  await page.getByText(pattern, { exact: false }).first().waitFor({ state: "visible", timeout });
++}
++
++async function fillFirst(page, selector, value) {
++  const locator = page.locator(selector).first();
++  await locator.waitFor({ state: "visible", timeout: 20_000 });
++  await locator.fill(value);
++}
++
++async function loginAsAdmin(page) {
++  await page.goto(`${baseUrl}/auth/login`, { waitUntil: "domcontentloaded", timeout: 90_000 });
++  await fillFirst(page, 'input[type="text"], input[type="email"], input[name*="phone" i], input[name*="email" i]', adminIdentity.phoneOrEmail);
++  await fillFirst(page, 'input[type="password"]', adminIdentity.password);
++  await page.getByRole("button", { name: /login|connecter|sign in/i }).click();
++  await page.waitForURL(/\/admin|\/client|\/staff|\/agent|\/courier|\/finance|\/risk/, { timeout: 60_000 });
++}
++
++async function main() {
++  const useSystemChrome = process.env.QA_SYSTEM_CHROME === "1";
++  const browser = await chromium.launch({
++    headless: true,
++    executablePath: useSystemChrome
++      ? (process.env.PLAYWRIGHT_CHROME_PATH ?? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
++      : undefined,
++  });
++  const page = await browser.newPage({ viewport: { width: 1440, height: 950 }, ignoreHTTPSErrors: true });
++
++  await record(page, "PUBLIC landing language toggle and duplicated services", async (check) => {
++    await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 90_000 });
++    await page.waitForTimeout(2_000);
++    await screenshot(page, "public-landing-before");
++    const text = await pageText(page);
++    if (!/SmartCAMPOST/i.test(text)) check.issues.push("brand missing from landing");
++    const trackingCards = (text.match(/Real-time Tracking|Suivi en temps reel|Suivi en temps réel/g) || []).length;
++    if (trackingCards > 1) check.issues.push("landing repeats the same service cards in hero and services");
++    await page.getByRole("button", { name: /language|langue|english|français/i }).first().click();
++    await page.getByRole("button", { name: /english|anglais/i }).first().click().catch(async () => {
++      await page.getByText(/english|anglais/i).first().click();
++    });
++    await page.waitForTimeout(800);
++    const switched = await pageText(page);
++    if (!/Smart Postal Services|Our Services|Get Started/i.test(switched)) {
++      check.issues.push("landing language switch did not visibly switch to English");
++    }
++  });
++
++  await record(page, "PUBLIC auth page controls", async (check) => {
++    for (const route of ["/auth/login", "/auth/register", "/auth/login-otp", "/auth/reset-password", "/tracking"]) {
++      await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
++      await page.waitForTimeout(1_000);
++      const text = await pageText(page);
++      if (text.length < 40) check.issues.push(`${route} has too little visible content`);
++      const inputs = await page.locator("input").count();
++      if (route !== "/tracking" && inputs === 0) check.issues.push(`${route} has no input fields`);
++      await screenshot(page, `public-${route}`);
++    }
++  });
++
++  await record(page, "ADMIN login real credentials", async (check) => {
++    await loginAsAdmin(page);
++    await screenshot(page, "admin-login-result");
++    if (!/\/admin/.test(page.url())) check.issues.push(`admin login redirected to unexpected url ${page.url()}`);
++    const text = await pageText(page);
++    if (!/dashboard|admin|tableau/i.test(text)) check.issues.push("admin dashboard content not visible after login");
++  });
++
++  await record(page, "ADMIN role pages and navigation", async (check) => {
++    const routes = [
++      "/admin",
++      "/admin/users/staff",
++      "/admin/users/agents",
++      "/admin/users/couriers",
++      "/admin/parcels",
++      "/admin/payments",
++      "/admin/support",
++      "/admin/self-healing",
++      "/admin/approvals",
++      "/admin/rbac-permissions",
++      "/admin/profile",
++    ];
++    for (const route of routes) {
++      await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
++      await page.waitForTimeout(1_500);
++      const text = await pageText(page);
++      if (text.length < 80) check.issues.push(`${route} appears sparse or unloaded`);
++      if (/login|connexion/i.test(text) && !/dashboard|admin|users|parcels/i.test(text)) {
++        check.issues.push(`${route} unexpectedly shows login-like content`);
++      }
++      await screenshot(page, `admin-${route}`);
++    }
++  });
++
++  await record(page, "RBAC client blocked from admin with fake client session", async (check) => {
++    await page.evaluate(() => {
++      localStorage.setItem(
++        "auth-storage",
++        JSON.stringify({
++          state: {
++            user: { id: "qa-client", name: "QA Client", role: "CLIENT", phone: "+237690000001" },
++            token: "qa-client-token",
++            isAuthenticated: true,
++          },
++          version: 0,
++        }),
++      );
++    });
++    await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 90_000 });
++    await page.waitForTimeout(2_000);
++    const text = await pageText(page);
++    if (!/unauthorized|not authorized|login|connexion|client/i.test(text)) {
++      check.issues.push("client session was not visibly blocked from admin route");
++    }
++    await screenshot(page, "rbac-client-admin");
++  });
++
++  await browser.close();
++  report.finishedAt = new Date().toISOString();
++  saveReport();
++  const failed = report.checks.filter((check) => check.status === "failed");
++  console.log(`Workflow QA complete. Checks: ${report.checks.length}. Failed: ${failed.length}. Report: ${path.join(outputDir, "report.json")}`);
++  if (failed.length) process.exitCode = 1;
++}
++
++await main();
+diff --git a/smartcampost-frontend/src/components/GlobalBackTrail.tsx b/smartcampost-frontend/src/components/GlobalBackTrail.tsx
+index 35892cb..254d45f 100644
+--- a/smartcampost-frontend/src/components/GlobalBackTrail.tsx
++++ b/smartcampost-frontend/src/components/GlobalBackTrail.tsx
+@@ -1,18 +1,44 @@
+-import { useLocation, useNavigate } from "react-router-dom";
++import { matchPath, useLocation, useNavigate } from "react-router-dom";
+ import { ArrowUpLeft } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ 
++const pagesWithLocalBack = [
++  "/client/parcels/new",
++  "/client/parcels/:id",
++  "/client/parcels/:id/qr",
++  "/client/parcels/:parcelId/print-label",
++  "/agent/parcels/new",
++  "/agent/parcels/:id",
++  "/staff/parcels/:id",
++  "/staff/parcels/:id/qr",
++  "/admin/parcels/:id",
++  "/admin/parcels/:id/qr",
++  "/courier/pickups/:id",
++  "/courier/deliveries/:id",
++  "/courier/deliveries/:id/confirm",
++  "/admin/finance/create",
++  "/admin/risk/create",
++  "/admin/risk/create-user",
++];
++
+ export function GlobalBackTrail() {
+   const navigate = useNavigate();
+   const location = useLocation();
+   const { t } = useTranslation();
+ 
+-  if (location.pathname === "/") return null;
++  if (
++    location.pathname === "/" ||
++    pagesWithLocalBack.some((pattern) =>
++      matchPath({ path: pattern, end: true }, location.pathname),
++    )
++  ) {
++    return null;
++  }
+ 
+   return (
+     <button
+       type="button"
+-      className="fixed left-4 top-20 z-40 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:left-72"
++      className="fixed left-3 top-[4.5rem] z-40 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/85 text-foreground opacity-80 shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-accent hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:left-[17rem] lg:top-4"
+       aria-label={t("common.back", "Back")}
+       title={t("common.back", "Back")}
+       onClick={() => {
+diff --git a/smartcampost-frontend/src/components/ui/languageswitcher.tsx b/smartcampost-frontend/src/components/ui/languageswitcher.tsx
+index 81330da..ae9007b 100644
+--- a/smartcampost-frontend/src/components/ui/languageswitcher.tsx
++++ b/smartcampost-frontend/src/components/ui/languageswitcher.tsx
+@@ -26,12 +26,16 @@ export function LanguageSwitcher({
+     { code: "en", label: t("common.english"), flag: "🇬🇧" },
+   ];
+ 
++  const activeLanguage = (i18n.resolvedLanguage || i18n.language || "fr")
++    .split("-")[0]
++    .toLowerCase();
+   const currentLang =
+-    languages.find((l) => l.code === i18n.language) || languages[0];
++    languages.find((l) => l.code === activeLanguage) || languages[0];
+ 
+   const changeLanguage = (langCode: string) => {
+-    i18n.changeLanguage(langCode);
++    void i18n.changeLanguage(langCode);
+     localStorage.setItem("i18nextLng", langCode);
++    document.documentElement.lang = langCode;
+     if (isAuthenticated && user?.role === "CLIENT") {
+       updatePreferredLanguage.mutate(
+         { language: langCode },
+@@ -70,10 +74,11 @@ export function LanguageSwitcher({
+         {languages.map((lang) => (
+           <button
+             key={lang.code}
++            type="button"
+             onClick={() => changeLanguage(lang.code)}
+             className={cn(
+               "px-3 py-1 text-sm font-medium rounded-md transition-colors",
+-              i18n.language === lang.code
++              activeLanguage === lang.code
+                 ? "bg-primary text-primary-foreground"
+                 : "text-muted-foreground hover:text-foreground",
+             )}
+@@ -97,7 +102,7 @@ export function LanguageSwitcher({
+             <Button
+               key={lang.code}
+               type="button"
+-              variant={i18n.language === lang.code ? "default" : "outline"}
++              variant={activeLanguage === lang.code ? "default" : "outline"}
+               onClick={() => changeLanguage(lang.code)}
+               className="flex-1"
+             >
+@@ -115,10 +120,12 @@ export function LanguageSwitcher({
+     return (
+       <div ref={dropdownRef} className="relative">
+         <Button
++          type="button"
+           variant="ghost"
+           size="icon"
+           className={className}
+           onClick={() => setOpen(!open)}
++          aria-label={t("common.language")}
+         >
+           <Globe className="h-4 w-4" />
+         </Button>
+@@ -127,10 +134,11 @@ export function LanguageSwitcher({
+             {languages.map((lang) => (
+               <button
+                 key={lang.code}
++                type="button"
+                 onClick={() => changeLanguage(lang.code)}
+                 className={cn(
+                   "w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2",
+-                  i18n.language === lang.code && "bg-accent",
++                  activeLanguage === lang.code && "bg-accent",
+                 )}
+               >
+                 <span>{lang.flag}</span>
+@@ -147,10 +155,12 @@ export function LanguageSwitcher({
+   return (
+     <div ref={dropdownRef} className="relative">
+       <Button
++        type="button"
+         variant="outline"
+         size="sm"
+         className={className}
+         onClick={() => setOpen(!open)}
++        aria-label={t("common.language")}
+       >
+         <Globe className="h-4 w-4 mr-2" />
+         <span className="mr-1">{currentLang.flag}</span>
+@@ -161,10 +171,11 @@ export function LanguageSwitcher({
+           {languages.map((lang) => (
+             <button
+               key={lang.code}
++              type="button"
+               onClick={() => changeLanguage(lang.code)}
+               className={cn(
+                 "w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2",
+-                i18n.language === lang.code && "bg-accent",
++                activeLanguage === lang.code && "bg-accent",
+               )}
+             >
+               <span>{lang.flag}</span>
+diff --git a/smartcampost-frontend/src/components/ui/languageswitcher.ui.test.tsx b/smartcampost-frontend/src/components/ui/languageswitcher.ui.test.tsx
+new file mode 100644
+index 0000000..ace8968
+--- /dev/null
++++ b/smartcampost-frontend/src/components/ui/languageswitcher.ui.test.tsx
+@@ -0,0 +1,41 @@
++import { describe, expect, it, beforeEach } from "vitest";
++import type { ReactElement } from "react";
++import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
++import { render, screen } from "@testing-library/react";
++import userEvent from "@testing-library/user-event";
++
++import "@/i18n";
++import i18n from "@/i18n";
++import { LanguageSwitcher } from "@/components/ui/languageswitcher";
++
++function renderWithProviders(ui: ReactElement) {
++  const queryClient = new QueryClient({
++    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
++  });
++
++  return render(
++    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
++  );
++}
++
++describe("LanguageSwitcher", () => {
++  beforeEach(async () => {
++    localStorage.clear();
++    await i18n.changeLanguage("fr");
++  });
++
++  it("changes language and persists the selected locale", async () => {
++    const user = userEvent.setup();
++    renderWithProviders(<LanguageSwitcher variant="default" />);
++
++    await user.click(screen.getByRole("button", { name: /langue/i }));
++    await user.click(screen.getByRole("button", { name: /english/i }));
++
++    expect(i18n.resolvedLanguage).toBe("en");
++    expect(localStorage.getItem("i18nextLng")).toBe("en");
++    expect(document.documentElement.lang).toBe("en");
++    expect(
++      screen.getByRole("button", { name: /language/i }),
++    ).toHaveTextContent("English");
++  });
++});
+diff --git a/smartcampost-frontend/src/i18n/locales/en.json b/smartcampost-frontend/src/i18n/locales/en.json
+index 13f48ec..5ca0fc6 100644
+--- a/smartcampost-frontend/src/i18n/locales/en.json
++++ b/smartcampost-frontend/src/i18n/locales/en.json
+@@ -266,6 +266,21 @@
+       "cta": "Get Started",
+       "login": "Login"
+     },
++    "heroVisual": {
++      "liveNetwork": "Live network",
++      "route": "Yaounde - Douala",
++      "gpsLive": "GPS live",
++      "routeAria": "Animated parcel route",
++      "origin": "Origin",
++      "agency": "Agency A",
++      "courier": "Courier",
++      "eta": "ETA 24 min",
++      "destination": "Destination",
++      "clientDoor": "Client door",
++      "dynamicEta": "Dynamic ETA",
++      "proofReady": "Proof ready",
++      "delayAlerts": "Delay alerts"
++    },
+     "features": {
+       "title": "Our Services",
+       "tracking": {
+diff --git a/smartcampost-frontend/src/i18n/locales/fr.json b/smartcampost-frontend/src/i18n/locales/fr.json
+index 2cf85d6..87842c6 100644
+--- a/smartcampost-frontend/src/i18n/locales/fr.json
++++ b/smartcampost-frontend/src/i18n/locales/fr.json
+@@ -268,6 +268,21 @@
+       "cta": "Commencer",
+       "login": "Connexion"
+     },
++    "heroVisual": {
++      "liveNetwork": "Reseau en direct",
++      "route": "Yaounde - Douala",
++      "gpsLive": "GPS actif",
++      "routeAria": "Itineraire anime du colis",
++      "origin": "Depart",
++      "agency": "Agence A",
++      "courier": "Coursier",
++      "eta": "ETA 24 min",
++      "destination": "Destination",
++      "clientDoor": "Porte client",
++      "dynamicEta": "ETA dynamique",
++      "proofReady": "Preuve prete",
++      "delayAlerts": "Alertes retard"
++    },
+     "features": {
+       "title": "Nos services",
+       "tracking": {
+diff --git a/smartcampost-frontend/src/index.css b/smartcampost-frontend/src/index.css
+index 01ff8a9..15f36dd 100644
+--- a/smartcampost-frontend/src/index.css
++++ b/smartcampost-frontend/src/index.css
+@@ -126,6 +126,22 @@
+   }
+ }
+ 
++@keyframes sc-route-parcel {
++  0%,
++  100% {
++    left: 7%;
++    top: 68%;
++  }
++  38% {
++    left: 46%;
++    top: 29%;
++  }
++  72% {
++    left: 84%;
++    top: 8%;
++  }
++}
++
+ .sc-animate-fade-up {
+   animation: sc-fade-up 560ms ease both;
+ }
+@@ -134,6 +150,14 @@
+   animation: sc-float 4s ease-in-out infinite;
+ }
+ 
++.sc-route-line {
++  animation: sc-route-dash 1.1s linear infinite;
++}
++
++.sc-route-parcel {
++  animation: sc-route-parcel 7s ease-in-out infinite;
++}
++
+ .sc-delay-1 {
+   animation-delay: 100ms;
+ }
+@@ -185,6 +209,8 @@
+ @media (prefers-reduced-motion: reduce) {
+   .sc-animate-fade-up,
+   .sc-animate-float,
++  .sc-route-line,
++  .sc-route-parcel,
+   .sc-live-marker::before,
+   .sc-live-marker::after {
+     animation: none;
+diff --git a/smartcampost-frontend/src/layouts/RoleLayout.tsx b/smartcampost-frontend/src/layouts/RoleLayout.tsx
+index 4c9675d..7bae257 100644
+--- a/smartcampost-frontend/src/layouts/RoleLayout.tsx
++++ b/smartcampost-frontend/src/layouts/RoleLayout.tsx
+@@ -206,7 +206,6 @@ export function RoleLayout({ role }: { role: AppRole }) {
+             ))}
+           </div>
+         </div>
+-        <LanguageSwitcher variant="default" className="w-full justify-start" />
+         <Button variant="outline" className="w-full" onClick={() => logout()}>
+           {t("common.logout")}
+         </Button>
+diff --git a/smartcampost-frontend/src/pages/common/Landing.tsx b/smartcampost-frontend/src/pages/common/Landing.tsx
+index efc4ad5..4d6583a 100644
+--- a/smartcampost-frontend/src/pages/common/Landing.tsx
++++ b/smartcampost-frontend/src/pages/common/Landing.tsx
+@@ -9,6 +9,7 @@ import {
+   Package,
+   Search,
+   Sun,
++  CheckCircle2,
+   Truck,
+ } from "lucide-react";
+ 
+@@ -50,6 +51,99 @@ const themeOptions: Array<{ value: ThemeMode; icon: typeof Sun }> = [
+   { value: "system", icon: Monitor },
+ ];
+ 
++function HeroLogisticsVisual() {
++  const { t } = useTranslation();
++
++  return (
++    <div className="sc-animate-fade-up sc-delay-2 relative min-h-[26rem] overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm">
++      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,hsl(var(--primary)/0.16),transparent_32%),radial-gradient(circle_at_82%_26%,hsl(158_64%_42%/0.15),transparent_28%),linear-gradient(135deg,hsl(var(--muted)/0.65),transparent)]" />
++      <div className="relative flex h-full min-h-[23rem] flex-col justify-between">
++        <div className="flex items-center justify-between gap-4">
++          <div>
++            <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">
++              {t("landing.heroVisual.liveNetwork")}
++            </p>
++            <p className="text-2xl font-bold text-foreground">
++              {t("landing.heroVisual.route")}
++            </p>
++          </div>
++          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
++            <span className="sc-live-marker h-2 w-2 rounded-full bg-emerald-500 text-emerald-500" />
++            {t("landing.heroVisual.gpsLive")}
++          </span>
++        </div>
++
++        <div className="relative mx-auto h-56 w-full max-w-xl">
++          <svg
++            viewBox="0 0 520 220"
++            className="absolute inset-0 h-full w-full"
++            role="img"
++            aria-label={t("landing.heroVisual.routeAria")}
++          >
++            <path
++              d="M38 172 C118 72 192 124 254 82 C334 28 382 78 482 42"
++              fill="none"
++              stroke="hsl(var(--border))"
++              strokeLinecap="round"
++              strokeWidth="18"
++            />
++            <path
++              className="sc-route-line"
++              d="M38 172 C118 72 192 124 254 82 C334 28 382 78 482 42"
++              fill="none"
++              stroke="hsl(var(--primary))"
++              strokeDasharray="10 14"
++              strokeLinecap="round"
++              strokeWidth="5"
++            />
++          </svg>
++
++          <div className="absolute left-[5%] top-[66%] rounded-md border border-border bg-background px-3 py-2 shadow-sm">
++            <p className="text-xs text-muted-foreground">
++              {t("landing.heroVisual.origin")}
++            </p>
++            <p className="text-sm font-semibold">
++              {t("landing.heroVisual.agency")}
++            </p>
++          </div>
++          <div className="absolute left-[43%] top-[26%] rounded-md border border-border bg-background px-3 py-2 shadow-sm">
++            <p className="text-xs text-muted-foreground">
++              {t("landing.heroVisual.courier")}
++            </p>
++            <p className="text-sm font-semibold">
++              {t("landing.heroVisual.eta")}
++            </p>
++          </div>
++          <div className="absolute right-[4%] top-[4%] rounded-md border border-border bg-background px-3 py-2 shadow-sm">
++            <p className="text-xs text-muted-foreground">
++              {t("landing.heroVisual.destination")}
++            </p>
++            <p className="text-sm font-semibold">
++              {t("landing.heroVisual.clientDoor")}
++            </p>
++          </div>
++
++          <div className="sc-route-parcel absolute left-[7%] top-[68%] flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
++            <Package className="h-5 w-5" />
++          </div>
++        </div>
++
++        <div className="grid gap-3 sm:grid-cols-3">
++          {(["dynamicEta", "proofReady", "delayAlerts"] as const).map((key) => (
++            <div
++              key={key}
++              className="flex items-center gap-2 rounded-md border border-border bg-background/80 px-3 py-2 text-sm font-medium"
++            >
++              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
++              {t(`landing.heroVisual.${key}`)}
++            </div>
++          ))}
++        </div>
++      </div>
++    </div>
++  );
++}
++
+ export function Landing() {
+   const navigate = useNavigate();
+   const { t } = useTranslation();
+@@ -158,29 +252,7 @@ export function Landing() {
+               </div>
+             </div>
+ 
+-            <div className="grid content-center gap-4 sm:grid-cols-2">
+-              {features.map(({ key, icon: Icon, tone }) => (
+-                <div
+-                  key={key}
+-                  className="sc-animate-fade-up sc-interactive rounded-lg border border-border bg-card p-5 shadow-sm"
+-                >
+-                  <div
+-                    className={cn(
+-                      "mb-4 flex h-12 w-12 items-center justify-center rounded-md",
+-                      tone,
+-                    )}
+-                  >
+-                    <Icon className="h-6 w-6" />
+-                  </div>
+-                  <h3 className="font-semibold text-card-foreground">
+-                    {t(`landing.features.${key}.title`)}
+-                  </h3>
+-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+-                    {t(`landing.features.${key}.description`)}
+-                  </p>
+-                </div>
+-              ))}
+-            </div>
++            <HeroLogisticsVisual />
+           </div>
+         </section>
+ 
+diff --git a/smartcampost_mobile/lib/main.dart b/smartcampost_mobile/lib/main.dart
+index aa6b6ce..959ec51 100644
+--- a/smartcampost_mobile/lib/main.dart
++++ b/smartcampost_mobile/lib/main.dart
+@@ -61,6 +61,8 @@ import 'package:smartcampost_mobile/widgets/common_widgets.dart';
+ String _tr(BuildContext context, String key) =>
+     context.watch<LocaleProvider>().tr(key);
+ 
++final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
++
+ void main() async {
+   WidgetsFlutterBinding.ensureInitialized();
+ 
+@@ -94,6 +96,7 @@ class SmartCampostApp extends StatelessWidget {
+     final localeProvider = context.watch<LocaleProvider>();
+ 
+     final router = GoRouter(
++      navigatorKey: _rootNavigatorKey,
+       initialLocation: '/login',
+       refreshListenable: authProvider,
+       redirect: (context, state) {
+@@ -868,6 +871,7 @@ class SmartCampostApp extends StatelessWidget {
+       themeMode: ThemeMode.light,
+       routerConfig: router,
+       builder: (context, child) => GlobalBackTrailOverlay(
++        navigatorKey: _rootNavigatorKey,
+         child: child ?? const SizedBox.shrink(),
+       ),
+       locale: localeProvider.locale,
+diff --git a/smartcampost_mobile/lib/widgets/common_widgets.dart b/smartcampost_mobile/lib/widgets/common_widgets.dart
+index d4375af..8262338 100644
+--- a/smartcampost_mobile/lib/widgets/common_widgets.dart
++++ b/smartcampost_mobile/lib/widgets/common_widgets.dart
+@@ -78,11 +78,19 @@ class LoadingIndicator extends StatelessWidget {
+ 
+ class GlobalBackTrailOverlay extends StatelessWidget {
+   final Widget child;
++  final GlobalKey<NavigatorState> navigatorKey;
+ 
+-  const GlobalBackTrailOverlay({super.key, required this.child});
++  const GlobalBackTrailOverlay({
++    super.key,
++    required this.child,
++    required this.navigatorKey,
++  });
+ 
+   @override
+   Widget build(BuildContext context) {
++    final navigator = navigatorKey.currentState;
++    final canPop = navigator?.canPop() ?? false;
++
+     return Stack(
+       children: [
+         child,
+@@ -91,10 +99,10 @@ class GlobalBackTrailOverlay extends StatelessWidget {
+           top: MediaQuery.of(context).padding.top + 12,
+           child: SafeArea(
+             child: AnimatedOpacity(
+-              opacity: Navigator.of(context).canPop() ? 1 : 0,
++              opacity: canPop ? 1 : 0,
+               duration: const Duration(milliseconds: 180),
+               child: IgnorePointer(
+-                ignoring: !Navigator.of(context).canPop(),
++                ignoring: !canPop,
+                 child: Material(
+                   color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+                   elevation: 6,
+@@ -103,9 +111,8 @@ class GlobalBackTrailOverlay extends StatelessWidget {
+                     tooltip: context.read<LocaleProvider>().tr('back'),
+                     icon: const Icon(Icons.arrow_upward_rounded),
+                     onPressed: () {
+-                      if (Navigator.of(context).canPop()) {
+-                        Navigator.of(context).pop();
+-                      }
++                      final nav = navigatorKey.currentState;
++                      if (nav?.canPop() ?? false) nav!.pop();
+                     },
+                   ),
+                 ),
+-- 
+2.52.0.windows.1
+

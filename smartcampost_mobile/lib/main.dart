@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -66,14 +69,10 @@ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔥 Initialize Firebase (push notifications, crashlytics)
-  await PushNotificationService.initialize();
-
   final localeProvider = LocaleProvider();
   await localeProvider.init();
 
   final authProvider = AuthProvider();
-  await authProvider.checkAuth();
 
   runApp(
     MultiProvider(
@@ -85,6 +84,11 @@ void main() async {
       child: const SmartCampostApp(),
     ),
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(PushNotificationService.initialize());
+    unawaited(authProvider.checkAuth());
+  });
 }
 
 class SmartCampostApp extends StatelessWidget {
@@ -874,6 +878,11 @@ class SmartCampostApp extends StatelessWidget {
         navigatorKey: _rootNavigatorKey,
         child: child ?? const SizedBox.shrink(),
       ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       locale: localeProvider.locale,
       supportedLocales: const [Locale('en'), Locale('fr')],
     );

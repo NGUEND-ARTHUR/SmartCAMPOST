@@ -216,23 +216,23 @@ class UserManagementService {
   final ApiClient _api = ApiClient();
 
   Future<List<dynamic>> getAgents() async {
-    return _api.get<List<dynamic>>('/agents');
+    return _extractItems(await _api.get<dynamic>('/agents'));
   }
 
   Future<List<dynamic>> getCouriers() async {
-    return _api.get<List<dynamic>>('/couriers');
+    return _extractItems(await _api.get<dynamic>('/couriers'));
   }
 
   Future<List<dynamic>> getClients() async {
-    return _api.get<List<dynamic>>('/clients');
+    return _extractItems(await _api.get<dynamic>('/clients'));
   }
 
   Future<List<dynamic>> getStaff() async {
-    return _api.get<List<dynamic>>('/staff');
+    return _extractItems(await _api.get<dynamic>('/staff'));
   }
 
   Future<List<dynamic>> getAgencies() async {
-    return _api.get<List<dynamic>>('/agencies');
+    return _extractItems(await _api.get<dynamic>('/agencies'));
   }
 
   Future<List<dynamic>> getIntegrations() async {
