@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 
@@ -56,7 +57,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 32),
-              Icon(Icons.phone_android, size: 64, color: Colors.grey[400]),
+              const Icon(Icons.phone_android, size: 64, color: AppTheme.textTertiary),
               const SizedBox(height: 16),
               Text(
                 _otpSent ? tr('enter_otp') : tr('enter_phone_for_otp'),
@@ -129,12 +130,12 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: AppTheme.errorColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     auth.error!,
-                    style: TextStyle(color: Colors.red[700]),
+                    style: const TextStyle(color: AppTheme.errorColor),
                   ),
                 ),
               ],

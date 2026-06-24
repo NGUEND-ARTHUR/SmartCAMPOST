@@ -79,7 +79,7 @@ export default function AgentManagement() {
     isLoading: searchableAgentsLoading,
     error: searchableAgentsError,
   } = useAgents(0, 200);
-  const { data: agenciesData } = useAgencies(0, 100);
+  const { data: agenciesData } = useAgencies();
   const createAgent = useCreateAgent();
   const updateStatus = useUpdateAgentStatus();
   const assignAgency = useAssignAgentAgency();
@@ -92,7 +92,7 @@ export default function AgentManagement() {
     ? (searchableAgentsData?.content ?? [])
     : (data?.content ?? []);
   const totalPages = hasActiveFilters ? 1 : (data?.totalPages ?? 0);
-  const agencies = agenciesData?.content ?? [];
+  const agencies = agenciesData ?? [];
 
   const filteredAgents = agents.filter((a) => {
     const matchesSearch =
@@ -274,7 +274,7 @@ export default function AgentManagement() {
                   <SelectContent>
                     {agencies.map((agency) => (
                       <SelectItem key={agency.id} value={agency.id}>
-                        {agency.name}
+                        {agency.agencyName}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -501,7 +501,7 @@ export default function AgentManagement() {
               <SelectContent>
                 {agencies.map((agency) => (
                   <SelectItem key={agency.id} value={agency.id}>
-                    {agency.name}
+                    {agency.agencyName}
                   </SelectItem>
                 ))}
               </SelectContent>

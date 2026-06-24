@@ -258,63 +258,103 @@ class ParcelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      trackingRef,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+    final statusColor = AppTheme.getStatusColor(status);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                trackingRef,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            if (status != null) StatusBadge(status: status!),
+                          ],
+                        ),
+                        if (senderCity != null || recipientCity != null) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const Icon(Icons.circle, size: 6, color: AppTheme.primaryColor),
+                              const SizedBox(width: 6),
+                              Text(
+                                senderCity ?? '?',
+                                style: AppTheme.caption.copyWith(fontWeight: FontWeight.w500),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: Icon(Icons.arrow_forward, size: 14, color: AppTheme.textTertiary),
+                              ),
+                              Icon(Icons.circle, size: 6, color: statusColor),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  recipientCity ?? '?',
+                                  style: AppTheme.caption.copyWith(fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (createdAt != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            createdAt!,
+                            style: AppTheme.caption.copyWith(
+                              fontSize: 11,
+                              color: AppTheme.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (status != null) StatusBadge(status: status!),
-                ],
-              ),
-              if (senderCity != null || recipientCity != null) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${senderCity ?? '?'} → ${recipientCity ?? '?'}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
                 ),
               ],
-              if (createdAt != null) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.access_time, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      createdAt!,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),

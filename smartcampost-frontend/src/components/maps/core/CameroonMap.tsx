@@ -240,6 +240,8 @@ export function CameroonMap({
         attributionControl={true}
         touchZoomRotate
         dragRotate
+        dragPan={true}
+        cursor={cursor}
       >
         {/* Cameroon mask — dim outside area */}
         <Source id="cameroon-mask" type="geojson" data={CAMEROON_MASK_GEOJSON}>

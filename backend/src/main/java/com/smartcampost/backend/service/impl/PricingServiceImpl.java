@@ -10,6 +10,7 @@ import com.smartcampost.backend.repository.PricingDetailRepository;
 import com.smartcampost.backend.repository.TariffRepository;
 import com.smartcampost.backend.service.GeolocationService;
 import com.smartcampost.backend.service.PricingService;
+import com.smartcampost.backend.util.WeightBracketResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -135,7 +136,10 @@ public class PricingServiceImpl implements PricingService {
                 destZone,
                 weightBracket
         ).map(t -> t.getPrice().doubleValue())
-         .orElseGet(() -> calculateDefaultPrice(weight, parcel.getServiceType().name()));
+         .orElseThrow(() -> new ResourceNotFoundException(
+                "No tariff configured for " + parcel.getServiceType() + " " + originZone + " -> " + destZone + " (" + weightBracket + ")",
+                ErrorCode.PRICING_TARIFF_NOT_FOUND
+        ));
 
                 double surcharge = calculateHomeDeliverySurcharge(parcel);
                 return basePrice + surcharge;
@@ -256,22 +260,6 @@ public class PricingServiceImpl implements PricingService {
     }
 
     private String getWeightBracket(Double weight) {
-        if (weight == null || weight <= 0.5) return "0-0.5";
-        if (weight <= 1.0) return "0.5-1";
-        if (weight <= 2.0) return "1-2";
-        if (weight <= 5.0) return "2-5";
-        if (weight <= 10.0) return "5-10";
-        if (weight <= 20.0) return "10-20";
-        return "20+";
-    }
-
-    private Double calculateDefaultPrice(Double weight, String serviceType) {
-        // Default pricing when no tariff is found
-        // Base price + per kg rate
-        double basePrice = "EXPRESS".equals(serviceType) ? 2000.0 : 1000.0;
-        double perKgRate = "EXPRESS".equals(serviceType) ? 500.0 : 300.0;
-        
-        double totalPrice = basePrice + (weight * perKgRate);
-        return totalPrice;
+        return WeightBracketResolver.resolve(weight == null ? 0.0 : weight);
     }
 }

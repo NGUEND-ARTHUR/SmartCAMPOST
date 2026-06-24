@@ -7,7 +7,6 @@ export { default as UserAccountManagement } from "./UserAccountManagement";
 
 export { default as FinanceDashboard } from "./FinanceDashboard";
 export { default as CreateFinancePage } from "./CreateFinancePage";
-export { default as RiskDashboard } from "./RiskDashboard";
 export { default as CreateRiskPage } from "./CreateRiskPage";
 export { default as CreateRiskUserPage } from "./CreateRiskUserPage";
 export { default as SelfHealingDashboard } from "./SelfHealingDashboard";

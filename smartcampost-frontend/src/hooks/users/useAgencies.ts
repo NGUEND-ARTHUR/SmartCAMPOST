@@ -11,16 +11,14 @@ import {
 export const agencyKeys = {
   all: ["agencies"] as const,
   lists: () => [...agencyKeys.all, "list"] as const,
-  list: (page: number, size: number) =>
-    [...agencyKeys.lists(), { page, size }] as const,
   details: () => [...agencyKeys.all, "detail"] as const,
   detail: (id: string) => [...agencyKeys.details(), id] as const,
 };
 
-export function useAgencies(page = 0, size = 20) {
+export function useAgencies() {
   return useQuery({
-    queryKey: agencyKeys.list(page, size),
-    queryFn: () => agencyService.listAll(page, size),
+    queryKey: agencyKeys.lists(),
+    queryFn: () => agencyService.listAll(),
   });
 }
 
@@ -50,6 +48,16 @@ export function useUpdateAgency() {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: agencyKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: agencyKeys.lists() });
+    },
+  });
+}
+
+export function useDeleteAgency() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => agencyService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agencyKeys.all });
     },
   });
 }

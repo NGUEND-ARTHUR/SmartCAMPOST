@@ -19,7 +19,7 @@ import java.net.http.HttpResponse;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "payment.gateway", havingValue = "mtn", matchIfMissing = true)
+@ConditionalOnProperty(name = "payment.gateway", havingValue = "mtn")
 public class MtnPaymentGatewayServiceImpl implements PaymentGatewayService {
 
     private final MtnService mtnService;

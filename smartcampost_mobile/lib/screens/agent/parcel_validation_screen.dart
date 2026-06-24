@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/parcel.dart';
@@ -42,9 +43,37 @@ class _ParcelValidationScreenState extends State<ParcelValidationScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  Future<Position> _getCurrentPositionOrThrow() async {
+    bool enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      throw Exception('Location services are disabled. Please enable GPS.');
+    }
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied) {
+      throw Exception('Location permission denied.');
+    }
+    if (perm == LocationPermission.deniedForever) {
+      throw Exception('Location permission permanently denied. Enable it in settings.');
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
+  }
+
   Future<void> _validateParcel(Parcel parcel) async {
     try {
-      await ParcelService().validateAndLock(parcel.id);
+      final pos = await _getCurrentPositionOrThrow();
+      await ParcelService().validateAndLock(
+        parcel.id,
+        latitude: pos.latitude,
+        longitude: pos.longitude,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -65,7 +94,13 @@ class _ParcelValidationScreenState extends State<ParcelValidationScreen> {
 
   Future<void> _acceptParcel(Parcel parcel) async {
     try {
-      await ParcelService().updateParcelStatus(parcel.id, status: 'ACCEPTED');
+      final pos = await _getCurrentPositionOrThrow();
+      await ParcelService().updateParcelStatus(
+        parcel.id,
+        status: 'ACCEPTED',
+        latitude: pos.latitude,
+        longitude: pos.longitude,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

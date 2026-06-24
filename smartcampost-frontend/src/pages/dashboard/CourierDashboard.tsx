@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useCourierPickups, useMyParcels } from "@/hooks";
+import { StatsCard } from "@/components/StatsCard";
 
 export default function CourierDashboard() {
   const { t } = useTranslation();
@@ -130,24 +131,11 @@ export default function CourierDashboard() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {cards.map((card, i) => (
-                <div key={i} className="bg-card rounded-lg shadow p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm mb-1">
-                        {card.title}
-                      </p>
-                      <p className="text-3xl font-semibold text-foreground">
-                        {card.value}
-                      </p>
-                    </div>
-                    <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
-                      <card.icon className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+              <StatsCard icon={Package} label={cards[0].title} value={cards[0].value} accentColor="bg-amber-500" />
+              <StatsCard icon={Truck} label={cards[1].title} value={cards[1].value} accentColor="bg-blue-500" />
+              <StatsCard icon={CheckCircle2} label={cards[2].title} value={cards[2].value} accentColor="bg-emerald-500" />
+              <StatsCard icon={MapPin} label={cards[3].title} value={cards[3].value} accentColor="bg-violet-500" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

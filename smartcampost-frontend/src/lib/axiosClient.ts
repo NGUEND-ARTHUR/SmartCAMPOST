@@ -39,6 +39,24 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (res) => res,
   (error) => {
+    // A 401 while we believe we're authenticated means the token was revoked or expired
+    // server-side (e.g. logout elsewhere, frozen account). Clear the stale session so the
+    // UI doesn't keep acting as if the user is still logged in.
+    if (error?.response?.status === 401) {
+      try {
+        const stored = localStorage.getItem("auth-storage");
+        const hadToken = stored && JSON.parse(stored)?.state?.token;
+        if (hadToken) {
+          localStorage.removeItem("auth-storage");
+          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+            window.location.href = "/login";
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const serverMessage = error?.response?.data?.message;
     if (serverMessage && typeof serverMessage === "string") {
       return Promise.reject(new Error(serverMessage));

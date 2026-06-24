@@ -39,11 +39,15 @@ import {
   useParcel,
   useScanEventsForParcel,
   usePricingQuote,
+  usePricingHistoryForParcel,
   usePaymentsForParcel,
   useMarkCodAsPaid,
+  useConfirmCashPayment,
   useUpdateParcelStatus,
   useValidateAndAccept,
   useValidateAndLockParcel,
+  useCanCorrectParcel,
+  useCorrectParcel,
 } from "@/hooks";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
@@ -113,8 +117,12 @@ export default function ParcelDetail() {
   const { data: scanEvents = [], isLoading: eventsLoading } =
     useScanEventsForParcel(id || "");
   const quote = usePricingQuote(id || "");
+  const pricingHistory = usePricingHistoryForParcel(id || "");
   const paymentsForParcel = usePaymentsForParcel(id || "");
   const markCodPaid = useMarkCodAsPaid();
+  const confirmCash = useConfirmCashPayment();
+  const correctParcel = useCorrectParcel();
+  const canCorrectQuery = useCanCorrectParcel(id || "");
   // mutation hooks must be called unconditionally
 
   const isLoading = parcelLoading || eventsLoading;
@@ -464,7 +472,8 @@ export default function ParcelDetail() {
                               <span>{event.locationNote}</span>
                             )}
                             {event.latitude != null &&
-                              event.longitude != null && (
+                              event.longitude != null &&
+                              canValidate && (
                                 <p className="text-xs text-muted-foreground/70">
                                   GPS: {event.latitude.toFixed(5)},{" "}
                                   {event.longitude.toFixed(5)}
@@ -610,6 +619,52 @@ export default function ParcelDetail() {
                 >
                   {t("parcels.detail.actions.validateAccept")}
                 </Button>
+                {canCorrectQuery.data?.canCorrect && (
+                  <Button
+                    variant="outline"
+                    disabled={correctParcel.isPending}
+                    onClick={async () => {
+                      const weightInput = window.prompt(
+                        t("parcels.prompts.correctWeight"),
+                        String(parcel.weight ?? ""),
+                      );
+                      if (weightInput === null) return;
+                      const declaredValueInput = window.prompt(
+                        t("parcels.prompts.correctDeclaredValue"),
+                        String(parcel.declaredValue ?? ""),
+                      );
+                      if (declaredValueInput === null) return;
+                      const reason = window.prompt(
+                        t("parcels.prompts.correctionReason"),
+                      );
+                      const weight = weightInput.trim()
+                        ? Number(weightInput)
+                        : undefined;
+                      const declaredValue = declaredValueInput.trim()
+                        ? Number(declaredValueInput)
+                        : undefined;
+                      try {
+                        await correctParcel.mutateAsync({
+                          id: parcel.id,
+                          data: {
+                            weight,
+                            declaredValue,
+                            correctionReason: reason || undefined,
+                          },
+                        });
+                        toast.success(t("parcels.toasts.corrected"));
+                      } catch (e) {
+                        toast.error(
+                          e instanceof Error
+                            ? e.message
+                            : t("parcels.toasts.correctionFailed"),
+                        );
+                      }
+                    }}
+                  >
+                    {t("parcels.detail.actions.correct")}
+                  </Button>
+                )}
                 <Button
                   variant="default"
                   disabled={
@@ -674,6 +729,63 @@ export default function ParcelDetail() {
         </CardContent>
       </Card>
 
+      {normalizedRole === "CLIENT" && !isCod && !hasSuccessfulPayment && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("parcels.detail.mobileMoneyPayment")}</CardTitle>
+            <CardDescription>
+              {t("parcels.detail.mobileMoneyPaymentDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              className="w-full"
+              onClick={() => navigate(`/client/parcels/${parcel.id}/pay-momo`)}
+            >
+              {t("parcels.detail.actions.payWithMomo")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {canValidate && !isCod && !hasSuccessfulPayment && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("parcels.detail.cashPayment", "Cash Payment")}</CardTitle>
+            <CardDescription>
+              {t("parcels.detail.cashPaymentDescription", "Confirm that the client has paid cash at the agency")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{t("parcels.detail.amountDue")}</span>
+              <span className="font-medium">
+                {quote.isLoading ? "—" : quote.data ? `${quote.data.amount.toLocaleString()} ${quote.data.currency || "XAF"}` : "—"}
+              </span>
+            </div>
+            <Button
+              className="w-full"
+              disabled={confirmCash.isPending || hasSuccessfulPayment}
+              onClick={async () => {
+                if (!parcel.id) return;
+                try {
+                  await confirmCash.mutateAsync(parcel.id);
+                  toast.success(t("parcels.toasts.cashConfirmed", "Cash payment confirmed — receipt generated"));
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : t("parcels.toasts.cashConfirmFailed", "Cash confirmation failed"));
+                }
+              }}
+            >
+              {hasSuccessfulPayment
+                ? t("parcels.detail.alreadyPaid")
+                : confirmCash.isPending
+                  ? t("common.processing")
+                  : t("parcels.detail.confirmCashReceived", "Confirm Cash Received")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {canValidate && isCod && (
         <Card>
           <CardHeader>
@@ -728,6 +840,38 @@ export default function ParcelDetail() {
                   ? t("common.processing")
                   : t("parcels.detail.markCodAsPaid")}
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!!pricingHistory.data?.length && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("parcels.detail.pricingHistory")}</CardTitle>
+            <CardDescription>
+              {t("parcels.detail.pricingHistoryDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pricingHistory.data.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center justify-between border-b pb-2 text-sm last:border-0 last:pb-0"
+              >
+                <div className="space-y-0.5">
+                  <p className="font-medium">
+                    {entry.serviceType} · {entry.originZone} →{" "}
+                    {entry.destinationZone} ({entry.weightBracket})
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(entry.appliedAt).toLocaleString()}
+                  </p>
+                </div>
+                <span className="font-medium">
+                  {entry.appliedPrice.toLocaleString()} XAF
+                </span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}

@@ -27,11 +27,17 @@ export function usePayments(page = 0, size = 20) {
   });
 }
 
-export function usePayment(id: string) {
+export function usePayment(
+  id: string,
+  options?: { pollWhilePending?: boolean },
+) {
   return useQuery({
     queryKey: paymentKeys.detail(id),
     queryFn: () => paymentService.getById(id),
     enabled: !!id,
+    refetchInterval: options?.pollWhilePending
+      ? (query) => (query.state.data?.status === "PENDING" ? 3000 : false)
+      : undefined,
   });
 }
 
@@ -79,6 +85,21 @@ export function useMarkCodAsPaid() {
         queryClient.invalidateQueries({
           queryKey: parcelKeys.detail(parcelId),
         });
+      }
+      queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
+    },
+  });
+}
+
+export function useConfirmCashPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (parcelId: string) => paymentService.confirmCashPayment(parcelId),
+    onSuccess: (resp) => {
+      const parcelId = resp.parcelId;
+      if (parcelId) {
+        queryClient.invalidateQueries({ queryKey: paymentKeys.forParcel(parcelId) });
+        queryClient.invalidateQueries({ queryKey: parcelKeys.detail(parcelId) });
       }
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
     },

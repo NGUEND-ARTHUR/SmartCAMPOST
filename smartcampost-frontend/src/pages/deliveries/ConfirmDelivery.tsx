@@ -83,9 +83,13 @@ export default function ConfirmDelivery() {
         otpCode: data.otpCode,
         receiverName:
           data.proof.receiverName || data.proof.signature || undefined,
-        photoUrl: undefined,
+        photoUrl: data.proof.photo || undefined,
         notes: data.proof.notes,
-        proofType: data.proof.signature ? "SIGNATURE" : "OTP",
+        proofType: data.proof.photo
+          ? "PHOTO"
+          : data.proof.signature
+            ? "SIGNATURE"
+            : "OTP",
         latitude: loc.latitude,
         longitude: loc.longitude,
       });

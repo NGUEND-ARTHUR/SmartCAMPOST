@@ -4,11 +4,13 @@ import com.smartcampost.backend.dto.admin.UserAccountResponse;
 import com.smartcampost.backend.dto.compliance.RiskAlertResponse;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.RiskAlert;
 import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.RiskAlertStatus;
 import com.smartcampost.backend.model.enums.RiskAlertType;
 import com.smartcampost.backend.model.enums.RiskSeverity;
+import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.RiskAlertRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
@@ -30,6 +32,7 @@ public class RiskServiceImpl implements RiskService {
 
     private final RiskAlertRepository riskAlertRepository;
     private final UserAccountRepository userAccountRepository;
+    private final ParcelRepository parcelRepository;
     private final NotificationService notificationService;
 
     @Override
@@ -87,7 +90,19 @@ public class RiskServiceImpl implements RiskService {
     @Override
     @Transactional
     public Object createRiskAlert(RiskAlertType type, RiskSeverity severity, String description) {
+        return createRiskAlert(type, severity, description, null);
+    }
+
+    @Override
+    @Transactional
+    public Object createRiskAlert(RiskAlertType type, RiskSeverity severity, String description, UUID parcelId) {
+        Parcel parcel = null;
+        if (parcelId != null) {
+            parcel = parcelRepository.findById(parcelId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        }
         RiskAlert alert = RiskAlert.builder()
+                .parcel(parcel)
                 .alertType(type)
                 .severity(severity)
                 .status(RiskAlertStatus.OPEN)

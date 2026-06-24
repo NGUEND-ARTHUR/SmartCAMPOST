@@ -43,6 +43,7 @@ public class ParcelController {
 
     // Parcel detail by ID
     @GetMapping("/{parcelId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ParcelDetailResponse> getParcelById(
             @PathVariable UUID parcelId,
             Authentication authentication
@@ -51,8 +52,9 @@ public class ParcelController {
         return ResponseEntity.ok(parcelService.getParcelById(parcelId));
     }
 
-    // Search by trackingRef
+    // Search by trackingRef (authenticated; for the public lookup see /api/track/parcel/{trackingNumber})
     @GetMapping("/tracking/{trackingRef}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ParcelDetailResponse> getParcelByTracking(
             @PathVariable String trackingRef
     ) {
@@ -115,7 +117,7 @@ public class ParcelController {
     @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<ParcelResponse> updateParcelMetadata(
             @PathVariable UUID parcelId,
-            @RequestBody UpdateParcelMetadataRequest request
+            @Valid @RequestBody UpdateParcelMetadataRequest request
     ) {
         return ResponseEntity.ok(parcelService.updateParcelMetadata(parcelId, request));
     }

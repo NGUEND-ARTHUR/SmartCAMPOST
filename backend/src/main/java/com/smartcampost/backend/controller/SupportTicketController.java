@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -12,11 +13,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/support/tickets")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class SupportTicketController {
 
     private final SupportTicketService supportTicketService;
 
     @PostMapping
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<TicketResponse> createTicket(
             @Valid @RequestBody CreateTicketRequest request
     ) {
@@ -29,6 +32,7 @@ public class SupportTicketController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<Page<TicketResponse>> listMyTickets(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
@@ -37,6 +41,7 @@ public class SupportTicketController {
     }
 
     @GetMapping
+    @PreAuthorize("!hasAnyRole('CLIENT','COURIER')")
     public ResponseEntity<Page<TicketResponse>> listAllTickets(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
@@ -45,6 +50,7 @@ public class SupportTicketController {
     }
 
     @PostMapping("/{ticketId}/reply")
+    @PreAuthorize("!hasAnyRole('CLIENT','COURIER')")
     public ResponseEntity<TicketResponse> replyToTicket(
             @PathVariable UUID ticketId,
             @Valid @RequestBody TicketReplyRequest request
@@ -53,6 +59,7 @@ public class SupportTicketController {
     }
 
     @PatchMapping("/{ticketId}/status")
+    @PreAuthorize("!hasAnyRole('CLIENT','COURIER')")
     public ResponseEntity<TicketResponse> updateStatus(
             @PathVariable UUID ticketId,
             @Valid @RequestBody UpdateTicketStatusRequest request

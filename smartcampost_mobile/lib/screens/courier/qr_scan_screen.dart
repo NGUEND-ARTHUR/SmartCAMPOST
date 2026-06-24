@@ -122,18 +122,10 @@ class _QrScanScreenState extends State<QrScanScreen> {
                         controller: _scannerController,
                         onDetect: _onDetect,
                       ),
-                      // Scan overlay
-                      Container(
-                        width: 250,
-                        height: 250,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppTheme.accentColor,
-                            width: 3,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
+                      // Dark mask with cutout
+                      const _ScanOverlayMask(size: 260),
+                      // Animated corner brackets
+                      const _AnimatedScanCorners(size: 260),
                       if (_isProcessing)
                         Container(
                           color: Colors.black54,
@@ -164,7 +156,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
                   Text(
                     tr('scan_qr_instruction'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: const TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
               ],
@@ -214,4 +206,150 @@ class _ResultView extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Dark mask with square cutout ───
+class _ScanOverlayMask extends StatelessWidget {
+  final double size;
+  const _ScanOverlayMask({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: CustomPaint(
+        size: MediaQuery.of(context).size,
+        painter: _MaskPainter(cutoutSize: size),
+      ),
+    );
+  }
+}
+
+class _MaskPainter extends CustomPainter {
+  final double cutoutSize;
+  _MaskPainter({required this.cutoutSize});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.black.withValues(alpha: 0.55);
+    final center = Offset(size.width / 2, size.height / 2);
+    final cutout = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: center, width: cutoutSize, height: cutoutSize),
+      const Radius.circular(16),
+    );
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(cutout)
+      ..fillType = PathFillType.evenOdd;
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ─── Animated corner brackets ───
+class _AnimatedScanCorners extends StatefulWidget {
+  final double size;
+  const _AnimatedScanCorners({required this.size});
+
+  @override
+  State<_AnimatedScanCorners> createState() => _AnimatedScanCornersState();
+}
+
+class _AnimatedScanCornersState extends State<_AnimatedScanCorners>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final scale = 1.0 + _controller.value * 0.02;
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: CustomPaint(
+          painter: _CornerPainter(color: AppTheme.accentColor),
+        ),
+      ),
+    );
+  }
+}
+
+class _CornerPainter extends CustomPainter {
+  final Color color;
+  _CornerPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    const len = 32.0;
+    const r = 12.0;
+
+    // Top-left
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, len)
+        ..lineTo(0, r)
+        ..arcToPoint(const Offset(r, 0), radius: const Radius.circular(r))
+        ..lineTo(len, 0),
+      paint,
+    );
+    // Top-right
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width - len, 0)
+        ..lineTo(size.width - r, 0)
+        ..arcToPoint(Offset(size.width, r), radius: const Radius.circular(r))
+        ..lineTo(size.width, len),
+      paint,
+    );
+    // Bottom-left
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, size.height - len)
+        ..lineTo(0, size.height - r)
+        ..arcToPoint(Offset(r, size.height), radius: const Radius.circular(r))
+        ..lineTo(len, size.height),
+      paint,
+    );
+    // Bottom-right
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width - len, size.height)
+        ..lineTo(size.width - r, size.height)
+        ..arcToPoint(Offset(size.width, size.height - r), radius: const Radius.circular(r))
+        ..lineTo(size.width, size.height - len),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

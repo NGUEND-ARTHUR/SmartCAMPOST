@@ -6,7 +6,6 @@ import {
   tariffService,
   CreateTariffRequest,
   UpdateTariffRequest,
-  TariffQuoteRequest,
 } from "@/services";
 
 export const tariffKeys = {
@@ -16,8 +15,6 @@ export const tariffKeys = {
     [...tariffKeys.lists(), { page, size, serviceType }] as const,
   details: () => [...tariffKeys.all, "detail"] as const,
   detail: (id: string) => [...tariffKeys.details(), id] as const,
-  quote: (params: TariffQuoteRequest) =>
-    [...tariffKeys.all, "quote", params] as const,
 };
 
 export function useTariffs(page = 0, size = 20, serviceType?: string) {
@@ -64,11 +61,5 @@ export function useDeleteTariff() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tariffKeys.all });
     },
-  });
-}
-
-export function useTariffQuote() {
-  return useMutation({
-    mutationFn: (data: TariffQuoteRequest) => tariffService.quote(data),
   });
 }

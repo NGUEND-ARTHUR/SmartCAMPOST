@@ -127,19 +127,18 @@ export const useAuthStore = create<AuthStore>()(
         const token = get().token;
         const refreshTokenVal = get().refreshTokenValue;
 
-        // Notify backend to blacklist both tokens (fire-and-forget)
+        // Notify backend to blacklist both tokens (fire-and-forget but logged)
         if (token) {
           fetch(`${API_BASE}/api/auth/logout`, {
             method: "POST",
             headers: { Authorization: `Bearer ${token}` },
-          }).catch(() => {});
+          }).catch((err) => console.warn("[auth] logout token blacklist failed:", err));
         }
-        // Also blacklist refresh token if held
         if (refreshTokenVal) {
           fetch(`${API_BASE}/api/auth/logout`, {
             method: "POST",
             headers: { Authorization: `Bearer ${refreshTokenVal}` },
-          }).catch(() => {});
+          }).catch((err) => console.warn("[auth] logout refresh blacklist failed:", err));
         }
 
         set({

@@ -55,10 +55,17 @@ import 'package:smartcampost_mobile/screens/finance/finance_dashboard_screen.dar
 import 'package:smartcampost_mobile/screens/risk/risk_dashboard_screen.dart';
 import 'package:smartcampost_mobile/screens/risk/compliance_alerts_screen.dart';
 
+import 'package:smartcampost_mobile/screens/auth/onboarding_screen.dart';
+
 // Shared screens
 import 'package:smartcampost_mobile/screens/shared/notifications_screen.dart';
 import 'package:smartcampost_mobile/screens/shared/profile_screen.dart';
 import 'package:smartcampost_mobile/screens/shared/operational_screens.dart';
+import 'package:smartcampost_mobile/screens/shared/ai_chat_screen.dart';
+import 'package:smartcampost_mobile/screens/shared/gps_endpoint_list_screen.dart';
+import 'package:smartcampost_mobile/screens/shared/ticket_detail_screen.dart';
+import 'package:smartcampost_mobile/screens/client/parcel_tracking_map_screen.dart';
+import 'package:smartcampost_mobile/screens/client/momo_payment_screen.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 
 String _tr(BuildContext context, String key) =>
@@ -125,6 +132,10 @@ class SmartCampostApp extends StatelessWidget {
       routes: [
         // ─── Auth ───
         GoRoute(
+          path: '/onboarding',
+          builder: (context, state) => const OnboardingScreen(),
+        ),
+        GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),
         ),
@@ -178,8 +189,25 @@ class SmartCampostApp extends StatelessWidget {
               builder: (context, state) => const PaymentsListScreen(),
             ),
             GoRoute(
+              path: 'pay/:parcelId',
+              builder: (context, state) {
+                final parcelId = state.pathParameters['parcelId']!;
+                final amount = double.tryParse(state.uri.queryParameters['amount'] ?? '') ?? 0;
+                final ref = state.uri.queryParameters['ref'];
+                return MomoPaymentScreen(parcelId: parcelId, amount: amount, trackingRef: ref);
+              },
+            ),
+            GoRoute(
               path: 'invoices',
               builder: (context, state) => const InvoicesScreen(),
+            ),
+            GoRoute(
+              path: 'tracking-map/:parcelId',
+              builder: (context, state) {
+                final parcelId = state.pathParameters['parcelId']!;
+                final ref = state.uri.queryParameters['ref'];
+                return ParcelTrackingMapScreen(parcelId: parcelId, trackingRef: ref);
+              },
             ),
             GoRoute(
               path: 'addresses',
@@ -452,9 +480,9 @@ class SmartCampostApp extends StatelessWidget {
             ),
             GoRoute(
               path: 'pickup-recommendations',
-              builder: (context, state) => EndpointListScreen(
+              builder: (context, state) => GpsEndpointListScreen(
                 title: _tr(context, 'pickup_recommendations'),
-                endpoint: '/logistics/pickup-assignment/recommendations?latitude=3.848&longitude=11.502',
+                baseEndpoint: '/logistics/pickup-assignment/recommendations',
                 icon: Icons.assignment_ind,
                 emptyTitle: _tr(context, 'no_pickup_recommendations'),
               ),
@@ -670,9 +698,9 @@ class SmartCampostApp extends StatelessWidget {
             ),
             GoRoute(
               path: 'pickup-recommendations',
-              builder: (context, state) => EndpointListScreen(
+              builder: (context, state) => GpsEndpointListScreen(
                 title: _tr(context, 'pickup_recommendations'),
-                endpoint: '/logistics/pickup-assignment/recommendations?latitude=3.848&longitude=11.502',
+                baseEndpoint: '/logistics/pickup-assignment/recommendations',
                 icon: Icons.assignment_ind,
                 emptyTitle: _tr(context, 'no_pickup_recommendations'),
               ),
@@ -849,6 +877,18 @@ class SmartCampostApp extends StatelessWidget {
         GoRoute(
           path: '/support',
           builder: (context, state) => const SupportCenterScreen(),
+          routes: [
+            GoRoute(
+              path: ':ticketId',
+              builder: (context, state) => TicketDetailScreen(
+                ticketId: state.pathParameters['ticketId']!,
+              ),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/ai-chat',
+          builder: (context, state) => const AiChatScreen(),
         ),
         GoRoute(
           path: '/forgot-password',

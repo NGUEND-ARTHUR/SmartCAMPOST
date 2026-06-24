@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { useRiskAlerts } from "@/hooks";
+import { StatsCard } from "@/components/StatsCard";
 
 type Severity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 type AlertState = "OPEN" | "INVESTIGATING" | "RESOLVED";
@@ -47,7 +48,9 @@ export default function RiskDashboard() {
 
   const metrics = useMemo(() => {
     const open = alerts.filter((a) => !a.resolved).length;
-    const investigating = 0; // Backend doesn't have this status
+    const investigating = alerts.filter(
+      (a) => a.status === "UNDER_REVIEW",
+    ).length;
     const critical = alerts.filter((a) => a.severity === "CRITICAL").length;
     const resolved = alerts.filter((a) => a.resolved).length;
     return { open, investigating, critical, resolved };
@@ -60,63 +63,11 @@ export default function RiskDashboard() {
         <p className="text-muted-foreground">{t("riskDashboard.overview")}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("riskDashboard.activeAlerts")}
-            </CardTitle>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.open}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("riskDashboard.activeAlertsDesc")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("riskDashboard.suspiciousActivities")}
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.investigating}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("riskDashboard.suspiciousActivitiesDesc")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("riskDashboard.critical")}
-            </CardTitle>
-            <Siren className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.critical}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("riskDashboard.high")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("riskDashboard.noAlerts")}
-            </CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.resolved}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("riskDashboard.flaggedParcelsDesc")}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsCard icon={ShieldAlert} label={t("riskDashboard.activeAlerts")} value={metrics.open} subtitle={t("riskDashboard.activeAlertsDesc")} accentColor="bg-orange-500" />
+        <StatsCard icon={AlertTriangle} label={t("riskDashboard.suspiciousActivities")} value={metrics.investigating} subtitle={t("riskDashboard.suspiciousActivitiesDesc")} accentColor="bg-amber-500" />
+        <StatsCard icon={Siren} label={t("riskDashboard.critical")} value={metrics.critical} subtitle={t("riskDashboard.high")} accentColor="bg-red-500" />
+        <StatsCard icon={ShieldCheck} label={t("riskDashboard.noAlerts")} value={metrics.resolved} subtitle={t("riskDashboard.flaggedParcelsDesc")} accentColor="bg-emerald-500" />
       </div>
 
       <Card>

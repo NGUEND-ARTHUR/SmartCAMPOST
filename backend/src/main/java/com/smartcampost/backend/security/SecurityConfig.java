@@ -42,6 +42,7 @@ public class SecurityConfig {
                             "/api/payments/mtn/**",
                             "/api/payments/webhooks/camerpay",
                             "/api/track/**",
+                            "/api/stream/tracking/**",
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/logout",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,72 @@ export default function ParcelTrackingPage() {
       .finally(() => setLoading(false));
   };
 
+  // Listen for real-time tracking updates via public SSE stream
+  useEffect(() => {
+    if (!data) return;
+    const ref = data.trackingRef || data.trackingNumber;
+    if (!ref) return;
+
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+    const sseUrl = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+    
+    const es = new EventSource(sseUrl);
+    
+    const handleGpsUpdate = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data);
+        const parcels = payload.inheritedParcels || [];
+        const match = parcels.find(
+          (p: any) => p.trackingRef === ref || p.parcelId === data.parcelId
+        );
+        if (match && match.latitude && match.longitude) {
+          setData((prev) => {
+            if (!prev) return null;
+            if (
+              prev.currentLocation?.latitude === match.latitude &&
+              prev.currentLocation?.longitude === match.longitude
+            ) {
+              return prev;
+            }
+            return {
+              ...prev,
+              currentLocation: {
+                latitude: match.latitude,
+                longitude: match.longitude,
+                locationSource: match.source || "GPS",
+                eventType: "LIVE_UPDATE",
+                updatedAt: new Date().toISOString(),
+              },
+            };
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to parse realtime tracking event", err);
+      }
+    };
+
+    es.addEventListener("gps-update", handleGpsUpdate);
+
+    return () => {
+      es.close();
+    };
+  }, [data]);
+
+  const liveActorsForMap = useMemo(() => {
+    const actors = [];
+    if (data?.currentLocation?.latitude && data?.currentLocation?.longitude) {
+      actors.push({
+        id: "parcel-live",
+        type: "PARCEL" as const,
+        name: t("trackingMap.live.parcel", "Parcel live position"),
+        latitude: data.currentLocation.latitude,
+        longitude: data.currentLocation.longitude,
+        status: data.status || "IN_TRANSIT",
+      });
+    }
+    return actors;
+  }, [data, t]);
+
   return (
     <div className="max-w-xl mx-auto py-10">
       <Card>
@@ -108,7 +174,7 @@ export default function ParcelTrackingPage() {
                   <div className="font-semibold mb-2">
                     {t("tracking.mapTitle")}
                   </div>
-                  <TrackingMap
+                   <TrackingMap
                     trackingId={data.trackingRef}
                     currentStatus={data.status}
                     scanEvents={data.timeline.map((e) => ({
@@ -120,7 +186,8 @@ export default function ParcelTrackingPage() {
                       longitude: e.longitude,
                       location: e.locationNote,
                     }))}
-                    showAnimation={false}
+                    showAnimation={true}
+                    liveActors={liveActorsForMap}
                   />
                 </div>
               )}

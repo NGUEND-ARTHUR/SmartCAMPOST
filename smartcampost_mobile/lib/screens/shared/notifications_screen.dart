@@ -1,6 +1,9 @@
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/models/common.dart';
+import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
@@ -50,6 +53,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await NotificationService().markAsRead(id);
       _loadNotifications();
     } catch (_) {}
+  }
+
+  void _onTapNotification(AppNotification n) {
+    _markRead(n.id);
+    // Parcel detail is currently only a client-facing route; other roles manage
+    // parcels through their own delivery/pickup/validation screens.
+    final role = context.read<AuthProvider>().userRole.toUpperCase();
+    if (role == 'CLIENT' && n.parcelId != null) {
+      context.push('/client/parcels/${n.parcelId}');
+    }
   }
 
   @override
@@ -124,9 +137,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             if (n.createdAt != null)
                               Text(
                                 n.createdAt!.toString().split('.').first,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey[500],
+                                  color: AppTheme.textTertiary,
                                 ),
                               ),
                           ],
@@ -138,7 +151,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 backgroundColor: Colors.blue,
                               )
                             : null,
-                        onTap: () => _markRead(n.id),
+                        onTap: () => _onTapNotification(n),
                       ),
                     ),
                   );

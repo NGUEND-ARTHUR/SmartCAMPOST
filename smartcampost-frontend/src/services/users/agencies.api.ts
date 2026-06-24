@@ -1,22 +1,16 @@
 /**
  * Agency API Service
  */
-import { httpClient, PaginatedResponse } from "../apiClient";
+import { httpClient } from "../apiClient";
 
 // ---- Types ----
 export interface AgencyResponse {
   id: string;
-  name: string;
-  code?: string;
-  address?: string;
+  agencyName: string;
+  agencyCode: string;
   city?: string;
   region?: string;
   country?: string;
-  phone?: string;
-  email?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 export interface CreateAgencyRequest {
@@ -24,13 +18,15 @@ export interface CreateAgencyRequest {
   agencyCode?: string;
   city?: string;
   region?: string;
+  country?: string;
 }
 
 export interface UpdateAgencyRequest {
-  agencyName?: string;
+  agencyName: string;
   agencyCode?: string;
   city?: string;
   region?: string;
+  country?: string;
 }
 
 // ---- Service ----
@@ -43,11 +39,15 @@ export const agencyService = {
     return httpClient.get(`/agencies/${id}`);
   },
 
-  listAll(page = 0, size = 20): Promise<PaginatedResponse<AgencyResponse>> {
-    return httpClient.get(`/agencies?page=${page}&size=${size}`);
+  listAll(): Promise<AgencyResponse[]> {
+    return httpClient.get("/agencies");
   },
 
   update(id: string, data: UpdateAgencyRequest): Promise<AgencyResponse> {
     return httpClient.put(`/agencies/${id}`, data);
+  },
+
+  delete(id: string): Promise<void> {
+    return httpClient.delete(`/agencies/${id}`);
   },
 };

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Service
-@ConditionalOnProperty(name = "notification.gateway", havingValue = "mock", matchIfMissing = true)
+@ConditionalOnProperty(name = "notification.gateway", havingValue = "mock")
 @Slf4j
 public class MockNotificationGatewayServiceImpl implements NotificationGatewayService {
 

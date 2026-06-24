@@ -189,15 +189,15 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.qr_code_2,
                           size: 48,
-                          color: Colors.grey[400],
+                          color: AppTheme.textTertiary,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           tr('scan_qr_instruction'),
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: const TextStyle(color: AppTheme.textSecondary),
                         ),
                       ],
                     ),
@@ -222,8 +222,8 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
                           subtitle: Text(item.eventType ?? 'INTAKE'),
                           trailing: Text(
                             item.timestamp ?? '',
-                            style: TextStyle(
-                              color: Colors.grey[600],
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
                               fontSize: 12,
                             ),
                           ),

@@ -146,6 +146,14 @@ public class RefundServiceImpl implements RefundService {
 
         if (request.getStatus() == RefundStatus.PROCESSED) {
             refund.setProcessedAt(Instant.now());
+
+            // A processed refund reverses the original payment so reconciliation/exception
+            // reports don't keep showing it as a plain SUCCESS payment.
+            Payment payment = refund.getPayment();
+            if (payment != null) {
+                payment.setReversed(true);
+                paymentRepository.save(payment);
+            }
         }
 
                 Refund saved2 = refundRepository.save(refund);

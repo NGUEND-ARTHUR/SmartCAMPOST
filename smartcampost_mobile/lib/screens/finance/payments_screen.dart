@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/payment.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
+import 'package:smartcampost_mobile/services/payment_service.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 
 class PaymentsScreen extends StatefulWidget {
@@ -29,9 +30,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       _error = null;
     });
     try {
-      // Payment listing would use a generic endpoint; adapting to available service
-      // In production, DashboardService or a dedicated endpoint would list all payments
-      if (mounted) setState(() => _payments = []);
+      final payments = await PaymentService().getPayments(size: 100);
+      if (mounted) setState(() => _payments = payments);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     }

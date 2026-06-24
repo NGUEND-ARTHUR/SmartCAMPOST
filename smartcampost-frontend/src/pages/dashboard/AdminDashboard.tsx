@@ -1,13 +1,87 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Package, Users, Truck, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  Package,
+  Users,
+  Truck,
+  AlertTriangle,
+  Loader2,
+  TrendingUp,
+  Activity,
+  Brain,
+  Shield,
+  DollarSign,
+  UserCog,
+  CheckCircle,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useDashboardSummary } from "@/hooks";
 import { getErrorMessage } from "@/lib/errorHandler";
 import useScanSSE from "@/hooks/useScanSSE";
 import useAiSSE from "@/hooks/useAiSSE";
+
+/* ─── Animated Counter ─── */
+function AnimatedCounter({ target, duration = 1200 }: { target: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<number>(0);
+
+  useEffect(() => {
+    if (target === 0) { setCount(0); return; }
+    const start = ref.current;
+    const diff = target - start;
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(start + diff * eased);
+      setCount(current);
+      if (progress < 1) requestAnimationFrame(animate);
+      else ref.current = target;
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration]);
+
+  return <>{count.toLocaleString()}</>;
+}
+
+/* ─── KPI Card ─── */
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  subtitle,
+  color,
+}: {
+  icon: typeof Package;
+  label: string;
+  value: number;
+  subtitle: string;
+  color: string;
+}) {
+  return (
+    <Card className="relative overflow-hidden transition-shadow hover:shadow-md">
+      <div className={`absolute top-0 left-0 h-1 w-full ${color}`} />
+      <CardContent className="pt-5 pb-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1.5">
+            <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
+            <p className="text-3xl font-bold tracking-tight">
+              <AnimatedCounter target={value} />
+            </p>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
+          </div>
+          <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${color.replace("bg-", "bg-").replace("600", "100").replace("500", "100")} bg-opacity-10`}>
+            <Icon className={`h-5 w-5 ${color.replace("bg-", "text-")}`} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -37,188 +111,126 @@ export default function AdminDashboard() {
   }, [liveScans]);
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">{t("dashboard.admin.title")}</h1>
-            <p className="text-muted-foreground">
-              {t("dashboard.admin.systemOverview")}
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button asChild variant="default">
-              <Link to="/admin/finance">
-                {t("dashboard.admin.financeDashboard")}
-              </Link>
-            </Button>
-            <Button asChild className="bg-green-600 hover:bg-green-700">
-              <Link to="/admin/finance/create">
-                {t("dashboard.admin.createFinance")}
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/admin/users/staff">
-                {t("dashboard.admin.manageStaff", "Manage Staff")}
-              </Link>
-            </Button>
-            <Button asChild className="bg-orange-600 hover:bg-orange-700">
-              <Link to="/admin/risk">{t("dashboard.admin.riskDashboard")}</Link>
-            </Button>
-            <Button asChild className="bg-purple-600 hover:bg-purple-700">
-              <Link to="/admin/risk/create">
-                {t("dashboard.admin.createRiskAlert", "Create Risk Alert")}
-              </Link>
-            </Button>
-            <Button asChild className="bg-red-700 hover:bg-red-800">
-              <Link to="/admin/risk/create-user">
-                {t("dashboard.admin.createRiskUser", "Create Risk Analyst")}
-              </Link>
-            </Button>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/admin/approvals">
-                {t("dashboard.admin.approvals", "Approvals")}
-              </Link>
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* ─── Header ─── */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.admin.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("dashboard.admin.systemOverview")}</p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild size="sm">
+            <Link to="/admin/finance"><DollarSign className="mr-1.5 h-4 w-4" />{t("dashboard.admin.financeDashboard")}</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/admin/users/staff"><UserCog className="mr-1.5 h-4 w-4" />{t("dashboard.admin.manageStaff", "Manage Staff")}</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/admin/risk"><Shield className="mr-1.5 h-4 w-4" />{t("dashboard.admin.riskDashboard")}</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/admin/approvals"><CheckCircle className="mr-1.5 h-4 w-4" />{t("dashboard.admin.approvals", "Approvals")}</Link>
+          </Button>
+        </div>
+      </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="pt-6 text-center text-destructive">
-              {t("dashboard.loadingError")}: {getErrorMessage(error, t)}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("dashboard.stats.totalParcels")}
-                </CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(metrics.totalParcels as number) ?? 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("parcels.title")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("users.clients.title")}
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(metrics.activeUsers as number) ?? 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("users.clients.subtitle")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("dashboard.stats.activeCouriers")}
-                </CardTitle>
-                <Truck className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(metrics.activeCouriers as number) ?? 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("dashboard.stats.onDutyToday")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("dashboard.stats.pendingIssues")}
-                </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(metrics.pendingIssues as number) ?? 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("dashboard.stats.requireAttention")}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
+      {/* ─── KPI Grid ─── */}
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : error ? (
         <Card>
-          <CardHeader>
-            <CardTitle>{t("dashboard.admin.liveScans")}</CardTitle>
+          <CardContent className="pt-6 text-center text-destructive">
+            {t("dashboard.loadingError")}: {getErrorMessage(error, t)}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard
+            icon={Package}
+            label={t("dashboard.stats.totalParcels")}
+            value={(metrics.totalParcels as number) ?? 0}
+            subtitle={t("parcels.title")}
+            color="bg-primary"
+          />
+          <KpiCard
+            icon={Users}
+            label={t("users.clients.title")}
+            value={(metrics.activeUsers as number) ?? 0}
+            subtitle={t("users.clients.subtitle")}
+            color="bg-blue-500"
+          />
+          <KpiCard
+            icon={Truck}
+            label={t("dashboard.stats.activeCouriers")}
+            value={(metrics.activeCouriers as number) ?? 0}
+            subtitle={t("dashboard.stats.onDutyToday")}
+            color="bg-emerald-500"
+          />
+          <KpiCard
+            icon={AlertTriangle}
+            label={t("dashboard.stats.pendingIssues")}
+            value={(metrics.pendingIssues as number) ?? 0}
+            subtitle={t("dashboard.stats.requireAttention")}
+            color="bg-amber-500"
+          />
+        </div>
+      )}
+
+      {/* ─── Live Feeds ─── */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2 pb-3">
+            <Activity className="h-4 w-4 text-emerald-500" />
+            <CardTitle className="text-base">{t("dashboard.admin.liveScans")}</CardTitle>
+            {normalizedLiveScans.length > 0 && (
+              <span className="ml-auto flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            )}
           </CardHeader>
           <CardContent>
             {normalizedLiveScans.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                {t("dashboard.admin.waitingForScans")}
-              </div>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("dashboard.admin.waitingForScans")}</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-80 overflow-y-auto">
                 {normalizedLiveScans.map((e, idx) => (
                   <div
                     key={`${e.parcelId ?? ""}-${e.timestamp ?? ""}-${idx}`}
-                    className="flex items-center justify-between text-sm"
+                    className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted"
                   >
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {e.eventType}{" "}
-                        {e.parcelId
-                          ? `• ${String(e.parcelId).slice(0, 8)}`
-                          : ""}
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium truncate">
+                        {e.eventType}{e.parcelId ? ` · ${String(e.parcelId).slice(0, 8)}` : ""}
                       </span>
-                      {e.locationNote ? (
-                        <span className="text-muted-foreground truncate max-w-xl">
-                          {e.locationNote}
-                        </span>
-                      ) : null}
+                      {e.locationNote && <span className="text-xs text-muted-foreground truncate">{e.locationNote}</span>}
                     </div>
-                    <div className="text-muted-foreground">
-                      {e.timestamp
-                        ? new Date(e.timestamp).toLocaleTimeString()
-                        : ""}
-                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-3">
+                      {e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : ""}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle>AI Runtime Events</CardTitle>
+          <CardHeader className="flex flex-row items-center gap-2 pb-3">
+            <Brain className="h-4 w-4 text-violet-500" />
+            <CardTitle className="text-base">AI Runtime Events</CardTitle>
+            {liveAi.length > 0 && (
+              <span className="ml-auto flex h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
+            )}
           </CardHeader>
           <CardContent>
             {liveAi.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                No AI events yet
-              </div>
+              <p className="text-sm text-muted-foreground py-4 text-center">No AI events yet</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-80 overflow-y-auto">
                 {liveAi.map((e, idx) => (
-                  <div key={`${e?.type ?? "ai"}-${idx}`} className="text-sm">
-                    <div className="font-medium">{e?.type ?? "ai"}</div>
-                    <div className="text-muted-foreground truncate max-w-xl">
-                      {JSON.stringify(e?.payload ?? e)}
-                    </div>
+                  <div key={`${e?.type ?? "ai"}-${idx}`} className="rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                    <span className="font-medium">{e?.type ?? "ai"}</span>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{JSON.stringify(e?.payload ?? e)}</p>
                   </div>
                 ))}
               </div>

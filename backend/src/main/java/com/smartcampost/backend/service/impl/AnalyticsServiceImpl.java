@@ -32,6 +32,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AnalyticsServiceImpl implements AnalyticsService {
 
+    private static final List<ParcelStatus> ACTIVE_STATUSES = List.of(
+            ParcelStatus.CREATED, ParcelStatus.ACCEPTED, ParcelStatus.TAKEN_IN_CHARGE,
+            ParcelStatus.IN_TRANSIT, ParcelStatus.ARRIVED_HUB, ParcelStatus.ARRIVED_DEST_AGENCY,
+            ParcelStatus.OUT_FOR_DELIVERY
+    );
+
     private final ParcelRepository parcelRepository;
     private final PaymentRepository paymentRepository;
     private final ScanEventRepository scanEventRepository;
@@ -213,8 +219,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         // Analyze historical data: count parcels created in the last 30 days
         Instant thirtyDaysAgo = Instant.now().minus(30, ChronoUnit.DAYS);
-        List<Parcel> recentParcels = parcelRepository.findAll().stream()
-                .filter(p -> p.getCreatedAt() != null && p.getCreatedAt().isAfter(thirtyDaysAgo))
+        List<Parcel> recentParcels = parcelRepository.findByCreatedAtAfter(thirtyDaysAgo).stream()
                 .filter(p -> {
                     if (filterAgencyId != null) {
                         return (p.getOriginAgency() != null && p.getOriginAgency().getId().equals(filterAgencyId))
@@ -377,12 +382,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         List<SmartNotificationResponse.SmartAlert> alerts = new ArrayList<>();
         Instant now = Instant.now();
 
-        List<Parcel> activeParcels = parcelRepository.findAll().stream()
-                .filter(p -> p.getStatus() != null
-                        && p.getStatus() != ParcelStatus.DELIVERED
-                        && p.getStatus() != ParcelStatus.CANCELLED
-                        && p.getStatus() != ParcelStatus.RETURNED)
-                .toList();
+        List<Parcel> activeParcels = parcelRepository.findByStatusIn(
+                ACTIVE_STATUSES, org.springframework.data.domain.PageRequest.of(0, 1000)
+        ).getContent();
 
         for (Parcel parcel : activeParcels) {
             // 1. Delay Risk: expected delivery in the past but not delivered
@@ -455,6 +457,60 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .alerts(alerts)
                 .totalAlerts(alerts.size())
                 .build();
+    }
+
+    // ================== ROUTE OPTIMIZATION ==================
+    @Override
+    public Map<String, Object> getRouteOptimization() {
+        Instant now = Instant.now();
+
+        List<Object[]> corridorRows = parcelRepository.corridorLoadAndOverdue(ACTIVE_STATUSES, now);
+        List<Map<String, Object>> routes = corridorRows.stream()
+                .limit(5)
+                .map(row -> {
+                    String originCity = (String) row[0];
+                    String destinationCity = (String) row[1];
+                    long count = ((Number) row[2]).longValue();
+                    long overdue = row[3] != null ? ((Number) row[3]).longValue() : 0L;
+                    String load = count > 20 ? "HIGH" : count > 5 ? "NORMAL" : "LOW";
+                    double overdueRatio = count == 0 ? 0 : (double) overdue / count;
+                    String risk = overdueRatio > 0.3 ? "HIGH" : overdueRatio > 0.1 ? "MEDIUM" : "LOW";
+                    String recommendation = risk.equals("HIGH")
+                            ? "Add dispatch capacity — over 30% of parcels on this corridor are overdue."
+                            : load.equals("HIGH")
+                                ? "High volume corridor; monitor for delays."
+                                : "Maintain current routing.";
+                    Map<String, Object> route = new LinkedHashMap<>();
+                    route.put("name", originCity + " - " + destinationCity + " corridor");
+                    route.put("load", load);
+                    route.put("risk", risk);
+                    route.put("activeParcels", count);
+                    route.put("recommendation", recommendation);
+                    return route;
+                })
+                .toList();
+
+        List<Object[]> cityRows = parcelRepository.destinationCityLoadAndOverdue(ACTIVE_STATUSES, now);
+        List<Map<String, Object>> heatmap = cityRows.stream()
+                .limit(10)
+                .map(row -> {
+                    String city = (String) row[0];
+                    long count = ((Number) row[1]).longValue();
+                    long overdue = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    entry.put("city", city);
+                    entry.put("volume", count);
+                    entry.put("delayRisk", overdue);
+                    return entry;
+                })
+                .toList();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("generatedAt", now);
+        result.put("status", "READY");
+        result.put("routes", routes);
+        result.put("heatmap", heatmap);
+        return result;
     }
 
     // ================== ADDRESS VALIDATION (AI) ==================

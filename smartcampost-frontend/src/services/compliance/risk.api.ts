@@ -34,6 +34,7 @@ export const riskService = {
     type: string;
     severity: string;
     description: string;
+    parcelId?: string;
   }): Promise<RiskAlertResponse> {
     return httpClient.post("/risk", data);
   },

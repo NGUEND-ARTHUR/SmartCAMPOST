@@ -89,7 +89,8 @@ class SupportTicket {
   factory SupportTicket.fromJson(Map<String, dynamic> json) => SupportTicket(
     id: json['id']?.toString() ?? '',
     subject: json['subject'] as String? ?? '',
-    description: json['description'] as String?,
+    // Backend's TicketResponse field is `message`, not `description`.
+    description: (json['message'] ?? json['description']) as String?,
     category: json['category'] as String?,
     status: json['status'] as String?,
     priority: json['priority'] as String?,

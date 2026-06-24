@@ -18,6 +18,21 @@ export function useRiskAlerts(page = 0, size = 20) {
   });
 }
 
+export function useCreateRiskAlert() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      type: string;
+      severity: string;
+      description: string;
+      parcelId?: string;
+    }) => riskService.createAlert(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: riskKeys.all });
+    },
+  });
+}
+
 export function useUpdateRiskAlert() {
   const queryClient = useQueryClient();
   return useMutation({

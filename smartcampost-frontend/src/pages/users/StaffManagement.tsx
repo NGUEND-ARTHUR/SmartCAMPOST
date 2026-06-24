@@ -132,7 +132,7 @@ export default function StaffManagement() {
     0,
     100,
   );
-  const { data: agenciesData } = useAgencies(0, 100);
+  const { data: agenciesData } = useAgencies();
   const createStaff = useCreateStaff();
   const createCourier = useCreateCourier();
   const updateStatus = useUpdateStaffStatus();
@@ -155,7 +155,7 @@ export default function StaffManagement() {
     [couriersData],
   );
   const totalPages = hasActiveFilters ? 1 : (data?.totalPages ?? 0);
-  const agencies = useMemo(() => agenciesData?.content ?? [], [agenciesData]);
+  const agencies = useMemo(() => agenciesData ?? [], [agenciesData]);
 
   // Merge staff and couriers into a unified list
   const unifiedList = useMemo<UnifiedMember[]>(() => {
@@ -469,7 +469,7 @@ export default function StaffManagement() {
                       <SelectContent>
                         {agencies.map((agency) => (
                           <SelectItem key={agency.id} value={agency.id}>
-                            {agency.name}
+                            {agency.agencyName}
                           </SelectItem>
                         ))}
                       </SelectContent>

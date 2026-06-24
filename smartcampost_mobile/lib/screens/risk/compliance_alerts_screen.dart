@@ -1,6 +1,6 @@
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smartcampost_mobile/models/common.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
@@ -13,7 +13,7 @@ class ComplianceAlertsScreen extends StatefulWidget {
 }
 
 class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
-  List<CongestionAlert> _alerts = [];
+  List<Map<String, dynamic>> _alerts = [];
   bool _isLoading = true;
   String? _error;
 
@@ -32,16 +32,56 @@ class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
       final raw = await ComplianceService().getAlerts();
       if (mounted) {
         setState(
-          () => _alerts = raw
-              .whereType<Map<String, dynamic>>()
-              .map((e) => CongestionAlert.fromJson(e))
-              .toList(),
+          () => _alerts = raw.whereType<Map<String, dynamic>>().toList(),
         );
       }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _resolve(Map<String, dynamic> alert) async {
+    final id = alert['id']?.toString();
+    if (id == null) return;
+    final tr = context.read<LocaleProvider>().tr;
+    final note = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: Text(tr('resolve_alert')),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(labelText: tr('resolution_note')),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('cancel')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: Text(tr('resolve')),
+            ),
+          ],
+        );
+      },
+    );
+    if (note == null) return;
+    try {
+      await ComplianceService().updateAlert(id, {
+        'resolved': true,
+        'resolutionNote': note,
+      });
+      await _loadAlerts();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+    }
   }
 
   @override
@@ -63,16 +103,20 @@ class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
                 itemCount: _alerts.length,
                 itemBuilder: (_, i) {
                   final alert = _alerts[i];
+                  final severity = alert['severity']?.toString() ?? 'LOW';
+                  final resolved = alert['resolved'] == true;
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 3),
                     child: ListTile(
                       leading: Icon(
-                        _levelIcon(alert.congestionLevel),
-                        color: _levelColor(alert.congestionLevel),
+                        _levelIcon(severity),
+                        color: resolved ? Colors.grey : _levelColor(severity),
                         size: 28,
                       ),
                       title: Text(
-                        alert.agencyName,
+                        alert['description']?.toString() ??
+                            alert['alertType']?.toString() ??
+                            tr('alerts'),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -82,43 +126,37 @@ class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${tr('parcels')}: ${alert.parcelCount} / ${tr('threshold')}: ${alert.threshold}',
+                            '${alert['alertType'] ?? ''} — ${alert['status'] ?? ''}',
                             style: const TextStyle(fontSize: 12),
                           ),
                           Text(
-                            alert.detectedAt.split('.').first,
-                            style: TextStyle(
+                            alert['createdAt']?.toString().split('T').first ??
+                                '',
+                            style: const TextStyle(
                               fontSize: 11,
-                              color: Colors.grey[500],
+                              color: AppTheme.textTertiary,
                             ),
                           ),
-                          if (alert.suggestedActions.isNotEmpty)
-                            Text(
-                              alert.suggestedActions.join(', '),
-                              style: const TextStyle(fontSize: 11),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
                         ],
                       ),
                       isThreeLine: true,
+                      onTap: resolved ? null : () => _resolve(alert),
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _levelColor(
-                            alert.congestionLevel,
-                          ).withValues(alpha: 0.15),
+                          color: (resolved ? Colors.green : _levelColor(severity))
+                              .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${tr('level')} ${alert.congestionLevel}',
+                          resolved ? tr('resolved') : severity,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: _levelColor(alert.congestionLevel),
+                            color: resolved ? Colors.green : _levelColor(severity),
                           ),
                         ),
                       ),
@@ -130,15 +168,27 @@ class _ComplianceAlertsScreenState extends State<ComplianceAlertsScreen> {
     );
   }
 
-  IconData _levelIcon(int level) {
-    if (level >= 3) return Icons.error;
-    if (level == 2) return Icons.warning;
-    return Icons.info;
+  IconData _levelIcon(String severity) {
+    switch (severity.toUpperCase()) {
+      case 'CRITICAL':
+      case 'HIGH':
+        return Icons.error;
+      case 'MEDIUM':
+        return Icons.warning;
+      default:
+        return Icons.info;
+    }
   }
 
-  Color _levelColor(int level) {
-    if (level >= 3) return Colors.red;
-    if (level == 2) return Colors.orange;
-    return Colors.blue;
+  Color _levelColor(String severity) {
+    switch (severity.toUpperCase()) {
+      case 'CRITICAL':
+      case 'HIGH':
+        return Colors.red;
+      case 'MEDIUM':
+        return Colors.orange;
+      default:
+        return Colors.blue;
+    }
   }
 }

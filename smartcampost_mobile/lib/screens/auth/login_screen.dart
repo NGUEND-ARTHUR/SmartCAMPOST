@@ -43,28 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleSignIn() async {
     final auth = context.read<AuthProvider>();
     await auth.loginWithGoogle();
-    // Navigation handled by GoRouter redirect
-  }
-
-  Widget _googleIcon() {
-    return Container(
-      width: 20,
-      height: 20,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFD1D5DB)),
-      ),
-      child: const Text(
-        'G',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF1E3A5F),
-        ),
-      ),
-    );
   }
 
   @override
@@ -73,62 +51,75 @@ class _LoginScreenState extends State<LoginScreen> {
     final tr = context.read<LocaleProvider>().tr;
 
     return Scaffold(
+      backgroundColor: AppTheme.surfaceColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         actions: const [LanguageSwitchAction()],
       ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo/Brand
-                  const Icon(
-                    Icons.local_post_office_rounded,
-                    size: 72,
-                    color: AppTheme.primaryColor,
+                  // Brand mark
+                  Container(
+                    width: 72,
+                    height: 72,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppTheme.primaryColor, AppTheme.primaryLight],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.local_post_office_rounded,
+                      size: 36,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
                   Text(
                     'SmartCAMPOST',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
+                    style: AppTheme.heading1.copyWith(
+                      color: AppTheme.primaryColor,
+                      letterSpacing: -0.8,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     tr('login_subtitle'),
                     textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondary),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
+                        color: AppTheme.surfaceElevated,
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Text(
-                        'Mobile build v1.0.2',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E3A5F),
-                        ),
+                      child: Text(
+                        'v1.0.2',
+                        style: AppTheme.overline.copyWith(color: AppTheme.textTertiary),
                       ),
                     ),
                   ),
@@ -144,16 +135,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: '+237...',
                     ),
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return tr('field_required');
-                      }
-                      if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(v.trim())) {
-                        return tr('invalid_phone');
-                      }
+                      if (v == null || v.trim().isEmpty) return tr('field_required');
+                      if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(v.trim())) return tr('invalid_phone');
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
                   // Password field
                   TextFormField(
@@ -163,141 +150,124 @@ class _LoginScreenState extends State<LoginScreen> {
                       labelText: tr('password'),
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
+                        icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) return tr('field_required');
                       if (v.length < 8) return tr('password_too_short');
-                      if (!RegExp(
-                        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)',
-                      ).hasMatch(v)) {
-                        return tr('password_complexity');
-                      }
+                      if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(v)) return tr('password_complexity');
                       return null;
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
 
-                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () => context.push('/forgot-password'),
-                      child: Text(tr('forgot_password')),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      child: Text(tr('forgot_password'), style: AppTheme.caption.copyWith(color: AppTheme.primaryColor, fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(height: 8),
 
-                  // Error message
+                  // Error banner
                   if (auth.error != null)
                     Container(
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
+                        color: AppTheme.errorColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.2)),
                       ),
-                      child: Text(
-                        auth.error!,
-                        style: TextStyle(color: Colors.red[700], fontSize: 13),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, size: 18, color: AppTheme.errorColor),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              auth.error!,
+                              style: AppTheme.caption.copyWith(color: AppTheme.errorColor, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
                   // Login button
                   SizedBox(
-                    height: 50,
+                    height: 52,
                     child: ElevatedButton(
                       onPressed: auth.isLoading ? null : _handleLogin,
                       child: auth.isLoading
                           ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
+                              height: 20, width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : Text(tr('login')),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // OR divider
                   Row(
                     children: [
-                      const Expanded(child: Divider()),
+                      const Expanded(child: Divider(color: AppTheme.borderColor)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          tr('or'),
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 13,
-                          ),
-                        ),
+                        child: Text(tr('or'), style: AppTheme.caption),
                       ),
-                      const Expanded(child: Divider()),
+                      const Expanded(child: Divider(color: AppTheme.borderColor)),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Google Sign-In button
+                  // Google Sign-In
                   SizedBox(
-                    height: 50,
+                    height: 52,
                     child: OutlinedButton.icon(
                       onPressed: auth.isLoading ? null : _handleGoogleSignIn,
-                      icon: _googleIcon(),
-                      label: Text(tr('sign_in_with_google')),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey[300]!),
+                      icon: Container(
+                        width: 20, height: 20,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppTheme.borderColor),
+                        ),
+                        child: const Text('G', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
                       ),
+                      label: Text(tr('sign_in_with_google')),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // OTP Login
-                  OutlinedButton.icon(
-                    onPressed: () => context.push('/otp-login'),
-                    icon: const Icon(Icons.phone_android),
-                    label: Text(tr('login_with_otp')),
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push('/otp-login'),
+                      icon: const Icon(Icons.phone_android_outlined, size: 20),
+                      label: Text(tr('login_with_otp')),
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
                   // Register link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(tr('no_account')),
+                      Text(tr('no_account'), style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondary)),
                       TextButton(
                         onPressed: () => context.push('/register'),
-                        child: Text(tr('register')),
+                        child: Text(tr('register'), style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
                       ),
                     ],
-                  ),
-
-                  // Language toggle
-                  const SizedBox(height: 16),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          context.read<LocaleProvider>().toggleLocale(),
-                      icon: const Icon(Icons.language, size: 18),
-                      label: Text(
-                        context.watch<LocaleProvider>().locale.languageCode ==
-                                'fr'
-                            ? 'English'
-                            : 'Français',
-                      ),
-                    ),
                   ),
                 ],
               ),

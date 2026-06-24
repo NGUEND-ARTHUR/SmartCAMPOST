@@ -222,6 +222,72 @@ export default function TrackingPage() {
     return () => window.clearTimeout(timer);
   }, [lookupByNumber, searchParams]);
 
+  // Listen for real-time tracking updates via public SSE stream
+  useEffect(() => {
+    if (!result) return;
+    const ref = result.trackingRef || result.trackingNumber;
+    if (!ref) return;
+
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+    const sseUrl = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+    
+    const es = new EventSource(sseUrl);
+    
+    const handleGpsUpdate = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data);
+        const parcels = payload.inheritedParcels || [];
+        const match = parcels.find(
+          (p: any) => p.trackingRef === ref || p.parcelId === result.parcelId
+        );
+        if (match && match.latitude && match.longitude) {
+          setResult((prev) => {
+            if (!prev) return null;
+            if (
+              prev.currentLocation?.latitude === match.latitude &&
+              prev.currentLocation?.longitude === match.longitude
+            ) {
+              return prev;
+            }
+            return {
+              ...prev,
+              currentLocation: {
+                latitude: match.latitude,
+                longitude: match.longitude,
+                locationSource: match.source || "GPS",
+                eventType: "LIVE_UPDATE",
+                updatedAt: new Date().toISOString(),
+              },
+            };
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to parse realtime tracking event", err);
+      }
+    };
+
+    es.addEventListener("gps-update", handleGpsUpdate);
+
+    return () => {
+      es.close();
+    };
+  }, [result]);
+
+  const liveActorsForMap = useMemo(() => {
+    const actors = [];
+    if (result?.currentLocation?.latitude && result?.currentLocation?.longitude) {
+      actors.push({
+        id: "parcel-live",
+        type: "PARCEL" as const,
+        name: t("trackingMap.live.parcel", "Parcel live position"),
+        latitude: result.currentLocation.latitude,
+        longitude: result.currentLocation.longitude,
+        status: result.status || "IN_TRANSIT",
+      });
+    }
+    return actors;
+  }, [result, t]);
+
   return (
     <div className="mx-auto max-w-6xl p-4">
       <Card>
@@ -403,6 +469,7 @@ export default function TrackingPage() {
                     currentStatus={result.status}
                     scanEvents={scanEventsForMap}
                     showAnimation
+                    liveActors={liveActorsForMap}
                   />
                 </div>
               )}

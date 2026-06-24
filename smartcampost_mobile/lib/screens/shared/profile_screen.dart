@@ -214,7 +214,7 @@ class _InfoTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
+          Icon(icon, size: 20, color: AppTheme.textSecondary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -222,7 +222,7 @@ class _InfoTile extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 Text(
                   value,

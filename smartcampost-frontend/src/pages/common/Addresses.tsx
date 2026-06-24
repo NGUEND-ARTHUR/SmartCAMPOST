@@ -158,6 +158,7 @@ export default function Addresses() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm(t("addresses.confirmDelete"))) return;
     try {
       await addressService.deleteAddress(id);
       setAddresses(addresses.filter((addr) => addr.id !== id));
@@ -275,12 +276,11 @@ export default function Addresses() {
                 </div>
 
                 {selectedLat && selectedLng && (
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium">📍 Location Selected</p>
-                    <p className="text-xs text-muted-foreground">
-                      Lat: {selectedLat.toFixed(6)} | Lng:{" "}
-                      {selectedLng.toFixed(6)}
-                    </p>
+                  <div className="p-3 bg-muted rounded-lg flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      Map Location Captured Successfully
+                    </span>
                   </div>
                 )}
               </TabsContent>
@@ -290,13 +290,18 @@ export default function Addresses() {
                   latitude={selectedLat}
                   longitude={selectedLng}
                   compact
+                  allowManualInput={false}
                   onLocationChange={(lat, lng) => {
                     setSelectedLat(lat);
                     setSelectedLng(lng);
                   }}
                   onLocationResolved={(result) => {
+                    const fullStreet = [result.street, result.quarter]
+                      .filter(Boolean)
+                      .join(", ");
                     setFormData((prev) => ({
                       ...prev,
+                      street: fullStreet || prev.street,
                       city: result.city || prev.city,
                       region: result.region || prev.region,
                     }));
@@ -394,10 +399,8 @@ export default function Addresses() {
                     </p>
                     <p>{address.country}</p>
                     {address.latitude && address.longitude && (
-                      <p className="text-xs pt-2 border-t mt-2">
-                        {t("addresses.card.coordinates")}:{" "}
-                        {address.latitude.toFixed(4)},{" "}
-                        {address.longitude.toFixed(4)}
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 pt-2 border-t mt-2 flex items-center gap-1">
+                        <span>📍</span> {t("addresses.card.coordinatesCaptured", "Map Location Linked")}
                       </p>
                     )}
                   </div>

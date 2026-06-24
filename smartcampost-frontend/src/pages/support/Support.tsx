@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   HelpCircle,
@@ -59,6 +60,7 @@ const priorityColors: Record<TicketPriority, string> = {
 
 export default function Support() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const categoryLabels: Record<TicketCategory, string> = {
     DELIVERY_ISSUE: t("support.category.delivery_issue"),
     PAYMENT_ISSUE: t("support.category.payment_issue"),
@@ -423,7 +425,13 @@ export default function Support() {
                           </div>
                         </div>
                         <div className="shrink-0">
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              navigate(`/client/support/${ticket.id}`)
+                            }
+                          >
                             {t("support.list.viewDetails")}
                           </Button>
                         </div>

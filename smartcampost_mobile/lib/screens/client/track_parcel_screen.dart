@@ -1,3 +1,4 @@
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
@@ -49,7 +50,7 @@ class _TrackParcelScreenState extends State<TrackParcelScreen> {
           'contextData': {
             'trackingRef': parcel.displayRef,
             'parcelId': parcel.id,
-          }.toString(),
+          },
         },
       );
       _chatController.clear();
@@ -137,17 +138,17 @@ class _TrackParcelScreenState extends State<TrackParcelScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red[50],
+                  color: AppTheme.errorColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red[400]),
+                    const Icon(Icons.error_outline, color: AppTheme.errorColor),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         tr('parcel_not_found'),
-                        style: TextStyle(color: Colors.red[700]),
+                        style: const TextStyle(color: AppTheme.errorColor),
                       ),
                     ),
                   ],

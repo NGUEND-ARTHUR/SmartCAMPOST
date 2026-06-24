@@ -61,7 +61,9 @@ public enum ErrorCode {
     // ADDRESS / AGENCY / PARCEL
     // =====================================================
     ADDRESS_NOT_FOUND,
+    ADDRESS_IN_USE,
     AGENCY_NOT_FOUND,
+    AGENCY_CONFLICT,
     PARCEL_NOT_FOUND,
     PARCEL_STATUS_INVALID,
     VALIDATION_FAILED,

@@ -40,6 +40,8 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
   // Price calculator
   void _showPriceCalculator() {
     final weightController = TextEditingController();
+    final originZoneController = TextEditingController();
+    final destinationZoneController = TextEditingController();
     String serviceType = 'STANDARD';
     String? calculatedPrice;
 
@@ -66,6 +68,22 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: originZoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Origin Zone',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: destinationZoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Destination Zone',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
                 controller: weightController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
@@ -91,15 +109,29 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     final w = double.tryParse(weightController.text);
-                    if (w == null || w <= 0) return;
+                    final originZone = originZoneController.text.trim();
+                    final destinationZone =
+                        destinationZoneController.text.trim();
+                    if (w == null ||
+                        w <= 0 ||
+                        originZone.isEmpty ||
+                        destinationZone.isEmpty) {
+                      setSheetState(
+                        () => calculatedPrice =
+                            'Please fill in origin zone, destination zone and weight',
+                      );
+                      return;
+                    }
                     try {
                       final price = await TariffService().calculatePrice({
-                        'weight': w,
                         'serviceType': serviceType,
+                        'originZone': originZone,
+                        'destinationZone': destinationZone,
+                        'weight': w,
                       });
                       setSheetState(
                         () => calculatedPrice =
-                            '${price['price'] ?? price['amount'] ?? '-'} XAF',
+                            '${price['basePrice'] ?? '-'} XAF',
                       );
                     } catch (e) {
                       setSheetState(() => calculatedPrice = 'Error: $e');
@@ -184,13 +216,14 @@ class _TariffManagementScreenState extends State<TariffManagementScreen> {
                                 ),
                               ),
                               title: Text(
-                                '${t['serviceType'] ?? t['name'] ?? 'Tariff'}',
+                                '${t['serviceType'] ?? 'Tariff'}: '
+                                '${t['originZone'] ?? '?'} → ${t['destinationZone'] ?? '?'}',
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w600),
                               ),
                               subtitle: Text(
-                                'Weight: ${t['minWeight'] ?? 0}-${t['maxWeight'] ?? '∞'} kg\n'
-                                'Price: ${t['pricePerKg'] ?? t['basePrice'] ?? '-'} XAF/kg',
+                                'Weight bracket: ${t['weightBracket'] ?? '-'}\n'
+                                'Price: ${t['price'] ?? '-'} XAF',
                               ),
                               isThreeLine: true,
                             ),

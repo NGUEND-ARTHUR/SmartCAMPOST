@@ -65,6 +65,11 @@ class _RiskDashboardScreenState extends State<RiskDashboardScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/ai-chat'),
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.smart_toy, color: Colors.white),
+      ),
       body: RefreshIndicator(
         onRefresh: _loadData,
         child: _isLoading
@@ -102,7 +107,9 @@ class _RiskDashboardScreenState extends State<RiskDashboardScreen> {
                     children: [
                       _StatCard(
                         title: tr('compliance_score'),
-                        value: '${_stats['complianceScore'] ?? 95}%',
+                        value: _stats['complianceScore'] != null
+                            ? '${_stats['complianceScore']}%'
+                            : '-',
                         icon: Icons.verified_user,
                         color: AppTheme.accentColor,
                       ),
@@ -151,8 +158,8 @@ class _RiskDashboardScreenState extends State<RiskDashboardScreen> {
                             color: _alertColor(a['severity']?.toString()),
                           ),
                           title: Text(
-                            a['message']?.toString() ??
-                                a['type']?.toString() ??
+                            a['description']?.toString() ??
+                                a['alertType']?.toString() ??
                                 'Alert',
                             style: const TextStyle(fontSize: 14),
                           ),
@@ -270,7 +277,7 @@ class _StatCard extends StatelessWidget {
                 title,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
               ),
             ],
           ),

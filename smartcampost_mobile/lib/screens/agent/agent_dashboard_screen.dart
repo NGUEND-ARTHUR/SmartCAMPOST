@@ -56,6 +56,11 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/ai-chat'),
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.smart_toy, color: Colors.white),
+      ),
       body: RefreshIndicator(
         onRefresh: _loadStats,
         child: _isLoading
@@ -73,7 +78,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
                     const SizedBox(height: 4),
                     Text(
                       auth.user!.agencyName!,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                     ),
                   ],
                   const SizedBox(height: 20),
@@ -223,7 +228,7 @@ class _StatCard extends StatelessWidget {
                 title,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
               ),
             ],
           ),

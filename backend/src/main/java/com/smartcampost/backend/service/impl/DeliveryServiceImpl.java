@@ -259,6 +259,23 @@ public class DeliveryServiceImpl implements DeliveryService {
             }
         }
 
+        // COD parcels must have the correct amount collected before they can be marked DELIVERED
+        if (parcel.getPaymentOption() == PaymentOption.COD) {
+            double amountDue = pricingDetailRepository.findTopByParcel_IdOrderByAppliedAtDesc(parcel.getId())
+                    .map(PricingDetail::getAppliedPrice)
+                    .orElse(0.0);
+            if (amountDue > 0) {
+                if (!request.isPaymentCollected() || request.getAmountCollected() == null) {
+                    throw new AuthException(ErrorCode.VALIDATION_ERROR,
+                            "COD payment must be collected before completing this delivery. Amount due: " + amountDue + " XAF");
+                }
+                if (request.getAmountCollected() < amountDue - 1.0) {
+                    throw new AuthException(ErrorCode.VALIDATION_ERROR,
+                            "Amount collected (" + request.getAmountCollected() + " XAF) is less than the amount due (" + amountDue + " XAF)");
+                }
+            }
+        }
+
         // Capture proof of delivery
         DeliveryProofType proofType = request.getProofType() != null ?
                 request.getProofType() : DeliveryProofType.OTP;

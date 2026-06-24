@@ -12,11 +12,15 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 export default function PickupDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const authUser = useAuthStore((s) => s.user);
+  const normalizedRole = authUser?.role?.toUpperCase() || "CLIENT";
+  const canSeeCoordinates = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(normalizedRole);
   const [step, setStep] = useState<
     "details" | "photo" | "signature" | "complete"
   >("details");
@@ -52,6 +56,9 @@ export default function PickupDetail() {
           pickupId: id,
           photoUrl: photoProof || undefined,
           descriptionConfirmed: true,
+          validationComment: signature
+            ? `Confirmed by: ${signature}`
+            : undefined,
           latitude,
           longitude,
         });
@@ -131,7 +138,9 @@ export default function PickupDetail() {
                 <p className="font-medium">
                   {typeof pickup?.pickupLatitude === "number" &&
                   typeof pickup?.pickupLongitude === "number"
-                    ? `${pickup.pickupLatitude.toFixed(5)}, ${pickup.pickupLongitude.toFixed(5)}`
+                    ? (canSeeCoordinates
+                      ? `${pickup.pickupLatitude.toFixed(5)}, ${pickup.pickupLongitude.toFixed(5)}`
+                      : t("pickupDetail.coordinatesCaptured", "Map Location Linked"))
                     : "—"}
                 </p>
               </div>

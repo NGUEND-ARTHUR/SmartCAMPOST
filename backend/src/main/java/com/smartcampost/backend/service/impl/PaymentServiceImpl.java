@@ -24,6 +24,7 @@ import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.PaymentGatewayService;
 import com.smartcampost.backend.service.PricingService;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,13 +112,26 @@ public class PaymentServiceImpl implements PaymentService {
         Payment p = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException("Payment not found", ErrorCode.PAYMENT_NOT_FOUND));
 
-        p.setStatus(request.getSuccess() ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         if (request.getGatewayRef() != null) p.setExternalRef(request.getGatewayRef());
+
+        // A gateway-backed payment must be re-verified against the provider — the caller's
+        // `success` flag is never trusted on its own, otherwise any ADMIN/FINANCE/STAFF call
+        // could fabricate a SUCCESS status for a payment that never actually went through.
+        boolean success;
+        if (p.getExternalRef() != null && !p.getExternalRef().isBlank()) {
+            success = paymentGatewayService.verifyPayment(p.getExternalRef());
+            log.info("Payment {} re-verified with gateway before confirm: success={}", paymentId, success);
+        } else {
+            // No gateway reference to verify against (e.g. manual/cash entry) — honor the explicit flag.
+            success = Boolean.TRUE.equals(request.getSuccess());
+        }
+
+        p.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         @SuppressWarnings("null")
         Payment saved = paymentRepository.save(p);
         p = saved;
 
-        if (request.getSuccess()) {
+        if (success) {
             try {
                 notificationService.notifyPaymentConfirmed(p.getParcel(), p.getAmount(), p.getCurrency());
             } catch (Exception ex) {
@@ -245,8 +259,32 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentResponse processPickupPayment(UUID parcelId, String paymentMethod, Double amount) {
         UUID id = Objects.requireNonNull(parcelId, "parcelId is required");
-        Objects.requireNonNull(amount, "amount is required");
         Parcel parcel = parcelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        // Auto-compute amount from pricing if not provided (cash confirmation flow)
+        double amountDue;
+        try {
+            var quote = pricingService.quotePrice(id);
+            amountDue = quote != null ? quote.doubleValue() : 0.0;
+        } catch (Exception ex) {
+            log.error("Pricing failed for parcel {} during payment validation; skipping amount check", id, ex);
+            amountDue = 0.0;
+        }
+        if (amount == null) {
+            amount = amountDue;
+        }
+        if (amountDue > 0) {
+            double alreadyPaid = paymentRepository.findByParcel_IdOrderByTimestampDesc(id).stream()
+                    .filter(pp -> pp.getStatus() == PaymentStatus.SUCCESS)
+                    .mapToDouble(Payment::getAmount)
+                    .sum();
+            double remainingDue = amountDue - alreadyPaid;
+            if (remainingDue > 0 && amount < remainingDue - 1.0) {
+                throw new AuthException(ErrorCode.VALIDATION_ERROR,
+                        "Amount (" + amount + " XAF) is less than the remaining balance due (" + remainingDue + " XAF)");
+            }
+        }
+
         Payment p = Payment.builder()
                 .parcel(parcel)
                 .amount(amount)

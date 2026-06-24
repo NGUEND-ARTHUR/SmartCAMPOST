@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ComponentType } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   Bell,
@@ -370,6 +370,9 @@ export function StaffPaymentsPage() {
 
 export function StaffSupportInboxPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const base = location.pathname.startsWith("/admin") ? "/admin" : "/staff";
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useTickets(page, 20);
   const rows = data?.content ?? [];
@@ -419,6 +422,7 @@ export function StaffSupportInboxPage() {
             page={page}
             totalPages={data?.totalPages ?? 0}
             onPageChange={setPage}
+            onRowClick={(r) => navigate(`${base}/support/${r.id}`)}
           />
         </CardContent>
       </Card>

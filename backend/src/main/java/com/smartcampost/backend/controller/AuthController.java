@@ -171,6 +171,12 @@ public class AuthController {
     @PostMapping("/password/reset/request")
     public ResponseEntity<SendOtpResponse> requestPasswordReset(@Valid @RequestBody SendOtpRequest request) {
         String code = authService.requestPasswordReset(request.getPhone());
+        if (!exposeOtpCodeInResponse) {
+            // SECURITY: never echo the reset code back to the caller — anyone who knows a
+            // victim's phone number could otherwise call this endpoint to get the OTP and
+            // immediately take over the account via /password/reset/confirm.
+            return ResponseEntity.ok(SendOtpResponse.builder().build());
+        }
         return ResponseEntity.ok(SendOtpResponse.builder().otp(code).build());
     }
 

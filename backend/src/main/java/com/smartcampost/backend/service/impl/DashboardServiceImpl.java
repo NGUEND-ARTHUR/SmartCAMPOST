@@ -3,7 +3,6 @@ package com.smartcampost.backend.service.impl;
 import com.smartcampost.backend.dto.dashboard.DashboardSummaryResponse;
 import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
-import com.smartcampost.backend.model.Payment;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.RiskAlertRepository;
@@ -13,6 +12,7 @@ import com.smartcampost.backend.repository.ClientRepository;
 import com.smartcampost.backend.repository.IntegrationConfigRepository;
 import com.smartcampost.backend.model.enums.IntegrationType;
 import com.smartcampost.backend.model.enums.ParcelStatus;
+import com.smartcampost.backend.model.enums.PaymentStatus;
 import com.smartcampost.backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,14 +46,11 @@ public class DashboardServiceImpl implements DashboardService {
             // ===============================
             // Revenue calculation (analytics)
             // ===============================
+            // Only SUCCESS payments count as revenue — PENDING/FAILED payments were
+            // previously included by summing every row, overstating revenue.
             double totalRevenue;
-            List<Payment> payments;
-
             try {
-                payments = paymentRepository.findAll();
-                totalRevenue = payments.stream()
-                        .mapToDouble(Payment::getAmount)
-                        .sum();
+                totalRevenue = paymentRepository.sumAmountByStatus(PaymentStatus.SUCCESS);
             } catch (Exception ex) {
                 // ⚠️ Analytics-level failure
                 throw new ConflictException(

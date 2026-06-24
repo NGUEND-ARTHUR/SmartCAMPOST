@@ -18,7 +18,7 @@ public class LocationController {
     public LocationController(LocationService locationService) { this.locationService = locationService; }
 
     @PostMapping("/update")
-    @PreAuthorize("hasAnyRole('COURIER','AGENT','CLIENT')")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','CLIENT','STAFF')")
     public ResponseEntity<Location> updateLocation(@RequestBody Location loc, Principal principal) {
         loc.setUserId(principal.getName());
         if (loc.getSource() == null) loc.setSource(loc.getLatitude() != null ? "GPS" : "MANUAL");
@@ -27,7 +27,7 @@ public class LocationController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('COURIER','AGENT','CLIENT')")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','CLIENT','STAFF')")
     public ResponseEntity<List<Location>> myRecent(Principal principal) {
         String uid = principal.getName();
         if (uid == null || uid.isBlank()) return ResponseEntity.badRequest().build();

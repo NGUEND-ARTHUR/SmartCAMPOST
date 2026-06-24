@@ -279,7 +279,7 @@ export default function AIChatbot({
   }, [roleUpper, user]);
 
   const buildAiContext = useCallback(
-    (query: string, recentMessages: Message[]): string => {
+    (query: string, recentMessages: Message[t]): string => {
       const base = roleBasePath();
       const allowed = allowedActionTypes();
 
@@ -900,7 +900,7 @@ export default function AIChatbot({
           messageContent: msg.content,
           feedback,
         })
-        .catch(() => {});
+        .catch((err) => console.warn("[chat] feedback submission failed:", err));
     }
   };
 

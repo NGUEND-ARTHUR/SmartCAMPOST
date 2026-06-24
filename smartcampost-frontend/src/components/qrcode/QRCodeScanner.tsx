@@ -326,7 +326,7 @@ export function QRCodeScanner({
       mounted = false;
       stopScanning();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [autoStart]);
 
   const clearHistory = () => {

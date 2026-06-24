@@ -70,7 +70,25 @@ public class TrackingController {
                     ScanEventResponse last = events.isEmpty() ? null : events.get(events.size() - 1);
                     r.lastLocationNote = last != null ? last.getLocationNote() : null;
 
-                    if (last != null && last.getLatitude() != null && last.getLongitude() != null) {
+                    // Live courier/IoT GPS (parcel.currentLatitude/Longitude) is more recent than the
+                    // last checkpoint scan whenever it was updated after that scan; prefer it so the
+                    // page doesn't show a stale position before the next SSE push arrives.
+                    boolean liveGpsIsNewer = p.getCurrentLatitude() != null && p.getCurrentLongitude() != null
+                            && (last == null || last.getTimestamp() == null
+                                || p.getLocationUpdatedAt() == null
+                                || p.getLocationUpdatedAt().isAfter(last.getTimestamp()));
+
+                    if (liveGpsIsNewer) {
+                        TrackingResponse.CurrentLocation loc = new TrackingResponse.CurrentLocation();
+                        loc.latitude = p.getCurrentLatitude();
+                        loc.longitude = p.getCurrentLongitude();
+                        loc.locationSource = "LIVE_GPS";
+                        loc.eventType = last != null ? last.getEventType() : null;
+                        loc.updatedAt = p.getLocationUpdatedAt() != null
+                                ? OffsetDateTime.ofInstant(p.getLocationUpdatedAt(), ZoneOffset.UTC)
+                                : null;
+                        r.currentLocation = loc;
+                    } else if (last != null && last.getLatitude() != null && last.getLongitude() != null) {
                         TrackingResponse.CurrentLocation loc = new TrackingResponse.CurrentLocation();
                         loc.latitude = last.getLatitude();
                         loc.longitude = last.getLongitude();

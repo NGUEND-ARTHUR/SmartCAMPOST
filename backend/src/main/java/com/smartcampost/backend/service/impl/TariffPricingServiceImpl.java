@@ -12,6 +12,7 @@ import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PricingDetailRepository;
 import com.smartcampost.backend.repository.TariffRepository;
 import com.smartcampost.backend.service.TariffPricingService;
+import com.smartcampost.backend.util.WeightBracketResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +46,8 @@ public class TariffPricingServiceImpl implements TariffPricingService {
             throw new RuntimeException("Invalid service type: " + request.getServiceType());
         }
 
-        // 2) Déterminer le weightBracket (selon ta convention)
-        String weightBracket = resolveWeightBracket(request.getWeight());
+        // 2) Déterminer le weightBracket
+        String weightBracket = WeightBracketResolver.resolve(request.getWeight());
 
         // 3) Chercher le tarif correspondant
         Tariff tariff = tariffRepository
@@ -97,16 +98,5 @@ public class TariffPricingServiceImpl implements TariffPricingService {
                 .basePrice(basePrice)
                 .applied(applied)
                 .build();
-    }
-
-    /**
-     * Simple règle de mapping poids -> weightBracket.
-     * Adapte en fonction des valeurs que tu as réellement en base.
-     */
-    private String resolveWeightBracket(double weight) {
-        if (weight <= 1.0) return "0-1";
-        if (weight <= 5.0) return "1-5";
-        if (weight <= 10.0) return "5-10";
-        return "10+";
     }
 }

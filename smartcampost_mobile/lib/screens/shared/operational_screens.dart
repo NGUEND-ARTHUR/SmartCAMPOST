@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -60,13 +61,39 @@ class _ClientPickupsScreenState extends State<ClientPickupsScreen> {
     if (mounted) setState(() => _loading = false);
   }
 
+  Future<Position> _getCurrentPositionOrThrow() async {
+    bool enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      throw Exception('Location services are disabled. Please enable GPS.');
+    }
+    LocationPermission perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied) {
+      throw Exception('Location permission denied.');
+    }
+    if (perm == LocationPermission.deniedForever) {
+      throw Exception('Location permission permanently denied. Enable it in settings.');
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
+    );
+  }
+
   Future<void> _createPickup() async {
     final parcelId = _parcelController.text.trim();
     if (parcelId.isEmpty) return;
     try {
+      final pos = await _getCurrentPositionOrThrow();
       await PickupService().createPickup({
         'parcelId': parcelId,
-        'address': _addressController.text.trim(),
+        'pickupLatitude': pos.latitude,
+        'pickupLongitude': pos.longitude,
+        'comment': _addressController.text.trim(),
         'timeWindow': _windowController.text.trim(),
       });
       if (mounted) Navigator.pop(context);
@@ -116,7 +143,7 @@ class _ClientPickupsScreenState extends State<ClientPickupsScreen> {
               controller: _addressController,
               maxLines: 2,
               decoration: const InputDecoration(
-                labelText: 'Pickup address',
+                labelText: 'Address notes / landmark (optional)',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -126,6 +153,13 @@ class _ClientPickupsScreenState extends State<ClientPickupsScreen> {
               decoration: const InputDecoration(
                 labelText: 'Preferred time window',
                 border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your current GPS location will be captured automatically as the pickup point.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
               ),
             ),
             const SizedBox(height: 16),
@@ -202,9 +236,18 @@ class SupportCenterScreen extends StatefulWidget {
 class _SupportCenterScreenState extends State<SupportCenterScreen> {
   final _subjectController = TextEditingController();
   final _descriptionController = TextEditingController();
+  String _category = 'OTHER';
   List<SupportTicket> _tickets = [];
   bool _loading = true;
   String? _error;
+
+  static const _categories = [
+    'COMPLAINT',
+    'CLAIM',
+    'TECHNICAL',
+    'PAYMENT',
+    'OTHER',
+  ];
 
   @override
   void initState() {
@@ -239,9 +282,8 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
     try {
       await SupportService().createTicket({
         'subject': subject,
-        'description': _descriptionController.text.trim(),
-        'category': 'GENERAL',
-        'priority': 'NORMAL',
+        'message': _descriptionController.text.trim(),
+        'category': _category,
       });
       if (mounted) Navigator.pop(context);
       _subjectController.clear();
@@ -259,7 +301,8 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => Padding(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
         padding: EdgeInsets.fromLTRB(
           20,
           20,
@@ -285,6 +328,22 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _category,
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+              ),
+              items: _categories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setSheetState(() => _category = value);
+                }
+              },
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _descriptionController,
               minLines: 3,
@@ -305,6 +364,7 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -347,8 +407,11 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
                                 ticket.category,
                                 ticket.description,
                               ].whereType<String>().join('\n'),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             isThreeLine: true,
+                            onTap: () => context.push('/support/${ticket.id}'),
                           ),
                         );
                       },
@@ -1063,14 +1126,13 @@ class AddressBookScreen extends StatefulWidget {
 
 class _AddressBookScreenState extends State<AddressBookScreen> {
   final _labelController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _lineController = TextEditingController();
+  final _streetController = TextEditingController();
   final _cityController = TextEditingController();
   final _regionController = TextEditingController();
   List<Address> _addresses = [];
   bool _loading = true;
   String? _error;
+  String? _editingId;
 
   @override
   void initState() {
@@ -1081,9 +1143,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
   @override
   void dispose() {
     _labelController.dispose();
-    _nameController.dispose();
-    _phoneController.dispose();
-    _lineController.dispose();
+    _streetController.dispose();
     _cityController.dispose();
     _regionController.dispose();
     super.dispose();
@@ -1103,26 +1163,50 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
     if (mounted) setState(() => _loading = false);
   }
 
+  Future<Position?> _tryGetCurrentPosition() async {
+    try {
+      final enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) return null;
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        return null;
+      }
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _save() async {
     final city = _cityController.text.trim();
     if (city.isEmpty) return;
     try {
-      await AddressService().createAddress({
+      final pos = await _tryGetCurrentPosition();
+      final data = {
         'label': _labelController.text.trim(),
-        'fullName': _nameController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'addressLine': _lineController.text.trim(),
+        'street': _streetController.text.trim(),
         'city': city,
         'region': _regionController.text.trim(),
         'country': 'Cameroon',
-      });
+        if (pos != null) 'latitude': pos.latitude,
+        if (pos != null) 'longitude': pos.longitude,
+      };
+      if (_editingId != null) {
+        await AddressService().updateAddress(_editingId!, data);
+      } else {
+        await AddressService().createAddress(data);
+      }
       if (mounted) Navigator.pop(context);
-      _labelController.clear();
-      _nameController.clear();
-      _phoneController.clear();
-      _lineController.clear();
-      _cityController.clear();
-      _regionController.clear();
+      _resetForm();
       await _load();
     } catch (e) {
       if (!mounted) return;
@@ -1132,7 +1216,59 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
     }
   }
 
-  void _showCreateSheet() {
+  void _resetForm() {
+    _editingId = null;
+    _labelController.clear();
+    _streetController.clear();
+    _cityController.clear();
+    _regionController.clear();
+  }
+
+  Future<void> _delete(Address a) async {
+    if (a.id == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(_tr(context, 'delete_address')),
+        content: Text(_tr(context, 'confirm_delete_address')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(_tr(context, 'cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              _tr(context, 'delete'),
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await AddressService().deleteAddress(a.id!);
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+    }
+  }
+
+  void _showFormSheet({Address? editing}) {
+    if (editing != null) {
+      _editingId = editing.id;
+      _labelController.text = editing.label ?? '';
+      _streetController.text = editing.street ?? '';
+      _cityController.text = editing.city ?? '';
+      _regionController.text = editing.region ?? '';
+    } else {
+      _resetForm();
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1149,7 +1285,9 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Add address',
+                editing != null
+                    ? _tr(context, 'edit_address')
+                    : _tr(context, 'add_address'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
@@ -1158,17 +1296,8 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                 decoration: const InputDecoration(labelText: 'Label'),
               ),
               TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Full name'),
-              ),
-              TextField(
-                controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone'),
-                keyboardType: TextInputType.phone,
-              ),
-              TextField(
-                controller: _lineController,
-                decoration: const InputDecoration(labelText: 'Address line'),
+                controller: _streetController,
+                decoration: const InputDecoration(labelText: 'Street'),
               ),
               TextField(
                 controller: _cityController,
@@ -1202,7 +1331,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
         actions: const [LanguageSwitchAction()],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateSheet,
+        onPressed: () => _showFormSheet(),
         icon: const Icon(Icons.add_location_alt),
         label: Text(_tr(context, 'add')),
       ),
@@ -1233,6 +1362,14 @@ class _AddressBookScreenState extends State<AddressBookScreen> {
                                 a.region,
                                 a.country,
                               ].whereType<String>().join(', '),
+                            ),
+                            onTap: () => _showFormSheet(editing: a),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
+                              onPressed: () => _delete(a),
                             ),
                           ),
                         );

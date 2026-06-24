@@ -3,6 +3,7 @@ package com.smartcampost.backend.controller;
 import com.smartcampost.backend.dto.address.AddressResponse;
 import com.smartcampost.backend.dto.address.UpsertAddressRequest;
 import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Address;
@@ -11,9 +12,11 @@ import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.AddressRepository;
 import com.smartcampost.backend.repository.ClientRepository;
+import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +29,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/addresses")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CLIENT')")
 public class AddressController {
 
     private final AddressRepository addressRepository;
     private final ClientRepository clientRepository;
     private final UserAccountRepository userAccountRepository;
+    private final ParcelRepository parcelRepository;
 
     @GetMapping("/me")
     public List<AddressResponse> listMyAddresses() {
@@ -88,6 +93,12 @@ public class AddressController {
     @DeleteMapping("/{addressId}")
     public void deleteMyAddress(@PathVariable UUID addressId) {
         Address address = getOwnedAddress(addressId);
+        if (parcelRepository.existsBySenderAddress_IdOrRecipientAddress_Id(addressId, addressId)) {
+            throw new ConflictException(
+                    "This address is used by an existing parcel and cannot be deleted",
+                    ErrorCode.ADDRESS_IN_USE
+            );
+        }
         addressRepository.delete(address);
     }
 

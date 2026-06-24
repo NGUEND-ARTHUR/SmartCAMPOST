@@ -112,8 +112,10 @@ class SupportService {
   final ApiClient _api = ApiClient();
 
   Future<List<SupportTicket>> getMyTickets() async {
-    final data = await _api.get<List<dynamic>>('/support/tickets/me');
-    return data
+    // Backend returns a paginated Page<TicketResponse>, not a bare array.
+    final data = await _api.get<Map<String, dynamic>>('/support/tickets/me');
+    final content = data['content'] as List<dynamic>? ?? [];
+    return content
         .map((e) => SupportTicket.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -134,9 +136,11 @@ class SupportService {
   }
 
   Future<SupportTicket> replyToTicket(String id, String message) async {
+    // Backend's TicketReplyRequest only has `replyMessage` — sending `message`
+    // alone fails @NotBlank validation on replyMessage.
     return _api.post(
       '/support/tickets/$id/reply',
-      data: {'message': message},
+      data: {'replyMessage': message},
       fromJson: (d) => SupportTicket.fromJson(d),
     );
   }
@@ -148,21 +152,13 @@ class DashboardService {
   Future<Map<String, dynamic>> getDashboardStats() async {
     return _api.get<Map<String, dynamic>>('/dashboard/summary');
   }
-
-  Future<Map<String, dynamic>> getSentimentAnalysis() async {
-    return _api.get<Map<String, dynamic>>('/analytics/sentiment');
-  }
-
-  Future<Map<String, dynamic>> getSmartNotifications() async {
-    return _api.get<Map<String, dynamic>>('/analytics/smart-notifications');
-  }
 }
 
 class TariffService {
   final ApiClient _api = ApiClient();
 
   Future<List<dynamic>> getTariffs() async {
-    return _api.get<List<dynamic>>('/tariffs');
+    return _extractItems(await _api.get<dynamic>('/tariffs'));
   }
 
   Future<Map<String, dynamic>> calculatePrice(Map<String, dynamic> data) async {
@@ -173,10 +169,14 @@ class TariffService {
 class AiService {
   final ApiClient _api = ApiClient();
 
-  Future<Map<String, dynamic>> chat(String message) async {
+  Future<Map<String, dynamic>> chat(String message, {String? sessionId, String? context}) async {
     return _api.post<Map<String, dynamic>>(
       '/ai/chat',
-      data: {'message': message},
+      data: {
+        'message': message,
+        if (sessionId != null) 'sessionId': sessionId,
+        if (context != null) 'context': context,
+      },
     );
   }
 }
@@ -268,6 +268,10 @@ class InvoiceService {
     return _extractItems(
       await _api.get<dynamic>('/invoices/by-parcel/$parcelId'),
     );
+  }
+
+  String pdfUrl(String invoiceId) {
+    return '${ApiClient().dio.options.baseUrl}/invoices/$invoiceId/pdf';
   }
 }
 

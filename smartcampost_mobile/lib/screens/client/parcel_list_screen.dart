@@ -50,7 +50,12 @@ class _ParcelListScreenState extends State<ParcelListScreen> {
       appBar: AppBar(title: Text(tr('my_parcels'))),
       body: RefreshIndicator(
         onRefresh: () => parcels.loadMyParcels(refresh: true),
-        child: parcels.parcels.isEmpty && !parcels.isLoading
+        child: parcels.error != null && parcels.parcels.isEmpty
+            ? ErrorRetryWidget(
+                message: parcels.error!,
+                onRetry: () => parcels.loadMyParcels(refresh: true),
+              )
+            : parcels.parcels.isEmpty && !parcels.isLoading
             ? ListView(
                 children: [
                   const SizedBox(height: 100),

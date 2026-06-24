@@ -5,14 +5,17 @@ import com.smartcampost.backend.dto.logistics.GpsUpdateRequest;
 import com.smartcampost.backend.model.GpsTracker;
 import com.smartcampost.backend.model.Location;
 import com.smartcampost.backend.model.Parcel;
+import com.smartcampost.backend.model.ScanEvent;
 import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.repository.GpsTrackerRepository;
 import com.smartcampost.backend.repository.LocationRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
+import com.smartcampost.backend.repository.ScanEventRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.sse.SseEmitters;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +32,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/logistics")
 @RequiredArgsConstructor
+@Slf4j
 public class LogisticsRealtimeController {
 
     private static final List<ParcelStatus> ACTIVE_STATUSES = List.of(
@@ -37,10 +41,17 @@ public class LogisticsRealtimeController {
             ParcelStatus.OUT_FOR_DELIVERY
     );
 
+    // Same role set trusted with GET /api/logistics/live — nationwide GPS data must never
+    // reach a CLIENT, even one connected to the shared /api/stream/ai channel for AI chat.
+    private static final Set<String> GPS_VISIBLE_AUTHORITIES = Set.of(
+            "ROLE_ADMIN", "ROLE_STAFF", "ROLE_RISK", "ROLE_COURIER", "ROLE_AGENT"
+    );
+
     private final GpsTrackerRepository gpsTrackerRepository;
     private final LocationRepository locationRepository;
     private final ParcelRepository parcelRepository;
     private final UserAccountRepository userAccountRepository;
+    private final ScanEventRepository scanEventRepository;
     private final SseEmitters sseEmitters;
 
     @GetMapping("/trackers")
@@ -87,9 +98,43 @@ public class LogisticsRealtimeController {
     ) {
         String actorKey = resolveActorKey(principal);
         Location saved = saveLocation(actorKey, "MOBILE_GPS", request);
+
+        // Also update any parcels associated with this courier/actor, and notify their
+        // individual public tracking pages.
+        List<Parcel> updatedParcels = updateAssociatedParcels(actorKey, request.getLatitude(), request.getLongitude());
+        notifyTrackingSubscribers(updatedParcels);
+
         Map<String, Object> payload = livePayload("mobile", actorKey, saved, request.getSpeed(), request.getHeading());
-        sseEmitters.emitAiEvent("gps-update", payload);
+        sseEmitters.emitAiEventToRoles("gps-update", payload, GPS_VISIBLE_AUTHORITIES);
         return ResponseEntity.ok(payload);
+    }
+
+    /**
+     * Batch GPS sync — accepts an array of cached location points
+     * from the mobile app (offline mode). Each point has its original timestamp.
+     */
+    @PostMapping("/gps/mobile/batch")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','STAFF','ADMIN')")
+    public ResponseEntity<Map<String, Object>> batchMobileGps(
+            @RequestBody List<GpsUpdateRequest> requests,
+            Principal principal
+    ) {
+        String actorKey = resolveActorKey(principal);
+        int saved = 0;
+        for (GpsUpdateRequest req : requests) {
+            try {
+                saveLocation(actorKey, "MOBILE_GPS", req);
+                saved++;
+            } catch (Exception e) {
+                log.warn("Batch GPS point failed: {}", e.getMessage());
+            }
+        }
+        if (!requests.isEmpty()) {
+            GpsUpdateRequest last = requests.get(requests.size() - 1);
+            List<Parcel> updated = updateAssociatedParcels(actorKey, last.getLatitude(), last.getLongitude());
+            notifyTrackingSubscribers(updated);
+        }
+        return ResponseEntity.ok(Map.of("synced", saved, "total", requests.size()));
     }
 
     @PostMapping("/gps/iot")
@@ -108,11 +153,27 @@ public class LogisticsRealtimeController {
         tracker.setLastSeenAt(request.getTimestamp() == null ? Instant.now() : request.getTimestamp());
         gpsTrackerRepository.save(tracker);
 
+        // Update coordinates on the assigned parcel if tracker is assigned to a parcel
+        if (tracker.getAssignedType() != null && tracker.getAssignedType().equalsIgnoreCase("PARCEL") && tracker.getAssignedId() != null) {
+            try {
+                UUID parcelId = UUID.fromString(tracker.getAssignedId());
+                parcelRepository.findById(parcelId).ifPresent(parcel -> {
+                    parcel.setCurrentLatitude(request.getLatitude());
+                    parcel.setCurrentLongitude(request.getLongitude());
+                    parcel.setLocationUpdatedAt(Instant.now());
+                    parcelRepository.save(parcel);
+                    notifyTrackingSubscribers(List.of(parcel));
+                });
+            } catch (IllegalArgumentException e) {
+                // assignedId is not a valid UUID; tracker is not assigned to a parcel
+            }
+        }
+
         String actorKey = tracker.getAssignedId() == null ? tracker.getDeviceId() : tracker.getAssignedId();
         Location saved = saveLocation(actorKey, "IOT_GPS", request);
         Map<String, Object> payload = livePayload("iot", actorKey, saved, request.getSpeed(), request.getHeading());
         payload.put("tracker", tracker);
-        sseEmitters.emitAiEvent("gps-update", payload);
+        sseEmitters.emitAiEventToRoles("gps-update", payload, GPS_VISIBLE_AUTHORITIES);
         return ResponseEntity.ok(payload);
     }
 
@@ -245,15 +306,17 @@ public class LogisticsRealtimeController {
     }
 
     private Map<String, Object> inheritedParcel(Parcel parcel, Map<String, Location> latestByActor) {
-        Location location = latestByActor.values().stream().findFirst().orElse(null);
-        if (location == null && parcel.getCurrentLatitude() != null && parcel.getCurrentLongitude() != null) {
+        // Prioritize the parcel's own active GPS coordinates updated in real-time
+        if (parcel.getCurrentLatitude() != null && parcel.getCurrentLongitude() != null) {
             Map<String, Object> out = parcelBase(parcel);
             out.put("latitude", parcel.getCurrentLatitude());
             out.put("longitude", parcel.getCurrentLongitude());
-            out.put("source", "PARCEL_SCAN");
+            out.put("source", "PARCEL_ACTIVE_GPS");
             out.put("timestamp", parcel.getLocationUpdatedAt());
             return out;
         }
+
+        Location location = latestByActor.values().stream().findFirst().orElse(null);
         if (location == null) return null;
         Map<String, Object> out = parcelBase(parcel);
         out.put("latitude", location.getLatitude());
@@ -262,6 +325,37 @@ public class LogisticsRealtimeController {
         out.put("actorId", location.getUserId());
         out.put("timestamp", location.getTimestamp());
         return out;
+    }
+
+    private List<Parcel> updateAssociatedParcels(String actorKey, Double latitude, Double longitude) {
+        if (actorKey == null || actorKey.equals("anonymous")) return List.of();
+        List<Parcel> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES, PageRequest.of(0, 500)).getContent();
+        Instant now = Instant.now();
+        List<Parcel> updated = new ArrayList<>();
+        for (Parcel parcel : activeParcels) {
+            List<ScanEvent> events = scanEventRepository.findByParcel_IdOrderByTimestampAsc(parcel.getId());
+            if (!events.isEmpty()) {
+                ScanEvent latestEvent = events.get(events.size() - 1);
+                if (actorKey.equals(latestEvent.getActorId())) {
+                    parcel.setCurrentLatitude(latitude);
+                    parcel.setCurrentLongitude(longitude);
+                    parcel.setLocationUpdatedAt(now);
+                    updated.add(parcelRepository.save(parcel));
+                }
+            }
+        }
+        return updated;
+    }
+
+    /** Pushes a live position update only to public tracking pages watching these specific parcels. */
+    private void notifyTrackingSubscribers(List<Parcel> updatedParcels) {
+        for (Parcel parcel : updatedParcels) {
+            if (parcel.getTrackingRef() == null) continue;
+            Map<String, Object> scoped = new LinkedHashMap<>();
+            scoped.put("inheritedParcels", List.of(inheritedParcel(parcel, Map.of())));
+            scoped.put("updatedAt", Instant.now());
+            sseEmitters.emitTrackingUpdate("gps-update", parcel.getTrackingRef(), scoped);
+        }
     }
 
     private Map<String, Object> parcelBase(Parcel parcel) {

@@ -53,10 +53,11 @@ public class DeliveryController {
         return ResponseEntity.ok().build();
     }
 
-    // (optionnel mais utile) endpoint dédié pour juste vérifier l’OTP
+    // Early UX check only — does NOT consume the OTP. The OTP is actually consumed by
+    // /delivery/complete (or /delivery/final), which is the action that finalizes delivery.
     @PostMapping("/otp/verify")
     public ResponseEntity<Boolean> verifyDeliveryOtp(@RequestBody DeliveryOtpVerificationRequest request) {
-        boolean valid = deliveryOtpService.validateDeliveryOtp(request.getParcelId(), request.getOtpCode());
+        boolean valid = deliveryOtpService.checkDeliveryOtp(request.getParcelId(), request.getOtpCode());
 
         // Record OTP_VERIFIED only when valid (GPS mandatory)
         if (valid) {

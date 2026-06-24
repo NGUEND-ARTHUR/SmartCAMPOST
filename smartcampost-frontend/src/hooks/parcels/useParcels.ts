@@ -10,6 +10,7 @@ import {
   UpdateParcelStatusRequest,
   ChangeDeliveryOptionRequest,
   UpdateParcelMetadataRequest,
+  ParcelCorrectionRequest,
 } from "@/services";
 
 export const parcelKeys = {
@@ -135,6 +136,31 @@ export function useChangeDeliveryOption() {
     }) => parcelService.changeDeliveryOption(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: parcelKeys.detail(id) });
+    },
+  });
+}
+
+export function useCanCorrectParcel(id: string) {
+  return useQuery({
+    queryKey: [...parcelKeys.detail(id), "can-correct"] as const,
+    queryFn: () => parcelService.canCorrect(id),
+    enabled: !!id,
+  });
+}
+
+export function useCorrectParcel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: ParcelCorrectionRequest;
+    }) => parcelService.correctBeforeValidation(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: parcelKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: parcelKeys.lists() });
     },
   });
 }

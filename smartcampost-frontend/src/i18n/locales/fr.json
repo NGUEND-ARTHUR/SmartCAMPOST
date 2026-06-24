@@ -457,15 +457,22 @@
       "trackingTimelineDescription": "Historique complet des scans et événements de statut",
       "codPayment": "Paiement à la livraison",
       "codPaymentDescription": "Statut du paiement à la livraison",
+      "mobileMoneyPayment": "Paiement Mobile Money",
+      "mobileMoneyPaymentDescription": "Payez ce colis maintenant avec MTN Mobile Money",
       "amountDue": "Montant dû",
       "alreadyPaid": "Déjà payé",
       "markCodAsPaid": "Marquer COD comme payé",
+      "pricingHistory": "Historique des prix",
+      "pricingHistoryDescription": "Historique de chaque prix calculé pour ce colis",
+      "noPricingHistory": "Aucun historique de prix",
       "actions": {
         "viewPhoto": "Voir la photo",
         "downloadReceipt": "Télécharger le reçu",
         "reportIssue": "Signaler un problème",
         "accept": "Accepter",
         "validateAccept": "Valider et accepter",
+        "correct": "Corriger les détails",
+        "payWithMomo": "Payer avec MTN Mobile Money",
         "validateLock": "Valider et verrouiller (QR final)",
         "cancel": "Annuler le colis",
         "noPhotoAvailable": "Aucune photo disponible pour ce colis",
@@ -477,11 +484,20 @@
         "viewProof": "Voir la photo preuve"
       }
     },
+    "prompts": {
+      "confirmDescription": "Confirmer que la description est exacte ? (o/n)",
+      "optionalPhotoUrl": "Optionnel : collez l'URL de la photo ou laissez vide",
+      "correctWeight": "Poids corrigé (kg) — laissez vide pour conserver la valeur actuelle",
+      "correctDeclaredValue": "Valeur déclarée corrigée (XAF) — laissez vide pour conserver la valeur actuelle",
+      "correctionReason": "Motif de la correction (facultatif, conservé dans l'historique d'audit)"
+    },
     "toasts": {
       "accepted": "Colis accepté",
       "acceptFailed": "Échec de l'acceptation",
       "validatedAccepted": "Colis validé et accepté",
       "validationFailed": "Échec de la validation",
+      "corrected": "Détails du colis corrigés",
+      "correctionFailed": "Échec de la correction",
       "lockedFinalQr": "Colis validé et verrouillé (QR FINAL)",
       "validateLockFailed": "Échec de la validation et du verrouillage",
       "cancelled": "Colis annulé",
@@ -559,6 +575,7 @@
       "added": "Adresse ajoutée avec succès",
       "deleted": "Adresse supprimée avec succès"
     },
+    "confirmDelete": "Supprimer cette adresse ? Cette action est irréversible.",
     "loading": "Chargement des adresses..."
   },
   "pickups": {
@@ -921,6 +938,10 @@
       "action": "Mettre à jour l'agence",
       "success": "Agence mise à jour avec succès",
       "error": "Échec de la mise à jour de l'agence"
+    },
+    "delete": {
+      "success": "Agence supprimée avec succès",
+      "error": "Échec de la suppression de l'agence"
     },
     "form": {
       "name": "Nom de l'agence",

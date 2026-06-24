@@ -1,10 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/parcel.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/delivery_service.dart';
+import 'package:smartcampost_mobile/widgets/success_animation.dart';
 
 class DeliveryConfirmationScreen extends StatefulWidget {
   final Parcel parcel;
@@ -20,15 +25,32 @@ class _DeliveryConfirmationScreenState
     extends State<DeliveryConfirmationScreen> {
   final _otpController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _receiverNameController = TextEditingController();
+  final _amountController = TextEditingController();
+  XFile? _photo;
   bool _otpSent = false;
   bool _isSending = false;
-  bool _isVerifying = false;
+  bool _isCompleting = false;
   String? _error;
+
+  bool get _isCod =>
+      (widget.parcel.paymentOption ?? '').toUpperCase() == 'COD';
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isCod && widget.parcel.lastAppliedPrice != null) {
+      _amountController.text = widget.parcel.lastAppliedPrice!
+          .toStringAsFixed(0);
+    }
+  }
 
   @override
   void dispose() {
     _otpController.dispose();
     _phoneController.dispose();
+    _receiverNameController.dispose();
+    _amountController.dispose();
     super.dispose();
   }
 
@@ -53,6 +75,21 @@ class _DeliveryConfirmationScreenState
         timeLimit: Duration(seconds: 10),
       ),
     );
+  }
+
+  Future<void> _pickPhoto() async {
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1280,
+        imageQuality: 70,
+      );
+      if (picked != null && mounted) setState(() => _photo = picked);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
+    }
   }
 
   Future<void> _sendOtp() async {
@@ -82,7 +119,7 @@ class _DeliveryConfirmationScreenState
     if (mounted) setState(() => _isSending = false);
   }
 
-  Future<void> _verifyOtp() async {
+  Future<void> _confirmDelivery() async {
     final code = _otpController.text.trim();
     if (code.length < 4) {
       setState(
@@ -90,33 +127,82 @@ class _DeliveryConfirmationScreenState
       );
       return;
     }
+    double? amountCollected;
+    if (_isCod) {
+      amountCollected = double.tryParse(_amountController.text.trim());
+      if (amountCollected == null || amountCollected <= 0) {
+        setState(
+          () => _error = context.read<LocaleProvider>().tr('enter_valid_amount'),
+        );
+        return;
+      }
+    }
+
     setState(() {
-      _isVerifying = true;
+      _isCompleting = true;
       _error = null;
     });
     try {
       final pos = await _getCurrentPositionOrThrow();
-      await DeliveryService().verifyDeliveryOtp(
+
+      final valid = await DeliveryService().verifyDeliveryOtp(
         parcelId: widget.parcel.id,
         otpCode: code,
         latitude: pos.latitude,
         longitude: pos.longitude,
       );
+      if (!valid) {
+        if (mounted) {
+          setState(
+            () => _error = context.read<LocaleProvider>().tr('invalid_otp_code'),
+          );
+        }
+        return;
+      }
+
+      String? photoUrl;
+      if (_photo != null) {
+        final bytes = await File(_photo!.path).readAsBytes();
+        photoUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      }
+
+      await DeliveryService().completeDelivery({
+        'parcelId': widget.parcel.id,
+        'otpCode': code,
+        'proofType': photoUrl != null ? 'PHOTO' : 'OTP',
+        if (photoUrl != null) 'photoUrl': photoUrl,
+        if (_receiverNameController.text.trim().isNotEmpty)
+          'receiverName': _receiverNameController.text.trim(),
+        'latitude': pos.latitude,
+        'longitude': pos.longitude,
+        if (_isCod) 'paymentCollected': true,
+        if (_isCod) 'amountCollected': amountCollected,
+        if (_isCod) 'paymentMethod': 'CASH',
+      });
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.read<LocaleProvider>().tr('delivery_confirmed'),
+        final confirmMsg = context.read<LocaleProvider>().tr('delivery_confirmed');
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => Dialog(
+            backgroundColor: Theme.of(ctx).cardColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: SuccessAnimation(
+              message: confirmMsg,
+              subtitle: widget.parcel.displayRef,
+              onDone: () {
+                Navigator.pop(ctx);
+                Navigator.pop(context, true);
+              },
             ),
-            backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     }
-    if (mounted) setState(() => _isVerifying = false);
+    if (mounted) setState(() => _isCompleting = false);
   }
 
   @override
@@ -125,7 +211,7 @@ class _DeliveryConfirmationScreenState
 
     return Scaffold(
       appBar: AppBar(title: Text(tr('confirm_delivery'))),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,16 +293,63 @@ class _DeliveryConfirmationScreenState
                   prefixIcon: const Icon(Icons.lock_outline),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: _receiverNameController,
+                decoration: InputDecoration(
+                  labelText: tr('receiver_name_optional'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person_outline),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Text(
+                tr('proof_photo_optional'),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              if (_photo != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(_photo!.path),
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _pickPhoto,
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: Text(_photo == null ? tr('take_photo') : tr('retake_photo')),
+              ),
+
+              if (_isCod) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: tr('amount_collected_xaf'),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.payments_outlined),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isVerifying ? null : _verifyOtp,
+                  onPressed: _isCompleting ? null : _confirmDelivery,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.accentColor,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  icon: _isVerifying
+                  icon: _isCompleting
                       ? const SizedBox(
                           width: 18,
                           height: 18,
@@ -227,7 +360,7 @@ class _DeliveryConfirmationScreenState
                         )
                       : const Icon(Icons.check_circle),
                   label: Text(
-                    _isVerifying ? tr('verifying') : tr('confirm_delivery'),
+                    _isCompleting ? tr('verifying') : tr('confirm_delivery'),
                   ),
                 ),
               ),
@@ -264,7 +397,7 @@ class _InfoRow extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
           ),
           Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),

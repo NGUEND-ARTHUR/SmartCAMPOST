@@ -7,8 +7,10 @@ class DeliveryService {
     await _api.post('/delivery/start', data: data);
   }
 
-  Future<void> completeDelivery(Map<String, dynamic> data) async {
-    await _api.post('/delivery/complete', data: data);
+  Future<Map<String, dynamic>> completeDelivery(
+    Map<String, dynamic> data,
+  ) async {
+    return _api.post<Map<String, dynamic>>('/delivery/complete', data: data);
   }
 
   Future<void> sendDeliveryOtp({
@@ -28,13 +30,14 @@ class DeliveryService {
     );
   }
 
-  Future<void> verifyDeliveryOtp({
+  /// Checks the OTP without consuming it. Returns false for a wrong/expired code.
+  Future<bool> verifyDeliveryOtp({
     required String parcelId,
     required String otpCode,
     double? latitude,
     double? longitude,
   }) async {
-    await _api.post(
+    return _api.post<bool>(
       '/delivery/otp/verify',
       data: {
         'parcelId': parcelId,

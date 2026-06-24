@@ -1,6 +1,7 @@
 package com.smartcampost.backend.service;
 import com.smartcampost.backend.dto.analytics.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 public interface AnalyticsService {
@@ -16,4 +17,6 @@ public interface AnalyticsService {
     SmartNotificationResponse getSmartNotifications();
 
     AddressValidationResponse validateAddress(AddressValidationRequest request);
+
+    Map<String, Object> getRouteOptimization();
 }

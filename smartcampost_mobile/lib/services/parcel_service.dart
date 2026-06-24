@@ -67,6 +67,8 @@ class ParcelService {
 
   Future<Parcel> validateAndLock(
     String id, {
+    required double latitude,
+    required double longitude,
     double? validatedWeight,
     String? validatedDimensions,
     String? validationComment,
@@ -74,6 +76,7 @@ class ParcelService {
   }) async {
     return _api.post(
       '/parcels/$id/validate-and-lock',
+      queryParameters: {'latitude': latitude, 'longitude': longitude},
       data: {
         if (validatedWeight != null) 'validatedWeight': validatedWeight,
         if (validatedDimensions != null) 'validatedDimensions': validatedDimensions,

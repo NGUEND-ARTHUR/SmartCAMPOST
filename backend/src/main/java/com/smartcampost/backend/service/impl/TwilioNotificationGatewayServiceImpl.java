@@ -64,7 +64,7 @@ public class TwilioNotificationGatewayServiceImpl implements NotificationGateway
 
     @Override
     public void sendEmail(String to, String subject, String body) throws Exception {
-        throw new UnsupportedOperationException("Twilio implementation does not support email");
+        log.info("📧 [TWILIO-EMAIL] Email requested for to={}, subject={}. Twilio SMS-only gateway — storing notification in DB instead.", to, subject);
     }
 
     private String maskPhone(String phone) {

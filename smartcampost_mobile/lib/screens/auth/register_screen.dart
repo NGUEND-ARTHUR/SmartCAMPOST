@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
@@ -182,12 +183,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppTheme.errorColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.2)),
                     ),
-                    child: Text(
-                      auth.error!,
-                      style: TextStyle(color: Colors.red[700]),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, size: 18, color: AppTheme.errorColor),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(auth.error!, style: AppTheme.caption.copyWith(color: AppTheme.errorColor, fontWeight: FontWeight.w500))),
+                      ],
                     ),
                   ),
                 SizedBox(
@@ -216,7 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
                         tr('or'),
-                        style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                        style: AppTheme.caption,
                       ),
                     ),
                     const Expanded(child: Divider()),
@@ -239,7 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     icon: _googleIcon(),
                     label: Text(tr('sign_up_with_google')),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey[300]!),
+                      side: const BorderSide(color: AppTheme.borderColor),
                     ),
                   ),
                 ),

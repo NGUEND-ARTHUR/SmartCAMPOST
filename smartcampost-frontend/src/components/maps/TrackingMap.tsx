@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
 import {
   AnimatedRouteMarker,
+  SmoothMarker,
   type RouteAnimationState,
 } from "@/components/maps/core/SmoothMarker";
 import { LAYER_COLORS } from "@/components/maps/core/mapStyles";
@@ -376,7 +377,7 @@ export default function TrackingMap({
               zoom={safeZoom}
               height="100%"
               showControls
-              showSearch={false}
+              showSearch={true}
               className="rounded-none border-0"
               pitch={35}
               show3DBuildings
@@ -482,14 +483,14 @@ export default function TrackingMap({
 
             {/* Live actors: parcel, assigned courier, agent, and agency locations */}
             {synthesizedActors.map((actor) => (
-              <Marker
+              <SmoothMarker
                 key={actor.id}
-                longitude={actor.longitude}
-                latitude={actor.latitude}
+                position={[actor.latitude, actor.longitude]}
+                durationMs={1500}
                 anchor="center"
               >
                 <ActorMarkerIcon actor={actor} />
-              </Marker>
+              </SmoothMarker>
             ))}
 
             {/* Event popup */}

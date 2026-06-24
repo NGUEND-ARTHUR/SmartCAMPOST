@@ -470,15 +470,22 @@
       "trackingTimelineDescription": "Complete history of scan and status events",
       "codPayment": "COD Payment",
       "codPaymentDescription": "Cash on delivery payment status",
+      "mobileMoneyPayment": "Mobile Money Payment",
+      "mobileMoneyPaymentDescription": "Pay for this parcel now with MTN Mobile Money",
       "amountDue": "Amount Due",
       "alreadyPaid": "Already Paid",
       "markCodAsPaid": "Mark COD as Paid",
+      "pricingHistory": "Pricing History",
+      "pricingHistoryDescription": "Record of every price calculated for this parcel",
+      "noPricingHistory": "No pricing history yet",
       "actions": {
         "viewPhoto": "View Photo",
         "downloadReceipt": "Download Receipt",
         "reportIssue": "Report Issue",
         "accept": "Accept",
         "validateAccept": "Validate & Accept",
+        "correct": "Correct Details",
+        "payWithMomo": "Pay with MTN Mobile Money",
         "validateLock": "Validate & Lock (Final QR)",
         "cancel": "Cancel Parcel",
         "noPhotoAvailable": "No photo available for this parcel",
@@ -492,13 +499,18 @@
     },
     "prompts": {
       "confirmDescription": "Confirm description is accurate? (y/n)",
-      "optionalPhotoUrl": "Optional: paste photo URL or leave blank"
+      "optionalPhotoUrl": "Optional: paste photo URL or leave blank",
+      "correctWeight": "Corrected weight (kg) — leave blank to keep current",
+      "correctDeclaredValue": "Corrected declared value (XAF) — leave blank to keep current",
+      "correctionReason": "Reason for correction (optional, kept in audit trail)"
     },
     "toasts": {
       "accepted": "Parcel accepted",
       "acceptFailed": "Accept failed",
       "validatedAccepted": "Parcel validated and accepted",
       "validationFailed": "Validation failed",
+      "corrected": "Parcel details corrected",
+      "correctionFailed": "Correction failed",
       "lockedFinalQr": "Parcel validated and locked (FINAL QR)",
       "validateLockFailed": "Validate & Lock failed",
       "cancelled": "Parcel cancelled",
@@ -589,6 +601,7 @@
       "added": "Address added successfully",
       "deleted": "Address deleted successfully"
     },
+    "confirmDelete": "Delete this address? This cannot be undone.",
     "tabs": {
       "form": "Address Details",
       "map": "Location on Map"
@@ -1801,6 +1814,10 @@
       "action": "Update Agency",
       "success": "Agency updated successfully",
       "error": "Failed to update agency"
+    },
+    "delete": {
+      "success": "Agency deleted successfully",
+      "error": "Failed to delete agency"
     },
     "form": {
       "name": "Agency Name",

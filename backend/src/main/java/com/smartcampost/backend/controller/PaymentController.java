@@ -3,6 +3,7 @@ package com.smartcampost.backend.controller;
 import com.smartcampost.backend.dto.payment.ConfirmPaymentRequest;
 import com.smartcampost.backend.dto.payment.InitPaymentRequest;
 import com.smartcampost.backend.dto.payment.PaymentResponse;
+import com.smartcampost.backend.security.ParcelAuthorizationService;
 import com.smartcampost.backend.service.PaymentService;
 import com.smartcampost.backend.service.PaymentService.PaymentSummary;
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final ParcelAuthorizationService parcelAuthorizationService;
 
     @PostMapping("/init")
     @PreAuthorize("isAuthenticated()")
@@ -47,8 +50,10 @@ public class PaymentController {
     @GetMapping("/parcel/{parcelId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<PaymentResponse>> getPaymentsForParcel(
-            @PathVariable UUID parcelId
+            @PathVariable UUID parcelId,
+            Authentication authentication
     ) {
+        parcelAuthorizationService.requireReadableParcel(parcelId, authentication);
         return ResponseEntity.ok(paymentService.getPaymentsForParcel(parcelId));
     }
 
@@ -104,11 +109,23 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.processDeliveryPayment(parcelId, paymentMethod, amount));
     }
 
+    /**
+     * Agent confirms cash payment received at agency.
+     * Creates a SUCCESS payment record + auto-generates invoice.
+     */
+    @PostMapping("/cash-confirm/{parcelId}")
+    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
+    public ResponseEntity<PaymentResponse> confirmCashPayment(@PathVariable UUID parcelId) {
+        return ResponseEntity.ok(paymentService.processPickupPayment(parcelId, "CASH", null));
+    }
+
     @GetMapping("/summary/{parcelId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PaymentSummary> getPaymentSummary(
-            @PathVariable UUID parcelId
+            @PathVariable UUID parcelId,
+            Authentication authentication
     ) {
+        parcelAuthorizationService.requireReadableParcel(parcelId, authentication);
         return ResponseEntity.ok(paymentService.getPaymentSummary(parcelId));
     }
 

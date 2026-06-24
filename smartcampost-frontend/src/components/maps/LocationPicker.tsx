@@ -28,12 +28,10 @@ import { isWithinCameroon } from "@/components/maps/core/cameroon";
 async function reverseGeocode(
   lat: number,
   lng: number,
-): Promise<{ city?: string; region?: string; displayName?: string } | null> {
+): Promise<LocationPickerResult | null> {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en&zoom=14`;
-    const res = await fetch(url, {
-      headers: { "User-Agent": "SmartCAMPOST/1.0" },
-    });
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en&zoom=18`;
+    const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
     const addr = data.address || {};
@@ -42,6 +40,8 @@ async function reverseGeocode(
         addr.city || addr.town || addr.village || addr.hamlet || addr.county,
       region: addr.state || addr.region,
       displayName: data.display_name,
+      street: addr.road || addr.street || addr.pedestrian || addr.path || addr.cycleway || addr.footway,
+      quarter: addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || addr.subdivision,
     };
   } catch {
     return null;
@@ -52,6 +52,8 @@ export interface LocationPickerResult {
   city?: string;
   region?: string;
   displayName?: string;
+  street?: string;
+  quarter?: string;
 }
 
 interface LocationPickerProps {
@@ -140,9 +142,17 @@ export default function LocationPicker({
         const label = [result.city, result.region].filter(Boolean).join(", ");
         setResolvedLabel(label || result.displayName || null);
         onLocationResolved?.(result);
+      } else {
+        setResolvedLabel(null);
+        toast.warning(
+          t(
+            "locationPicker.reverseGeocodeFailed",
+            "Couldn't auto-fill city/region for this location — please enter them manually.",
+          ),
+        );
       }
     },
-    [onLocationResolved],
+    [onLocationResolved, t],
   );
 
   // Follow device GPS location in real-time (until user selects a point)
@@ -479,12 +489,8 @@ export default function LocationPicker({
                     offset={[0, -42] as [number, number]}
                     closeButton={false}
                   >
-                    <div className="text-sm">
+                    <div className="text-sm font-medium">
                       Selected Location
-                      <br />
-                      Lat: {latitude.toFixed(6)}
-                      <br />
-                      Lng: {longitude.toFixed(6)}
                     </div>
                   </Popup>
                 </>
@@ -525,11 +531,12 @@ export default function LocationPicker({
           {/* Current Coordinates + Resolved Location Display */}
           {latitude != null && longitude != null && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium">Current Coordinates:</p>
-              <p className="text-sm text-muted-foreground">
-                Latitude: {latitude.toFixed(6)} | Longitude:{" "}
-                {longitude.toFixed(6)}
-              </p>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  Location Captured Successfully
+                </span>
+              </div>
               {isResolving && (
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />

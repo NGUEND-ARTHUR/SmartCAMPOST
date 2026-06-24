@@ -402,12 +402,11 @@ export function CreateParcel() {
                   </div>
 
                   {selectedLat != null && selectedLng != null && (
-                    <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm font-medium">Location selected</p>
-                      <p className="text-xs text-muted-foreground">
-                        Lat: {selectedLat.toFixed(6)} | Lng:{" "}
-                        {selectedLng.toFixed(6)}
-                      </p>
+                    <div className="p-3 bg-muted rounded-lg flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                        Map Location Captured Successfully
+                      </span>
                     </div>
                   )}
                 </TabsContent>
@@ -417,13 +416,18 @@ export function CreateParcel() {
                     latitude={selectedLat}
                     longitude={selectedLng}
                     compact
+                    allowManualInput={false}
                     onLocationChange={(lat, lng) => {
                       setSelectedLat(lat);
                       setSelectedLng(lng);
                     }}
                     onLocationResolved={(result) => {
+                      const fullStreet = [result.street, result.quarter]
+                        .filter(Boolean)
+                        .join(", ");
                       setAddressForm((prev) => ({
                         ...prev,
+                        street: fullStreet || prev.street,
                         city: result.city || prev.city,
                         region: result.region || prev.region,
                       }));

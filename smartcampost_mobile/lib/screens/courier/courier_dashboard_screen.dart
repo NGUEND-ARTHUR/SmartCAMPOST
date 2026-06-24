@@ -5,6 +5,7 @@ import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
+import 'package:smartcampost_mobile/services/location_tracker.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 
 class CourierDashboardScreen extends StatefulWidget {
@@ -42,11 +43,17 @@ class _CourierDashboardScreenState extends State<CourierDashboardScreen> {
       appBar: AppBar(
         title: Text(tr('courier_dashboard')),
         actions: [
+          _DutyToggleButton(),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () => context.push('/notifications'),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/ai-chat'),
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.smart_toy, color: Colors.white),
       ),
       body: RefreshIndicator(
         onRefresh: _loadStats,
@@ -205,7 +212,7 @@ class _StatCard extends StatelessWidget {
                 title,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
               ),
             ],
           ),
@@ -242,6 +249,54 @@ class _ActionTile extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
+    );
+  }
+}
+
+class _DutyToggleButton extends StatefulWidget {
+  @override
+  State<_DutyToggleButton> createState() => _DutyToggleButtonState();
+}
+
+class _DutyToggleButtonState extends State<_DutyToggleButton> {
+  bool _onDuty = LocationTracker.instance.isOnDuty;
+  bool _toggling = false;
+
+  Future<void> _toggle() async {
+    setState(() => _toggling = true);
+    final newState = !_onDuty;
+    await LocationTracker.instance.setDuty(newState);
+    if (mounted) {
+      setState(() {
+        _onDuty = newState;
+        _toggling = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(newState ? 'On duty — GPS tracking active' : 'Off duty — GPS tracking paused'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: _toggling
+          ? const Padding(
+              padding: EdgeInsets.all(12),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            )
+          : IconButton(
+              onPressed: _toggle,
+              tooltip: _onDuty ? 'Go off duty' : 'Go on duty',
+              icon: Icon(
+                _onDuty ? Icons.gps_fixed : Icons.gps_off,
+                color: _onDuty ? AppTheme.successColor : AppTheme.textTertiary,
+              ),
+            ),
     );
   }
 }

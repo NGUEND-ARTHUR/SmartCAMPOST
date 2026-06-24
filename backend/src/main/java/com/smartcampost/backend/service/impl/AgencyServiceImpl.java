@@ -2,6 +2,9 @@ package com.smartcampost.backend.service.impl;
 
 import com.smartcampost.backend.dto.agency.AgencyRequest;
 import com.smartcampost.backend.dto.agency.AgencyResponse;
+import com.smartcampost.backend.exception.ConflictException;
+import com.smartcampost.backend.exception.ErrorCode;
+import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Agency;
 import com.smartcampost.backend.repository.AgencyRepository;
 import com.smartcampost.backend.service.AgencyService;
@@ -22,15 +25,16 @@ public class AgencyServiceImpl implements AgencyService {
     @Override
     public AgencyResponse createAgency(AgencyRequest request) {
         Objects.requireNonNull(request, "request is required");
-        // Auto-generate agencyCode if not provided
         String agencyCode = request.getAgencyCode();
         if (agencyCode == null || agencyCode.isBlank()) {
             agencyCode = "AG-" + System.currentTimeMillis();
         }
 
-        // Check for duplicate agency code
         if (agencyRepository.findByAgencyCode(agencyCode).isPresent()) {
-            throw new com.smartcampost.backend.exception.ConflictException("Agency with code '" + agencyCode + "' already exists");
+            throw new ConflictException(
+                    "Agency with code '" + agencyCode + "' already exists",
+                    ErrorCode.AGENCY_CONFLICT
+            );
         }
 
         Agency agency = Agency.builder()
@@ -39,6 +43,7 @@ public class AgencyServiceImpl implements AgencyService {
                 .agencyCode(agencyCode)
                 .city(request.getCity())
                 .region(request.getRegion())
+                .country(request.getCountry() != null ? request.getCountry() : "Cameroon")
                 .build();
 
         @SuppressWarnings("null")
@@ -58,7 +63,10 @@ public class AgencyServiceImpl implements AgencyService {
     public AgencyResponse getAgency(UUID id) {
         Objects.requireNonNull(id, "id is required");
         Agency agency = agencyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Agency not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Agency not found",
+                        ErrorCode.AGENCY_NOT_FOUND
+                ));
         return toResponse(agency);
     }
 
@@ -67,16 +75,43 @@ public class AgencyServiceImpl implements AgencyService {
         Objects.requireNonNull(id, "id is required");
         Objects.requireNonNull(request, "request is required");
         Agency agency = agencyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Agency not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Agency not found",
+                        ErrorCode.AGENCY_NOT_FOUND
+                ));
+
+        String newCode = request.getAgencyCode();
+        if (newCode != null && !newCode.isBlank() && !newCode.equals(agency.getAgencyCode())) {
+            if (agencyRepository.findByAgencyCode(newCode).isPresent()) {
+                throw new ConflictException(
+                        "Agency with code '" + newCode + "' already exists",
+                        ErrorCode.AGENCY_CONFLICT
+                );
+            }
+            agency.setAgencyCode(newCode);
+        }
 
         agency.setAgencyName(request.getAgencyName());
-        agency.setAgencyCode(request.getAgencyCode());
         agency.setCity(request.getCity());
         agency.setRegion(request.getRegion());
+        if (request.getCountry() != null) {
+            agency.setCountry(request.getCountry());
+        }
 
         @SuppressWarnings("null")
         Agency saved = agencyRepository.save(agency);
         return toResponse(saved);
+    }
+
+    @Override
+    public void deleteAgency(UUID id) {
+        Objects.requireNonNull(id, "id is required");
+        Agency agency = agencyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Agency not found",
+                        ErrorCode.AGENCY_NOT_FOUND
+                ));
+        agencyRepository.delete(Objects.requireNonNull(agency));
     }
 
     private AgencyResponse toResponse(Agency agency) {

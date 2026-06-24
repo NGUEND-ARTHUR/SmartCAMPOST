@@ -166,12 +166,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // SECURITY: Block login for frozen accounts
-        if (Boolean.TRUE.equals(user.isFrozen())) {
-            throw new AuthException(
-                ErrorCode.AUTH_ACCOUNT_LOCKED,
-                "Account is frozen. Contact support to restore access."
-            );
-        }
+        requireNotFrozen(user);
 
         // SECURITY: Clear lockout on successful login
         lockoutService.clearLockout(identifier);
@@ -212,6 +207,7 @@ public class AuthServiceImpl implements AuthService {
         var existingByGoogle = userAccountRepository.findByGoogleId(googleId);
         if (existingByGoogle.isPresent()) {
             UserAccount user = existingByGoogle.get();
+            requireNotFrozen(user);
             String fullName = resolveFullName(user);
             String token = jwtService.generateToken(user);
             return AuthResponse.builder()
@@ -230,6 +226,7 @@ public class AuthServiceImpl implements AuthService {
         var existingByEmail = userAccountRepository.findByEmail(email);
         if (existingByEmail.isPresent()) {
             UserAccount user = existingByEmail.get();
+            requireNotFrozen(user);
             user.setGoogleId(googleId);
             user.setAuthProvider(AuthProvider.GOOGLE);
             userAccountRepository.save(user);
@@ -441,6 +438,10 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
+        // SECURITY: OTP login must honor the same account freeze as password login,
+        // otherwise an admin-frozen account can simply log back in via OTP.
+        requireNotFrozen(user);
+
         String fullName = resolveFullName(user);
         String token = jwtService.generateToken(user);
 
@@ -454,5 +455,14 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(token)
                 .tokenType("Bearer")
                 .build();
+    }
+
+    private void requireNotFrozen(UserAccount user) {
+        if (Boolean.TRUE.equals(user.isFrozen())) {
+            throw new AuthException(
+                ErrorCode.AUTH_ACCOUNT_LOCKED,
+                "Account is frozen. Contact support to restore access."
+            );
+        }
     }
 }

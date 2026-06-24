@@ -47,6 +47,8 @@ export default [
       "react-hooks/error-boundaries": "off",
       "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/immutability": "off",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },

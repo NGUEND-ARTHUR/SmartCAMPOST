@@ -11,4 +11,5 @@ public interface RiskService {
     Object updateRiskAlert(UUID alertId, String description, Object severity);
     Object freezeUser(UUID userId, boolean frozen);
     Object createRiskAlert(RiskAlertType type, RiskSeverity severity, String description);
+    Object createRiskAlert(RiskAlertType type, RiskSeverity severity, String description, UUID parcelId);
 }

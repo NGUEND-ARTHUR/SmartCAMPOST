@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { QRCodeScanner } from "./QRCodeScanner";
 import { parcelService } from "@/services";
 import { deliveryService } from "@/services";
+import { useAuthStore } from "@/store/authStore";
 
 interface DeliveryInfo {
   trackingRef: string;
@@ -74,6 +75,10 @@ export function DeliveryConfirmation({
   onSendOtp,
 }: DeliveryConfirmationProps) {
   const { t } = useTranslation();
+  const authUser = useAuthStore((s) => s.user);
+  const normalizedRole = authUser?.role?.toUpperCase() || "CLIENT";
+  const canSeeCoordinates = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(normalizedRole);
+
   const [step, setStep] = useState<Step>("scan");
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [otpCode, setOtpCode] = useState("");
@@ -648,9 +653,12 @@ export function DeliveryConfirmation({
                   <MapPin className="h-5 w-5 text-green-600" />
                   <div className="text-sm">
                     <p className="font-medium">Location captured</p>
-                    <p className="text-muted-foreground">
-                      {proof.location.latitude.toFixed(6)},{" "}
-                      {proof.location.longitude.toFixed(6)}
+                    <p className="text-muted-foreground font-medium text-xs mt-0.5">
+                      {canSeeCoordinates ? (
+                        `${proof.location.latitude.toFixed(6)}, ${proof.location.longitude.toFixed(6)}`
+                      ) : (
+                        t("qrcode.deliveryConfirmation.locationCapturedSuccess", "Map Location Linked")
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Accuracy: {Math.round(proof.location.accuracy)}m
@@ -757,8 +765,11 @@ export function DeliveryConfirmation({
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    Location: {proof.location.latitude.toFixed(4)},{" "}
-                    {proof.location.longitude.toFixed(4)}
+                    Location: {canSeeCoordinates ? (
+                      `${proof.location.latitude.toFixed(4)}, ${proof.location.longitude.toFixed(4)}`
+                    ) : (
+                      t("qrcode.deliveryConfirmation.locationCapturedSuccess", "Map Location Linked")
+                    )}
                   </span>
                 </div>
               )}

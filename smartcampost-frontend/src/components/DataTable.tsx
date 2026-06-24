@@ -35,6 +35,7 @@ type DataTableProps<T> = {
   page?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  onRowClick?: (row: T) => void;
 };
 
 export function DataTable<T>({
@@ -51,6 +52,7 @@ export function DataTable<T>({
   page = 0,
   totalPages = 0,
   onPageChange,
+  onRowClick,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   return (
@@ -92,7 +94,11 @@ export function DataTable<T>({
           </TableHeader>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={getRowKey(row)}>
+              <TableRow
+                key={getRowKey(row)}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={onRowClick ? "cursor-pointer hover:bg-muted/50" : undefined}
+              >
                 {columns.map((column) => (
                   <TableCell key={column.key} className={column.className}>
                     {column.cell(row)}

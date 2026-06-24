@@ -142,6 +142,15 @@ public class NotificationServiceImpl implements NotificationService {
                         "Notification not found",
                         ErrorCode.NOTIFICATION_NOT_FOUND
                 ));
+
+        UserAccount user = getCurrentUser();
+        boolean staffLike = user.getRole() != UserRole.CLIENT && user.getRole() != UserRole.COURIER;
+        boolean isRecipient = notif.getRecipientPhone() != null
+                && notif.getRecipientPhone().equals(user.getPhone());
+        if (!staffLike && !isRecipient) {
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "You cannot access this notification");
+        }
+
         return toResponse(notif);
     }
 
@@ -185,6 +194,11 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationResponse retryNotification(UUID id) {
         Objects.requireNonNull(id, "id is required");
 
+        UserAccount user = getCurrentUser();
+        if (user.getRole() == UserRole.CLIENT || user.getRole() == UserRole.COURIER) {
+            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Not allowed to retry notifications manually");
+        }
+
         Notification notif = notificationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Notification not found",
@@ -205,6 +219,10 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponse> listForParcel(UUID parcelId) {
         Objects.requireNonNull(parcelId, "parcelId is required");
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+        requireStaffOrOwner(parcel.getClient() != null ? parcel.getClient().getId() : null);
+
         return notificationRepository.findByParcel_IdOrderByCreatedAtDesc(parcelId)
                 .stream()
                 .map(this::toResponse)
@@ -214,10 +232,25 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<NotificationResponse> listForPickup(UUID pickupId) {
         Objects.requireNonNull(pickupId, "pickupId is required");
+        PickupRequest pickup = pickupRequestRepository.findById(pickupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pickup not found", ErrorCode.PICKUP_NOT_FOUND));
+        Client owner = pickup.getParcel() != null ? pickup.getParcel().getClient() : null;
+        requireStaffOrOwner(owner != null ? owner.getId() : null);
+
         return notificationRepository.findByPickupRequest_IdOrderByCreatedAtDesc(pickupId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    private void requireStaffOrOwner(UUID ownerClientId) {
+        UserAccount user = getCurrentUser();
+        boolean staffLike = user.getRole() != UserRole.CLIENT && user.getRole() != UserRole.COURIER;
+        if (staffLike) return;
+        boolean isOwner = ownerClientId != null && ownerClientId.equals(user.getEntityId());
+        if (!isOwner) {
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "You cannot access these notifications");
+        }
     }
 
     @Override

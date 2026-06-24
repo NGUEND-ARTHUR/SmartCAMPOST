@@ -8,12 +8,12 @@ export interface PricingDetailResponse {
   id: string;
   parcelId: string;
   tariffId: string;
-  basePrice: number;
-  weightCharge: number;
-  extras: number;
-  totalPrice: number;
-  currency: string;
-  createdAt: string;
+  serviceType: string;
+  originZone: string;
+  destinationZone: string;
+  weightBracket: string;
+  appliedPrice: number;
+  appliedAt: string;
 }
 
 // ---- Service ----

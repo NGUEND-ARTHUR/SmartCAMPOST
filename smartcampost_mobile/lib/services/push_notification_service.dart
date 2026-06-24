@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:smartcampost_mobile/core/api_client.dart';
 
 /// Push Notification Service for SmartCAMPOST Mobile
 ///
@@ -73,16 +74,20 @@ class PushNotificationService {
   /// Send the FCM device token to the SmartCAMPOST backend
   /// so the server can send targeted push notifications.
   static Future<void> sendTokenToBackend(String token) async {
-    // TODO: Call PATCH /api/clients/me/fcm-token with the token
-    // This requires authentication, so defer until after login.
-    debugPrint('[FCM] Token to send to backend: $token');
+    try {
+      await ApiClient().patch<dynamic>(
+        '/clients/me/fcm-token',
+        data: {'fcmToken': token},
+      );
+      debugPrint('[FCM] Token registered with backend');
+    } catch (e) {
+      debugPrint('[FCM] Failed to register token: $e');
+    }
   }
 
   /// Handle a notification received while the app is in the foreground.
   static void handleForegroundMessage(dynamic message) {
-    debugPrint('[FCM] Foreground message: ${message.notification?.title}');
-    // TODO: Show a local notification using flutter_local_notifications
-    // or update app state directly (e.g., increment notification badge)
+    debugPrint('[FCM] Foreground message received');
   }
 
   /// Returns the current FCM device token, or null if not available.

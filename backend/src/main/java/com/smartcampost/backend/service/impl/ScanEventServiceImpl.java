@@ -14,8 +14,12 @@ import com.smartcampost.backend.model.enums.LocationSource;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ScanEventType;
 import com.smartcampost.backend.model.enums.UserRole;
+import com.smartcampost.backend.model.Payment;
+import com.smartcampost.backend.model.enums.PaymentOption;
+import com.smartcampost.backend.model.enums.PaymentStatus;
 import com.smartcampost.backend.repository.ScanEventRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
+import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.AgencyRepository;
 import com.smartcampost.backend.repository.AgentRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
@@ -49,6 +53,7 @@ public class ScanEventServiceImpl implements ScanEventService {
 
     private final ScanEventRepository scanEventRepository;
     private final ParcelRepository parcelRepository;
+    private final PaymentRepository paymentRepository;
     private final AgencyRepository agencyRepository;
     private final AgentRepository agentRepository;
     private final UserAccountRepository userAccountRepository;
@@ -190,6 +195,7 @@ public class ScanEventServiceImpl implements ScanEventService {
         if (newStatus != null) {
             ParcelStatus oldStatus = parcel.getStatus();
             validateStatusTransition(oldStatus, newStatus);
+            enforcePaymentGate(parcel, newStatus);
             parcel.setStatus(newStatus);
             Parcel savedParcel = parcelRepository.save(parcel);
             Objects.requireNonNull(savedParcel, "failed to save parcel");
@@ -388,6 +394,30 @@ public class ScanEventServiceImpl implements ScanEventService {
             throw new AuthException(
                     ErrorCode.PARCEL_STATUS_INVALID,
                     "Invalid status transition: " + current + " -> " + next
+            );
+        }
+    }
+
+    // ================== PAYMENT GATE ==================
+
+    /**
+     * Enforces payment before pickup for PREPAID parcels.
+     * For COD parcels, payment is collected at delivery — no gate needed here.
+     */
+    private void enforcePaymentGate(Parcel parcel, ParcelStatus nextStatus) {
+        if (nextStatus != ParcelStatus.TAKEN_IN_CHARGE) return;
+        if (parcel.getPaymentOption() == PaymentOption.COD) return;
+
+        boolean hasConfirmedPayment = paymentRepository
+                .findByParcel_IdOrderByTimestampDesc(parcel.getId())
+                .stream()
+                .anyMatch(p -> p.getStatus() == PaymentStatus.SUCCESS);
+
+        if (!hasConfirmedPayment) {
+            throw new AuthException(
+                    ErrorCode.VALIDATION_FAILED,
+                    "Cannot pick up parcel — payment not yet confirmed. " +
+                    "The client must pay (Mobile Money or cash at agency) before the parcel can be collected."
             );
         }
     }

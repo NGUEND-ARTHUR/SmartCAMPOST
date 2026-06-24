@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CreditCard, Receipt, TrendingUp, Wallet, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatsCard } from "@/components/StatsCard";
 import {
   Table,
   TableBody,
@@ -60,67 +61,11 @@ export default function FinanceDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("financeDashboard.totalRevenue")}
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {totals.totalRevenue.toLocaleString()} XAF
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t("financeDashboard.totalRevenueDesc")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("financeDashboard.pendingPayments")}
-            </CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {totals.pending.toLocaleString()} XAF
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t("financeDashboard.pendingPaymentsDesc")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("financeDashboard.completedTransactions")}
-            </CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totals.successCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("financeDashboard.completedTransactionsDesc")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t("common.failed")}
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totals.failedCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {t("financeDashboard.averageValueDesc")}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsCard icon={TrendingUp} label={t("financeDashboard.totalRevenue")} value={totals.totalRevenue} subtitle={t("financeDashboard.totalRevenueDesc")} accentColor="bg-emerald-500" />
+        <StatsCard icon={Wallet} label={t("financeDashboard.pendingPayments")} value={totals.pending} subtitle={t("financeDashboard.pendingPaymentsDesc")} accentColor="bg-amber-500" />
+        <StatsCard icon={Receipt} label={t("financeDashboard.completedTransactions")} value={totals.successCount} subtitle={t("financeDashboard.completedTransactionsDesc")} accentColor="bg-blue-500" />
+        <StatsCard icon={CreditCard} label={t("common.failed")} value={totals.failedCount} subtitle={t("financeDashboard.averageValueDesc")} accentColor="bg-red-500" />
       </div>
 
       <Card>

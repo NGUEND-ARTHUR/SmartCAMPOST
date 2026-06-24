@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/services/auth_service.dart';
+import 'package:smartcampost_mobile/services/location_tracker.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -24,6 +25,9 @@ class AuthProvider extends ChangeNotifier {
       if (loggedIn) {
         _user = await _authService.getCurrentUser();
         _isAuthenticated = _user != null;
+        if (_isAuthenticated) {
+          LocationTracker.instance.start(this);
+        }
       }
     } catch (_) {
       _isAuthenticated = false;
@@ -40,6 +44,7 @@ class AuthProvider extends ChangeNotifier {
       final auth = await _authService.login(phone: phone, password: password);
       _user = auth.user;
       _isAuthenticated = true;
+      LocationTracker.instance.start(this);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -93,6 +98,7 @@ class AuthProvider extends ChangeNotifier {
       final auth = await _authService.confirmOtp(phone: phone, otp: otp);
       _user = auth.user;
       _isAuthenticated = true;
+      LocationTracker.instance.start(this);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -112,6 +118,7 @@ class AuthProvider extends ChangeNotifier {
       final auth = await _authService.loginWithGoogle();
       _user = auth.user;
       _isAuthenticated = true;
+      LocationTracker.instance.start(this);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -124,6 +131,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    LocationTracker.instance.stop();
     await _authService.logout();
     _user = null;
     _isAuthenticated = false;
@@ -143,3 +151,4 @@ class AuthProvider extends ChangeNotifier {
     return 'An unexpected error occurred';
   }
 }
+

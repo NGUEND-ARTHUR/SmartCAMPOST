@@ -54,4 +54,8 @@ export const paymentService = {
   markCodAsPaid(parcelId: string): Promise<PaymentResponse> {
     return httpClient.post(`/payments/cod/${parcelId}/mark-paid`, {});
   },
+
+  confirmCashPayment(parcelId: string): Promise<PaymentResponse> {
+    return httpClient.post(`/payments/cash-confirm/${parcelId}`, {});
+  },
 };

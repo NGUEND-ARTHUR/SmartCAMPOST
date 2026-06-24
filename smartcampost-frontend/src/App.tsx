@@ -10,6 +10,7 @@ const ApiCoverage = import.meta.env.DEV
 const MtnTest = import.meta.env.DEV
   ? React.lazy(() => import("./pages/payments/MtnTest"))
   : () => null;
+const MoMoPaymentPage = lazy(() => import("./pages/payments/MoMoPaymentPage"));
 
 // Lazy-load heavy map pages so the MapLibre bundle only ships when needed
 const MapViewer = lazy(() => import("./pages/maps/MapViewer"));
@@ -40,7 +41,7 @@ import { ParcelList, CreateParcel, ParcelDetail } from "./pages/parcels";
 import PrintLabelPage from "./pages/parcels/PrintLabelPage";
 import QRCodePage from "./pages/parcels/QRCodePage";
 import { Pickups } from "./pages/pickups";
-import { Support } from "./pages/support";
+import { Support, TicketDetail } from "./pages/support";
 
 // Courier pages
 import { CourierDashboard } from "./pages/dashboard";
@@ -167,6 +168,7 @@ function App() {
             <Route path="parcels/create" element={<CreateParcel />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
+            <Route path="parcels/:parcelId/pay-momo" element={<MoMoPaymentPage />} />
             <Route path="pickups" element={<Pickups />} />
             <Route path="payments" element={<ClientPayments />} />
             <Route path="invoices" element={<InvoicesPage />} />
@@ -175,6 +177,7 @@ function App() {
             <Route path="track" element={<TrackingPage />} />
             <Route path="tracking" element={<TrackingPage />} />
             <Route path="support" element={<Support />} />
+            <Route path="support/:id" element={<TicketDetail />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<ProfileSettingsPage />} />
             <Route path="profile" element={<ProfileSettingsPage />} />
@@ -261,6 +264,7 @@ function App() {
             <Route path="payments" element={<StaffPaymentsPage />} />
             <Route path="finance" element={<StaffFinanceOverviewPage />} />
             <Route path="support" element={<StaffSupportInboxPage />} />
+            <Route path="support/:id" element={<TicketDetail />} />
             <Route path="parcels" element={<ParcelManagement />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
@@ -308,6 +312,7 @@ function App() {
             <Route path="deliveries" element={<StaffDeliveryMonitoringPage />} />
             <Route path="payments" element={<Payments />} />
             <Route path="support" element={<StaffSupportInboxPage />} />
+            <Route path="support/:id" element={<TicketDetail />} />
             <Route path="tracking" element={<TrackingPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
             <Route path="live-logistics" element={<LiveLogisticsPage />} />

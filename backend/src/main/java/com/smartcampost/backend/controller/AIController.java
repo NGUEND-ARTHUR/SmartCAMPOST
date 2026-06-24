@@ -7,6 +7,7 @@ import com.smartcampost.backend.service.AIService;
 import com.smartcampost.backend.service.AiAgentRecommendationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,12 @@ import java.util.UUID;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
+@Slf4j
 public class AIController {
     private final AIService aiService;
     private final AiAgentRecommendationService aiAgentRecommendationService;
     private final com.smartcampost.backend.service.orchestrator.AIOrchestrator aiOrchestrator;
+    private final com.smartcampost.backend.repository.AiFeedbackRepository aiFeedbackRepository;
     
 
     /**
@@ -48,7 +51,9 @@ public class AIController {
     }
 
     /**
-     * Streaming chat endpoint: returns progressive response chunks
+     * Streaming chat endpoint: returns progressive word-by-word chunks.
+     * The AI response is generated first, then streamed word-by-word for
+     * a natural typing effect. Each word group is flushed immediately.
      */
     @PostMapping(value = "/chat/stream")
     public ResponseEntity<org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody> chatStream(
@@ -57,13 +62,16 @@ public class AIController {
         org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody stream = out -> {
             ChatResponse resp = aiService.processChat(request);
             String text = resp.getMessage() != null ? resp.getMessage() : "";
-            int chunkSize = 200;
-            for (int i = 0; i < text.length(); i += chunkSize) {
-                int end = Math.min(text.length(), i + chunkSize);
-                String chunk = text.substring(i, end);
-                out.write(chunk.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String[] words = text.split("(?<=\\s)");
+            int wordsPerChunk = 3;
+            for (int i = 0; i < words.length; i += wordsPerChunk) {
+                StringBuilder chunk = new StringBuilder();
+                for (int j = i; j < Math.min(i + wordsPerChunk, words.length); j++) {
+                    chunk.append(words[j]);
+                }
+                out.write(chunk.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 out.flush();
-                try { Thread.sleep(60); } catch (InterruptedException ignored) {
+                try { Thread.sleep(40); } catch (InterruptedException ignored) {
                     Thread.currentThread().interrupt();
                     break;
                 }
@@ -130,9 +138,30 @@ public class AIController {
 
     @PostMapping("/feedback")
     public ResponseEntity<Map<String, Object>> feedback(@RequestBody Map<String, Object> payload) {
+        log.info("AI feedback received: rating={}, feedback={}",
+                payload.getOrDefault("rating", ""),
+                payload.getOrDefault("feedback", ""));
+
+        UUID userId = null;
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                userId = UUID.fromString(auth.getName());
+            }
+        } catch (Exception ignored) {}
+
+        var fb = com.smartcampost.backend.model.AiFeedback.builder()
+                .sessionId(String.valueOf(payload.getOrDefault("sessionId", "")))
+                .userId(userId)
+                .rating(String.valueOf(payload.getOrDefault("rating", "")))
+                .feedbackText(String.valueOf(payload.getOrDefault("feedback", "")))
+                .messageContent(String.valueOf(payload.getOrDefault("messageContent", "")))
+                .build();
+        aiFeedbackRepository.save(fb);
+
         return ResponseEntity.ok(Map.of(
-                "status", "RECEIVED",
-                "feedback", String.valueOf(payload.getOrDefault("feedback", "")),
+                "status", "SAVED",
+                "feedbackId", fb.getId().toString(),
                 "receivedAt", Instant.now()
         ));
     }

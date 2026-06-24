@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
-import { useParcels } from "@/hooks";
+import { useParcels, useCreateRiskAlert } from "@/hooks";
 import { useAuthStore } from "@/store/authStore";
 
 type AdminParcelStatus =
@@ -70,6 +70,7 @@ export default function ParcelManagement() {
   >("ALL");
 
   const { data, isLoading, error } = useParcels(page, 50);
+  const createRiskAlert = useCreateRiskAlert();
   const parcels = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;
 
@@ -113,8 +114,24 @@ export default function ParcelManagement() {
     navigate(`${base}/parcels/${parcelId}`);
   };
 
-  const handleFlag = (trackingRef: string) => {
-    toast.success(t("parcelManagement.flagged"), { description: trackingRef });
+  const handleFlag = async (parcelId: string, trackingRef: string) => {
+    const reason = window.prompt(
+      t("parcelManagement.flagReasonPrompt", "Reason for flagging this parcel for review:"),
+    );
+    if (!reason || !reason.trim()) return;
+    try {
+      await createRiskAlert.mutateAsync({
+        type: "OPERATIONAL",
+        severity: "MEDIUM",
+        description: `Parcel ${trackingRef} flagged for review: ${reason.trim()}`,
+        parcelId,
+      });
+      toast.success(t("parcelManagement.flagged"), { description: trackingRef });
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : t("parcelManagement.flagFailed", "Failed to flag parcel"),
+      );
+    }
   };
 
   return (
@@ -357,7 +374,8 @@ export default function ParcelManagement() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleFlag(trackingRef)}
+                              disabled={createRiskAlert.isPending}
+                              onClick={() => handleFlag(p.id, trackingRef)}
                             >
                               {t("parcelManagement.actions.flag")}
                             </Button>

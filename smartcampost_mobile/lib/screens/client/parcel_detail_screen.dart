@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
@@ -212,6 +213,14 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
                       ),
                     ),
 
+                    // ─── Status Timeline ───
+                    SectionTitle(title: tr('tracking')),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _StatusTimeline(currentStatus: parcel.status ?? 'CREATED'),
+                    ),
+                    const SizedBox(height: 8),
+
                     // QR Code section
                     if (parcel.qrStatus != null) ...[
                       SectionTitle(title: tr('qr_code')),
@@ -243,6 +252,97 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
                 ),
               ),
             ),
+    );
+  }
+}
+
+class _StatusTimeline extends StatelessWidget {
+  final String currentStatus;
+  const _StatusTimeline({required this.currentStatus});
+
+  static const _steps = [
+    ('CREATED', Icons.add_circle_outline, 'Created'),
+    ('ACCEPTED', Icons.check_circle_outline, 'Accepted'),
+    ('TAKEN_IN_CHARGE', Icons.inventory_2_outlined, 'Picked Up'),
+    ('IN_TRANSIT', Icons.local_shipping_outlined, 'In Transit'),
+    ('ARRIVED_DEST_AGENCY', Icons.store_outlined, 'At Agency'),
+    ('OUT_FOR_DELIVERY', Icons.delivery_dining, 'Out for Delivery'),
+    ('DELIVERED', Icons.done_all, 'Delivered'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIdx = _steps.indexWhere((s) => s.$1 == currentStatus);
+    final reachedIdx = currentIdx < 0 ? 0 : currentIdx;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Column(
+          children: List.generate(_steps.length, (i) {
+            final step = _steps[i];
+            final isReached = i <= reachedIdx;
+            final isCurrent = i == reachedIdx;
+            final isLast = i == _steps.length - 1;
+            final color = isReached ? AppTheme.getStatusColor(step.$1) : AppTheme.borderColor;
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Dot + line column
+                SizedBox(
+                  width: 32,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: isCurrent ? 28 : 22,
+                        height: isCurrent ? 28 : 22,
+                        decoration: BoxDecoration(
+                          color: isReached ? color.withValues(alpha: 0.15) : AppTheme.surfaceElevated,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: color, width: isCurrent ? 2.5 : 1.5),
+                        ),
+                        child: Icon(
+                          step.$2,
+                          size: isCurrent ? 14 : 12,
+                          color: isReached ? color : AppTheme.textTertiary,
+                        ),
+                      ),
+                      if (!isLast)
+                        Container(
+                          width: 2,
+                          height: 28,
+                          color: i < reachedIdx ? color : AppTheme.borderColor,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Label
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: isCurrent ? 4 : 2, bottom: isLast ? 0 : 10),
+                    child: Text(
+                      step.$3,
+                      style: TextStyle(
+                        fontSize: isCurrent ? 14 : 13,
+                        fontWeight: isCurrent ? FontWeight.w700 : (isReached ? FontWeight.w500 : FontWeight.w400),
+                        color: isReached ? AppTheme.textPrimary : AppTheme.textTertiary,
+                      ),
+                    ),
+                  ),
+                ),
+                // Checkmark for completed steps
+                if (isReached && !isCurrent)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(Icons.check, size: 16, color: color),
+                  ),
+              ],
+            );
+          }),
+        ),
+      ),
     );
   }
 }

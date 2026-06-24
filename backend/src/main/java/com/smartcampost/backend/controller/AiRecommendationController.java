@@ -4,6 +4,7 @@ import com.smartcampost.backend.dto.ai.AiAgentRecommendationResponse;
 import com.smartcampost.backend.service.AiAgentRecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/ai/recommendations")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','STAFF','COURIER')")
 public class AiRecommendationController {
 
     private final AiAgentRecommendationService aiAgentRecommendationService;

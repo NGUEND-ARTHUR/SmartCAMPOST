@@ -56,6 +56,11 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/ai-chat'),
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.smart_toy, color: Colors.white),
+      ),
       body: RefreshIndicator(
         onRefresh: _loadStats,
         child: _isLoading
@@ -247,7 +252,7 @@ class _StatCard extends StatelessWidget {
                 title,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
               ),
             ],
           ),

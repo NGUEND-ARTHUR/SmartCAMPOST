@@ -7,7 +7,6 @@ import {
   Filter,
   Plus,
   Loader2,
-  Bell,
   Download,
   QrCode,
 } from "lucide-react";
@@ -31,7 +30,6 @@ import {
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
-import NotificationsDrawer from "@/components/NotificationsDrawer";
 import { QRCodeViewerDialog } from "@/components/qrcode";
 import {
   exportToCsv,
@@ -75,7 +73,6 @@ export function ParcelList() {
           <p className="text-muted-foreground">{t("parcelList.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <NotificationsDrawer />
           <Select
             value={exportFormat}
             onValueChange={(value: string) =>

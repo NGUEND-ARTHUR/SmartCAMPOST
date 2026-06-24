@@ -1,5 +1,7 @@
 package com.smartcampost.backend.service.impl;
 
+import com.smartcampost.backend.exception.AuthException;
+import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.model.DeliveryOtp;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.repository.DeliveryOtpRepository;
@@ -54,12 +56,28 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
 
     @Override
     @Transactional
+    public boolean checkDeliveryOtp(UUID parcelId, String otpCode) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(otpCode, "otpCode is required");
+        DeliveryOtp otp = deliveryOtpRepository
+                .findTopByParcelIdAndConsumedFalseOrderByCreatedAtDesc(parcelId)
+                .orElseThrow(() -> new AuthException(ErrorCode.OTP_INVALID, "No active OTP for parcel"));
+
+        if (Instant.now().isAfter(otp.getExpiresAt())) {
+            return false;
+        }
+
+        return otp.getOtpCode().equals(otpCode);
+    }
+
+    @Override
+    @Transactional
     public boolean validateDeliveryOtp(UUID parcelId, String otpCode) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         Objects.requireNonNull(otpCode, "otpCode is required");
         DeliveryOtp otp = deliveryOtpRepository
                 .findTopByParcelIdAndConsumedFalseOrderByCreatedAtDesc(parcelId)
-                .orElseThrow(() -> new IllegalArgumentException("No active OTP for parcel"));
+                .orElseThrow(() -> new AuthException(ErrorCode.OTP_INVALID, "No active OTP for parcel"));
 
         if (otp.isConsumed()) {
             return false;

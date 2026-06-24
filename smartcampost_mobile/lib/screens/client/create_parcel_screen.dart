@@ -1,3 +1,4 @@
+import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -125,6 +126,19 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // ─── Step Progress Indicator ───
+              _FormStepIndicator(steps: [
+                tr('details'),
+                tr('service_type'),
+                tr('addresses'),
+                tr('create'),
+              ]),
+              const SizedBox(height: 20),
+
+              // ─── Section: Package Details ───
+              _SectionHeader(icon: Icons.inventory_2_outlined, title: tr('details')),
+              const SizedBox(height: 12),
+
               // Weight
               TextFormField(
                 controller: _weightController,
@@ -250,7 +264,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                       .map(
                         (a) => DropdownMenuItem<String>(
                           value: a['id']?.toString(),
-                          child: Text(a['name']?.toString() ?? ''),
+                          child: Text(a['agencyName']?.toString() ?? ''),
                         ),
                       )
                       .toList(),
@@ -270,7 +284,7 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                       .map(
                         (a) => DropdownMenuItem<String>(
                           value: a['id']?.toString(),
-                          child: Text(a['name']?.toString() ?? ''),
+                          child: Text(a['agencyName']?.toString() ?? ''),
                         ),
                       )
                       .toList(),
@@ -338,12 +352,12 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: AppTheme.errorColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     parcelProvider.error!,
-                    style: TextStyle(color: Colors.red[700]),
+                    style: const TextStyle(color: AppTheme.errorColor),
                   ),
                 ),
 
@@ -370,6 +384,80 @@ class _CreateParcelScreenState extends State<CreateParcelScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FormStepIndicator extends StatelessWidget {
+  final List<String> steps;
+  const _FormStepIndicator({required this.steps});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(steps.length * 2 - 1, (i) {
+        if (i.isOdd) {
+          return Expanded(
+            child: Container(height: 2, color: AppTheme.borderColor),
+          );
+        }
+        final idx = i ~/ 2;
+        return Column(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: idx == 0 ? AppTheme.primaryColor : AppTheme.surfaceElevated,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: idx == 0 ? AppTheme.primaryColor : AppTheme.borderColor,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '${idx + 1}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: idx == 0 ? Colors.white : AppTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              steps[idx],
+              style: AppTheme.caption.copyWith(fontSize: 10),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        );
+      }),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  const _SectionHeader({required this.icon, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 18, color: AppTheme.primaryColor),
+        ),
+        const SizedBox(width: 10),
+        Text(title, style: AppTheme.heading4),
+      ],
     );
   }
 }

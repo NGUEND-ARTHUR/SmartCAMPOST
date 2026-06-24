@@ -15,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -76,9 +75,7 @@ public class TariffServiceImpl implements TariffService {
                         ErrorCode.TARIFF_NOT_FOUND
                 ));
 
-        if (request.getPrice() != null) {
-            tariff.setPrice(request.getPrice());
-        }
+        tariff.setPrice(request.getPrice());
 
         @SuppressWarnings("null")
         Tariff saved = tariffRepository.save(tariff);
@@ -122,44 +119,6 @@ public class TariffServiceImpl implements TariffService {
                 ));
 
         tariffRepository.delete(Objects.requireNonNull(tariff, "tariff is required"));
-    }
-
-    // =====================================================
-    // NEW: Find pricing tariff for a quote (uses PRICING_TARIFF_NOT_FOUND)
-    // =====================================================
-
-    /**
-     * Utility method for pricing/quotation:
-     * finds a tariff matching the given combination, or throws
-     * PRICING_TARIFF_NOT_FOUND if none exists.
-     * Not part of the TariffService interface (no @Override), so it does not
-     * break existing code but can be used by quote/pricing services.
-     */
-    public TariffResponse findPricingTariff(
-            String serviceTypeStr,
-            String originZoneStr,
-            String destinationZoneStr,
-            String weightBracketStr
-    ) {
-        ServiceType serviceType = parseServiceType(serviceTypeStr);
-        String originZone = normalizeZone(originZoneStr);
-        String destinationZone = normalizeZone(destinationZoneStr);
-        String weightBracket = weightBracketStr.trim();
-
-        List<Tariff> all = tariffRepository.findAll();
-
-        Tariff match = all.stream()
-            .filter(t -> t.getServiceType() == serviceType)
-            .filter(t -> originZone.equalsIgnoreCase(t.getOriginZone()))
-            .filter(t -> destinationZone.equalsIgnoreCase(t.getDestinationZone()))
-            .filter(t -> weightBracket.equalsIgnoreCase(t.getWeightBracket()))
-            .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "Pricing tariff not found for given combination",
-                ErrorCode.PRICING_TARIFF_NOT_FOUND
-            ));
-
-        return toResponse(Objects.requireNonNull(match));
     }
 
     // =============== HELPERS ===============

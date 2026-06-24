@@ -24,6 +24,7 @@ import {
   type ParcelAuditResponse,
 } from "../../services/common/audit.api";
 import type { AuditRecord } from "../../types";
+import { useAuthStore } from "../../store/authStore";
 
 interface AuditTrailProps {
   parcelId: string;
@@ -32,6 +33,10 @@ interface AuditTrailProps {
 
 export function AuditTrail({ parcelId, showFull = false }: AuditTrailProps) {
   const { t } = useTranslation();
+  const authUser = useAuthStore((s) => s.user);
+  const normalizedRole = authUser?.role?.toUpperCase() || "CLIENT";
+  const canSeeCoordinates = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(normalizedRole);
+
   const [auditData, setAuditData] = useState<ParcelAuditResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,8 +176,9 @@ export function AuditTrail({ parcelId, showFull = false }: AuditTrailProps) {
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <MapPin className="h-3 w-3" />
                         <span>
-                          {record.latitude.toFixed(4)},{" "}
-                          {record.longitude.toFixed(4)}
+                          {canSeeCoordinates
+                            ? `${record.latitude.toFixed(4)}, ${record.longitude.toFixed(4)}`
+                            : t("audit.mapLocationLinked", "Map Location Linked")}
                         </span>
                       </div>
                     )}

@@ -403,7 +403,7 @@ export default function CourierNavigationMap({
               zoom={mapZoom}
               height="100%"
               showControls
-              showSearch={false}
+              showSearch={true}
               className="rounded-none border-0"
               pitch={35}
               show3DBuildings

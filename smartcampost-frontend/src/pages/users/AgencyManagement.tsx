@@ -3,11 +3,10 @@ import {
   Building2,
   Plus,
   Edit,
+  Trash2,
   Loader2,
   Search,
   MapPin,
-  Phone,
-  Mail,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,117 +30,109 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/EmptyState";
-import { useAgencies, useCreateAgency, useUpdateAgency } from "@/hooks";
+import {
+  useAgencies,
+  useCreateAgency,
+  useUpdateAgency,
+  useDeleteAgency,
+} from "@/hooks";
 
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 export default function AgencyManagement() {
   const { t } = useTranslation();
-  const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    code: "",
-    address: "",
+    agencyName: "",
+    agencyCode: "",
     city: "",
     region: "",
     country: "Cameroon",
-    phone: "",
-    email: "",
   });
 
-  const { data, isLoading, error } = useAgencies(page, 20);
+  const { data: agencies = [], isLoading, error } = useAgencies();
   const createAgency = useCreateAgency();
   const updateAgency = useUpdateAgency();
-
-  const agencies = data?.content ?? [];
-  const totalPages = data?.totalPages ?? 0;
+  const deleteAgency = useDeleteAgency();
 
   const filteredAgencies = agencies.filter((a) => {
     const search = searchQuery.toLowerCase();
     return (
-      a.name.toLowerCase().includes(search) ||
+      a.agencyName.toLowerCase().includes(search) ||
+      a.agencyCode.toLowerCase().includes(search) ||
       (a.city?.toLowerCase().includes(search) ?? false)
     );
   });
 
-  // Input change handler (unused in current UI but kept for future forms)
-  const _handleInputChange =
-    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    };
-
   const resetForm = () => {
     setFormData({
-      name: "",
-      code: "",
-      address: "",
+      agencyName: "",
+      agencyCode: "",
       city: "",
       region: "",
       country: "Cameroon",
-      phone: "",
-      email: "",
     });
   };
 
   const handleCreate = () => {
-    if (!formData.name) {
+    if (!formData.agencyName) {
       toast.error(t("agencies.form.requiredFields"));
       return;
     }
-    // Map to backend field names
-    const payload = {
-      agencyName: formData.name,
-      agencyCode: formData.code || undefined,
-      city: formData.city || undefined,
-      region: formData.region || undefined,
-    };
-    createAgency.mutate(payload, {
-      onSuccess: () => {
-        toast.success(t("agencies.create.success"));
-        setIsCreateOpen(false);
-        resetForm();
+    createAgency.mutate(
+      {
+        agencyName: formData.agencyName,
+        agencyCode: formData.agencyCode || undefined,
+        city: formData.city || undefined,
+        region: formData.region || undefined,
+        country: formData.country || undefined,
       },
-      onError: (err) =>
-        toast.error(
-          err instanceof Error ? err.message : t("agencies.create.error"),
-        ),
-    });
+      {
+        onSuccess: () => {
+          toast.success(t("agencies.create.success"));
+          setIsCreateOpen(false);
+          resetForm();
+        },
+        onError: (err) =>
+          toast.error(
+            err instanceof Error ? err.message : t("agencies.create.error"),
+          ),
+      },
+    );
   };
 
   const handleEdit = (agency: (typeof agencies)[0]) => {
     setSelectedAgency(agency.id);
     setFormData({
-      name: agency.name,
-      code: agency.code || "",
-      address: agency.address || "",
+      agencyName: agency.agencyName,
+      agencyCode: agency.agencyCode || "",
       city: agency.city || "",
       region: agency.region || "",
       country: agency.country || "Cameroon",
-      phone: agency.phone || "",
-      email: agency.email || "",
     });
     setIsEditOpen(true);
   };
 
   const handleUpdate = () => {
-    if (!selectedAgency || !formData.name) {
+    if (!selectedAgency || !formData.agencyName) {
       toast.error(t("agencies.form.requiredFields"));
       return;
     }
-    // Map to backend field names
-    const payload = {
-      agencyName: formData.name,
-      agencyCode: formData.code || undefined,
-      city: formData.city || undefined,
-      region: formData.region || undefined,
-    };
     updateAgency.mutate(
-      { id: selectedAgency, data: payload },
+      {
+        id: selectedAgency,
+        data: {
+          agencyName: formData.agencyName,
+          agencyCode: formData.agencyCode || undefined,
+          city: formData.city || undefined,
+          region: formData.region || undefined,
+          country: formData.country || undefined,
+        },
+      },
       {
         onSuccess: () => {
           toast.success(t("agencies.update.success"));
@@ -158,43 +148,41 @@ export default function AgencyManagement() {
     );
   };
 
-  // Form fields JSX - used inline to avoid re-render issues
+  const handleDelete = (id: string) => {
+    deleteAgency.mutate(id, {
+      onSuccess: () => toast.success(t("agencies.delete.success")),
+      onError: (err) =>
+        toast.error(
+          err instanceof Error ? err.message : t("agencies.delete.error"),
+        ),
+    });
+  };
+
   const formFields = (
     <div className="space-y-4 py-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">{t("agencies.form.name")}</Label>
+          <Label htmlFor="agencyName">{t("agencies.form.name")} *</Label>
           <Input
-            id="name"
-            value={formData.name}
+            id="agencyName"
+            value={formData.agencyName}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, name: e.target.value }))
+              setFormData((prev) => ({ ...prev, agencyName: e.target.value }))
             }
             placeholder={t("agencies.form.namePlaceholder")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="code">{t("agencies.form.code")}</Label>
+          <Label htmlFor="agencyCode">{t("agencies.form.code")}</Label>
           <Input
-            id="code"
-            value={formData.code}
+            id="agencyCode"
+            value={formData.agencyCode}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, code: e.target.value }))
+              setFormData((prev) => ({ ...prev, agencyCode: e.target.value }))
             }
             placeholder={t("agencies.form.codePlaceholder")}
           />
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="address">{t("agencies.form.address")}</Label>
-        <Input
-          id="address"
-          value={formData.address}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, address: e.target.value }))
-          }
-          placeholder={t("agencies.form.addressPlaceholder")}
-        />
       </div>
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
@@ -228,31 +216,6 @@ export default function AgencyManagement() {
               setFormData((prev) => ({ ...prev, country: e.target.value }))
             }
             placeholder={t("agencies.form.countryPlaceholder")}
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="phone">{t("agencies.form.phone")}</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, phone: e.target.value }))
-            }
-            placeholder={t("agencies.form.phonePlaceholder")}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">{t("agencies.form.email")}</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, email: e.target.value }))
-            }
-            placeholder={t("agencies.form.emailPlaceholder")}
           />
         </div>
       </div>
@@ -348,67 +311,38 @@ export default function AgencyManagement() {
               }
             />
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("agencies.list.agency")}</TableHead>
-                    <TableHead>{t("agencies.list.location")}</TableHead>
-                    <TableHead>{t("agencies.list.contact")}</TableHead>
-                    <TableHead>{t("agencies.list.status")}</TableHead>
-                    <TableHead>{t("agencies.list.actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAgencies.map((agency) => (
-                    <TableRow key={agency.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{agency.name}</div>
-                          {agency.code && (
-                            <div className="text-xs text-muted-foreground">
-                              {agency.code}
-                            </div>
-                          )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("agencies.list.agency")}</TableHead>
+                  <TableHead>{t("agencies.list.location")}</TableHead>
+                  <TableHead>{t("agencies.form.country")}</TableHead>
+                  <TableHead>{t("agencies.list.actions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAgencies.map((agency) => (
+                  <TableRow key={agency.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{agency.agencyName}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {agency.agencyCode}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm">
-                          <MapPin className="w-3 h-3" />
-                          {agency.city || t("common.notAvailable")}
-                          {agency.region ? `, ${agency.region}` : ""}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1 text-sm">
-                          {agency.phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {agency.phone}
-                            </div>
-                          )}
-                          {agency.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              {agency.email}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            agency.isActive
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-muted text-muted-foreground"
-                          }
-                        >
-                          {agency.isActive
-                            ? t("agencies.status.active")
-                            : t("agencies.status.inactive")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm">
+                        <MapPin className="w-3 h-3" />
+                        {agency.city || t("common.notAvailable")}
+                        {agency.region ? `, ${agency.region}` : ""}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {agency.country || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -416,35 +350,20 @@ export default function AgencyManagement() {
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  >
-                    {t("common.previous")}
-                  </Button>
-                  <span className="text-sm text-muted-foreground self-center">
-                    {t("common.pageOf", { page: page + 1, total: totalPages })}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    {t("common.next")}
-                  </Button>
-                </div>
-              )}
-            </>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(agency.id)}
+                          disabled={deleteAgency.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
