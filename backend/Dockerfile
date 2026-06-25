@@ -1,28 +1,36 @@
 # Multi-stage Dockerfile for SmartCAMPOST backend (Java 21)
-# Optimized for fast rebuilds via dependency caching
 
 # ── Build stage ──
 FROM maven:3.9.4-eclipse-temurin-21 AS build
 WORKDIR /build
 
-# Step 1: Copy only pom.xml and download dependencies (cached layer)
+# Cache dependencies
 COPY pom.xml pom.xml
 COPY .mvn .mvn
 COPY mvnw mvnw
 RUN chmod +x mvnw && ./mvnw -B dependency:go-offline -q
 
-# Step 2: Copy source and build (only this layer rebuilds on code changes)
+# Build app
 COPY src src
 RUN ./mvnw -B -DskipTests package -q
 
-# ── Run stage (slim JRE) ──
+# ── Run stage ──
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 COPY --from=build /build/target/backend-*.jar /app/app.jar
 
-EXPOSE 8080
+# Render uses PORT env var (usually 10000)
+ENV PORT=8080
+EXPOSE ${PORT}
 
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+# Fast JVM startup flags for cloud containers
+ENV JAVA_OPTS="-Xms128m -Xmx384m \
+  -XX:+UseG1GC \
+  -XX:+TieredCompilation \
+  -XX:TieredStopAtLevel=1 \
+  -XX:+UseStringDeduplication \
+  -Dspring.jmx.enabled=false \
+  -Dspring.config.location=classpath:/application.yaml,classpath:/application-prod.yaml"
 
-CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT} -jar /app/app.jar --spring.profiles.active=prod"]
