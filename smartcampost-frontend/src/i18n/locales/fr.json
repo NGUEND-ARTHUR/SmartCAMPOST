@@ -45,6 +45,8 @@
     "success": "Succès",
     "required": "Requis",
     "optional": "Optionnel",
+    "select": "Sélectionner",
+    "other": "Autre",
     "noData": "Aucune donnée disponible",
     "tryAgain": "Réessayer",
     "featureUnavailable": "Cette fonctionnalité n'est pas encore disponible.",
@@ -69,12 +71,19 @@
     "parcel": "Colis",
     "action": "Action",
     "customer": "Client",
+    "role": "Rôle",
     "dismiss": "Ignorer",
     "processing": "Traitement en cours…",
     "notScheduled": "Non planifié",
     "unknown": "Inconnu",
     "or": "OU",
     "rightsReserved": "Tous droits réservés."
+  },
+  "errorBoundary": {
+    "title": "Une erreur est survenue",
+    "description": "Une erreur inattendue s'est produite dans l'application SmartCAMPOST. Notre équipe a été notifiée. Veuillez réessayer ou contacter l'assistance si le problème persiste.",
+    "devDetails": "Détails de l'erreur (développement uniquement)",
+    "returnHome": "Retour à l'accueil"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -131,10 +140,20 @@
     "distancePricing": "Tarification distance",
     "aiDiscovery": "Découverte IA",
     "rbacPermissions": "Permissions RBAC",
-    "grantPermission": "Accorder permission"
+    "grantPermission": "Accorder permission",
+    "openNavigation": "Ouvrir la navigation",
+    "closeNavigation": "Fermer la navigation"
   },
   "tracking": {
-    "quickTrack": "Suivre un colis"
+    "quickTrack": "Suivre un colis",
+    "quickTrackLabel": "Suivi rapide"
+  },
+  "mapControls": {
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "toggle3d": "Basculer la vue 3D",
+    "locate": "Me localiser",
+    "resetView": "Réinitialiser la vue"
   },
   "ops": {
     "columns": {
@@ -360,7 +379,9 @@
       "manageStaff": "Gérer le personnel",
       "approvals": "Approbations",
       "liveScans": "Scans en direct",
-      "waitingForScans": "En attente d'événements de scan…"
+      "waitingForScans": "En attente d'événements de scan…",
+      "aiRuntimeEvents": "Événements IA en temps réel",
+      "noAiEvents": "Aucun événement IA pour le moment"
     },
     "finance": {
       "title": "Tableau de bord finances",
@@ -679,6 +700,51 @@
       "toasts": {
         "markedComplete": "Livraison {{id}} marquée comme terminée",
         "completeFailed": "Échec de la complétion de la livraison"
+      }
+    },
+    "workflow": {
+      "instructions": "Instructions",
+      "requirements": "Exigences",
+      "otpRequired": "OTP requis",
+      "signatureRequired": "Signature requise",
+      "photoProofRequired": "Preuve photo requise",
+      "startDelivery": "Démarrer la livraison",
+      "verifyOtp": "Vérifier l'OTP",
+      "markDelivered": "Marquer comme livré",
+      "markFailed": "Marquer comme échoué",
+      "nextAction": "Action suivante",
+      "newDeliveryDate": "Nouvelle date de livraison",
+      "failureReason": "Motif d'échec",
+      "selectReason": "Sélectionnez un motif",
+      "notesOptional": "Notes (optionnel)",
+      "addDetails": "Ajouter des détails…",
+      "photoProof": "Preuve photo",
+      "uploadDeliveryPhoto": "Téléverser la photo de livraison",
+      "customerSignature": "Signature du client",
+      "customerFullName": "Nom complet du client",
+      "addDeliveryNote": "Ajouter une note de livraison…",
+      "summary": "Résumé",
+      "backToList": "Retour à la liste",
+      "timeline": "Chronologie",
+      "toasts": {
+        "startedOtp": "Livraison démarrée. L'OTP a été envoyé si nécessaire.",
+        "started": "Livraison démarrée",
+        "startFailed": "Échec du démarrage de la livraison",
+        "otpVerified": "OTP vérifié",
+        "photoCaptured": "Photo capturée",
+        "selectFailureReason": "Sélectionnez un motif d'échec",
+        "completeRequiredProof": "Complétez les preuves requises",
+        "selectRescheduleDate": "Sélectionnez une date de reprogrammation",
+        "rescheduled": "Livraison reprogrammée",
+        "returnedToSender": "Marqué comme retourné à l'expéditeur",
+        "markedFailed": "Livraison marquée comme échouée",
+        "completed": "Livraison terminée",
+        "actionFailed": "Action échouée"
+      },
+      "errors": {
+        "otpSixDigits": "Veuillez saisir l'OTP à 6 chiffres",
+        "otpInvalid": "OTP invalide",
+        "otpVerifyFailed": "Échec de la vérification OTP"
       }
     },
     "status": {
@@ -1262,12 +1328,25 @@
     "title": "Tableau de bord personnel",
     "subtitle": "Vue d'ensemble du personnel opérationnel",
     "totalStaff": "Total du personnel",
+    "allDepartments": "Tous les départements",
     "active": "Actif",
+    "currentlyOnDuty": "Actuellement en service",
     "agents": "Agents",
+    "fieldOperations": "Opérations terrain",
     "searchPlaceholder": "Rechercher par nom ou ID…",
+    "export": "Exporter",
     "manage": "Gérer",
+    "allRoles": "Tous les rôles",
+    "filterByRole": "Filtrer par rôle",
     "errorTitle": "Erreur de chargement du personnel",
-    "emptyTitle": "Aucun personnel trouvé"
+    "emptyTitle": "Aucun personnel trouvé",
+    "emptyFiltered": "Essayez d'ajuster vos filtres",
+    "emptyDefault": "Le personnel apparaîtra ici",
+    "staff": "Personnel",
+    "role": "Rôle",
+    "status": "Statut",
+    "email": "E-mail",
+    "action": "Action"
   },
   "financeDashboard": {
     "title": "Tableau de bord finances",
@@ -1607,6 +1686,12 @@
         "scanning": "Scan en cours",
         "stopped": "Arrêté"
       },
+      "cameraStopped": "Caméra arrêtée",
+      "noCameraAvailable": "Aucune caméra disponible",
+      "activatingCamera": "Activation de la caméra...",
+      "trackingRef": "Référence de suivi",
+      "parcelId": "ID colis",
+      "recentScans": "Scans récents",
       "errors": {
         "noCameraDevice": "Aucune caméra trouvée sur cet appareil"
       },

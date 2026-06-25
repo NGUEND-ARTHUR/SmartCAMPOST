@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMap } from "react-map-gl/maplibre";
 import { Button } from "@/components/ui/button";
 import { Box, LocateFixed, Minus, Plus, RefreshCw } from "lucide-react";
@@ -17,6 +18,7 @@ export function MapControls({
   showLocate?: boolean;
   show3DToggle?: boolean;
 }) {
+  const { t } = useTranslation();
   const { current: map } = useMap();
   const [isLocating, setIsLocating] = useState(false);
 
@@ -67,7 +69,7 @@ export function MapControls({
         variant="secondary"
         className={btnClass}
         onClick={() => map?.zoomIn({ duration: 300 })}
-        aria-label="Zoom in"
+        aria-label={t("mapControls.zoomIn")}
       >
         <Plus className="h-4 w-4" />
       </Button>
@@ -77,7 +79,7 @@ export function MapControls({
         variant="secondary"
         className={btnClass}
         onClick={() => map?.zoomOut({ duration: 300 })}
-        aria-label="Zoom out"
+        aria-label={t("mapControls.zoomOut")}
       >
         <Minus className="h-4 w-4" />
       </Button>
@@ -89,7 +91,7 @@ export function MapControls({
           variant="secondary"
           className={btnClass}
           onClick={toggle3D}
-          aria-label="Toggle 3D view"
+          aria-label={t("mapControls.toggle3d")}
         >
           <Box className="h-4 w-4" />
         </Button>
@@ -103,7 +105,7 @@ export function MapControls({
           className={btnClass}
           onClick={locate}
           disabled={isLocating}
-          aria-label="Locate"
+          aria-label={t("mapControls.locate")}
         >
           <LocateFixed className="h-4 w-4" />
         </Button>
@@ -116,7 +118,7 @@ export function MapControls({
           variant="secondary"
           className={btnClass}
           onClick={flyReset}
-          aria-label="Reset view"
+          aria-label={t("mapControls.resetView")}
         >
           <RefreshCw className="h-4 w-4" />
         </Button>

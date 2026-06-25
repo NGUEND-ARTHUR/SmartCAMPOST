@@ -375,18 +375,18 @@ export function QRCodeScanner({
                       startScanning();
                     }}
                   >
-                    Retry
+                    {t("common.tryAgain")}
                   </Button>
                 </>
               ) : hasCamera ? (
                 <>
                   <CameraOff className="h-12 w-12 mb-2" />
-                  <p>Camera stopped</p>
+                  <p>{t("qrcode.scanner.cameraStopped")}</p>
                 </>
               ) : (
                 <>
                   <XCircle className="h-12 w-12 mb-2 text-destructive" />
-                  <p>No camera available</p>
+                  <p>{t("qrcode.scanner.noCameraAvailable")}</p>
                 </>
               )}
             </div>
@@ -394,7 +394,7 @@ export function QRCodeScanner({
           {isLoading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10 rounded-lg">
               <Loader2 className="h-8 w-8 animate-spin mb-2" />
-              <p>Activating camera...</p>
+              <p>{t("qrcode.scanner.activatingCamera")}</p>
             </div>
           )}
 
@@ -461,14 +461,14 @@ export function QRCodeScanner({
             {lastScan.success && lastScan.data && (
               <div className="text-sm space-y-1">
                 <p>
-                  <span className="text-muted-foreground">Tracking Ref:</span>{" "}
+                  <span className="text-muted-foreground">{t("qrcode.scanner.trackingRef")}:</span>{" "}
                   <span className="font-mono font-bold">
                     {lastScan.data.trackingRef}
                   </span>
                 </p>
                 {lastScan.data.parcelId && (
                   <p>
-                    <span className="text-muted-foreground">Parcel ID:</span>{" "}
+                    <span className="text-muted-foreground">{t("qrcode.scanner.parcelId")}:</span>{" "}
                     <span className="font-mono">{lastScan.data.parcelId}</span>
                   </p>
                 )}
@@ -484,7 +484,7 @@ export function QRCodeScanner({
         {showHistory && scanHistory.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Recent Scans</h4>
+              <h4 className="text-sm font-medium">{t("qrcode.scanner.recentScans")}</h4>
               <Button variant="ghost" size="sm" onClick={clearHistory}>
                 Clear
               </Button>

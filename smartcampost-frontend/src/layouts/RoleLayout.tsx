@@ -66,8 +66,6 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/staff/live-logistics", labelKey: "nav.liveLogistics" },
     { to: "/staff/gps-trackers", labelKey: "nav.gpsTrackers" },
     { to: "/staff/route-optimization", labelKey: "nav.routeOptimization" },
-    { to: "/staff/pickup-recommendations", labelKey: "nav.pickupRecommendations" },
-    { to: "/staff/distance-pricing", labelKey: "nav.distancePricing" },
     { to: "/staff/parcels", labelKey: "nav.parcels" },
     { to: "/staff/tracking", labelKey: "nav.tracking" },
     { to: "/staff/pickups", labelKey: "nav.pickups" },
@@ -75,10 +73,7 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/staff/payments", labelKey: "nav.payments" },
     { to: "/staff/support", labelKey: "nav.support" },
     { to: "/staff/scan", labelKey: "nav.scanConsole" },
-    { to: "/staff/bulk-scans", labelKey: "nav.bulkScans" },
     { to: "/staff/notifications", labelKey: "nav.notifications" },
-    { to: "/staff/notification-templates", labelKey: "nav.notificationTemplates" },
-    { to: "/staff/otp-logs", labelKey: "nav.otpLogs" },
     { to: "/staff/analytics", labelKey: "nav.analytics" },
     { to: "/staff/advanced-analytics", labelKey: "nav.advancedAnalytics" },
     { to: "/staff/operations-intelligence", labelKey: "nav.operationsIntelligence" },
@@ -92,8 +87,6 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/admin/live-logistics", labelKey: "nav.liveLogistics" },
     { to: "/admin/gps-trackers", labelKey: "nav.gpsTrackers" },
     { to: "/admin/route-optimization", labelKey: "nav.routeOptimization" },
-    { to: "/admin/pickup-recommendations", labelKey: "nav.pickupRecommendations" },
-    { to: "/admin/distance-pricing", labelKey: "nav.distancePricing" },
     { to: "/admin/parcels", labelKey: "nav.parcels" },
     { to: "/admin/pickups", labelKey: "nav.pickups" },
     { to: "/admin/deliveries", labelKey: "nav.deliveries" },
@@ -101,7 +94,6 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/admin/support", labelKey: "nav.support" },
     { to: "/admin/tracking", labelKey: "nav.tracking" },
     { to: "/admin/scan", labelKey: "nav.scanConsole" },
-    { to: "/admin/bulk-scans", labelKey: "nav.bulkScans" },
     { to: "/admin/staff", labelKey: "nav.staffDashboard" },
     { to: "/admin/users/staff", labelKey: "nav.staffManagement" },
     { to: "/admin/users/agents", labelKey: "nav.agentManagement" },
@@ -110,19 +102,14 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/admin/users/clients", labelKey: "nav.clientManagement" },
     { to: "/admin/tariffs", labelKey: "nav.tariffManagement" },
     { to: "/admin/integrations", labelKey: "nav.integrations" },
-    { to: "/admin/ussd", labelKey: "nav.ussd" },
     { to: "/admin/accounts", labelKey: "nav.userAccounts" },
     { to: "/admin/self-healing", labelKey: "nav.selfHealing" },
     { to: "/admin/approvals", labelKey: "nav.approvals" },
     { to: "/admin/notifications", labelKey: "nav.notifications" },
-    { to: "/admin/notification-templates", labelKey: "nav.notificationTemplates" },
-    { to: "/admin/otp-logs", labelKey: "nav.otpLogs" },
     { to: "/admin/analytics", labelKey: "nav.analytics" },
     { to: "/admin/advanced-analytics", labelKey: "nav.advancedAnalytics" },
     { to: "/admin/operations-intelligence", labelKey: "nav.operationsIntelligence" },
     { to: "/admin/ai-discovery", labelKey: "nav.aiDiscovery" },
-    { to: "/admin/rbac-permissions", labelKey: "nav.rbacPermissions" },
-    { to: "/admin/rbac-permissions/grant", labelKey: "nav.grantPermission" },
     { to: "/admin/profile", labelKey: "nav.profile" },
   ],
   FINANCE: [
@@ -213,7 +200,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
             className={({ isActive }) =>
               `group flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-primary/10 text-primary border-l-[3px] border-primary pl-[9px]"
+                  ? "bg-primary/10 text-primary border-l-[3px] border-primary pl-2"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`
             }
@@ -283,7 +270,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
           </div>
           <div className="flex items-center gap-1.5">
             <input
-              aria-label="Quick track"
+              aria-label={t("tracking.quickTrackLabel")}
               className="hidden h-8 w-32 rounded-lg border border-border bg-muted/50 px-3 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 min-[430px]:block"
               value={quickTrack}
               onChange={(event) => setQuickTrack(event.target.value)}
@@ -298,7 +285,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              aria-label="Open navigation"
+              aria-label={t("nav.openNavigation")}
               onClick={() => setMobileOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -315,7 +302,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <button
-              aria-label="Close navigation"
+              aria-label={t("nav.closeNavigation")}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
             />
@@ -324,7 +311,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
                 variant="ghost"
                 size="icon"
                 className="absolute right-2 top-2 h-8 w-8 rounded-full"
-                aria-label="Close navigation"
+                aria-label={t("nav.closeNavigation")}
                 onClick={() => setMobileOpen(false)}
               >
                 <X className="h-4 w-4" />
@@ -343,7 +330,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  aria-label="Quick track"
+                  aria-label={t("tracking.quickTrackLabel")}
                   className="h-9 w-72 rounded-lg border border-border bg-muted/30 pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                   value={quickTrack}
                   onChange={(event) => setQuickTrack(event.target.value)}

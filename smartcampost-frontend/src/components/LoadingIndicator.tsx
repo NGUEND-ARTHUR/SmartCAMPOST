@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export const LoadingIndicator: React.FC<{ size?: number }> = ({
   size = 24,
 }) => {
+  const { t } = useTranslation();
   const style: React.CSSProperties = {
     width: size,
     height: size,
@@ -13,7 +15,7 @@ export const LoadingIndicator: React.FC<{ size?: number }> = ({
   };
 
   return (
-    <div style={{ display: "inline-block" }} aria-label="loading">
+    <div style={{ display: "inline-block" }} aria-label={t("common.loading")}>
       <div style={style} />
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

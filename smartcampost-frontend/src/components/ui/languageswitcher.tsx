@@ -35,7 +35,6 @@ export function LanguageSwitcher({
   const changeLanguage = (langCode: string) => {
     void i18n.changeLanguage(langCode);
     localStorage.setItem("i18nextLng", langCode);
-    document.documentElement.lang = langCode;
     if (isAuthenticated && user?.role === "CLIENT") {
       updatePreferredLanguage.mutate(
         { language: langCode },
@@ -48,6 +47,11 @@ export function LanguageSwitcher({
     }
     setOpen(false);
   };
+
+  useEffect(() => {
+    document.documentElement.lang = activeLanguage;
+    localStorage.setItem("i18nextLng", activeLanguage);
+  }, [activeLanguage]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -499,7 +499,7 @@ export default function DeliveryWorkflowStepper({
                     {delivery.deliveryInstructions ? (
                       <div className="rounded border bg-blue-50 p-3">
                         <div className="text-xs font-medium text-blue-900">
-                          Instructions
+                          {t("deliveries.workflow.instructions")}
                         </div>
                         <div className="text-sm text-blue-800">
                           {delivery.deliveryInstructions}
@@ -509,36 +509,36 @@ export default function DeliveryWorkflowStepper({
 
                     <div className="rounded border p-3">
                       <div className="text-xs font-medium text-muted-foreground mb-2">
-                        Requirements
+                        {t("deliveries.workflow.requirements")}
                       </div>
                       <ul className="space-y-1 text-sm">
                         <li className="flex items-center gap-2">
                           <CheckCircle2
                             className={`h-4 w-4 ${req.requiresOtp ? "text-green-600" : "text-muted-foreground"}`}
                           />
-                          OTP required
+                          {t("deliveries.workflow.otpRequired")}
                         </li>
                         <li className="flex items-center gap-2">
                           <CheckCircle2
                             className={`h-4 w-4 ${req.requiresSignature ? "text-green-600" : "text-muted-foreground"}`}
                           />
-                          Signature required
+                          {t("deliveries.workflow.signatureRequired")}
                         </li>
                         <li className="flex items-center gap-2">
                           <CheckCircle2
                             className={`h-4 w-4 ${req.requiresPhoto ? "text-green-600" : "text-muted-foreground"}`}
                           />
-                          Photo proof required
+                          {t("deliveries.workflow.photoProofRequired")}
                         </li>
                       </ul>
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
                       <Button variant="outline" onClick={onExit}>
-                        Exit
+                        {t("common.close")}
                       </Button>
                       <Button onClick={goNextFromDetails}>
-                        Start delivery
+                        {t("deliveries.workflow.startDelivery")}
                       </Button>
                     </div>
                   </div>
@@ -579,13 +579,13 @@ export default function DeliveryWorkflowStepper({
                         variant="outline"
                         onClick={() => setStep("DETAILS")}
                       >
-                        Back
+                        {t("common.back")}
                       </Button>
                       <Button
                         onClick={verifyOtp}
                         disabled={verifyOtpMutation.isPending}
                       >
-                        Verify OTP
+                        {t("deliveries.workflow.verifyOtp")}
                       </Button>
                     </div>
                   </div>
@@ -598,20 +598,20 @@ export default function DeliveryWorkflowStepper({
                         variant={markFailed ? "outline" : "default"}
                         onClick={() => setMarkFailed(false)}
                       >
-                        Mark delivered
+                        {t("deliveries.workflow.markDelivered")}
                       </Button>
                       <Button
                         variant={markFailed ? "destructive" : "outline"}
                         onClick={() => setMarkFailed(true)}
                       >
-                        Mark failed
+                        {t("deliveries.workflow.markFailed")}
                       </Button>
                     </div>
 
                     {markFailed ? (
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label>Next action</Label>
+                          <Label>{t("deliveries.workflow.nextAction")}</Label>
                           <Select
                             value={failureAction}
                             onValueChange={(v) =>
@@ -619,11 +619,11 @@ export default function DeliveryWorkflowStepper({
                             }
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select" />
+                              <SelectValue placeholder={t("common.select")} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="FAILED">
-                                Mark failed
+                                {t("deliveries.workflow.markFailed")}
                               </SelectItem>
                               <SelectItem value="RESCHEDULE">
                                 Reschedule
@@ -637,7 +637,7 @@ export default function DeliveryWorkflowStepper({
 
                         {failureAction === "RESCHEDULE" ? (
                           <div className="space-y-2">
-                            <Label>New delivery date</Label>
+                            <Label>{t("deliveries.workflow.newDeliveryDate")}</Label>
                             <Input
                               type="date"
                               value={rescheduleDate}
@@ -649,13 +649,13 @@ export default function DeliveryWorkflowStepper({
                         ) : null}
 
                         <div className="space-y-2">
-                          <Label>Failure reason</Label>
+                          <Label>{t("deliveries.workflow.failureReason")}</Label>
                           <Select
                             value={failureReason}
                             onValueChange={setFailureReason}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a reason" />
+                              <SelectValue placeholder={t("deliveries.workflow.selectReason")} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="CUSTOMER_ABSENT">
@@ -670,17 +670,17 @@ export default function DeliveryWorkflowStepper({
                               <SelectItem value="PACKAGE_DAMAGED">
                                 Package damaged
                               </SelectItem>
-                              <SelectItem value="OTHER">Other</SelectItem>
+                              <SelectItem value="OTHER">{t("common.other")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Notes (optional)</Label>
+                          <Label>{t("deliveries.workflow.notesOptional")}</Label>
                           <Textarea
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            placeholder="Add details…"
+                            placeholder={t("deliveries.workflow.addDetails")}
                           />
                         </div>
 
@@ -693,7 +693,7 @@ export default function DeliveryWorkflowStepper({
                                 : setStep("DETAILS")
                             }
                           >
-                            Back
+                            {t("common.back")}
                           </Button>
                           <Button onClick={goConfirm} disabled={!failureReason}>
                             Continue
@@ -704,7 +704,7 @@ export default function DeliveryWorkflowStepper({
                       <div className="space-y-4">
                         {req.requiresPhoto && (
                           <div className="space-y-2">
-                            <Label>Photo proof *</Label>
+                            <Label>{t("deliveries.workflow.photoProof")} *</Label>
                             <div className="rounded-lg border-2 border-dashed p-4 text-center">
                               {photoProof ? (
                                 <div className="space-y-3">
@@ -743,8 +743,8 @@ export default function DeliveryWorkflowStepper({
                                 accept="image/*"
                                 onChange={handlePhotoCapture}
                                 className="hidden"
-                                aria-label="Upload delivery photo"
-                                title="Upload delivery photo"
+                                aria-label={t("deliveries.workflow.uploadDeliveryPhoto")}
+                                title={t("deliveries.workflow.uploadDeliveryPhoto")}
                               />
                             </div>
                           </div>
@@ -752,11 +752,11 @@ export default function DeliveryWorkflowStepper({
 
                         {req.requiresSignature && (
                           <div className="space-y-2">
-                            <Label>Customer signature *</Label>
+                            <Label>{t("deliveries.workflow.customerSignature")} *</Label>
                             <Input
                               value={signature}
                               onChange={(e) => setSignature(e.target.value)}
-                              placeholder="Customer full name"
+                              placeholder={t("deliveries.workflow.customerFullName")}
                             />
                             <div className="text-xs text-muted-foreground">
                               Ask customer to type their name.
@@ -765,11 +765,11 @@ export default function DeliveryWorkflowStepper({
                         )}
 
                         <div className="space-y-2">
-                          <Label>Notes (optional)</Label>
+                          <Label>{t("deliveries.workflow.notesOptional")}</Label>
                           <Textarea
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            placeholder="Add delivery note…"
+                            placeholder={t("deliveries.workflow.addDeliveryNote")}
                           />
                         </div>
 
@@ -782,7 +782,7 @@ export default function DeliveryWorkflowStepper({
                                 : setStep("DETAILS")
                             }
                           >
-                            Back
+                            {t("common.back")}
                           </Button>
                           <Button onClick={goConfirm} disabled={!proofValid}>
                             Continue
@@ -796,7 +796,7 @@ export default function DeliveryWorkflowStepper({
                 {step === "CONFIRM" && (
                   <div className="space-y-4">
                     <div className="rounded border p-3 text-sm">
-                      <div className="font-medium mb-1">Summary</div>
+                      <div className="font-medium mb-1">{t("deliveries.workflow.summary")}</div>
                       <ul className="space-y-1 text-muted-foreground">
                         <li>Status: {markFailed ? "FAILED" : "DELIVERED"}</li>
                         {req.requiresOtp ? (
@@ -821,7 +821,7 @@ export default function DeliveryWorkflowStepper({
                         variant="outline"
                         onClick={() => setStep("PROOF")}
                       >
-                        Back
+                        {t("common.back")}
                       </Button>
                       <Button
                         onClick={complete}
@@ -858,7 +858,7 @@ export default function DeliveryWorkflowStepper({
                     </div>
 
                     <div className="flex items-center justify-end gap-3">
-                      <Button onClick={onExit}>Back to list</Button>
+                      <Button onClick={onExit}>{t("deliveries.workflow.backToList")}</Button>
                     </div>
                   </div>
                 )}
@@ -867,7 +867,7 @@ export default function DeliveryWorkflowStepper({
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Timeline</CardTitle>
+                <CardTitle className="text-base">{t("deliveries.workflow.timeline")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {timeline.map((t, idx) => (

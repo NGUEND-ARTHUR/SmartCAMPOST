@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 type SkeletonLoaderProps = {
   rows?: number;
@@ -6,8 +7,10 @@ type SkeletonLoaderProps = {
 };
 
 export function SkeletonLoader({ rows = 4, className }: SkeletonLoaderProps) {
+  const { t } = useTranslation();
+
   return (
-    <div className={cn("space-y-3", className)} aria-label="Loading">
+    <div className={cn("space-y-3", className)} aria-label={t("common.loading")}>
       {Array.from({ length: rows }).map((_, index) => (
         <div
           key={index}

@@ -106,9 +106,9 @@ export default function StaffDashboard() {
                   setRoleFilter(v as "ALL" | StaffRole)
                 }
               >
-                <SelectTrigger className="w-52" title="Filter by role">
+                <SelectTrigger className="w-52" title={t("staffDashboard.filterByRole")}>
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Role" />
+                  <SelectValue placeholder={t("common.role")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">

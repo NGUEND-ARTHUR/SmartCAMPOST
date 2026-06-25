@@ -45,6 +45,8 @@
     "success": "Success",
     "required": "Required",
     "optional": "Optional",
+    "select": "Select",
+    "other": "Other",
     "noData": "No data available",
     "tryAgain": "Try again",
     "featureUnavailable": "This feature is not yet available.",
@@ -69,12 +71,19 @@
     "parcel": "Parcel",
     "action": "Action",
     "customer": "Customer",
+    "role": "Role",
     "dismiss": "Dismiss",
     "processing": "Processing…",
     "notScheduled": "Not scheduled",
     "unknown": "Unknown",
     "or": "OR",
     "rightsReserved": "All rights reserved."
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred in the SmartCAMPOST application. Our team has been notified. Please try again or contact support if the problem persists.",
+    "devDetails": "Error details (development only)",
+    "returnHome": "Return to Home"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -131,10 +140,20 @@
     "distancePricing": "Distance Pricing",
     "aiDiscovery": "AI Discovery",
     "rbacPermissions": "RBAC Permissions",
-    "grantPermission": "Grant Permission"
+    "grantPermission": "Grant Permission",
+    "openNavigation": "Open navigation",
+    "closeNavigation": "Close navigation"
   },
   "tracking": {
-    "quickTrack": "Track parcel"
+    "quickTrack": "Track parcel",
+    "quickTrackLabel": "Quick track"
+  },
+  "mapControls": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "toggle3d": "Toggle 3D view",
+    "locate": "Locate",
+    "resetView": "Reset view"
   },
   "ops": {
     "columns": {
@@ -358,7 +377,9 @@
       "manageStaff": "Manage Staff",
       "approvals": "Approvals",
       "liveScans": "Live Scans",
-      "waitingForScans": "Waiting for scan events\u2026"
+      "waitingForScans": "Waiting for scan events\u2026",
+      "aiRuntimeEvents": "AI Runtime Events",
+      "noAiEvents": "No AI events yet"
     },
     "finance": {
       "title": "Finance Dashboard",
@@ -790,6 +811,29 @@
       }
     },
     "workflow": {
+      "instructions": "Instructions",
+      "requirements": "Requirements",
+      "otpRequired": "OTP required",
+      "signatureRequired": "Signature required",
+      "photoProofRequired": "Photo proof required",
+      "startDelivery": "Start delivery",
+      "verifyOtp": "Verify OTP",
+      "markDelivered": "Mark delivered",
+      "markFailed": "Mark failed",
+      "nextAction": "Next action",
+      "newDeliveryDate": "New delivery date",
+      "failureReason": "Failure reason",
+      "selectReason": "Select a reason",
+      "notesOptional": "Notes (optional)",
+      "addDetails": "Add details…",
+      "photoProof": "Photo proof",
+      "uploadDeliveryPhoto": "Upload delivery photo",
+      "customerSignature": "Customer signature",
+      "customerFullName": "Customer full name",
+      "addDeliveryNote": "Add delivery note…",
+      "summary": "Summary",
+      "backToList": "Back to list",
+      "timeline": "Timeline",
       "toasts": {
         "startedOtp": "Delivery started. OTP has been sent (if required).",
         "started": "Delivery started",
@@ -1157,6 +1201,7 @@
     "export": "Export",
     "manage": "Manage",
     "allRoles": "All Roles",
+    "filterByRole": "Filter by role",
     "errorTitle": "Error loading staff",
     "emptyTitle": "No staff found",
     "emptyFiltered": "Try adjusting your filters",
@@ -1467,6 +1512,12 @@
         "scanning": "Scanning",
         "stopped": "Stopped"
       },
+      "cameraStopped": "Camera stopped",
+      "noCameraAvailable": "No camera available",
+      "activatingCamera": "Activating camera...",
+      "trackingRef": "Tracking Ref",
+      "parcelId": "Parcel ID",
+      "recentScans": "Recent Scans",
       "errors": {
         "noCameraDevice": "No camera found on this device"
       },

@@ -217,14 +217,16 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center gap-2 pb-3">
             <Brain className="h-4 w-4 text-violet-500" />
-            <CardTitle className="text-base">AI Runtime Events</CardTitle>
+            <CardTitle className="text-base">{t("dashboard.admin.aiRuntimeEvents")}</CardTitle>
             {liveAi.length > 0 && (
               <span className="ml-auto flex h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
             )}
           </CardHeader>
           <CardContent>
             {liveAi.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No AI events yet</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                {t("dashboard.admin.noAiEvents")}
+              </p>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {liveAi.map((e, idx) => (

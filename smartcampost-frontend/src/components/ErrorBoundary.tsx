@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import i18n from "@/i18n";
 
 interface Props {
   children: ReactNode;
@@ -80,7 +81,7 @@ class ErrorBoundary extends Component<Props, State> {
                 marginBottom: "12px",
               }}
             >
-              Something went wrong
+              {i18n.t("errorBoundary.title")}
             </h1>
 
             <p
@@ -91,9 +92,7 @@ class ErrorBoundary extends Component<Props, State> {
                 marginBottom: "32px",
               }}
             >
-              An unexpected error occurred in the SmartCAMPOST application.
-              Our team has been notified. Please try again or contact support if
-              the problem persists.
+              {i18n.t("errorBoundary.description")}
             </p>
 
             {/* Error details (only in development) */}
@@ -116,7 +115,7 @@ class ErrorBoundary extends Component<Props, State> {
                     fontWeight: 600,
                   }}
                 >
-                  Error details (development only)
+                  {i18n.t("errorBoundary.devDetails")}
                 </summary>
                 <pre
                   style={{
@@ -152,7 +151,7 @@ class ErrorBoundary extends Component<Props, State> {
                 ((e.currentTarget as HTMLButtonElement).style.opacity = "1")
               }
             >
-              Return to Home
+              {i18n.t("errorBoundary.returnHome")}
             </button>
           </div>
         </div>

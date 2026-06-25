@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   message?: string;
@@ -6,18 +7,21 @@ type Props = {
 };
 
 export const ErrorRetryWidget: React.FC<Props> = ({
-  message = "Une erreur est survenue",
+  message,
   onRetry,
 }) => {
+  const { t } = useTranslation();
+  const displayMessage = message ?? t("common.errorOccurred");
+
   return (
     <div style={{ padding: 12, textAlign: "center" }}>
-      <p>{message}</p>
+      <p>{displayMessage}</p>
       {onRetry ? (
         <button
           onClick={onRetry}
           style={{ padding: "6px 12px", borderRadius: 6 }}
         >
-          Réessayer
+          {t("common.tryAgain")}
         </button>
       ) : null}
     </div>
