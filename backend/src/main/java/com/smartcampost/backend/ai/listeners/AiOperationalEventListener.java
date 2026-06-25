@@ -119,8 +119,8 @@ public class AiOperationalEventListener {
         return new AiActorContext(null, "system", "SYSTEM", Set.of("ai:system"));
     }
 
-    private java.util.Map<String, Object> mapOf(Object... entries) {
-        java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+    private Map<String, Object> mapOf(Object... entries) {
+        Map<String, Object> map = new java.util.LinkedHashMap<>();
         for (int i = 0; i + 1 < entries.length; i += 2) {
             map.put(String.valueOf(entries[i]), entries[i + 1]);
         }
