@@ -36,7 +36,6 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
                 .createdAt(Instant.now())
                 .build();
 
-                @SuppressWarnings("null")
                 IntegrationConfig saved = integrationConfigRepository.save(config);
 
                 return toResponse(saved);
@@ -60,7 +59,6 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
         config.setEnabled(request.isEnabled());
         config.setUpdatedAt(Instant.now());
 
-                @SuppressWarnings("null")
                 IntegrationConfig saved = integrationConfigRepository.save(config);
 
                 return toResponse(saved);

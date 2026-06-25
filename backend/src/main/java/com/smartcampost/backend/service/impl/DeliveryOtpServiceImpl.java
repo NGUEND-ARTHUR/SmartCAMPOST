@@ -46,7 +46,6 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
                 .consumed(false)
                 .build();
 
-        @SuppressWarnings("null")
         DeliveryOtp savedOtp = deliveryOtpRepository.save(otp);
         otp = savedOtp;
 

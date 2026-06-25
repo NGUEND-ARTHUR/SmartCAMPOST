@@ -79,7 +79,6 @@ public class PricingServiceImpl implements PricingService {
                 .appliedAt(Instant.now())
                 .build();
 
-        @SuppressWarnings("null")
         PricingDetail saved = pricingDetailRepository.save(pricingDetail);
         return saved;
     }
@@ -112,7 +111,6 @@ public class PricingServiceImpl implements PricingService {
                 .appliedAt(Instant.now())
                 .build();
 
-        @SuppressWarnings("null")
         PricingDetail saved = pricingDetailRepository.save(pricingDetail);
         return saved;
     }

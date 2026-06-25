@@ -31,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@SuppressWarnings("null")
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
@@ -98,7 +97,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .externalRef(gatewayRef)
                 .build();
 
-        @SuppressWarnings("null")
         Payment saved = paymentRepository.save(p);
         p = saved;
         return toDto(p);
@@ -127,7 +125,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         p.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
-        @SuppressWarnings("null")
         Payment saved = paymentRepository.save(p);
         p = saved;
 
@@ -172,7 +169,6 @@ public class PaymentServiceImpl implements PaymentService {
         if (opt.isEmpty()) throw new ResourceNotFoundException("COD payment not found", ErrorCode.PAYMENT_NOT_FOUND);
         Payment p = opt.orElseThrow(() -> new ResourceNotFoundException("COD payment not found", ErrorCode.PAYMENT_NOT_FOUND));
         p.setStatus(PaymentStatus.SUCCESS);
-        @SuppressWarnings("null")
         Payment saved2 = paymentRepository.save(p);
         p = saved2;
         try {
@@ -205,7 +201,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CASH)
                 .status(PaymentStatus.PENDING)
                 .build();
-        @SuppressWarnings("null")
         Payment saved3 = paymentRepository.save(p);
         p = saved3;
         return toDto(p);
@@ -223,7 +218,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
                 .build();
-        @SuppressWarnings("null")
         Payment saved4 = paymentRepository.save(p);
         p = saved4;
         return toDto(p);
@@ -250,7 +244,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PENDING)
                 .build();
-        @SuppressWarnings("null")
         Payment saved5 = paymentRepository.save(p);
         p = saved5;
         return toDto(p);
@@ -292,7 +285,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .method(paymentMethod != null ? PaymentMethod.valueOf(paymentMethod) : PaymentMethod.CASH)
                 .status(PaymentStatus.SUCCESS)
                 .build();
-        @SuppressWarnings("null")
         Payment saved6 = paymentRepository.save(p);
         p = saved6;
         try {

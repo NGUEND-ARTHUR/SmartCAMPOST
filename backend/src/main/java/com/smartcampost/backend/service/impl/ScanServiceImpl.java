@@ -52,7 +52,6 @@ public class ScanServiceImpl implements ScanService {
 
         // Clients may record tracking scans without GPS (legacy behavior)
         if (!canUpdate) {
-            @SuppressWarnings("null")
             ScanEvent saved = scanEventRepository.save(evt);
             try {
                 sseEmitters.emitScan(saved);

@@ -63,7 +63,6 @@ public class OtpServiceImpl implements OtpService {
                 .used(false)
                 .build();
 
-        @SuppressWarnings({"null", "unused"})
         OtpCode saved = otpCodeRepository.save(otp);
 
         // 5) Envoyer via le gateway (Twilio en prod, mock en dev si configuré)

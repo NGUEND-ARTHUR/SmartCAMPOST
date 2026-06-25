@@ -82,7 +82,6 @@ public class TariffPricingServiceImpl implements TariffPricingService {
                     .appliedAt(Instant.now())
                     .build();
 
-                        @SuppressWarnings({"null", "unused"})
                         PricingDetail savedDetail = pricingDetailRepository.save(detail);
             applied = true;
         }

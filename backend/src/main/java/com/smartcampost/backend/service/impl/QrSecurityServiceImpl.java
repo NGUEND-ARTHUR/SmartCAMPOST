@@ -145,7 +145,6 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 .verificationCount(0)
                 .build();
 
-        @SuppressWarnings("null")
         QrVerificationToken savedToken = tokenRepository.save(tokenEntity);
         tokenEntity = savedToken;
 
@@ -198,7 +197,6 @@ public class QrSecurityServiceImpl implements QrSecurityService {
                 .verificationCount(0)
                 .build();
 
-        @SuppressWarnings("null")
         QrVerificationToken savedTempToken = tokenRepository.save(tokenEntity);
         tokenEntity = savedTempToken;
 

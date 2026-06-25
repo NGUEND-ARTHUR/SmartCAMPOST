@@ -59,7 +59,6 @@ public class TariffServiceImpl implements TariffService {
                 .price(request.getPrice())
                 .build();
 
-        @SuppressWarnings("null")
         Tariff saved = tariffRepository.save(tariff);
 
         return toResponse(saved);
@@ -77,7 +76,6 @@ public class TariffServiceImpl implements TariffService {
 
         tariff.setPrice(request.getPrice());
 
-        @SuppressWarnings("null")
         Tariff saved = tariffRepository.save(tariff);
 
         return toResponse(saved);

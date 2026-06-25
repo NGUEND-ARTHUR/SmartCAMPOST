@@ -61,7 +61,6 @@ public class RiskServiceImpl implements RiskService {
         // If your RiskAlert has setSeverity(RiskAlertSeverity) use it directly:
         // alert.setSeverity((RiskAlertSeverity) severity);
 
-        @SuppressWarnings("null")
         RiskAlert saved = riskAlertRepository.save(alert);
         return toResponse(saved);
     }
@@ -73,7 +72,6 @@ public class RiskServiceImpl implements RiskService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
 
         account.setFrozen(frozen);
-        @SuppressWarnings("null")
         UserAccount saved = userAccountRepository.save(account);
         try {
             if (Boolean.TRUE.equals(saved.isFrozen())) {

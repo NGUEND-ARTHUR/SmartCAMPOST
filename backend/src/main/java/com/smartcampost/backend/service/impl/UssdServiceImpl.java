@@ -125,7 +125,6 @@ public class UssdServiceImpl implements UssdService {
     // ============================================================
     // SESSION HELPER
     // ============================================================
-        @SuppressWarnings("null")
         private UssdSession getOrCreateSession(String sessionRef, String msisdn) {
 
         try {

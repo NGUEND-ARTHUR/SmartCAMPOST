@@ -101,7 +101,6 @@ public class RefundServiceImpl implements RefundService {
                 .status(RefundStatus.REQUESTED)
                 .createdAt(Instant.now())
                 .build();
-        @SuppressWarnings("null")
         Refund saved = refundRepository.save(refund);
         refund = saved;
 

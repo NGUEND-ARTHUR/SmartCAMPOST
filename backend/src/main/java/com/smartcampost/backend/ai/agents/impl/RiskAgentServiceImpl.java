@@ -36,7 +36,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class RiskAgentServiceImpl implements RiskAgentService {
 
     private static final EnumSet<ParcelStatus> FINAL_STATUSES = EnumSet.of(

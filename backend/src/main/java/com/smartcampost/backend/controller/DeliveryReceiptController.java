@@ -88,7 +88,6 @@ public class DeliveryReceiptController {
 
         try {
             UUID id = UUID.fromString(subject);
-            @SuppressWarnings("null")
             UserAccount account = userAccountRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found", ErrorCode.AUTH_USER_NOT_FOUND));
             return account;

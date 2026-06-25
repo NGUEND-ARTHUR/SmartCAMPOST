@@ -92,7 +92,6 @@ public class StaffServiceImpl implements StaffService {
                 .passwordHash(encodedPassword)
                 .build();
 
-        @SuppressWarnings("null")
         Staff savedStaff = staffRepository.save(staff);
         staff = savedStaff;
 
@@ -106,7 +105,6 @@ public class StaffServiceImpl implements StaffService {
                 .entityId(staff.getId())
                 .build();
 
-        @SuppressWarnings("null")
         UserAccount savedAccount = userAccountRepository.save(account);
         account = savedAccount;
 
@@ -117,7 +115,6 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public StaffResponse getStaffById(UUID staffId) {
         Objects.requireNonNull(staffId, "staffId is required");
-        @SuppressWarnings("null")
         Staff staff = staffRepository.findById(staffId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
@@ -153,7 +150,6 @@ public class StaffServiceImpl implements StaffService {
             staff.setTerminatedAt(LocalDate.now());
         }
 
-        @SuppressWarnings("null")
         Staff updatedStaff = staffRepository.save(staff);
         return toResponse(updatedStaff);
     }
@@ -171,7 +167,6 @@ public class StaffServiceImpl implements StaffService {
         // ✅ Validate staff role updates too
         validateStaffUserRole(role);
 
-        @SuppressWarnings("null")
         Staff staff = staffRepository.findById(staffId)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
@@ -186,11 +181,9 @@ public class StaffServiceImpl implements StaffService {
 
         // ✅ Staff.role is STRING
         staff.setRole(role.name());
-        @SuppressWarnings("null")
         Staff updated = staffRepository.save(staff);
 
         // ✅ Sync UserAccount role too (critical!)
-        @SuppressWarnings("null")
         UserAccount account = userAccountRepository.findFirstByEntityId(staff.getId())
             .orElseThrow(() -> new ResourceNotFoundException(
                 "UserAccount not found for staff",

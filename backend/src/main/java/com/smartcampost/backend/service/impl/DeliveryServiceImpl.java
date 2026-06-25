@@ -787,7 +787,6 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .notes(notes)
                 .attemptedAt(Instant.now())
                 .build();
-            @SuppressWarnings("null")
             DeliveryAttempt savedAttempt = deliveryAttemptRepository.save(attempt);
             attempt = savedAttempt;
         log.info("Recorded delivery attempt #{} for parcel {} - result: {}", 

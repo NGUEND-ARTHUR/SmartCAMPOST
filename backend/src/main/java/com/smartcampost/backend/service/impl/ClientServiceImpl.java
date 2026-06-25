@@ -63,7 +63,6 @@ public class ClientServiceImpl implements ClientService {
         Objects.requireNonNull(request, "request is required");
         Client client = getCurrentClient();
         client.setPreferredLanguage(request.getPreferredLanguage());
-        @SuppressWarnings("null")
         Client savedClient = clientRepository.save(client);
         return toResponse(savedClient);
     }
@@ -126,7 +125,6 @@ public class ClientServiceImpl implements ClientService {
             client.setPreferredLanguage(request.getPreferredLanguage());
         }
 
-        @SuppressWarnings("null")
         Client savedClient = clientRepository.save(client);
 
         return toResponse(savedClient);

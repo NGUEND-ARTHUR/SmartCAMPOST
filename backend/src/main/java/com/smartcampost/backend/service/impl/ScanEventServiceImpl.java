@@ -671,7 +671,6 @@ public class ScanEventServiceImpl implements ScanEventService {
                 .syncedAt(Instant.now())
                 .build();
 
-        @SuppressWarnings("null")
         ScanEvent savedEvent = scanEventRepository.save(event);
 
         // Update parcel location from scan event GPS

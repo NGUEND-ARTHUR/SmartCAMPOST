@@ -119,7 +119,6 @@ public class AgentServiceImpl implements AgentService {
                                         .status(StaffStatus.ACTIVE)
                                         .hiredAt(java.time.LocalDate.now())
                                         .build();
-                        @SuppressWarnings("null")
                         Staff savedStaff = staffRepository.save(newStaff);
                         staff = savedStaff;
                 }
@@ -137,7 +136,6 @@ public class AgentServiceImpl implements AgentService {
                 .createdAt(Instant.now())
                 .build();
 
-        @SuppressWarnings("null")
         Agent savedAgent = agentRepository.save(agent);
 
         // créer UserAccount pour login Agent
@@ -149,7 +147,6 @@ public class AgentServiceImpl implements AgentService {
                 .role(UserRole.AGENT)
                 .entityId(savedAgent.getId())
                 .build();
-                @SuppressWarnings("null")
                 UserAccount savedAccount = userAccountRepository.save(account);
                 account = savedAccount;
 

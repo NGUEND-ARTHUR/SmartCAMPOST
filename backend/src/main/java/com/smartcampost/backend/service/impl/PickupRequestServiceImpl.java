@@ -91,7 +91,6 @@ public class PickupRequestServiceImpl implements PickupRequestService {
             .locationMode(request.getLocationMode() != null ? request.getLocationMode() : LocationMode.GPS_DEFAULT)
                 .build();
 
-        @SuppressWarnings("null")
         PickupRequest savedPickup = pickupRequestRepository.save(pickup);
         pickup = savedPickup;
 

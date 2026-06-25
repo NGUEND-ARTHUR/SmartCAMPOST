@@ -64,7 +64,6 @@ public class CourierServiceImpl implements CourierService {
                 .createdAt(Instant.now())
                 .build();
 
-        @SuppressWarnings("null")
         Courier savedCourier = courierRepository.save(courier);
 
         // Créer UserAccount pour login Courier
@@ -77,7 +76,6 @@ public class CourierServiceImpl implements CourierService {
                 .entityId(savedCourier.getId())
                 .build();
 
-                @SuppressWarnings("null")
                 UserAccount savedAccount = userAccountRepository.save(account);
                 account = savedAccount;
 

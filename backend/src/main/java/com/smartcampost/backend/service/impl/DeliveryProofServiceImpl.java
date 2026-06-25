@@ -77,7 +77,6 @@ public class DeliveryProofServiceImpl implements DeliveryProofService {
                 .timestamp(Instant.now())
                 .build();
 
-        @SuppressWarnings("null")
         DeliveryProof saved = deliveryProofRepository.save(proof);
         return saved;
     }

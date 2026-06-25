@@ -150,7 +150,6 @@ public class ParcelServiceImpl implements ParcelService {
             .partialQrCode(partialQrPayload)
                 .build();
 
-        @SuppressWarnings("null")
         Parcel savedParcel = parcelRepository.save(parcel);
         parcel = savedParcel;
 
@@ -451,7 +450,6 @@ public class ParcelServiceImpl implements ParcelService {
             parcel.setDescriptionComment(request.getDescriptionComment());
         }
 
-        @SuppressWarnings("null")
         Parcel saved = parcelRepository.save(parcel);
         parcel = saved;
         return toResponse(parcel);

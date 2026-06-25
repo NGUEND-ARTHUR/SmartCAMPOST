@@ -1031,7 +1031,6 @@ public class NotificationServiceImpl implements NotificationService {
 
                 try {
                         UUID userId = UUID.fromString(subject);
-                        @SuppressWarnings("null")
                         UUID uid = userId;
             return userAccountRepository.findById(Objects.requireNonNull(uid, "userId is required"))
                     .orElseThrow(() -> new ResourceNotFoundException(

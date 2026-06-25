@@ -82,7 +82,6 @@ public class ComplianceServiceImpl implements ComplianceService {
                 ));
 
         alert.setResolved(request.isResolved());
-                @SuppressWarnings("null")
                 RiskAlert saved = riskAlertRepository.save(alert);
 
         return toResponse(saved);

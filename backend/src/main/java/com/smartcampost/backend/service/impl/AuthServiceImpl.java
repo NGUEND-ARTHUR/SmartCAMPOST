@@ -92,7 +92,6 @@ public class AuthServiceImpl implements AuthService {
             .passwordHash(encodedPassword)
             .build();
 
-        @SuppressWarnings("null")
         Client savedClient = clientRepository.save(client);
         client = savedClient;
 
@@ -107,7 +106,6 @@ public class AuthServiceImpl implements AuthService {
             .entityId(client.getId())
             .build();
 
-        @SuppressWarnings("null")
         UserAccount savedAccount = userAccountRepository.save(account);
         account = savedAccount;
 
@@ -252,7 +250,6 @@ public class AuthServiceImpl implements AuthService {
                 .email(email)
                 .build();
 
-        @SuppressWarnings("null")
         Client savedClient = clientRepository.save(client);
         client = savedClient;
 
@@ -265,7 +262,6 @@ public class AuthServiceImpl implements AuthService {
                 .entityId(client.getId())
                 .build();
 
-        @SuppressWarnings("null")
         UserAccount savedAccount = userAccountRepository.save(account);
         account = savedAccount;
 

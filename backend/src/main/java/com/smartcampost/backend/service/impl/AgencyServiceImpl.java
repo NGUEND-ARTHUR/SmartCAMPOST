@@ -46,7 +46,6 @@ public class AgencyServiceImpl implements AgencyService {
                 .country(request.getCountry() != null ? request.getCountry() : "Cameroon")
                 .build();
 
-        @SuppressWarnings("null")
         Agency saved = agencyRepository.save(agency);
         return toResponse(saved);
     }
@@ -98,7 +97,6 @@ public class AgencyServiceImpl implements AgencyService {
             agency.setCountry(request.getCountry());
         }
 
-        @SuppressWarnings("null")
         Agency saved = agencyRepository.save(agency);
         return toResponse(saved);
     }

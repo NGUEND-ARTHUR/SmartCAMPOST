@@ -88,7 +88,6 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .createdAt(Instant.now())
                 .build();
 
-                @SuppressWarnings("null")
                 SupportTicket saved = supportTicketRepository.save(ticket);
                 try {
                         notificationService.notifySupportTicketCreated(client, saved.getSubject());
@@ -175,7 +174,6 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         }
 
         ticket.setUpdatedAt(Instant.now());
-                @SuppressWarnings("null")
                 SupportTicket saved = supportTicketRepository.save(ticket);
                 try {
                         if (saved.getClient() != null) {
@@ -223,7 +221,6 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         ticket.setStatus(request.getStatus());
         ticket.setUpdatedAt(Instant.now());
 
-                @SuppressWarnings("null")
                 SupportTicket saved = supportTicketRepository.save(ticket);
                 try {
                         if (saved.getClient() != null) {
