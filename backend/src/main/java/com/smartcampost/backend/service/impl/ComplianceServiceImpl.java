@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -210,11 +209,6 @@ public class ComplianceServiceImpl implements ComplianceService {
                     "Not allowed to access compliance resources"
             );
         }
-    }
-
-    private boolean isBetween(Instant value, Instant from, Instant to) {
-        return (value.equals(from) || value.isAfter(from))
-                && value.isBefore(to);
     }
 
     private UserAccount getCurrentUserAccount() {
