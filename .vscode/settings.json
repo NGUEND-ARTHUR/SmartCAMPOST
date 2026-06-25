@@ -1,0 +1,39 @@
+{
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.exclusions": [
+        "**/smartcampost_mobile/**"
+    ],
+    "java.import.gradle.enabled": false,
+    "gradle.autoDetect": "off",
+    "gradle.nestedProjects": false,
+    "gradle.enabled": false,
+    "java.warnings.incompleteClasspath.severity": "ignore",
+    "java.settings.url": "",
+    "markdownlint.config": {
+        "MD010": false,
+        "MD013": false,
+        "MD022": false,
+        "MD024": false,
+        "MD025": false,
+        "MD026": false,
+        "MD033": false,
+        "MD036": false,
+        "MD041": false,
+        "MD046": false,
+        "MD047": false,
+        "MD051": false,
+        "MD052": false,
+        "MD055": false,
+        "MD056": false,
+        "MD058": false,
+        "MD060": false
+    },
+    "markdownlint.ignore": [
+        "node_modules/**",
+        ".venv/**",
+        "target/**",
+        "dist/**",
+        "build/**"
+    ]
+}

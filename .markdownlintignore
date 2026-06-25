@@ -1,0 +1,7 @@
+node_modules/
+.venv/
+target/
+dist/
+build/
+playwright-tests/
+smartcampost-frontend/node_modules/
