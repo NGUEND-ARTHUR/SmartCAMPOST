@@ -4,7 +4,6 @@ import com.smartcampost.backend.ai.events.ParcelStatusChangedEvent;
 import com.smartcampost.backend.model.Location;
 import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.enums.ParcelStatus;
-import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.LocationRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import lombok.RequiredArgsConstructor;

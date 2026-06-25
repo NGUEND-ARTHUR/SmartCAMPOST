@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Automation D — Courier availability auto-management.

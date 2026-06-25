@@ -82,7 +82,7 @@ public class TariffPricingServiceImpl implements TariffPricingService {
                     .appliedAt(Instant.now())
                     .build();
 
-                        PricingDetail savedDetail = pricingDetailRepository.save(detail);
+                        pricingDetailRepository.save(detail);
             applied = true;
         }
 
