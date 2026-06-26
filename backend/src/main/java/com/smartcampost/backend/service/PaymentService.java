@@ -21,6 +21,8 @@ public interface PaymentService {
 
     Page<PaymentResponse> listAllPayments(int page, int size);
 
+    Page<PaymentResponse> listMyPayments(int page, int size);
+
     // ==========================================================
     // 🔥 SPRINT 14 — COD SUPPORT (Cash On Delivery)
     // ==========================================================

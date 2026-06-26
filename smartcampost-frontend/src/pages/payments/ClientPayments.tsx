@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { receiptService } from "@/services/payments/receipts.api";
-import { usePayments } from "@/hooks";
+import { useMyPayments } from "@/hooks";
 import { toast } from "sonner";
 
 function escapeHtml(str: string): string {
@@ -44,7 +44,7 @@ export default function ClientPayments() {
     data: paymentsResponse,
     isLoading,
     error: queryError,
-  } = usePayments(0, 1000);
+  } = useMyPayments(0, 1000);
 
   const payments = useMemo(
     () => paymentsResponse?.content ?? [],

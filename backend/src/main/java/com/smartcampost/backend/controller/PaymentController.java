@@ -66,6 +66,15 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.listAllPayments(page, size));
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<PaymentResponse>> listMyPayments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(paymentService.listMyPayments(page, size));
+    }
+
     @GetMapping("/exceptions")
     @PreAuthorize("hasAnyRole('ADMIN','FINANCE','STAFF','RISK')")
     public ResponseEntity<List<PaymentResponse>> listPaymentExceptions(

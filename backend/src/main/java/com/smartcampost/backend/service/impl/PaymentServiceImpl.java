@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ParcelRepository parcelRepository;
+    private final com.smartcampost.backend.repository.UserAccountRepository userAccountRepository;
     private final InvoiceService invoiceService;
     private final PricingService pricingService;
     private final NotificationService notificationService;
@@ -43,6 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentServiceImpl(
             PaymentRepository paymentRepository,
             ParcelRepository parcelRepository,
+            com.smartcampost.backend.repository.UserAccountRepository userAccountRepository,
             InvoiceService invoiceService,
             PricingService pricingService,
             NotificationService notificationService,
@@ -50,6 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
     ) {
         this.paymentRepository = paymentRepository;
         this.parcelRepository = parcelRepository;
+        this.userAccountRepository = userAccountRepository;
         this.invoiceService = invoiceService;
         this.pricingService = pricingService;
         this.notificationService = notificationService;
@@ -159,6 +162,31 @@ public class PaymentServiceImpl implements PaymentService {
     public Page<PaymentResponse> listAllPayments(int page, int size) {
         var pg = paymentRepository.findAll(org.springframework.data.domain.PageRequest.of(page, size));
         return pg.map(this::toDto);
+    }
+
+    @Override
+    public Page<PaymentResponse> listMyPayments(int page, int size) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AuthException(ErrorCode.AUTH_UNAUTHORIZED, "Not authenticated");
+        }
+        // Get all parcels visible to the current user, then their payments
+        var myParcels = parcelRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 10000));
+        UUID entityId = null;
+        try {
+            var userAccount = userAccountRepository.findById(UUID.fromString(auth.getName()));
+            if (userAccount.isPresent()) {
+                entityId = userAccount.get().getEntityId();
+            }
+        } catch (Exception ignored) {}
+
+        final UUID clientId = entityId;
+        var myPayments = myParcels.stream()
+                .filter(p -> p.getClient() != null && clientId != null && clientId.equals(p.getClient().getId()))
+                .flatMap(p -> paymentRepository.findByParcel_IdOrderByTimestampDesc(p.getId()).stream())
+                .map(this::toDto)
+                .toList();
+        return new org.springframework.data.domain.PageImpl<>(myPayments, org.springframework.data.domain.PageRequest.of(page, size), myPayments.size());
     }
 
     @Override

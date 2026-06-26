@@ -27,6 +27,13 @@ export function usePayments(page = 0, size = 20) {
   });
 }
 
+export function useMyPayments(page = 0, size = 20) {
+  return useQuery({
+    queryKey: [...paymentKeys.lists(), "my", { page, size }] as const,
+    queryFn: () => paymentService.listMy(page, size),
+  });
+}
+
 export function usePayment(
   id: string,
   options?: { pollWhilePending?: boolean },
