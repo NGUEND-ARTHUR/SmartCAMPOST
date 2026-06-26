@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/authStore";
 import { parcelService } from "@/services/parcels";
 import { mapService, ParcelMapResponse } from "@/services/maps";
 import { geolocationService } from "@/services/common/geolocation.api";
+import { agencyService } from "@/services/users/agencies.api";
 
 // Simple city geocoding cache to avoid repeated API calls
 const CITY_GEOCODE_CACHE: Record<string, { lat: number; lng: number }> = {
@@ -57,10 +58,14 @@ async function geocodeCity(
   }
 }
 
+type MarkerType = "parcel" | "courier" | "agency" | "location" | "pickup" | "delivery";
+
 type MarkerItem = {
   id: string;
   position: [number, number];
   label?: string;
+  type?: MarkerType;
+  color?: string;
 };
 
 type TrackedParcelItem = {
@@ -149,10 +154,30 @@ export default function RoleMapDashboard() {
       setError(null);
 
       try {
+        // ── Load agencies for all roles ──────────────────────────────────────
+        let agencyMarkers: MarkerItem[] = [];
+        try {
+          const agencies = await agencyService.listAll();
+          const agencyList = Array.isArray(agencies) ? agencies : [];
+          for (const a of agencyList) {
+            const coords = await geocodeCity(a.city, a.country || "Cameroon");
+            if (coords) {
+              agencyMarkers.push({
+                id: `agency-${a.id}`,
+                position: [coords.lat, coords.lng],
+                label: `🏢 ${a.agencyName} (${a.city || ""})`,
+                type: "agency",
+                color: "#059669",
+              });
+            }
+          }
+        } catch { /* agencies optional */ }
+
         // ── CLIENT: list own parcels then fetch map data per parcel ──────────
         if (CLIENT_PARCEL_ROLES.has(role)) {
           const myParcels = await parcelService.listMyParcels(0, 50);
-          const items = myParcels.content ?? [];
+          const allItems = myParcels.content ?? [];
+          const items = allItems.filter((p) => p.status !== "DELIVERED" && p.status !== "PICKED_UP_AT_AGENCY" && p.status !== "CANCELLED");
 
           const selectedInList = items.some((p) => p.id === selectedParcelId);
           const candidateParcelId = selectedInList
@@ -181,7 +206,7 @@ export default function RoleMapDashboard() {
             )
           ).filter((m): m is MarkerItem => m !== null);
 
-          setMarkers(mapMarkers);
+          setMarkers([...agencyMarkers, ...mapMarkers]);
           setTrackedParcels(
             items.map((p) => ({
               id: p.id,
@@ -234,7 +259,7 @@ export default function RoleMapDashboard() {
               label: `📦 ${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"}`,
             }));
 
-          setMarkers([...locationMarkers, ...parcelMarkers]);
+          setMarkers([...agencyMarkers, ...locationMarkers, ...parcelMarkers]);
           setTrackedParcels([]);
           setSelectedParcelMap(null);
           setSelectedParcelId("");
@@ -282,7 +307,7 @@ export default function RoleMapDashboard() {
               label: `${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"}`,
             }));
 
-          setMarkers([...recentLocationMarkers, ...parcelMarkers]);
+          setMarkers([...agencyMarkers, ...recentLocationMarkers, ...parcelMarkers]);
           setTrackedParcels([]);
           setSelectedParcelMap(null);
           setSelectedParcelId("");
@@ -416,7 +441,16 @@ export default function RoleMapDashboard() {
                 <MapPin className="h-5 w-5" />
                 {t("roleMap.locationMap")}
               </CardTitle>
-              <Badge variant="secondary">{markers.length} markers</Badge>
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" />Parcels</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" />Agencies</span>
+                  {(role === "ADMIN" || role === "STAFF" || role === "COURIER") && (
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-500" />Couriers</span>
+                  )}
+                </div>
+                <Badge variant="secondary">{markers.length} markers</Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <LeafletMap markers={markers} height="62vh" showSearch />
