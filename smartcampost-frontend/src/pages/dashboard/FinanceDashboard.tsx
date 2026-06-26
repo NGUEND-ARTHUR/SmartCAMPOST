@@ -152,7 +152,7 @@ export default function FinanceDashboard() {
                     {t("common.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground self-center">
-                    {t("common.pageOf", { page: page + 1, totalPages })}
+                    {t("common.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <Button
                     variant="outline"

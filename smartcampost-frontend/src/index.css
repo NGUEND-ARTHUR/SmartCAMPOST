@@ -238,16 +238,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sc-animate-fade-up,
-  .sc-animate-float,
-  .sc-route-line,
-  .sc-route-parcel,
-  .sc-live-marker::before,
-  .sc-live-marker::after {
-    animation: none;
-  }
-
-  .sc-interactive,
   .sc-interactive:hover,
   .sc-interactive:active {
     transform: none;

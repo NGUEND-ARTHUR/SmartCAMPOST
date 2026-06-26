@@ -448,7 +448,7 @@ export function DeliveryConfirmation({
               OTP Verification
             </CardTitle>
             <CardDescription>
-              Verify recipient identity with OTP code
+              {t("qrcode.deliveryConfirmation.verifyRecipientSubtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -463,15 +463,15 @@ export function DeliveryConfirmation({
               <Separator />
               <div className="text-sm space-y-1">
                 <p>
-                  <span className="text-muted-foreground">Recipient:</span>{" "}
+                  <span className="text-muted-foreground">{t("qrcode.deliveryConfirmation.recipient")}:</span>{" "}
                   {deliveryInfo.recipientName}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Phone:</span>{" "}
+                  <span className="text-muted-foreground">{t("common.phone")}:</span>{" "}
                   {deliveryInfo.recipientPhone}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Address:</span>{" "}
+                  <span className="text-muted-foreground">{t("qrcode.deliveryConfirmation.address")}:</span>{" "}
                   {deliveryInfo.recipientAddress}
                 </p>
               </div>
@@ -489,18 +489,18 @@ export function DeliveryConfirmation({
                 ) : (
                   <Shield className="h-4 w-4 mr-2" />
                 )}
-                Send OTP to Recipient
+                {t("qrcode.deliveryConfirmation.sendOtp")}
               </Button>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <CheckCircle className="h-4 w-4" />
-                  OTP sent to {deliveryInfo.recipientPhone}
+                  {t("qrcode.deliveryConfirmation.otpSentTo", { phone: deliveryInfo.recipientPhone })}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Enter OTP Code
+                    {t("qrcode.deliveryConfirmation.enterOtp")}
                   </label>
                   <Input
                     type="text"
@@ -513,7 +513,7 @@ export function DeliveryConfirmation({
                     }
                     autoComplete="one-time-code"
                     name="otp"
-                    placeholder="Enter 4-6 digit code"
+                    placeholder={t("qrcode.deliveryConfirmation.otpPlaceholder")}
                     className="text-center text-2xl tracking-widest"
                   />
                 </div>
@@ -525,7 +525,7 @@ export function DeliveryConfirmation({
                     disabled={isSendingOtp}
                     className="flex-1"
                   >
-                    Resend OTP
+                    {t("qrcode.deliveryConfirmation.resendOtp")}
                   </Button>
                   <Button
                     onClick={handleVerifyOtp}
@@ -535,7 +535,7 @@ export function DeliveryConfirmation({
                     {isVerifying ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : null}
-                    Verify
+                    {t("common.verify")}
                   </Button>
                 </div>
               </div>
@@ -543,7 +543,7 @@ export function DeliveryConfirmation({
 
             <Button variant="ghost" onClick={handleReset} className="w-full">
               <X className="h-4 w-4 mr-2" />
-              Cancel
+              {t("common.cancel")}
             </Button>
           </CardContent>
         </Card>
@@ -555,23 +555,23 @@ export function DeliveryConfirmation({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSignature className="h-5 w-5" />
-              Proof of Delivery
+              {t("qrcode.deliveryConfirmation.proofOfDelivery")}
             </CardTitle>
             <CardDescription>
-              Capture photo, signature, and location as delivery proof
+              {t("qrcode.deliveryConfirmation.proofSubtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Photo Capture */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Photo <Badge variant="secondary">Optional</Badge>
+                {t("qrcode.deliveryConfirmation.photo")} <Badge variant="secondary">{t("common.optional")}</Badge>
               </label>
               {proof.photo ? (
                 <div className="relative">
                   <img
                     src={proof.photo}
-                    alt="Proof of delivery"
+                    alt={t("qrcode.deliveryConfirmation.proofOfDelivery")}
                     className="w-full h-48 object-cover rounded-lg"
                   />
                   <Button
@@ -591,7 +591,7 @@ export function DeliveryConfirmation({
                     ref={photoInputRef}
                     type="file"
                     accept="image/*"
-                    aria-label="Capture delivery photo"
+                    aria-label={t("qrcode.deliveryConfirmation.captureDeliveryPhoto")}
                     onChange={handlePhotoCapture}
                     className="hidden"
                   />
@@ -605,7 +605,7 @@ export function DeliveryConfirmation({
                     ) : (
                       <Camera className="h-4 w-4 mr-2" />
                     )}
-                    Take Photo
+                    {t("qrcode.deliveryConfirmation.takePhoto")}
                   </Button>
                 </div>
               )}
@@ -615,11 +615,11 @@ export function DeliveryConfirmation({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium">
-                  Signature <Badge variant="secondary">Optional</Badge>
+                  {t("qrcode.deliveryConfirmation.signature")} <Badge variant="secondary">{t("common.optional")}</Badge>
                 </label>
                 {proof.signature && (
                   <Button variant="ghost" size="sm" onClick={clearSignature}>
-                    Clear
+                    {t("common.clear")}
                   </Button>
                 )}
               </div>
@@ -639,20 +639,20 @@ export function DeliveryConfirmation({
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Draw signature above
+                {t("qrcode.deliveryConfirmation.drawSignature")}
               </p>
             </div>
 
             {/* Location Capture */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Location <Badge variant="secondary">Recommended</Badge>
+                {t("qrcode.deliveryConfirmation.location")} <Badge variant="secondary">{t("qrcode.deliveryConfirmation.recommended")}</Badge>
               </label>
               {proof.location ? (
                 <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                   <MapPin className="h-5 w-5 text-green-600" />
                   <div className="text-sm">
-                    <p className="font-medium">Location captured</p>
+                    <p className="font-medium">{t("qrcode.deliveryConfirmation.locationCaptured")}</p>
                     <p className="text-muted-foreground font-medium text-xs mt-0.5">
                       {canSeeCoordinates ? (
                         `${proof.location.latitude.toFixed(6)}, ${proof.location.longitude.toFixed(6)}`
@@ -661,7 +661,7 @@ export function DeliveryConfirmation({
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Accuracy: {Math.round(proof.location.accuracy)}m
+                      {t("qrcode.deliveryConfirmation.accuracy", { meters: Math.round(proof.location.accuracy) })}
                     </p>
                   </div>
                 </div>
@@ -677,7 +677,7 @@ export function DeliveryConfirmation({
                   ) : (
                     <MapPin className="h-4 w-4 mr-2" />
                   )}
-                  Capture Location
+                  {t("qrcode.deliveryConfirmation.captureLocation")}
                 </Button>
               )}
             </div>
@@ -685,7 +685,7 @@ export function DeliveryConfirmation({
             {/* Receiver Name */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Receiver Name <Badge variant="secondary">Optional</Badge>
+                {t("qrcode.deliveryConfirmation.receiverName")} <Badge variant="secondary">{t("common.optional")}</Badge>
               </label>
               <Input
                 value={proof.receiverName || ""}
@@ -695,21 +695,21 @@ export function DeliveryConfirmation({
                     receiverName: e.target.value,
                   }))
                 }
-                placeholder="Name of person receiving"
+                placeholder={t("qrcode.deliveryConfirmation.receiverNamePlaceholder")}
               />
             </div>
 
             {/* Notes */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Notes <Badge variant="secondary">Optional</Badge>
+                {t("qrcode.deliveryConfirmation.notes")} <Badge variant="secondary">{t("common.optional")}</Badge>
               </label>
               <Input
                 value={proof.notes || ""}
                 onChange={(e) =>
                   setProof((prev) => ({ ...prev, notes: e.target.value }))
                 }
-                placeholder="Additional notes..."
+                placeholder={t("qrcode.deliveryConfirmation.notesPlaceholder")}
               />
             </div>
 
@@ -726,7 +726,7 @@ export function DeliveryConfirmation({
               ) : (
                 <CheckCircle className="h-4 w-4 mr-2" />
               )}
-              Confirm Delivery
+              {t("deliveries.confirmDelivery")}
             </Button>
 
             <Button
@@ -734,7 +734,7 @@ export function DeliveryConfirmation({
               onClick={() => setStep("verify")}
               className="w-full"
             >
-              Back
+              {t("common.back")}
             </Button>
           </CardContent>
         </Card>
@@ -747,25 +747,25 @@ export function DeliveryConfirmation({
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold">Delivery Confirmed!</h2>
+            <h2 className="text-2xl font-bold">{t("qrcode.deliveryConfirmation.deliveryConfirmed")}</h2>
             <p className="text-muted-foreground">
-              Parcel{" "}
+              {t("common.parcel")}{" "}
               <span className="font-mono font-medium">
                 {deliveryInfo.trackingRef}
               </span>{" "}
-              has been successfully delivered.
+              {t("qrcode.deliveryConfirmation.successfullyDelivered")}
             </p>
 
             <div className="p-4 bg-muted rounded-lg text-left text-sm space-y-2">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>Delivered at {new Date().toLocaleString()}</span>
+                <span>{t("qrcode.deliveryConfirmation.deliveredAt", { date: new Date().toLocaleString() })}</span>
               </div>
               {proof.location && (
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    Location: {canSeeCoordinates ? (
+                    {t("qrcode.deliveryConfirmation.location")}: {canSeeCoordinates ? (
                       `${proof.location.latitude.toFixed(4)}, ${proof.location.longitude.toFixed(4)}`
                     ) : (
                       t("qrcode.deliveryConfirmation.locationCapturedSuccess", "Map Location Linked")
@@ -776,17 +776,17 @@ export function DeliveryConfirmation({
               {proof.receiverName && (
                 <div className="flex items-center gap-2">
                   <FileSignature className="h-4 w-4 text-muted-foreground" />
-                  <span>Received by: {proof.receiverName}</span>
+                  <span>{t("qrcode.deliveryConfirmation.receivedBy", { name: proof.receiverName })}</span>
                 </div>
               )}
             </div>
 
             <p className="text-sm text-muted-foreground">
-              A digital receipt and invoice have been sent to the client.
+              {t("qrcode.deliveryConfirmation.receiptSent")}
             </p>
 
             <Button onClick={handleReset} className="w-full" size="lg">
-              Scan Next Parcel
+              {t("qrcode.deliveryConfirmation.scanNextParcel")}
             </Button>
           </CardContent>
         </Card>

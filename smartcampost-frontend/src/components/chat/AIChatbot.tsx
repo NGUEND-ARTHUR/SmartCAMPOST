@@ -279,7 +279,7 @@ export default function AIChatbot({
   }, [roleUpper, user]);
 
   const buildAiContext = useCallback(
-    (query: string, recentMessages: Message[t]): string => {
+    (query: string, recentMessages: Message[]): string => {
       const base = roleBasePath();
       const allowed = allowedActionTypes();
 

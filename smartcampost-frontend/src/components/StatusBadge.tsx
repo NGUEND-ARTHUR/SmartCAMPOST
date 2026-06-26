@@ -32,7 +32,7 @@ const fallback = { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted
 
 export const StatusBadge = ({ status }: { status: string }) => {
   const config = statusConfig[status] ?? fallback;
-  const label = status.replaceAll("_", " ");
+  const label = status.replace(/_/g, " ");
 
   return (
     <span

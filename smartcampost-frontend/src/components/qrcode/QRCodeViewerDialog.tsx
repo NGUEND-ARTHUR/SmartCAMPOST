@@ -8,6 +8,7 @@ import { QRCodeDisplay } from "./QRCodeDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Clock, ShieldCheck } from "lucide-react";
 import type { QrStatus } from "@/types";
+import { useTranslation } from "react-i18next";
 
 interface QRCodeViewerDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ export function QRCodeViewerDialog({
   serviceType,
   createdAt,
 }: QRCodeViewerDialogProps) {
+  const { t } = useTranslation();
   const isFinal = qrStatus === "FINAL";
 
   return (
@@ -51,12 +53,12 @@ export function QRCodeViewerDialog({
                 {isFinal ? (
                   <>
                     <ShieldCheck className="w-3 h-3 mr-1" />
-                    Final
+                    {t("qrcode.viewer.final")}
                   </>
                 ) : (
                   <>
                     <Clock className="w-3 h-3 mr-1" />
-                    Pending Approval
+                    {t("qrcode.viewer.pendingApproval")}
                   </>
                 )}
               </Badge>
@@ -80,11 +82,9 @@ export function QRCodeViewerDialog({
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
             <Clock className="w-12 h-12 text-muted-foreground" />
-            <p className="text-sm font-medium">Pending Approval</p>
+            <p className="text-sm font-medium">{t("qrcode.viewer.pendingApproval")}</p>
             <p className="text-xs text-muted-foreground max-w-xs">
-              The final QR code will be generated after the parcel is validated
-              and approved by staff. A partial reference is available for
-              internal tracking.
+              {t("qrcode.viewer.pendingApprovalDescription")}
             </p>
           </div>
         )}

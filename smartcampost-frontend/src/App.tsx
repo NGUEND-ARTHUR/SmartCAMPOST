@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from "react";
 import CreateFinancePage from "./pages/admin/CreateFinancePage";
 import CreateRiskPage from "./pages/admin/CreateRiskPage";
 import CreateRiskUserPage from "./pages/admin/CreateRiskUserPage";
+import AdminFinanceDashboard from "./pages/admin/FinanceDashboard";
 
 // Debug/dev-only pages — not bundled in production
 const ApiCoverage = import.meta.env.DEV
@@ -354,7 +355,7 @@ function App() {
             <Route path="accounts" element={<UserAccountManagement />} />
             <Route path="profile" element={<ProfileSettingsPage />} />
             {/* Finance Management */}
-            <Route path="finance" element={<FinanceDashboard />} />
+            <Route path="finance" element={<AdminFinanceDashboard />} />
             <Route path="finance/create" element={<CreateFinancePage />} />
             {/* Risk Management */}
             <Route path="risk" element={<RiskDashboard />} />

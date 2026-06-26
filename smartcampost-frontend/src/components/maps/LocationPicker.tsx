@@ -360,18 +360,18 @@ export default function LocationPicker({
         <CardHeader className={compact ? "pb-2 pt-3 px-3" : undefined}>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
-            Select Location
+            {t("locationPicker.title")}
           </CardTitle>
           {!compact && (
             <CardDescription>
-              Click on the map or use the GPS locator to select a location
+              {t("locationPicker.subtitle")}
             </CardDescription>
           )}
         </CardHeader>
         <CardContent className={compact ? "space-y-2 px-3 pb-3" : "space-y-4"}>
           {allowSearch && (
             <div className="space-y-2">
-              <Label htmlFor="location-search">Search on map</Label>
+              <Label htmlFor="location-search">{t("locationPicker.searchOnMap")}</Label>
               <div className="relative">
                 <div className="flex gap-2">
                   <Input
@@ -381,7 +381,7 @@ export default function LocationPicker({
                       setSearchQuery(e.target.value);
                       setIsResultsOpen(true);
                     }}
-                    placeholder="Neighborhood, city, region, landmark, building..."
+                    placeholder={t("locationPicker.searchPlaceholder")}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -553,11 +553,11 @@ export default function LocationPicker({
           {allowManualInput && !compact && (
             <div className="space-y-3 pt-4 border-t">
               <p className="text-sm font-medium">
-                Or enter coordinates manually:
+                {t("locationPicker.manualCoordinates")}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor="manual-lat">Latitude</Label>
+                  <Label htmlFor="manual-lat">{t("locationPicker.latitude")}</Label>
                   <Input
                     id="manual-lat"
                     type="number"
@@ -568,7 +568,7 @@ export default function LocationPicker({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="manual-lng">Longitude</Label>
+                  <Label htmlFor="manual-lng">{t("locationPicker.longitude")}</Label>
                   <Input
                     id="manual-lng"
                     type="number"
