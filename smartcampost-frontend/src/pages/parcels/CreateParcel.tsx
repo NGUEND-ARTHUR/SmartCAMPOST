@@ -670,57 +670,55 @@ export function CreateParcel() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Service Type</Label>
-                  <Tabs
-                    value={serviceType}
-                    onValueChange={(v: string) =>
-                      setServiceType(v as "STANDARD" | "EXPRESS")
-                    }
-                  >
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="STANDARD">Standard</TabsTrigger>
-                      <TabsTrigger value="EXPRESS">Express</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="STANDARD" className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Delivery in 3-5 business days. Economical option for
-                        non-urgent parcels.
-                      </p>
-                    </TabsContent>
-                    <TabsContent value="EXPRESS" className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Delivery in 1-2 business days. Priority handling and
-                        faster delivery.
-                      </p>
-                    </TabsContent>
-                  </Tabs>
+                  <Label>{t("parcels.create.serviceType", "Service Type")}</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(["STANDARD", "EXPRESS"] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setServiceType(type)}
+                        className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                          serviceType === type
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        }`}
+                      >
+                        <Truck className={`h-6 w-6 ${serviceType === type ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className={`text-sm font-semibold ${serviceType === type ? "text-primary" : ""}`}>
+                          {type === "STANDARD" ? t("parcels.create.standard", "Standard") : t("parcels.create.express", "Express")}
+                        </span>
+                        <span className="text-xs text-muted-foreground text-center">
+                          {type === "STANDARD" ? "3-5 business days" : "1-2 business days"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Delivery Option</Label>
-                  <Tabs
-                    value={deliveryOption}
-                    onValueChange={(v: string) =>
-                      setDeliveryOption(v as "AGENCY" | "HOME")
-                    }
-                  >
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="AGENCY">Agency Pickup</TabsTrigger>
-                      <TabsTrigger value="HOME">Home Delivery</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="AGENCY" className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Recipient picks up parcel at nearest agency. Lower cost
-                        option.
-                      </p>
-                    </TabsContent>
-                    <TabsContent value="HOME" className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Parcel delivered directly to recipient's address.
-                        Additional fees may apply.
-                      </p>
-                    </TabsContent>
-                  </Tabs>
+                  <Label>{t("parcels.create.deliveryOption", "Delivery Option")}</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(["AGENCY", "HOME"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setDeliveryOption(opt)}
+                        className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                          deliveryOption === opt
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        }`}
+                      >
+                        <MapPin className={`h-6 w-6 ${deliveryOption === opt ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className={`text-sm font-semibold ${deliveryOption === opt ? "text-primary" : ""}`}>
+                          {opt === "AGENCY" ? t("parcels.create.agencyPickup", "Agency Pickup") : t("parcels.create.homeDelivery", "Home Delivery")}
+                        </span>
+                        <span className="text-xs text-muted-foreground text-center">
+                          {opt === "AGENCY" ? "Pick up at nearest agency" : "Delivered to your door"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <Card className="bg-muted">
@@ -795,28 +793,29 @@ export function CreateParcel() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Payment Option</Label>
-                  <Tabs
-                    value={paymentOption}
-                    onValueChange={(v: string) =>
-                      setPaymentOption(v as "PREPAID" | "COD")
-                    }
-                  >
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="PREPAID">Prepaid</TabsTrigger>
-                      <TabsTrigger value="COD">Cash on Delivery</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="PREPAID" className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Pay now before shipping. Faster processing time.
-                      </p>
-                    </TabsContent>
-                    <TabsContent value="COD" className="mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Recipient pays upon delivery. Additional fees may apply.
-                      </p>
-                    </TabsContent>
-                  </Tabs>
+                  <Label>{t("parcels.create.paymentOption", "Payment Option")}</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(["PREPAID", "COD"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setPaymentOption(opt)}
+                        className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                          paymentOption === opt
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        }`}
+                      >
+                        <CreditCard className={`h-6 w-6 ${paymentOption === opt ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className={`text-sm font-semibold ${paymentOption === opt ? "text-primary" : ""}`}>
+                          {opt === "PREPAID" ? t("parcels.create.prepaid", "Prepaid") : t("parcels.create.cod", "Cash on Delivery")}
+                        </span>
+                        <span className="text-xs text-muted-foreground text-center">
+                          {opt === "PREPAID" ? "Pay now, ship faster" : "Pay on delivery"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <Card className="bg-muted">
