@@ -1554,7 +1554,10 @@
     "accountLocked": "Votre compte a été verrouillé. Veuillez contacter le support.",
     "unknownError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
     "permissionDenied": "Vous n'avez pas la permission d'effectuer cette action.",
-    "sessionExpired": "Session expirée. Veuillez vous reconnecter."
+    "sessionExpired": "Session expirée. Veuillez vous reconnecter.",
+    "USER_PHONE_EXISTS": "Ce numéro de téléphone est déjà enregistré. Veuillez vous connecter.",
+    "PHONE_ALREADY_EXISTS": "Ce numéro de téléphone est déjà enregistré. Veuillez vous connecter.",
+    "USER_EMAIL_EXISTS": "Cet e-mail est déjà enregistré. Veuillez vous connecter."
   },
   "messages": {
     "saveSuccess": "Enregistré avec succès",

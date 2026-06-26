@@ -22,7 +22,9 @@
       "Bash(grep -n \"getSentimentAnalysis\\\\|getSmartNotifications\" smartcampost_mobile/lib/services/services.dart)",
       "Bash(grep -n \"3.848\" smartcampost_mobile/lib/main.dart)",
       "Bash(grep -rn \"TODO\\\\|FIXME\" smartcampost_mobile/lib/ --include=*.dart)",
-      "WebFetch(domain:docs.fapshi.com)"
+      "WebFetch(domain:docs.fapshi.com)",
+      "Bash(curl -s -X POST http://localhost:8082/api/auth/send-otp -H \"Content-Type: application/json\" -d '{\"phone\":\"+237699999919\"}')",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/en.json'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/locales/fr.json'\\)\\); console.log\\('JSON OK'\\)\")"
     ]
   }
 }

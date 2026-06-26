@@ -192,6 +192,10 @@ class ApiClient {
         const msg = typeof data === "string" ? data : JSON.stringify(data);
         throw this.parseErrorResponse(status, msg);
       }
+      // axiosClient interceptor converts server errors to Error(message)
+      if (err instanceof Error && err.message && !err.message.includes("Network")) {
+        throw this.parseErrorResponse(400, err.message);
+      }
       const networkErr: ApiError = {
         code: "NETWORK_ERROR",
         message:
