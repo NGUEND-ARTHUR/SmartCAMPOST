@@ -43,8 +43,6 @@ const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/agent/parcels", labelKey: "nav.parcels" },
     { to: "/agent/pickups", labelKey: "nav.pickups" },
     { to: "/agent/map", labelKey: "nav.map" },
-    { to: "/agent/live-logistics", labelKey: "nav.liveLogistics" },
-    { to: "/agent/route-optimization", labelKey: "nav.routeOptimization" },
     { to: "/agent/scan", labelKey: "nav.scanConsole" },
     { to: "/agent/delivery-tools", labelKey: "nav.deliveryTools" },
     { to: "/agent/profile", labelKey: "nav.profile" },
@@ -52,8 +50,6 @@ const navByRole: Record<AppRole, NavItem[]> = {
   COURIER: [
     { to: "/courier", labelKey: "nav.dashboard" },
     { to: "/courier/map", labelKey: "nav.map" },
-    { to: "/courier/live-logistics", labelKey: "nav.liveLogistics" },
-    { to: "/courier/route-optimization", labelKey: "nav.routeOptimization" },
     { to: "/courier/pickups", labelKey: "nav.myPickups" },
     { to: "/courier/deliveries", labelKey: "nav.myDeliveries" },
     { to: "/courier/deliveries/failed", labelKey: "nav.failedDelivery" },
@@ -63,9 +59,7 @@ const navByRole: Record<AppRole, NavItem[]> = {
   STAFF: [
     { to: "/staff", labelKey: "nav.dashboard" },
     { to: "/staff/map", labelKey: "nav.map" },
-    { to: "/staff/live-logistics", labelKey: "nav.liveLogistics" },
     { to: "/staff/gps-trackers", labelKey: "nav.gpsTrackers" },
-    { to: "/staff/route-optimization", labelKey: "nav.routeOptimization" },
     { to: "/staff/parcels", labelKey: "nav.parcels" },
     { to: "/staff/tracking", labelKey: "nav.tracking" },
     { to: "/staff/pickups", labelKey: "nav.pickups" },
@@ -84,9 +78,7 @@ const navByRole: Record<AppRole, NavItem[]> = {
   ADMIN: [
     { to: "/admin", labelKey: "nav.dashboard" },
     { to: "/admin/map", labelKey: "nav.map" },
-    { to: "/admin/live-logistics", labelKey: "nav.liveLogistics" },
     { to: "/admin/gps-trackers", labelKey: "nav.gpsTrackers" },
-    { to: "/admin/route-optimization", labelKey: "nav.routeOptimization" },
     { to: "/admin/parcels", labelKey: "nav.parcels" },
     { to: "/admin/pickups", labelKey: "nav.pickups" },
     { to: "/admin/deliveries", labelKey: "nav.deliveries" },

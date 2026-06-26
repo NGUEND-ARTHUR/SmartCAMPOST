@@ -16,7 +16,8 @@ import { toast } from "sonner";
 import { useRecordScanEvent } from "@/hooks";
 import { QRCodeScanner } from "@/components/qrcode";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { verifyQrCodeContent } from "@/services/scan/qrVerification.api";
+import { verifyQrCodeContent, isSecureQrCode } from "@/services/scan/qrVerification.api";
+import { httpClient } from "@/services/apiClient";
 import { useAuthStore } from "@/store/authStore";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
@@ -173,14 +174,29 @@ export default function ScanConsole() {
     }
 
     try {
-      // Step 1: Verify QR Code
-      const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
-      if (!verificationResult.valid) {
-        const errorMsg = verificationResult.message || t("scan.error.invalidQr", "Invalid QR code");
-        setError(errorMsg);
-        throw new Error(errorMsg);
+      // Step 1: Resolve parcel ID — try QR verification first, fallback to tracking ref lookup
+      let parcelId: string | undefined;
+
+      if (isSecureQrCode(scannedCode)) {
+        const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
+        if (!verificationResult.valid) {
+          const errorMsg = verificationResult.message || t("scan.error.invalidQr", "Invalid QR code");
+          setError(errorMsg);
+          throw new Error(errorMsg);
+        }
+        parcelId = verificationResult.parcelId;
+      } else {
+        // Manual entry — look up by tracking reference
+        try {
+          const parcel = await httpClient.get<{ id: string }>(`/parcels/tracking/${encodeURIComponent(scannedCode)}`);
+          parcelId = parcel.id;
+        } catch {
+          const errorMsg = t("scan.error.parcelNotFound", "Parcel not found for this tracking number");
+          setError(errorMsg);
+          throw new Error(errorMsg);
+        }
       }
-      const { parcelId } = verificationResult;
+
       if (!parcelId) {
         const errorMsg = t("scan.error.noParcelId", "No parcel ID found");
         setError(errorMsg);
