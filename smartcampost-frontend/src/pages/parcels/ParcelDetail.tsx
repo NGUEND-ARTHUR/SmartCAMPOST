@@ -15,6 +15,7 @@ import {
   ImageIcon,
   MessageSquare,
   QrCode,
+  Users,
 } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import type { ParcelStatus as TransitionParcelStatus } from "@/lib/transitions";
@@ -50,6 +51,7 @@ import {
   useCorrectParcel,
 } from "@/hooks";
 import { toast } from "sonner";
+import { httpClient } from "@/services/apiClient";
 import { useAuthStore } from "@/store/authStore";
 
 const eventIcons: Record<string, ComponentType<any>> = {
@@ -875,6 +877,93 @@ export default function ParcelDetail() {
           </CardContent>
         </Card>
       )}
+      {/* ── Authorize someone else to collect ── */}
+      {role === "CLIENT" && parcel.status !== "DELIVERED" && parcel.status !== "CANCELLED" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="h-4 w-4" />
+              {t("parcels.detail.delegateTitle", "Authorize Someone to Collect")}
+            </CardTitle>
+            <CardDescription>
+              {t("parcels.detail.delegateDescription", "If you can't collect this parcel yourself, authorize someone else with their phone number. They'll receive a PIN code.")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DelegateForm parcelId={parcel.id} />
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function DelegateForm({ parcelId }: { parcelId: string }) {
+  const { t } = useTranslation();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [relationship, setRelationship] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ pinCode?: string; delegateName?: string } | null>(null);
+
+  const submit = async () => {
+    if (!name.trim() || !phone.trim()) return;
+    setBusy(true);
+    try {
+      const res = await httpClient.post(`/parcels/${parcelId}/delegates`, {
+        delegateName: name,
+        delegatePhone: phone,
+        delegateIdNumber: idNumber || undefined,
+        relationship: relationship || undefined,
+      });
+      setResult(res as any);
+      toast.success(t("parcels.detail.delegateSuccess", "Delegate authorized! PIN sent via SMS."));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to authorize delegate");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (result) {
+    return (
+      <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-2">
+        <p className="font-semibold text-emerald-700 dark:text-emerald-300">
+          {t("parcels.detail.delegateAuthorized", "Delegate authorized")}
+        </p>
+        <p className="text-sm">{result.delegateName} — PIN: <span className="font-mono font-bold text-lg">{result.pinCode}</span></p>
+        <p className="text-xs text-muted-foreground">{t("parcels.detail.delegatePinSent", "This PIN was also sent via SMS to the delegate's phone.")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t("parcels.detail.delegateName", "Full Name")} *</label>
+          <input className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t("parcels.detail.delegatePhone", "Phone Number")} *</label>
+          <input className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+237..." />
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t("parcels.detail.delegateIdNumber", "ID Card Number")} ({t("common.optional", "optional")})</label>
+          <input className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">{t("parcels.detail.delegateRelationship", "Relationship")} ({t("common.optional", "optional")})</label>
+          <input className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={relationship} onChange={(e) => setRelationship(e.target.value)} placeholder="Spouse, Friend, Colleague..." />
+        </div>
+      </div>
+      <Button onClick={submit} disabled={busy || !name.trim() || !phone.trim()} size="sm">
+        {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Users className="h-4 w-4 mr-2" />}
+        {t("parcels.detail.authorizeDelegate", "Authorize & Send PIN")}
+      </Button>
     </div>
   );
 }

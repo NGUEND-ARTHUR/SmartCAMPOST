@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -12,9 +12,14 @@ import {
   Route,
   Star,
   Loader2,
+  Radio,
+  RadioOff,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { httpClient } from "@/services/apiClient";
 import { useCourierPickups, useMyParcels } from "@/hooks";
 import { StatsCard } from "@/components/StatsCard";
+import { toast } from "sonner";
 
 export default function CourierDashboard() {
   const { t } = useTranslation();
@@ -118,11 +123,14 @@ export default function CourierDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="mb-2">{t("courierDashboard.title")}</h1>
-          <p className="text-muted-foreground">
-            {t("courierDashboard.subtitle")}
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="mb-2">{t("courierDashboard.title")}</h1>
+            <p className="text-muted-foreground">
+              {t("courierDashboard.subtitle")}
+            </p>
+          </div>
+          <DutyToggle />
         </div>
 
         {isLoading ? (
@@ -350,5 +358,44 @@ export default function CourierDashboard() {
         )}
       </div>
     </div>
+  );
+}
+
+function DutyToggle() {
+  const { t } = useTranslation();
+  const [onDuty, setOnDuty] = useState(true);
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => {
+    httpClient.get<{ onDuty: boolean }>("/couriers/me/duty")
+      .then((res) => setOnDuty(res.onDuty))
+      .catch(() => {});
+  }, []);
+
+  const toggle = async () => {
+    setToggling(true);
+    try {
+      const newState = !onDuty;
+      await httpClient.post("/couriers/me/duty", { onDuty: newState });
+      setOnDuty(newState);
+      toast.success(newState ? t("courierDashboard.onDuty", "On duty — GPS tracking active") : t("courierDashboard.offDuty", "Off duty — GPS tracking paused"));
+    } catch {
+      toast.error("Failed to toggle duty status");
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  return (
+    <Button
+      variant={onDuty ? "default" : "outline"}
+      size="sm"
+      onClick={toggle}
+      disabled={toggling}
+      className={onDuty ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+    >
+      {toggling ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : onDuty ? <Radio className="h-4 w-4 mr-2" /> : <RadioOff className="h-4 w-4 mr-2" />}
+      {onDuty ? t("courierDashboard.onDutyLabel", "On Duty") : t("courierDashboard.offDutyLabel", "Off Duty")}
+    </Button>
   );
 }
