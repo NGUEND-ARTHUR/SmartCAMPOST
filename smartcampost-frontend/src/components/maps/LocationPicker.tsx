@@ -462,38 +462,33 @@ export default function LocationPicker({
               cursor="crosshair"
             >
               {latitude != null && longitude != null && (
-                <>
-                  <Marker
-                    longitude={longitude}
-                    latitude={latitude}
-                    anchor="bottom"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="30"
-                      height="42"
-                      viewBox="0 0 30 42"
-                      className="cursor-pointer"
-                    >
-                      <path
-                        d="M15 0C6.72 0 0 6.72 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.72 23.28 0 15 0z"
-                        fill="#3b82f6"
-                      />
-                      <circle cx="15" cy="14" r="6" fill="white" />
-                    </svg>
-                  </Marker>
-                  <Popup
-                    longitude={longitude}
-                    latitude={latitude}
-                    anchor="bottom"
-                    offset={[0, -42] as [number, number]}
-                    closeButton={false}
-                  >
-                    <div className="text-sm font-medium">
-                      Selected Location
+                <Marker
+                  longitude={longitude}
+                  latitude={latitude}
+                  anchor="bottom"
+                  draggable
+                  onDragEnd={(e) => {
+                    const lat = e.lngLat.lat;
+                    const lng = e.lngLat.lng;
+                    if (restrictToCameroon && !isWithinCameroon(lat, lng)) {
+                      toast.error(t("maps.errors.selectWithinCameroon"));
+                      return;
+                    }
+                    setIsFollowingUser(false);
+                    stopFollowingUser();
+                    onLocationChange(lat, lng);
+                    setManualLat(lat.toString());
+                    setManualLng(lng.toString());
+                    void resolveLocation(lat, lng);
+                  }}
+                >
+                  <div className="flex flex-col items-center cursor-grab active:cursor-grabbing">
+                    <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center shadow-lg border-2 border-white">
+                      <MapPin className="w-4 h-4" />
                     </div>
-                  </Popup>
-                </>
+                    <div className="w-2 h-2 bg-primary rotate-45 -mt-1" />
+                  </div>
+                </Marker>
               )}
               <SetViewOnMarker center={currentPosition} zoom={13} />
             </CameroonMap>
