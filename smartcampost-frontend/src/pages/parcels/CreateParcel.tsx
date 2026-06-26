@@ -425,8 +425,12 @@ export function CreateParcel() {
                       const fullStreet = [result.street, result.quarter]
                         .filter(Boolean)
                         .join(", ");
+                      const autoLabel = [result.city, result.region]
+                        .filter(Boolean)
+                        .join(", ");
                       setAddressForm((prev) => ({
                         ...prev,
+                        label: prev.label || autoLabel || "Map location",
                         street: fullStreet || prev.street,
                         city: result.city || prev.city,
                         region: result.region || prev.region,
