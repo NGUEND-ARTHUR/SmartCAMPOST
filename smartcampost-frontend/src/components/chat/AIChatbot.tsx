@@ -1270,12 +1270,13 @@ export default function AIChatbot({
 
                     {/* Suggestions */}
                     {message.suggestions && message.suggestions.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
+                      <div className="mt-2 flex flex-wrap gap-1.5">
                         {message.suggestions.map((suggestion, idx) => (
                           <button
                             key={idx}
-                            className="px-2 py-1 text-xs border rounded-full hover:bg-blue-100 transition-colors"
+                            className="px-2.5 py-1 text-xs border border-primary/30 rounded-full bg-primary/5 text-primary hover:bg-primary/15 dark:border-primary/40 dark:bg-primary/10 dark:hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:pointer-events-none"
                             onClick={() => handleSend(suggestion)}
+                            disabled={isTyping}
                           >
                             {suggestion}
                           </button>
@@ -1359,6 +1360,7 @@ export default function AIChatbot({
             size="sm"
             className="shrink-0 text-xs"
             onClick={() => handleSend(action.query)}
+            disabled={isTyping}
           >
             {action.icon}
             <span className="ml-1">{action.label}</span>
