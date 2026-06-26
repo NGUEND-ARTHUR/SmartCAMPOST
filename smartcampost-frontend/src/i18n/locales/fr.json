@@ -433,6 +433,58 @@
       "printLabel": "Imprimer QR"
     }
   },
+  "parcelManagement": {
+    "title": "Gestion des colis",
+    "subtitle": "Voir, gérer et suivre tous les colis du système",
+    "stats": {
+      "total": "Total",
+      "allStatuses": "Tous les statuts",
+      "active": "Actifs",
+      "inTransit": "En transit",
+      "delivered": "Livrés",
+      "completed": "Terminés",
+      "exceptions": "Exceptions",
+      "needAttention": "À traiter"
+    },
+    "searchPlaceholder": "Rechercher par numéro de suivi, expéditeur ou destinataire...",
+    "filterByStatus": "Filtrer par statut",
+    "filterByService": "Filtrer par service",
+    "status": {
+      "all": "Tous",
+      "created": "Créé",
+      "inTransit": "En transit",
+      "outForDelivery": "En livraison",
+      "delivered": "Livré",
+      "returned": "Retourné",
+      "exception": "Exception"
+    },
+    "service": {
+      "all": "Tous",
+      "express": "Express",
+      "standard": "Standard"
+    },
+    "noParcelsFound": "Aucun colis trouvé",
+    "tryAdjustingSearch": "Essayez d'ajuster votre recherche ou vos filtres",
+    "operationalParcelsAppearHere": "Les colis opérationnels apparaîtront ici",
+    "errorLoading": "Erreur de chargement des colis",
+    "table": {
+      "tracking": "N° de suivi",
+      "client": "Client",
+      "service": "Service",
+      "status": "Statut",
+      "lastUpdate": "Dernière MAJ",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "Voir détails",
+      "flag": "Signaler",
+      "track": "Suivre",
+      "printLabel": "Imprimer étiquette"
+    },
+    "flagReasonPrompt": "Raison du signalement de ce colis :",
+    "flagged": "Colis signalé pour vérification",
+    "flagFailed": "Échec du signalement du colis"
+  },
   "parcels": {
     "title": "Colis",
     "createTitle": "Créer un nouveau colis",
@@ -883,6 +935,7 @@
   "staffManagement": {
     "title": "Gestion du personnel",
     "subtitle": "Gérer les comptes du personnel et des coursiers",
+    "searchPlaceholder": "Rechercher par nom, téléphone ou e-mail...",
     "addStaff": "Ajouter du personnel",
     "fullName": "Nom complet",
     "fullNamePlaceholder": "Jean Dupont",
@@ -1348,7 +1401,13 @@
     "role": "Rôle",
     "status": "Statut",
     "email": "E-mail",
-    "action": "Action"
+    "action": "Action",
+    "totalParcels": "Total colis",
+    "totalParcelsDesc": "Toutes agences confondues",
+    "inTransitDesc": "Actuellement en transit",
+    "deliveredDesc": "Livrés avec succès",
+    "noActivity": "Aucune activité récente",
+    "user": "Utilisateur"
   },
   "financeDashboard": {
     "title": "Tableau de bord finances",

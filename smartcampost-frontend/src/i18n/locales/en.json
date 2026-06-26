@@ -446,6 +446,58 @@
       "printedAt": "Printed at: {{date}}"
     }
   },
+  "parcelManagement": {
+    "title": "Parcel Management",
+    "subtitle": "View, manage, and track all parcels across the system",
+    "stats": {
+      "total": "Total",
+      "allStatuses": "All statuses",
+      "active": "Active",
+      "inTransit": "In transit",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "exceptions": "Exceptions",
+      "needAttention": "Need attention"
+    },
+    "searchPlaceholder": "Search by tracking number, sender, or recipient...",
+    "filterByStatus": "Filter by status",
+    "filterByService": "Filter by service",
+    "status": {
+      "all": "All",
+      "created": "Created",
+      "inTransit": "In Transit",
+      "outForDelivery": "Out for Delivery",
+      "delivered": "Delivered",
+      "returned": "Returned",
+      "exception": "Exception"
+    },
+    "service": {
+      "all": "All",
+      "express": "Express",
+      "standard": "Standard"
+    },
+    "noParcelsFound": "No parcels found",
+    "tryAdjustingSearch": "Try adjusting your search or filters",
+    "operationalParcelsAppearHere": "Operational parcels will appear here",
+    "errorLoading": "Error loading parcels",
+    "table": {
+      "tracking": "Tracking #",
+      "client": "Client",
+      "service": "Service",
+      "status": "Status",
+      "lastUpdate": "Last Update",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "View Details",
+      "flag": "Flag for Review",
+      "track": "Track",
+      "printLabel": "Print Label"
+    },
+    "flagReasonPrompt": "Reason for flagging this parcel for review:",
+    "flagged": "Parcel flagged for review",
+    "flagFailed": "Failed to flag parcel"
+  },
   "parcels": {
     "title": "Parcels",
     "createTitle": "Create New Parcel",
@@ -1219,7 +1271,13 @@
     "role": "Role",
     "status": "Status",
     "email": "Email",
-    "action": "Action"
+    "action": "Action",
+    "totalParcels": "Total Parcels",
+    "totalParcelsDesc": "Across all agencies",
+    "inTransitDesc": "Currently in transit",
+    "deliveredDesc": "Successfully delivered",
+    "noActivity": "No recent activity",
+    "user": "User"
   },
   "financeDashboard": {
     "title": "Finance Dashboard",
@@ -1385,6 +1443,7 @@
   "staffManagement": {
     "title": "Staff Management",
     "subtitle": "Manage staff and courier accounts",
+    "searchPlaceholder": "Search by name, phone, or email...",
     "addStaff": "Add Staff",
     "fullName": "Full Name",
     "fullNamePlaceholder": "John Doe",
