@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -22,12 +22,17 @@ import {
   UserRound,
   Truck,
   Upload,
+  Camera,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from "@/components/PageHeader";
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import ErrorBanner from "@/components/ErrorBanner";
@@ -893,23 +898,102 @@ export function HubBulkScanPage() {
 }
 
 export function FailedDeliveryReportPage() {
+  const [form, setForm] = useState({ parcelId: "", reason: "CLIENT_ABSENT", notes: "" });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<unknown>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }, []);
+
+  const submit = async () => {
+    if (!form.parcelId.trim()) { setError("Parcel ID is required"); return; }
+    setBusy(true); setError(null);
+    try {
+      const res = await httpClient.post("/delivery/failed", {
+        parcelId: form.parcelId,
+        reason: form.reason,
+        photoUrl: photoPreview || undefined,
+        latitude: gps?.lat ?? 0,
+        longitude: gps?.lng ?? 0,
+        notes: form.notes,
+      });
+      setResult(res);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Report failed");
+    } finally { setBusy(false); }
+  };
+
+  const reasons = ["CLIENT_ABSENT", "WRONG_ADDRESS", "REFUSED", "DAMAGED", "ACCESS_DENIED", "OTHER"];
+
   return (
-    <ActionFormPage
-      title="Failed delivery report"
-      description="Report a failed delivery attempt with reason, photo URL, GPS context, and notes."
-      endpoint="/delivery/failed"
-      icon={Upload}
-      breadcrumbs={[{ label: "Courier", to: "/courier" }, { label: "Failed delivery" }]}
-      submitLabel="Submit report"
-      fields={[
-        { name: "parcelId", label: "Parcel ID" },
-        { name: "reason", label: "Reason", placeholder: "CLIENT_ABSENT" },
-        { name: "photoUrl", label: "Photo URL" },
-        { name: "latitude", label: "Latitude", type: "number" },
-        { name: "longitude", label: "Longitude", type: "number" },
-        { name: "notes", label: "Notes", type: "textarea" },
-      ]}
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Failed delivery report"
+        description="Report a failed delivery attempt with photo proof and GPS location."
+        breadcrumbs={[{ label: "Courier", to: "/courier" }, { label: "Failed delivery" }]}
+      />
+      {error && <ErrorBanner message={error} />}
+      {result ? (
+        <Card><CardContent className="pt-6"><p className="text-emerald-600 font-semibold">Report submitted successfully</p><pre className="mt-2 text-xs overflow-auto max-h-40">{JSON.stringify(result, null, 2)}</pre></CardContent></Card>
+      ) : (
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Parcel ID / Tracking Number</Label>
+                <Input value={form.parcelId} onChange={(e) => setForm({ ...form, parcelId: e.target.value })} placeholder="SCM-..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Reason</Label>
+                <Select value={form.reason} onValueChange={(v) => setForm({ ...form, reason: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {reasons.map((r) => <SelectItem key={r} value={r}>{r.replace(/_/g, " ")}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Photo Proof</Label>
+              <div className="flex items-center gap-4">
+                {photoPreview ? (
+                  <div className="relative">
+                    <img src={photoPreview} alt="Proof" className="w-24 h-24 rounded-lg object-cover border" />
+                    <button type="button" onClick={() => setPhotoPreview(null)} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-24 h-24 rounded-lg border-2 border-dashed hover:border-primary/50 cursor-pointer transition-colors">
+                    <Camera className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground mt-1">Add photo</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) { const r = new FileReader(); r.onload = (ev) => setPhotoPreview(ev.target?.result as string); r.readAsDataURL(file); }
+                    }} />
+                  </label>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>GPS Location</Label>
+              <p className="text-sm text-muted-foreground">{gps ? `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)} (auto-detected)` : "Detecting location..."}</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Additional details..." />
+            </div>
+            <Button onClick={submit} disabled={busy}>{busy ? "Submitting..." : "Submit Report"}</Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 

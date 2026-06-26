@@ -8,6 +8,7 @@ import {
   MapPin,
   Truck,
   CreditCard,
+  Camera,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,8 @@ export function CreateParcel() {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
   const [isFragile, setIsFragile] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [serviceType, setServiceType] = useState<"STANDARD" | "EXPRESS">(
     "STANDARD",
   );
@@ -138,6 +141,7 @@ export function CreateParcel() {
         deliveryOption,
         paymentOption,
         description: data.descriptionComment,
+        photoUrl: photoPreview || undefined,
       },
       {
         onSuccess: () => {
@@ -663,6 +667,50 @@ export function CreateParcel() {
                     placeholder="Add any special instructions or description..."
                     {...register("descriptionComment")}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t("parcels.create.parcelPhoto", "Parcel Photo (Optional)")}</Label>
+                  <div className="flex items-center gap-4">
+                    {photoPreview ? (
+                      <div className="relative">
+                        <img
+                          src={photoPreview}
+                          alt="Parcel"
+                          className="w-24 h-24 rounded-lg object-cover border border-border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setPhotoPreview(null); setPhotoFile(null); }}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-24 h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors">
+                        <Camera className="w-6 h-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground mt-1">Add photo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setPhotoFile(file);
+                              const reader = new FileReader();
+                              reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {t("parcels.create.photoHint", "Take a photo of your parcel for reference")}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
