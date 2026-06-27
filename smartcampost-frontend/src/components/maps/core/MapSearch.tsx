@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMap } from "react-map-gl/maplibre";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,23 @@ import { Loader2, Search } from "lucide-react";
 import { GeoSearchResult } from "@/services/common/geolocation.api";
 import { toast } from "sonner";
 import { isWithinCameroon } from "./cameroon";
-import { aiAgents } from "@/ai";
+
+async function searchNominatim(query: string, limit = 6): Promise<GeoSearchResult[]> {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ", Cameroon")}&format=json&limit=${limit}&addressdetails=1&accept-language=en`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data as any[]).map((r: any) => ({
+    latitude: parseFloat(r.lat),
+    longitude: parseFloat(r.lon),
+    displayName: r.display_name,
+    city: r.address?.city || r.address?.town || r.address?.village || "",
+    state: r.address?.state || "",
+    country: r.address?.country || "Cameroon",
+    type: r.type || "",
+    category: r.class || "",
+  }));
+}
 
 export function MapSearch({
   placeholder = "City, neighborhood, region, landmark, building...",
@@ -23,7 +39,6 @@ export function MapSearch({
   const [results, setResults] = useState<GeoSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const lastFetchRef = useRef<number>(0);
 
   const trimmed = query.trim();
 
@@ -37,18 +52,11 @@ export function MapSearch({
     if (trimmed.length < 2) return;
 
     const id = window.setTimeout(async () => {
-      const now = Date.now();
-      if (now - lastFetchRef.current < 350) return;
-      lastFetchRef.current = now;
-
       setIsLoading(true);
       try {
-        const res = await aiAgents.mapIntelligence.search(trimmed, {
-          limit: 6,
-          restrictToCameroon: true,
-        });
+        const res = await searchNominatim(trimmed, 6);
         setResults(res);
-        setOpen(true);
+        setOpen(res.length > 0);
       } catch {
         toast.error(t("maps.errors.searchFailed"));
         setResults([]);
@@ -56,7 +64,7 @@ export function MapSearch({
       } finally {
         setIsLoading(false);
       }
-    }, 350);
+    }, 200);
 
     return () => window.clearTimeout(id);
   }, [trimmed]);

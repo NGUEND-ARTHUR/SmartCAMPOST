@@ -155,7 +155,7 @@ public class Parcel {
     @Column(name = "payment_option", nullable = false)
     private PaymentOption paymentOption; // PREPAID, COD
 
-    @Column(name = "photo_url", length = 255)
+    @Column(name = "photo_url", columnDefinition = "LONGTEXT")
     private String photoUrl; // optional
 
     @Column(name = "description_comment", length = 1000)
