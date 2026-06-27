@@ -12,6 +12,8 @@ import {
   Loader2,
   Search,
   User,
+  Banknote,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +48,7 @@ import { useCreateParcel, useMyAddresses } from "@/hooks";
 import { useAuthStore } from "@/store/authStore";
 import LocationPicker from "@/components/maps/LocationPicker";
 import { addressService } from "@/services/addressService";
+import { paymentService } from "@/services/payments/payments.api";
 import {
   tariffService,
   TariffQuoteResponse,
@@ -89,6 +92,8 @@ export function CreateParcel() {
   const [paymentOption, setPaymentOption] = useState<"PREPAID" | "COD">(
     "PREPAID",
   );
+  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "MOBILE_MONEY">("CASH");
+  const [momoPhone, setMomoPhone] = useState("");
 
   // Agent flow: lookup client by phone
   const [clientPhone, setClientPhone] = useState("");
@@ -163,7 +168,10 @@ export function CreateParcel() {
     handleSubmit,
     formState: { errors },
     getValues,
+    watch,
   } = useForm<ParcelFormData>();
+
+  const watchedWeight = watch("weight");
 
   const steps = [
     { title: t("parcels.create.steps.addresses"), icon: MapPin },
@@ -181,6 +189,10 @@ export function CreateParcel() {
       toast.error("Please look up a client first");
       return;
     }
+    if (paymentMethod === "MOBILE_MONEY" && !momoPhone.trim()) {
+      toast.error("Please enter your mobile money phone number");
+      return;
+    }
     createParcel.mutate(
       {
         ...(isAgent ? { clientPhone: clientPhone.trim() } : {}),
@@ -190,13 +202,27 @@ export function CreateParcel() {
         isFragile: isFragile,
         serviceType,
         deliveryOption,
-        paymentOption,
+        paymentOption: paymentMethod === "CASH" ? "COD" : "PREPAID",
         description: data.descriptionComment,
         photoUrl: photoPreview || undefined,
       },
       {
-        onSuccess: () => {
-          toast.success(t("parcels.create.toasts.created"));
+        onSuccess: async (parcelResponse) => {
+          if (paymentMethod === "MOBILE_MONEY" && momoPhone.trim()) {
+            try {
+              toast.info("Initiating mobile money payment...");
+              await paymentService.init({
+                parcelId: parcelResponse.id,
+                method: "MOBILE_MONEY",
+                payerPhone: momoPhone.trim(),
+              });
+              toast.success("Payment request sent to your phone. Please confirm on your device.");
+            } catch {
+              toast.warning("Parcel created but payment initiation failed. You can pay later from the parcel details page.");
+            }
+          } else {
+            toast.success(t("parcels.create.toasts.created"));
+          }
           navigate(isAgent ? `/${userRole.toLowerCase()}/parcels` : "/client/parcels");
         },
         onError: (error) => {
@@ -306,7 +332,7 @@ export function CreateParcel() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [getValues, recipientAddr?.city, senderAddr?.city, serviceType]);
+  }, [getValues, recipientAddr?.city, senderAddr?.city, serviceType, watchedWeight]);
 
   const handleCreateAddress = async () => {
     if (!canSaveAddress) {
@@ -956,30 +982,79 @@ export function CreateParcel() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t("parcels.create.paymentOption", "Payment Option")}</Label>
+                  <Label className="text-base font-semibold">How would you like to pay?</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    {(["PREPAID", "COD"] as const).map((opt) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setPaymentOption(opt)}
-                        className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
-                          paymentOption === opt
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border hover:border-primary/30 hover:bg-muted/50"
-                        }`}
-                      >
-                        <CreditCard className={`h-6 w-6 ${paymentOption === opt ? "text-primary" : "text-muted-foreground"}`} />
-                        <span className={`text-sm font-semibold ${paymentOption === opt ? "text-primary" : ""}`}>
-                          {opt === "PREPAID" ? t("parcels.create.prepaid", "Prepaid") : t("parcels.create.cod", "Cash on Delivery")}
-                        </span>
-                        <span className="text-xs text-muted-foreground text-center">
-                          {opt === "PREPAID" ? "Pay now, ship faster" : "Pay on delivery"}
-                        </span>
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("CASH")}
+                      className={`flex flex-col items-center gap-3 rounded-xl border-2 p-5 transition-all ${
+                        paymentMethod === "CASH"
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:border-primary/30 hover:bg-muted/50"
+                      }`}
+                    >
+                      <Banknote className={`h-8 w-8 ${paymentMethod === "CASH" ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`text-sm font-semibold ${paymentMethod === "CASH" ? "text-primary" : ""}`}>
+                        Cash Payment
+                      </span>
+                      <span className="text-xs text-muted-foreground text-center">
+                        Pay at the agency counter. Accepted by agent or courier.
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("MOBILE_MONEY")}
+                      className={`flex flex-col items-center gap-3 rounded-xl border-2 p-5 transition-all ${
+                        paymentMethod === "MOBILE_MONEY"
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:border-primary/30 hover:bg-muted/50"
+                      }`}
+                    >
+                      <Smartphone className={`h-8 w-8 ${paymentMethod === "MOBILE_MONEY" ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`text-sm font-semibold ${paymentMethod === "MOBILE_MONEY" ? "text-primary" : ""}`}>
+                        Mobile Money
+                      </span>
+                      <span className="text-xs text-muted-foreground text-center">
+                        Pay instantly via MTN MoMo or Orange Money.
+                      </span>
+                    </button>
                   </div>
                 </div>
+
+                {paymentMethod === "MOBILE_MONEY" && (
+                  <Card className="border-primary/30">
+                    <CardContent className="pt-4 space-y-3">
+                      <Label htmlFor="momoPhone">Mobile Money Phone Number</Label>
+                      <Input
+                        id="momoPhone"
+                        value={momoPhone}
+                        onChange={(e) => setMomoPhone(e.target.value)}
+                        placeholder="+237 6XX XXX XXX"
+                        type="tel"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        A payment prompt will be sent to this number after parcel creation. Confirm on your phone to complete payment.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {paymentMethod === "CASH" && (
+                  <Card className="border-amber-500/30 bg-amber-500/5">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start gap-3">
+                        <Banknote className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                        <div className="text-sm">
+                          <p className="font-medium text-amber-600 dark:text-amber-400">Cash payment at agency</p>
+                          <p className="text-muted-foreground mt-1">
+                            Your parcel will be created and you can pay in cash at the nearest agency.
+                            An agent or courier will confirm receipt of payment.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card className="bg-muted">
                   <CardHeader>
@@ -1006,33 +1081,21 @@ export function CreateParcel() {
                               <div className="flex justify-between">
                                 <span>Weight charge</span>
                                 <span>
-                                  +{" "}
-                                  {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
+                                  + {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
                                   {priceQuote.currency}
                                 </span>
                               </div>
                             )}
                             {(priceQuote.breakdown.extras ?? 0) > 0 && (
                               <div className="flex justify-between">
+                                <span>{serviceType === "EXPRESS" ? "Express service" : "Extras"}</span>
                                 <span>
-                                  {serviceType === "EXPRESS"
-                                    ? "Express service"
-                                    : "Extras"}
-                                </span>
-                                <span>
-                                  +{" "}
-                                  {priceQuote.breakdown.extras!.toLocaleString()}{" "}
+                                  + {priceQuote.breakdown.extras!.toLocaleString()}{" "}
                                   {priceQuote.currency}
                                 </span>
                               </div>
                             )}
                           </>
-                        )}
-                        {deliveryOption === "HOME" && (
-                          <div className="flex justify-between text-muted-foreground">
-                            <span>Home delivery surcharge</span>
-                            <span>Added at delivery</span>
-                          </div>
                         )}
                         <div className="flex justify-between font-semibold text-base pt-2 border-t">
                           <span>Total</span>
@@ -1044,7 +1107,7 @@ export function CreateParcel() {
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        Price unavailable — please verify parcel details.
+                        Price will be calculated based on weight, distance and service type.
                       </p>
                     )}
                   </CardContent>
