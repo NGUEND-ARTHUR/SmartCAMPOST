@@ -32,6 +32,7 @@ import 'package:smartcampost_mobile/screens/courier/pickup_assignments_screen.da
 import 'package:smartcampost_mobile/screens/courier/delivery_screen.dart';
 import 'package:smartcampost_mobile/screens/courier/qr_scan_screen.dart';
 import 'package:smartcampost_mobile/screens/courier/delivery_confirmation_screen.dart';
+import 'package:smartcampost_mobile/screens/courier/failed_delivery_screen.dart';
 
 // Agent screens
 import 'package:smartcampost_mobile/screens/agent/agent_dashboard_screen.dart';
@@ -250,20 +251,7 @@ class SmartCampostApp extends StatelessWidget {
             ),
             GoRoute(
               path: 'deliveries/failed',
-              builder: (context, state) => EndpointActionScreen(
-                title: _tr(context, 'failed_delivery_report'),
-                endpoint: '/delivery/failed',
-                icon: Icons.report_problem_outlined,
-                fields: const [
-                  'parcelId',
-                  'reason',
-                  'photoUrl',
-                  'latitude',
-                  'longitude',
-                  'notes',
-                ],
-                submitLabel: _tr(context, 'submit_report'),
-              ),
+              builder: (context, state) => const FailedDeliveryScreen(),
             ),
             GoRoute(
               path: 'scan',

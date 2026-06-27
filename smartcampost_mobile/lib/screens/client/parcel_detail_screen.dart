@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smartcampost_mobile/core/api_client.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
@@ -213,6 +214,17 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
                       ),
                     ),
 
+                    // ─── Authorize Delegate ───
+                    if (parcel.status != 'DELIVERED' && parcel.status != 'CANCELLED')
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showDelegateSheet(context, parcel.id),
+                          icon: const Icon(Icons.person_add_outlined, size: 18),
+                          label: const Text('Authorize someone to collect'),
+                        ),
+                      ),
+
                     // ─── Status Timeline ───
                     SectionTitle(title: tr('tracking')),
                     Padding(
@@ -252,6 +264,70 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  void _showDelegateSheet(BuildContext context, String parcelId) {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final idCtrl = TextEditingController();
+    final relCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Authorize Someone to Collect', style: AppTheme.heading3),
+            const SizedBox(height: 4),
+            Text('They will receive a PIN code via SMS', style: AppTheme.caption),
+            const SizedBox(height: 16),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Full Name *')),
+            const SizedBox(height: 10),
+            TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone *', hintText: '+237...')),
+            const SizedBox(height: 10),
+            TextField(controller: idCtrl, decoration: const InputDecoration(labelText: 'ID Number (optional)')),
+            const SizedBox(height: 10),
+            TextField(controller: relCtrl, decoration: const InputDecoration(labelText: 'Relationship (optional)')),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () async {
+                if (nameCtrl.text.trim().isEmpty || phoneCtrl.text.trim().isEmpty) return;
+                try {
+                  final res = await ApiClient().post<Map<String, dynamic>>(
+                    '/parcels/$parcelId/delegates',
+                    data: {
+                      'delegateName': nameCtrl.text.trim(),
+                      'delegatePhone': phoneCtrl.text.trim(),
+                      if (idCtrl.text.trim().isNotEmpty) 'delegateIdNumber': idCtrl.text.trim(),
+                      if (relCtrl.text.trim().isNotEmpty) 'relationship': relCtrl.text.trim(),
+                    },
+                  );
+                  if (ctx.mounted) {
+                    Navigator.pop(ctx);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Delegate authorized! PIN: ${res['pinCode']}'),
+                        duration: const Duration(seconds: 10),
+                      ));
+                    }
+                  }
+                } catch (e) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+                  }
+                }
+              },
+              icon: const Icon(Icons.person_add, size: 18),
+              label: const Text('Authorize & Send PIN'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
