@@ -43,7 +43,7 @@ public class PricingServiceImpl implements PricingService {
         private double homeDeliveryPerKmFeeXaf;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, noRollbackFor = ResourceNotFoundException.class)
     public BigDecimal quotePrice(UUID parcelId) {
         Objects.requireNonNull(parcelId, "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)

@@ -122,6 +122,7 @@ export interface CreateParcelRequest {
   deliveryOption: string;
   paymentOption: string;
   description?: string;
+  photoUrl?: string;
 }
 
 export interface UpdateParcelStatusRequest {

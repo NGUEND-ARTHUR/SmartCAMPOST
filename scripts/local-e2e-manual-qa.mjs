@@ -593,7 +593,11 @@ async function runRbacCrossRoleWorkflows(browser, sessions) {
 }
 
 const sessions = await seedUsersAndData();
-const browser = await chromium.launch({ headless: true });
+const launchOptions = { headless: true };
+if (process.env.QA_BROWSER_CHANNEL) {
+  launchOptions.channel = process.env.QA_BROWSER_CHANNEL;
+}
+const browser = await chromium.launch(launchOptions);
 try {
   if (runPages) {
     if (shouldRunRole("PUBLIC")) {

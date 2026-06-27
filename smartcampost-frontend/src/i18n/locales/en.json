@@ -2324,9 +2324,32 @@
       "riskExport": "Export Risk Report"
     }
   },
+  "approvals": {
+    "title": "AI Approval Requests",
+    "loading": "Loading...",
+    "empty": "No pending approvals",
+    "approve": "Approve",
+    "deny": "Deny",
+    "loadError": "Failed to load approval requests.",
+    "approveError": "Failed to approve request.",
+    "denyError": "Failed to deny request."
+  },
   "selfHealing": {
+    "title": "Self-Healing Dashboard",
+    "description": "Monitor and manage system health automatically",
+    "fetchError": "Failed to load self-healing data.",
+    "executeError": "Failed to execute action.",
+    "notifyError": "Failed to notify clients.",
     "notifyMessage": "Due to high volume at {{agencyName}}, your parcel may experience a slight delay. We apologize for any inconvenience.",
     "notifiedClients": "Notified {{count}} clients",
+    "congestionAlerts": "Congestion Alerts",
+    "congestionDescription": "Agencies with high parcel volumes",
+    "noCongestion": "All agencies operating normally",
+    "suggestedActions": "Suggested Actions",
+    "actionsDescription": "AI-recommended interventions",
+    "noActions": "No actions required at this time",
+    "notifyClients": "Notify Affected Clients",
+    "execute": "Execute",
     "levels": {
       "critical": "Critical",
       "high": "High",

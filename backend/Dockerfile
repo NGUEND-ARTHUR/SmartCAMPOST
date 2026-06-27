@@ -20,17 +20,13 @@ WORKDIR /app
 
 COPY --from=build /build/target/backend-*.jar /app/app.jar
 
-# Render uses PORT env var (usually 10000)
-ENV PORT=8080
-EXPOSE ${PORT}
+EXPOSE 10000
 
-# Fast JVM startup flags for cloud containers
+# Fast JVM startup for Render free tier (512MB RAM limit)
 ENV JAVA_OPTS="-Xms128m -Xmx384m \
   -XX:+UseG1GC \
   -XX:+TieredCompilation \
   -XX:TieredStopAtLevel=1 \
-  -XX:+UseStringDeduplication \
-  -Dspring.jmx.enabled=false \
-  -Dspring.config.location=classpath:/application.yaml,classpath:/application-prod.yaml"
+  -Dspring.jmx.enabled=false"
 
-CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT} -jar /app/app.jar --spring.profiles.active=prod"]
+CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-10000} -jar /app/app.jar --spring.profiles.active=prod"]

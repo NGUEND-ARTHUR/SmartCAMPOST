@@ -61,9 +61,9 @@ export default function ApprovalsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div>Loading…</div>
+              <div>{t("approvals.loading", "Loading...")}</div>
             ) : items.length === 0 ? (
-              <div>No pending approvals</div>
+              <div>{t("approvals.empty", "No pending approvals")}</div>
             ) : (
               <div className="space-y-4">
                 {items.map((it) => (

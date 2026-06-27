@@ -1309,6 +1309,16 @@
       "manual": "Manuel"
     }
   },
+  "approvals": {
+    "title": "Demandes d'approbation IA",
+    "loading": "Chargement...",
+    "empty": "Aucune approbation en attente",
+    "approve": "Approuver",
+    "deny": "Refuser",
+    "loadError": "Échec du chargement des demandes d'approbation.",
+    "approveError": "Échec de l'approbation de la demande.",
+    "denyError": "Échec du refus de la demande."
+  },
   "selfHealing": {
     "title": "Tableau de bord auto-guérison",
     "description": "Surveiller et gérer la santé du système automatiquement",

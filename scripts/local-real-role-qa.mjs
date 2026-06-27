@@ -177,7 +177,11 @@ async function inspectRoute(browser, role, auth, route) {
 }
 
 const sessions = await seedUsers();
-const browser = await chromium.launch({ headless: true });
+const launchOptions = { headless: true };
+if (process.env.QA_BROWSER_CHANNEL) {
+  launchOptions.channel = process.env.QA_BROWSER_CHANNEL;
+}
+const browser = await chromium.launch(launchOptions);
 try {
   for (const [role, routes] of Object.entries(roleRoutes)) {
     for (const route of routes) {
