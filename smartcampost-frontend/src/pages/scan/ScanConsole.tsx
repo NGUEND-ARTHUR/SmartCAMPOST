@@ -177,43 +177,49 @@ export default function ScanConsole() {
       // Step 1: Resolve parcel ID — try QR verification first, fallback to tracking ref lookup
       let parcelId: string | undefined;
 
+      // Extract tracking ref from any QR format
+      let trackingRef = scannedCode;
+
+      // 1) Secure V1|P|TOKEN|REF|TS|SIG format
       if (isSecureQrCode(scannedCode)) {
-        // Secure V1|... QR code — verify via crypto endpoint
-        const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
-        if (!verificationResult.valid) {
-          const errorMsg = verificationResult.message || t("scan.error.invalidQr", "Invalid QR code");
-          setError(errorMsg);
-          throw new Error(errorMsg);
-        }
-        parcelId = verificationResult.parcelId;
-      } else {
-        // Try parsing as SmartCAMPOST JSON QR code first
-        let trackingRef = scannedCode;
         try {
-          const parsed = JSON.parse(scannedCode);
-          if (parsed.parcelId) {
-            parcelId = parsed.parcelId;
-          }
-          if (parsed.trackingRef) {
-            trackingRef = parsed.trackingRef;
+          const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
+          if (verificationResult.valid && verificationResult.parcelId) {
+            parcelId = verificationResult.parcelId;
+          } else {
+            // Verification failed — extract tracking ref from V1 payload as fallback
+            const parts = scannedCode.split("|");
+            if (parts.length >= 4) trackingRef = parts[3];
           }
         } catch {
-          // Not JSON — treat as plain tracking ref or partial QR
-          if (scannedCode.includes("|PARTIAL|") || scannedCode.includes("|FINAL|")) {
+          // Backend verification failed — extract tracking ref from payload
+          const parts = scannedCode.split("|");
+          if (parts.length >= 4) trackingRef = parts[3];
+        }
+      } else {
+        // 2) JSON format: {"trackingRef":"SCM-...","parcelId":"...","type":"SMARTCAMPOST_PARCEL"}
+        try {
+          const parsed = JSON.parse(scannedCode);
+          if (parsed.parcelId) parcelId = parsed.parcelId;
+          if (parsed.trackingRef) trackingRef = parsed.trackingRef;
+        } catch {
+          // 3) Partial QR: SCM-...|PARTIAL|timestamp
+          if (scannedCode.includes("|")) {
             trackingRef = scannedCode.split("|")[0];
           }
+          // 4) Plain tracking ref: SCM-20260614-988991 — use as-is
         }
+      }
 
-        // Look up parcel by ID or tracking reference
-        if (!parcelId) {
-          try {
-            const parcel = await httpClient.get<{ id: string }>(`/parcels/tracking/${encodeURIComponent(trackingRef)}`);
-            parcelId = parcel.id;
-          } catch {
-            const errorMsg = t("scan.error.parcelNotFound", "Parcel not found for this tracking number");
-            setError(errorMsg);
-            throw new Error(errorMsg);
-          }
+      // Look up parcel if we don't have the ID yet
+      if (!parcelId) {
+        try {
+          const parcel = await httpClient.get<{ id: string }>(`/parcels/tracking/${encodeURIComponent(trackingRef)}`);
+          parcelId = parcel.id;
+        } catch {
+          const errorMsg = t("scan.error.parcelNotFound", "Parcel not found: ") + trackingRef;
+          setError(errorMsg);
+          throw new Error(errorMsg);
         }
       }
 
