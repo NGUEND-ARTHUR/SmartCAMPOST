@@ -300,9 +300,11 @@ export default function ScanConsole() {
   };
 
   const handleCameraScan = (result: any) => {
-    if (result?.success) {
-      setBarcode(result.rawText);
-      void handleScan(result.rawText);
+    const raw = result?.rawText || result?.data?.trackingRef;
+    if (raw) {
+      setBarcode(raw);
+      toast.info("QR code detected — processing...");
+      void handleScan(raw);
     }
   };
 

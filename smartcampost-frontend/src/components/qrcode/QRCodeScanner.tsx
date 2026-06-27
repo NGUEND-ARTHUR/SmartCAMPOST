@@ -162,41 +162,7 @@ export function QRCodeScanner({
       }
       lastScanTimeRef.current = now;
 
-      // Check user role
-      const user = useAuthStore.getState().user;
-      const roleUpper = (user?.role ?? "").toUpperCase();
-      const isClientOrGuest = !user || roleUpper === "CLIENT";
-
-      let latitude: number | undefined;
-      let longitude: number | undefined;
-
-      try {
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-          });
-        });
-        latitude = pos.coords.latitude;
-        longitude = pos.coords.longitude;
-      } catch (err) {
-        console.warn("Failed to retrieve GPS location for scan:", err);
-      }
-
-      // Enforce GPS for non-client roles
-      if (!isClientOrGuest && (latitude === undefined || longitude === undefined)) {
-        toast.error(t("qrcode.scanner.toasts.gpsRequiredTitle", { defaultValue: "GPS Required" }), {
-          description: t("qrcode.scanner.toasts.gpsRequiredDescription", { 
-            defaultValue: "GPS location is required to scan. Please enable location access." 
-          }),
-        });
-        onError?.("GPS location is required to perform scans.");
-        return;
-      }
-
       const result = parseQRCode(decodedText);
-      result.latitude = latitude;
-      result.longitude = longitude;
 
       setLastScan(result);
       setScanHistory((prev) => [result, ...prev].slice(0, 10));
