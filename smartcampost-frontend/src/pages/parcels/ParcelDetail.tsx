@@ -73,6 +73,7 @@ export default function ParcelDetail() {
   const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
 
   const authUser = useAuthStore((s) => s.user);
+  const role = String(authUser?.role || "CLIENT").toUpperCase();
   const normalizedRole = (() => {
     const raw = String(authUser?.role || "CLIENT");
     const upper = raw.toUpperCase();
@@ -953,7 +954,7 @@ function DelegateForm({ parcelId }: { parcelId: string }) {
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label className="text-sm font-medium">{t("parcels.detail.delegateIdNumber", "ID Card Number")} ({t("common.optional", "optional")})</label>
-          <input className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} />
+          <input className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="ID number" />
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium">{t("parcels.detail.delegateRelationship", "Relationship")} ({t("common.optional", "optional")})</label>
