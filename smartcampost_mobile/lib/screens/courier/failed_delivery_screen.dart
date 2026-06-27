@@ -106,9 +106,9 @@ class _FailedDeliveryScreenState extends State<FailedDeliveryScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle, size: 64, color: AppTheme.successColor),
+                  const Icon(Icons.check_circle, size: 64, color: AppTheme.successColor),
                   const SizedBox(height: 16),
-                  Text('Report submitted', style: AppTheme.heading3),
+                  const Text('Report submitted', style: AppTheme.heading3),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
@@ -134,14 +134,14 @@ class _FailedDeliveryScreenState extends State<FailedDeliveryScreen> {
                   Text(tr('reason'), style: AppTheme.heading4),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _reason,
+                    initialValue: _reason,
                     decoration: const InputDecoration(prefixIcon: Icon(Icons.report_problem_outlined)),
                     items: _reasons.map((r) => DropdownMenuItem(value: r, child: Text(r.replaceAll('_', ' ')))).toList(),
                     onChanged: (v) => setState(() => _reason = v!),
                   ),
                   const SizedBox(height: 16),
 
-                  Text('Photo proof', style: AppTheme.heading4),
+                  const Text('Photo proof', style: AppTheme.heading4),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -183,7 +183,7 @@ class _FailedDeliveryScreenState extends State<FailedDeliveryScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  Text('GPS Location', style: AppTheme.heading4),
+                  const Text('GPS Location', style: AppTheme.heading4),
                   const SizedBox(height: 4),
                   Text(
                     _gps != null ? '${_gps!.latitude.toStringAsFixed(6)}, ${_gps!.longitude.toStringAsFixed(6)} (auto-detected)' : 'Detecting...',

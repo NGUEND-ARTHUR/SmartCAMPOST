@@ -282,9 +282,9 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Authorize Someone to Collect', style: AppTheme.heading3),
+            const Text('Authorize Someone to Collect', style: AppTheme.heading3),
             const SizedBox(height: 4),
-            Text('They will receive a PIN code via SMS', style: AppTheme.caption),
+            const Text('They will receive a PIN code via SMS', style: AppTheme.caption),
             const SizedBox(height: 16),
             TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Full Name *')),
             const SizedBox(height: 10),

@@ -337,10 +337,12 @@ async function fillFirstVisibleEditablePlaceholder(page, placeholder, value) {
 
 async function clickTab(page, name) {
   const tab = page.getByRole("tab", { name }).first();
-  await tab.waitFor({ state: "visible", timeout: 15_000 });
-  await tab.click({ timeout: 7_000 }).catch(async () => {
-    await tab.click({ force: true, timeout: 7_000 }).catch(async () => {
-      await tab.dispatchEvent("click");
+  const button = page.getByRole("button", { name }).first();
+  const target = await tab.isVisible().catch(() => false) ? tab : button;
+  await target.waitFor({ state: "visible", timeout: 15_000 });
+  await target.click({ timeout: 7_000 }).catch(async () => {
+    await target.click({ force: true, timeout: 7_000 }).catch(async () => {
+      await target.dispatchEvent("click");
     });
   });
   await page.waitForTimeout(250);
@@ -359,7 +361,13 @@ async function advanceToPaymentStep(page) {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await clickLastButton(page, /next/i);
     const paymentTab = page.getByRole("tab", { name: /cash on delivery/i }).first();
-    const appeared = await paymentTab.waitFor({ state: "visible", timeout: 4_000 }).then(() => true).catch(() => false);
+    const paymentButton = page.getByRole("button", { name: /cash on delivery/i }).first();
+    const createButton = page.getByRole("button", { name: /create parcel/i }).first();
+    const appeared = await paymentTab.waitFor({ state: "visible", timeout: 4_000 }).then(() => true).catch(async () => (
+      paymentButton.waitFor({ state: "visible", timeout: 4_000 }).then(() => true).catch(async () => (
+        createButton.waitFor({ state: "visible", timeout: 4_000 }).then(() => true).catch(() => false)
+      ))
+    ));
     if (appeared) return;
   }
   throw new Error("payment step did not become visible after pressing Next");
