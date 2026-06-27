@@ -178,6 +178,7 @@ export default function ScanConsole() {
       let parcelId: string | undefined;
 
       if (isSecureQrCode(scannedCode)) {
+        // Secure V1|... QR code — verify via crypto endpoint
         const verificationResult = await verifyQrCodeContent(scannedCode, gps.latitude, gps.longitude);
         if (!verificationResult.valid) {
           const errorMsg = verificationResult.message || t("scan.error.invalidQr", "Invalid QR code");
@@ -186,14 +187,33 @@ export default function ScanConsole() {
         }
         parcelId = verificationResult.parcelId;
       } else {
-        // Manual entry — look up by tracking reference
+        // Try parsing as SmartCAMPOST JSON QR code first
+        let trackingRef = scannedCode;
         try {
-          const parcel = await httpClient.get<{ id: string }>(`/parcels/tracking/${encodeURIComponent(scannedCode)}`);
-          parcelId = parcel.id;
+          const parsed = JSON.parse(scannedCode);
+          if (parsed.parcelId) {
+            parcelId = parsed.parcelId;
+          }
+          if (parsed.trackingRef) {
+            trackingRef = parsed.trackingRef;
+          }
         } catch {
-          const errorMsg = t("scan.error.parcelNotFound", "Parcel not found for this tracking number");
-          setError(errorMsg);
-          throw new Error(errorMsg);
+          // Not JSON — treat as plain tracking ref or partial QR
+          if (scannedCode.includes("|PARTIAL|") || scannedCode.includes("|FINAL|")) {
+            trackingRef = scannedCode.split("|")[0];
+          }
+        }
+
+        // Look up parcel by ID or tracking reference
+        if (!parcelId) {
+          try {
+            const parcel = await httpClient.get<{ id: string }>(`/parcels/tracking/${encodeURIComponent(trackingRef)}`);
+            parcelId = parcel.id;
+          } catch {
+            const errorMsg = t("scan.error.parcelNotFound", "Parcel not found for this tracking number");
+            setError(errorMsg);
+            throw new Error(errorMsg);
+          }
         }
       }
 
