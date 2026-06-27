@@ -200,9 +200,27 @@ function LeafletMapInner({
             filter={["!", ["has", "point_count"]]}
             paint={{
               "circle-color": LAYER_COLORS.primary,
-              "circle-radius": 7,
+              "circle-radius": 8,
               "circle-stroke-width": 2,
               "circle-stroke-color": "#ffffff",
+            }}
+          />
+          {/* Marker labels */}
+          <Layer
+            id="unclustered-label"
+            type="symbol"
+            filter={["!", ["has", "point_count"]]}
+            layout={{
+              "text-field": ["get", "label"],
+              "text-size": 11,
+              "text-offset": [0, 1.5],
+              "text-anchor": "top",
+              "text-max-width": 15,
+            }}
+            paint={{
+              "text-color": "#e2e8f0",
+              "text-halo-color": "#0f172a",
+              "text-halo-width": 1.5,
             }}
           />
         </Source>

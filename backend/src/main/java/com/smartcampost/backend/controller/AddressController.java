@@ -65,6 +65,63 @@ public class AddressController {
         return toResponse(saved);
     }
 
+    @GetMapping("/client/{phone}")
+    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
+    public List<AddressResponse> listClientAddresses(@PathVariable String phone) {
+        UserAccount clientUser = userAccountRepository.findByPhone(phone)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client with phone " + phone + " not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
+        if (clientUser.getRole() != UserRole.CLIENT || clientUser.getEntityId() == null) {
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Phone number does not belong to a client");
+        }
+        Client client = clientRepository.findById(clientUser.getEntityId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
+        return addressRepository.findByClient_Id(client.getId())
+                .stream()
+                .map(AddressController::toResponse)
+                .toList();
+    }
+
+    @PostMapping("/client/{phone}")
+    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
+    public AddressResponse createAddressForClient(
+            @PathVariable String phone,
+            @Valid @RequestBody UpsertAddressRequest request
+    ) {
+        UserAccount clientUser = userAccountRepository.findByPhone(phone)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client with phone " + phone + " not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
+        if (clientUser.getRole() != UserRole.CLIENT || clientUser.getEntityId() == null) {
+            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Phone number does not belong to a client");
+        }
+        Client client = clientRepository.findById(clientUser.getEntityId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client not found",
+                        ErrorCode.CLIENT_NOT_FOUND
+                ));
+
+        Address toCreate = Address.builder()
+                .client(client)
+                .label(request.getLabel())
+                .street(request.getStreet())
+                .city(request.getCity())
+                .region(request.getRegion())
+                .country(request.getCountry())
+                .latitude(toBigDecimal(request.getLatitude()))
+                .longitude(toBigDecimal(request.getLongitude()))
+                .build();
+
+        Address saved = addressRepository.save(toCreate);
+        return toResponse(saved);
+    }
+
     @GetMapping("/{addressId}")
     public AddressResponse getMyAddress(@PathVariable UUID addressId) {
         Address address = getOwnedAddress(addressId);

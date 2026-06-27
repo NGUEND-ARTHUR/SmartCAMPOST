@@ -161,8 +161,25 @@ public class GlobalExceptionHandler {
             org.springframework.dao.DataIntegrityViolationException ex,
             HttpServletRequest request
     ) {
+        String detail = "A data conflict occurred.";
+        Throwable root = ex.getMostSpecificCause();
+        if (root != null && root.getMessage() != null) {
+            String msg = root.getMessage();
+            log.warn("DataIntegrityViolation on {}: {}", request.getRequestURI(), msg);
+            if (msg.contains("Duplicate entry")) {
+                int keyIdx = msg.indexOf("for key");
+                String keyInfo = keyIdx >= 0 ? msg.substring(keyIdx) : "";
+                detail = "Duplicate entry detected. " + keyInfo;
+            } else if (msg.contains("cannot be null") || msg.contains("Column") && msg.contains("cannot be null")) {
+                detail = "A required field is missing: " + msg;
+            } else if (msg.contains("foreign key") || msg.contains("FOREIGN KEY")) {
+                detail = "Referenced record not found. Please verify your selections.";
+            } else {
+                detail = "Data conflict: " + msg;
+            }
+        }
         return buildErrorResponse(
-                "A data conflict occurred. The resource may already exist.",
+                detail,
                 ErrorCode.BUSINESS_ERROR,
                 request,
                 HttpStatus.CONFLICT

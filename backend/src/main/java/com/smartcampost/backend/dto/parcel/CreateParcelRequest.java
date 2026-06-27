@@ -17,6 +17,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateParcelRequest {
 
+    private String clientPhone;
+
     @NotNull
     private UUID senderAddressId;
 

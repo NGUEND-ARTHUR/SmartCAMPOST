@@ -64,25 +64,44 @@ public class ParcelServiceImpl implements ParcelService {
 
     private final SecureRandom random = new SecureRandom();
 
-    // ================== CREATE PARCEL (CLIENT) ==================
+    // ================== CREATE PARCEL (CLIENT or AGENT/STAFF/ADMIN on behalf of client) ==================
     @Override
     public ParcelResponse createParcel(CreateParcelRequest request) {
 
         Objects.requireNonNull(request, "request is required");
         Objects.requireNonNull(request.getSenderAddressId(), "senderAddressId is required");
         Objects.requireNonNull(request.getRecipientAddressId(), "recipientAddressId is required");
-        // 1) récupérer user courant + client
+        // 1) resolve the client
         UserAccount user = getCurrentUserAccount();
-        if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Current user is not a client");
-        }
+        Client client;
 
-        UUID userEntityId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
-        Client client = clientRepository.findById(userEntityId)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "Client not found",
-                ErrorCode.AUTH_USER_NOT_FOUND
-            ));
+        if (user.getRole() == UserRole.CLIENT) {
+            UUID userEntityId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");
+            client = clientRepository.findById(userEntityId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Client not found",
+                    ErrorCode.AUTH_USER_NOT_FOUND
+                ));
+        } else {
+            // Agent/Staff/Admin creating on behalf of a client
+            String clientPhone = request.getClientPhone();
+            if (clientPhone == null || clientPhone.isBlank()) {
+                throw new AuthException(ErrorCode.BUSINESS_ERROR, "clientPhone is required when creating a parcel on behalf of a client");
+            }
+            UserAccount clientUser = userAccountRepository.findByPhone(clientPhone)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Client with phone " + clientPhone + " not found",
+                    ErrorCode.CLIENT_NOT_FOUND
+                ));
+            if (clientUser.getRole() != UserRole.CLIENT || clientUser.getEntityId() == null) {
+                throw new AuthException(ErrorCode.BUSINESS_ERROR, "Phone number does not belong to a client account");
+            }
+            client = clientRepository.findById(clientUser.getEntityId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Client not found",
+                    ErrorCode.CLIENT_NOT_FOUND
+                ));
+        }
 
         // 2) addresses
         UUID senderId = Objects.requireNonNull(request.getSenderAddressId(), "senderAddressId is required");

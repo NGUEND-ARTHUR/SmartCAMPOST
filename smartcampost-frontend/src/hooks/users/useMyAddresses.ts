@@ -12,12 +12,13 @@ export interface AddressDto {
   longitude?: number | null;
 }
 
-export function useMyAddresses() {
+export function useMyAddresses(enabled = true) {
   return useQuery({
     queryKey: ["myAddresses"],
     queryFn: async (): Promise<AddressDto[]> => {
       const res = await httpClient.get("/addresses/me");
       return res as AddressDto[];
     },
+    enabled,
   });
 }

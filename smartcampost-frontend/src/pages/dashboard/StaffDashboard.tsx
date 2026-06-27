@@ -86,7 +86,7 @@ export default function StaffDashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard icon={Users} label={t("staffDashboard.totalParcels")} value={totals.total} subtitle={t("staffDashboard.totalParcelsDesc")} accentColor="bg-primary" />
         <StatsCard icon={User} label={t("common.active")} value={totals.active} subtitle={t("staffDashboard.inTransitDesc")} accentColor="bg-emerald-500" />
-        <StatsCard icon={Shield} label={t("roles.agent")} value={totals.agents} subtitle={t("staffDashboard.deliveredDesc")} accentColor="bg-violet-500" />
+        <StatsCard icon={Users} label={t("roles.agent")} value={totals.agents} subtitle={t("staffDashboard.totalParcelsDesc")} accentColor="bg-violet-500" />
       </div>
 
       <Card>
@@ -156,10 +156,10 @@ export default function StaffDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("staffDashboard.user")}</TableHead>
-                    <TableHead>{t("staffDashboard.action")}</TableHead>
-                    <TableHead>{t("agentDashboard.status")}</TableHead>
-                    <TableHead>{t("staffManagement.email")}</TableHead>
-                    {userRole === "ADMIN" && <TableHead>{t("common.action")}</TableHead>}
+                    <TableHead>{t("staffDashboard.role")}</TableHead>
+                    <TableHead>{t("staffDashboard.status")}</TableHead>
+                    <TableHead>{t("staffDashboard.email")}</TableHead>
+                    {userRole === "ADMIN" && <TableHead>{t("common.actions", "Actions")}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

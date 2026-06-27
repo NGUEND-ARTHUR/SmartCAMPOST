@@ -17,7 +17,7 @@ import {
   QrCode,
   Users,
 } from "lucide-react";
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import type { ParcelStatus as TransitionParcelStatus } from "@/lib/transitions";
 import { Button } from "@/components/ui/button";
 import {
@@ -128,6 +128,39 @@ export default function ParcelDetail() {
   const canCorrectQuery = useCanCorrectParcel(id || "");
   // mutation hooks must be called unconditionally
 
+  // Real-time location tracking via SSE
+  const [liveLocation, setLiveLocation] = useState<{ latitude: number; longitude: number; updatedAt?: string } | null>(null);
+
+  useEffect(() => {
+    const ref = parcel?.trackingRef;
+    if (!ref) return;
+
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+    const sseUrl = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+    const es = new EventSource(sseUrl);
+
+    es.addEventListener("gps-update", (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data);
+        const parcels = payload.inheritedParcels || [];
+        const match = parcels.find((p: any) => p.trackingRef === ref);
+        if (match?.latitude && match?.longitude) {
+          setLiveLocation({
+            latitude: match.latitude,
+            longitude: match.longitude,
+            updatedAt: match.timestamp || new Date().toISOString(),
+          });
+        }
+      } catch { /* ignore parse errors */ }
+    });
+
+    es.onerror = () => {
+      es.close();
+    };
+
+    return () => es.close();
+  }, [parcel?.trackingRef]);
+
   const isLoading = parcelLoading || eventsLoading;
 
   if (isLoading) {
@@ -210,7 +243,24 @@ export default function ParcelDetail() {
             }))}
             currentStatus={parcel.status}
             showAnimation={true}
+            liveActors={liveLocation ? [{
+              id: "live-parcel",
+              type: "PARCEL",
+              name: parcel.trackingRef,
+              latitude: liveLocation.latitude,
+              longitude: liveLocation.longitude,
+              status: "LIVE",
+            }] : undefined}
           />
+          {liveLocation && (
+            <div className="px-4 pb-3 flex items-center gap-2 text-sm text-green-500">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              Live tracking active
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -112,6 +112,7 @@ export interface ScanEventDto {
 }
 
 export interface CreateParcelRequest {
+  clientPhone?: string;
   senderAddressId?: string;
   senderAddress?: Partial<AddressDto>;
   recipientAddressId?: string;

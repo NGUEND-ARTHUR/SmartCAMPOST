@@ -10,6 +10,8 @@ import {
   CreditCard,
   Camera,
   Loader2,
+  Search,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +43,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useCreateParcel, useMyAddresses } from "@/hooks";
+import { useAuthStore } from "@/store/authStore";
 import LocationPicker from "@/components/maps/LocationPicker";
 import { addressService } from "@/services/addressService";
 import {
@@ -70,6 +73,9 @@ export function CreateParcel() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const userRole = useAuthStore((s) => s.user?.role?.toUpperCase() ?? "CLIENT");
+  const isAgent = userRole !== "CLIENT";
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isFragile, setIsFragile] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -84,14 +90,54 @@ export function CreateParcel() {
     "PREPAID",
   );
 
+  // Agent flow: lookup client by phone
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientPhoneConfirmed, setClientPhoneConfirmed] = useState(false);
+  const [clientAddresses, setClientAddresses] = useState<Array<{id: string; label: string; street?: string | null; city: string; region: string; country: string; latitude?: number | null; longitude?: number | null}>>([]);
+  const [clientAddressesLoading, setClientAddressesLoading] = useState(false);
+  const [clientLookupError, setClientLookupError] = useState("");
+
   const createParcel = useCreateParcel();
+
+  // Client flow: use own addresses (disabled for agent/staff)
   const {
-    data: addresses = [],
-    isLoading: addressesLoading,
-    error: addressesError,
-  } = useMyAddresses();
+    data: myAddresses = [],
+    isLoading: myAddressesLoading,
+    error: myAddressesError,
+  } = useMyAddresses(!isAgent);
+
+  // Use client's addresses for agents, own addresses for clients
+  const addresses = isAgent ? clientAddresses : myAddresses;
+  const addressesLoading = isAgent ? clientAddressesLoading : myAddressesLoading;
+  const addressesError = isAgent ? (clientLookupError || null) : myAddressesError;
+
   const [senderAddressId, setSenderAddressId] = useState<string>("");
   const [recipientAddressId, setRecipientAddressId] = useState<string>("");
+
+  const handleLookupClient = async () => {
+    if (!clientPhone.trim()) {
+      toast.error("Please enter a client phone number");
+      return;
+    }
+    setClientAddressesLoading(true);
+    setClientLookupError("");
+    try {
+      const addrs = await addressService.getClientAddresses(clientPhone.trim());
+      setClientAddresses(addrs as typeof clientAddresses);
+      setClientPhoneConfirmed(true);
+      setSenderAddressId("");
+      setRecipientAddressId("");
+      toast.success(`Client found — ${addrs.length} address(es) loaded`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Client not found";
+      setClientLookupError(msg);
+      setClientPhoneConfirmed(false);
+      setClientAddresses([]);
+      toast.error(msg);
+    } finally {
+      setClientAddressesLoading(false);
+    }
+  };
 
   const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
   const [addAddressTarget, setAddAddressTarget] = useState<
@@ -131,8 +177,13 @@ export function CreateParcel() {
       toast.error(t("parcels.create.toasts.selectAddresses"));
       return;
     }
+    if (isAgent && !clientPhoneConfirmed) {
+      toast.error("Please look up a client first");
+      return;
+    }
     createParcel.mutate(
       {
+        ...(isAgent ? { clientPhone: clientPhone.trim() } : {}),
         senderAddressId,
         recipientAddressId,
         weight: data.weight,
@@ -146,7 +197,7 @@ export function CreateParcel() {
       {
         onSuccess: () => {
           toast.success(t("parcels.create.toasts.created"));
-          navigate("/client/parcels");
+          navigate(isAgent ? `/${userRole.toLowerCase()}/parcels` : "/client/parcels");
         },
         onError: (error) => {
           toast.error(
@@ -162,6 +213,10 @@ export function CreateParcel() {
   /** Validate required fields for the current step before advancing */
   const validateCurrentStep = (): boolean => {
     if (currentStep === 0) {
+      if (isAgent && !clientPhoneConfirmed) {
+        toast.error("Please look up a client first");
+        return false;
+      }
       if (!senderAddressId) {
         toast.error(t("parcels.create.toasts.selectSenderAddress"));
         return false;
@@ -261,7 +316,7 @@ export function CreateParcel() {
 
     setIsSavingAddress(true);
     try {
-      const created = await addressService.createAddress({
+      const addrData = {
         label: addressForm.label.trim(),
         street: addressForm.street.trim() || undefined,
         city: addressForm.city.trim(),
@@ -269,9 +324,19 @@ export function CreateParcel() {
         country: addressForm.country.trim(),
         latitude: selectedLat ?? undefined,
         longitude: selectedLng ?? undefined,
-      });
+      };
 
-      await queryClient.invalidateQueries({ queryKey: ["myAddresses"] });
+      const created = isAgent
+        ? await addressService.createAddressForClient(clientPhone.trim(), addrData)
+        : await addressService.createAddress(addrData);
+
+      if (isAgent) {
+        // Refresh client addresses
+        const addrs = await addressService.getClientAddresses(clientPhone.trim());
+        setClientAddresses(addrs as typeof clientAddresses);
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["myAddresses"] });
+      }
 
       if (addAddressTarget === "sender") {
         setSenderAddressId(created.id);
@@ -292,7 +357,7 @@ export function CreateParcel() {
     <div className="max-w-4xl mx-auto">
       <Button
         variant="ghost"
-        onClick={() => navigate("/client")}
+        onClick={() => navigate(isAgent ? `/${userRole.toLowerCase()}` : "/client")}
         className="mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -462,7 +527,57 @@ export function CreateParcel() {
             </DialogContent>
           </Dialog>
 
-          {Boolean(addressesError) && (
+          {/* Agent flow: client phone lookup */}
+          {isAgent && (
+            <div className="mb-6 p-4 rounded-lg border border-border bg-muted/50">
+              <div className="flex items-center gap-2 mb-3">
+                <User className="w-5 h-5 text-primary" />
+                <Label className="text-base font-semibold">Client Phone Number</Label>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Enter the client&apos;s phone number to create a parcel on their behalf.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  value={clientPhone}
+                  onChange={(e) => {
+                    setClientPhone(e.target.value);
+                    if (clientPhoneConfirmed) {
+                      setClientPhoneConfirmed(false);
+                      setClientAddresses([]);
+                      setSenderAddressId("");
+                      setRecipientAddressId("");
+                    }
+                  }}
+                  placeholder="+237655189919"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleLookupClient}
+                  disabled={clientAddressesLoading || !clientPhone.trim()}
+                >
+                  {clientAddressesLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  Look up
+                </Button>
+              </div>
+              {clientPhoneConfirmed && (
+                <p className="text-sm text-green-500 mt-2">
+                  Client found — {clientAddresses.length} address(es) available
+                </p>
+              )}
+              {clientLookupError && (
+                <p className="text-sm text-red-500 mt-2">{clientLookupError}</p>
+              )}
+            </div>
+          )}
+
+          {/* Error for client address loading */}
+          {!isAgent && Boolean(addressesError) && (
             <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg dark:bg-red-900/30 dark:text-red-400">
               <p className="font-semibold">Error loading addresses</p>
               <p className="text-sm">

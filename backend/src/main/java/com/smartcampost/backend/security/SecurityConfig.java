@@ -43,6 +43,7 @@ public class SecurityConfig {
                             "/api/payments/webhooks/camerpay",
                             "/api/track/**",
                             "/api/stream/tracking/**",
+                            "/api/logistics/gps/iot",
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/logout",

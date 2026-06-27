@@ -39,4 +39,18 @@ export const addressService = {
   deleteAddress(id: string): Promise<void> {
     return httpClient.delete(`/addresses/${id}`);
   },
+
+  /**
+   * Get addresses for a specific client by phone (agent/staff/admin only)
+   */
+  getClientAddresses(phone: string): Promise<Address[]> {
+    return httpClient.get(`/addresses/client/${encodeURIComponent(phone)}`);
+  },
+
+  /**
+   * Create an address for a specific client by phone (agent/staff/admin only)
+   */
+  createAddressForClient(phone: string, data: Partial<Address>): Promise<Address> {
+    return httpClient.post(`/addresses/client/${encodeURIComponent(phone)}`, data);
+  },
 };

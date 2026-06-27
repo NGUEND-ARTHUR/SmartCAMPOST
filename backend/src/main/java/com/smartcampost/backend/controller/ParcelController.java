@@ -22,9 +22,9 @@ public class ParcelController {
     private final ParcelService parcelService;
     private final ParcelAuthorizationService parcelAuthorizationService;
 
-    // US20: client creates a parcel (generates partial QR)
+    // US20: client or agent creates a parcel (generates partial QR)
     @PostMapping
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','STAFF','ADMIN')")
     public ResponseEntity<ParcelResponse> createParcel(
             @Valid @RequestBody CreateParcelRequest request
     ) {

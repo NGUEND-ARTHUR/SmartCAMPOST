@@ -708,16 +708,139 @@ export function LiveLogisticsPage() {
 }
 
 export function GpsTrackersPage() {
+  const [trackers, setTrackers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ deviceId: "", imei: "", label: "", assignedType: "COURIER", assignedId: "", vehicleId: "" });
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await httpClient.get<any[]>("/logistics/trackers");
+      setTrackers(Array.isArray(data) ? data : []);
+    } catch { setTrackers([]); }
+    setLoading(false);
+  };
+
+  React.useEffect(() => { void load(); }, []);
+
+  const handleCreate = async () => {
+    if (!form.deviceId.trim()) return;
+    setSaving(true);
+    try {
+      await httpClient.post("/logistics/trackers", {
+        deviceId: form.deviceId,
+        imei: form.imei || undefined,
+        label: form.label || undefined,
+        assignedType: form.assignedType,
+        assignedId: form.assignedId || undefined,
+        vehicleId: form.vehicleId || undefined,
+      });
+      setShowAdd(false);
+      setForm({ deviceId: "", imei: "", label: "", assignedType: "COURIER", assignedId: "", vehicleId: "" });
+      void load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to register tracker");
+    }
+    setSaving(false);
+  };
+
   return (
-    <GenericEndpointPage
-      title="GPS tracker management"
-      description="Registered GSM/IoT trackers, assignment targets, active state, and last known position."
-      endpoint="/logistics/trackers"
-      icon={MapPinned}
-      breadcrumbs={[{ label: "Logistics" }, { label: "GPS trackers" }]}
-      emptyTitle="No GPS trackers registered"
-      searchPlaceholder="Search device, IMEI, vehicle, assignee"
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="GPS Tracker Management"
+        description="Register, assign, and monitor physical GPS/GSM trackers for couriers and vehicles."
+        breadcrumbs={[{ label: "Logistics" }, { label: "GPS Trackers" }]}
+      />
+      <div className="flex justify-end">
+        <Button onClick={() => setShowAdd(!showAdd)}>
+          {showAdd ? "Cancel" : "+ Register New Tracker"}
+        </Button>
+      </div>
+
+      {showAdd && (
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Device ID *</Label>
+                <Input value={form.deviceId} onChange={(e) => setForm({ ...form, deviceId: e.target.value })} placeholder="GPS-001" />
+              </div>
+              <div className="space-y-1">
+                <Label>IMEI</Label>
+                <Input value={form.imei} onChange={(e) => setForm({ ...form, imei: e.target.value })} placeholder="359372000000000" />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Label</Label>
+                <Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Courier Bike #3" />
+              </div>
+              <div className="space-y-1">
+                <Label>Assign To</Label>
+                <Select value={form.assignedType} onValueChange={(v) => setForm({ ...form, assignedType: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="COURIER">Courier</SelectItem>
+                    <SelectItem value="VEHICLE">Vehicle</SelectItem>
+                    <SelectItem value="PARCEL">Parcel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Assigned ID (Courier/Vehicle UUID)</Label>
+                <Input value={form.assignedId} onChange={(e) => setForm({ ...form, assignedId: e.target.value })} placeholder="UUID of courier or vehicle" />
+              </div>
+              <div className="space-y-1">
+                <Label>Vehicle ID</Label>
+                <Input value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })} placeholder="VH-001" />
+              </div>
+            </div>
+            <Button onClick={handleCreate} disabled={saving || !form.deviceId.trim()}>
+              {saving ? "Registering..." : "Register Tracker"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="pt-6">
+          {loading ? (
+            <p className="text-center text-muted-foreground py-8">Loading trackers...</p>
+          ) : trackers.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No GPS trackers registered. Click "Register New Tracker" to add one.</p>
+          ) : (
+            <div className="overflow-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 font-medium">Device</th>
+                    <th className="pb-2 font-medium">IMEI</th>
+                    <th className="pb-2 font-medium">Assigned To</th>
+                    <th className="pb-2 font-medium">Status</th>
+                    <th className="pb-2 font-medium">Last Seen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trackers.map((t: any) => (
+                    <tr key={t.id || t.deviceId} className="border-b">
+                      <td className="py-2 font-medium">{t.label || t.deviceId}</td>
+                      <td className="py-2 text-muted-foreground">{t.imei || "-"}</td>
+                      <td className="py-2">{t.assignedType ? `${t.assignedType}: ${(t.assignedId || "").slice(0, 8)}` : "-"}</td>
+                      <td className="py-2">{t.active ? "Active" : "Inactive"}</td>
+                      <td className="py-2 text-muted-foreground">{t.lastSeenAt ? new Date(t.lastSeenAt).toLocaleString() : "Never"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
 import { type GeoSearchResult } from "@/services/common/geolocation.api";
-import { aiAgents } from "@/ai";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { CameroonMap } from "@/components/maps/core/CameroonMap";
@@ -30,21 +29,43 @@ async function reverseGeocode(
   lng: number,
 ): Promise<LocationPickerResult | null> {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en&zoom=18`;
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en&zoom=14&addressdetails=1`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
     const addr = data.address || {};
     return {
       city:
-        addr.city || addr.town || addr.village || addr.hamlet || addr.county,
-      region: addr.state || addr.region,
+        addr.city || addr.town || addr.municipality || addr.village || addr.hamlet,
+      region: addr.state || addr.region || addr.county,
       displayName: data.display_name,
       street: addr.road || addr.street || addr.pedestrian || addr.path || addr.cycleway || addr.footway,
       quarter: addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || addr.subdivision,
     };
   } catch {
     return null;
+  }
+}
+
+/** Fast autocomplete search via Nominatim */
+async function searchPlaces(query: string, limit = 6): Promise<GeoSearchResult[]> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ", Cameroon")}&format=json&limit=${limit}&addressdetails=1&accept-language=en`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data as any[]).map((r: any) => ({
+      latitude: parseFloat(r.lat),
+      longitude: parseFloat(r.lon),
+      displayName: r.display_name,
+      city: r.address?.city || r.address?.town || r.address?.village || "",
+      state: r.address?.state || "",
+      country: r.address?.country || "Cameroon",
+      type: r.type || "",
+      category: r.class || "",
+    }));
+  } catch {
+    return [];
   }
 }
 
@@ -262,10 +283,7 @@ export default function LocationPicker({
 
     setIsSearching(true);
     try {
-      const filtered = await aiAgents.mapIntelligence.search(query, {
-        limit: 6,
-        restrictToCameroon,
-      });
+      const filtered = await searchPlaces(query, 6);
 
       setSearchResults(filtered);
       setIsResultsOpen(true);
@@ -298,16 +316,13 @@ export default function LocationPicker({
 
     const id = window.setTimeout(async () => {
       try {
-        const filtered = await aiAgents.mapIntelligence.search(q, {
-          limit: 6,
-          restrictToCameroon,
-        });
+        const filtered = await searchPlaces(q, 6);
         setSearchResults(filtered);
         setIsResultsOpen(true);
       } catch {
         // ignore background suggestion failures
       }
-    }, 350);
+    }, 200);
 
     return () => window.clearTimeout(id);
   }, [allowSearch, restrictToCameroon, searchQuery]);

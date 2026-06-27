@@ -153,19 +153,26 @@ public class LogisticsRealtimeController {
         tracker.setLastSeenAt(request.getTimestamp() == null ? Instant.now() : request.getTimestamp());
         gpsTrackerRepository.save(tracker);
 
-        // Update coordinates on the assigned parcel if tracker is assigned to a parcel
-        if (tracker.getAssignedType() != null && tracker.getAssignedType().equalsIgnoreCase("PARCEL") && tracker.getAssignedId() != null) {
-            try {
-                UUID parcelId = UUID.fromString(tracker.getAssignedId());
-                parcelRepository.findById(parcelId).ifPresent(parcel -> {
-                    parcel.setCurrentLatitude(request.getLatitude());
-                    parcel.setCurrentLongitude(request.getLongitude());
-                    parcel.setLocationUpdatedAt(Instant.now());
-                    parcelRepository.save(parcel);
-                    notifyTrackingSubscribers(List.of(parcel));
-                });
-            } catch (IllegalArgumentException e) {
-                // assignedId is not a valid UUID; tracker is not assigned to a parcel
+        // Update coordinates on the assigned entity
+        if (tracker.getAssignedType() != null && tracker.getAssignedId() != null) {
+            String assignedType = tracker.getAssignedType().toUpperCase();
+            if (assignedType.equals("PARCEL")) {
+                try {
+                    UUID parcelId = UUID.fromString(tracker.getAssignedId());
+                    parcelRepository.findById(parcelId).ifPresent(parcel -> {
+                        parcel.setCurrentLatitude(request.getLatitude());
+                        parcel.setCurrentLongitude(request.getLongitude());
+                        parcel.setLocationUpdatedAt(Instant.now());
+                        parcelRepository.save(parcel);
+                        notifyTrackingSubscribers(List.of(parcel));
+                    });
+                } catch (IllegalArgumentException e) {
+                    log.debug("Tracker assignedId is not a valid UUID: {}", tracker.getAssignedId());
+                }
+            } else if (assignedType.equals("COURIER")) {
+                // Courier-assigned tracker: propagate GPS to all parcels the courier is handling
+                List<Parcel> updated = updateAssociatedParcels(tracker.getAssignedId(), request.getLatitude(), request.getLongitude());
+                notifyTrackingSubscribers(updated);
             }
         }
 
@@ -374,10 +381,23 @@ public class LogisticsRealtimeController {
             principalName = auth == null ? null : auth.getName();
         }
         if (principalName == null) return "anonymous";
-        return userAccountRepository.findByPhone(principalName)
-                .map(UserAccount::getEntityId)
-                .map(UUID::toString)
-                .orElse(principalName);
+
+        // Try phone lookup first
+        Optional<UserAccount> byPhone = userAccountRepository.findByPhone(principalName);
+        if (byPhone.isPresent() && byPhone.get().getEntityId() != null) {
+            return byPhone.get().getEntityId().toString();
+        }
+
+        // JWT subject is UserAccount.id (UUID) — resolve to entityId (Courier/Staff/Client ID)
+        try {
+            UUID userAccountId = UUID.fromString(principalName);
+            Optional<UserAccount> byId = userAccountRepository.findById(userAccountId);
+            if (byId.isPresent() && byId.get().getEntityId() != null) {
+                return byId.get().getEntityId().toString();
+            }
+        } catch (IllegalArgumentException ignored) {}
+
+        return principalName;
     }
 
     private boolean hasAnyRole(String... roles) {

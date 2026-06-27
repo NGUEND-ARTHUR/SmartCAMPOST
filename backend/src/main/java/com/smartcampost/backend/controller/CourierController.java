@@ -2,8 +2,10 @@ package com.smartcampost.backend.controller;
 
 import com.smartcampost.backend.dto.courier.*;
 import com.smartcampost.backend.model.Courier;
+import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.CourierStatus;
 import com.smartcampost.backend.repository.CourierRepository;
+import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.CourierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -23,6 +26,7 @@ public class CourierController {
 
     private final CourierService courierService;
     private final CourierRepository courierRepository;
+    private final UserAccountRepository userAccountRepository;
 
     // US17: Admin registers couriers (ADMIN only)
     @PostMapping
@@ -82,15 +86,7 @@ public class CourierController {
             Authentication authentication
     ) {
         boolean onDuty = Boolean.TRUE.equals(body.get("onDuty"));
-        String userId = authentication.getName();
-
-        var courierOpt = courierRepository.findByPhone(userId);
-        if (courierOpt.isEmpty()) {
-            try {
-                UUID uid = UUID.fromString(userId);
-                courierOpt = courierRepository.findById(uid);
-            } catch (Exception ignored) {}
-        }
+        Optional<Courier> courierOpt = resolveCurrentCourier(authentication);
 
         if (courierOpt.isPresent()) {
             Courier courier = courierOpt.get();
@@ -107,16 +103,31 @@ public class CourierController {
     @GetMapping("/me/duty")
     @PreAuthorize("hasAnyRole('COURIER','AGENT')")
     public ResponseEntity<Map<String, Object>> getDutyStatus(Authentication authentication) {
-        String userId = authentication.getName();
-        var courierOpt = courierRepository.findByPhone(userId);
-        if (courierOpt.isEmpty()) {
-            try {
-                UUID uid = UUID.fromString(userId);
-                courierOpt = courierRepository.findById(uid);
-            } catch (Exception ignored) {}
-        }
-
+        Optional<Courier> courierOpt = resolveCurrentCourier(authentication);
         boolean onDuty = courierOpt.map(c -> c.getStatus() != CourierStatus.OFFLINE && c.getStatus() != CourierStatus.INACTIVE).orElse(false);
         return ResponseEntity.ok(Map.of("onDuty", onDuty));
+    }
+
+    private Optional<Courier> resolveCurrentCourier(Authentication authentication) {
+        String subject = authentication.getName();
+
+        // 1) Try phone lookup
+        Optional<Courier> courierOpt = courierRepository.findByPhone(subject);
+        if (courierOpt.isPresent()) return courierOpt;
+
+        // 2) Try as UserAccount ID → entityId → Courier
+        try {
+            UUID userAccountId = UUID.fromString(subject);
+            Optional<UserAccount> userOpt = userAccountRepository.findById(userAccountId);
+            if (userOpt.isPresent() && userOpt.get().getEntityId() != null) {
+                courierOpt = courierRepository.findById(userOpt.get().getEntityId());
+                if (courierOpt.isPresent()) return courierOpt;
+            }
+            // 3) Fallback: maybe subject IS the courier ID directly
+            courierOpt = courierRepository.findById(userAccountId);
+            if (courierOpt.isPresent()) return courierOpt;
+        } catch (IllegalArgumentException ignored) {}
+
+        return Optional.empty();
     }
 }

@@ -757,7 +757,7 @@ export default function AIChatbot({
       try {
         setIsTyping(true);
         const apiBase = String(
-          axiosInstance.defaults.baseURL || "http://localhost:8080/api",
+          axiosInstance.defaults.baseURL || import.meta.env.VITE_API_URL || "http://localhost:8082/api",
         ).replace(/\/+$/, "");
         const streamUrl = `${apiBase}/ai/chat/stream`;
 

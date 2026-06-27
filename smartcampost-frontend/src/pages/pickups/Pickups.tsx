@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Truck, Plus, Calendar, Package, Loader2 } from "lucide-react";
+import { Truck, Plus, Calendar, Package, Loader2, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -53,12 +51,12 @@ export default function Pickups() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTimeWindow, setSelectedTimeWindow] = useState("");
   const [comment, setComment] = useState("");
-  const [manualOverride, setManualOverride] = useState(false);
   const [pickupLatitude, setPickupLatitude] = useState("");
   const [pickupLongitude, setPickupLongitude] = useState("");
+  const [pickupLocationLabel, setPickupLocationLabel] = useState("");
+  const [locationMode, setLocationMode] = useState<"GPS_DEFAULT" | "MAP_PICK">("GPS_DEFAULT");
+  const [isLocatingGps, setIsLocatingGps] = useState(false);
   const [page, setPage] = useState(0);
-
-  const extraPickupFeeXaf = manualOverride ? 500 : 0;
 
   const pickupLatValue = (() => {
     const n = Number(pickupLatitude);
@@ -81,32 +79,39 @@ export default function Pickups() {
 
   const parcels = parcelsData?.content ?? [];
 
+  const handleUseMyLocation = async () => {
+    setIsLocatingGps(true);
+    try {
+      const pos = await getCurrent();
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      setPickupLatitude(String(lat));
+      setPickupLongitude(String(lng));
+      setLocationMode("GPS_DEFAULT");
+      setPickupLocationLabel(t("pickups.page.dialog.currentLocation", "Current location (GPS)"));
+      toast.success(t("pickups.page.toasts.locationDetected", "Location detected successfully"));
+    } catch {
+      toast.error(t("pickups.page.toasts.locationFailed", "Could not detect your location. Please choose on the map."));
+    } finally {
+      setIsLocatingGps(false);
+    }
+  };
+
   const handleRequestPickup = () => {
     if (!selectedParcel || !selectedDate || !selectedTimeWindow) {
       toast.error(t("pickups.page.toasts.requiredFields"));
       return;
     }
 
+    const lat = Number(pickupLatitude);
+    const lng = Number(pickupLongitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      toast.error(t("pickups.page.toasts.selectLocation", "Please select a pickup location"));
+      return;
+    }
+
     (async () => {
       try {
-        let lat: number;
-        let lng: number;
-
-        if (manualOverride) {
-          lat = Number(pickupLatitude);
-          lng = Number(pickupLongitude);
-          if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            toast.error(t("pickups.page.toasts.invalidLatLng"));
-            return;
-          }
-        } else {
-          const pos = await getCurrent();
-          lat = pos.coords.latitude;
-          lng = pos.coords.longitude;
-          setPickupLatitude(String(lat));
-          setPickupLongitude(String(lng));
-        }
-
         await createPickup.mutateAsync({
           parcelId: selectedParcel,
           requestedDate: selectedDate,
@@ -114,7 +119,7 @@ export default function Pickups() {
           comment,
           pickupLatitude: lat,
           pickupLongitude: lng,
-          locationMode: manualOverride ? "MANUAL_OVERRIDE" : "GPS_DEFAULT",
+          locationMode,
         });
 
         toast.success(t("pickups.page.toasts.requestSubmitted"));
@@ -123,9 +128,10 @@ export default function Pickups() {
         setSelectedDate("");
         setSelectedTimeWindow("");
         setComment("");
-        setManualOverride(false);
         setPickupLatitude("");
         setPickupLongitude("");
+        setPickupLocationLabel("");
+        setLocationMode("GPS_DEFAULT");
       } catch (err) {
         toast.error(
           err instanceof Error
@@ -234,77 +240,48 @@ export default function Pickups() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="manualOverride"
-                    checked={manualOverride}
-                    onCheckedChange={(checked) => {
-                      const isChecked = checked === true;
-                      setManualOverride(isChecked);
-                      if (isChecked) {
-                        setIsLocationPickerOpen(true);
-                      } else {
-                        setPickupLatitude("");
-                        setPickupLongitude("");
-                      }
-                    }}
-                    title="Manual location override"
-                    aria-label="Manual location override"
-                  />
-                  <Label htmlFor="manualOverride">
-                    {t("pickups.page.dialog.manualOverride")}
-                  </Label>
-                </div>
-                {manualOverride && (
+              <div className="space-y-3">
+                <Label>{t("pickups.page.dialog.pickupLocation", "Pickup Location")} *</Label>
+
+                <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant="secondary"
-                    onClick={() => setIsLocationPickerOpen(true)}
-                    className="w-full"
+                    variant={locationMode === "GPS_DEFAULT" && pickupLatValue ? "default" : "outline"}
+                    className="flex-1"
+                    disabled={isLocatingGps}
+                    onClick={handleUseMyLocation}
                   >
-                    {t("pickups.page.dialog.chooseOnMap")}
+                    {isLocatingGps ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Navigation className="w-4 h-4 mr-2" />
+                    )}
+                    {t("pickups.page.dialog.useMyLocation", "Use My Location")}
                   </Button>
-                )}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="pickupLatitude">
-                      {t("pickups.page.dialog.latitude")}
-                    </Label>
-                    <Input
-                      id="pickupLatitude"
-                      value={pickupLatitude}
-                      placeholder="e.g. 4.0511"
-                      disabled={!manualOverride}
-                      readOnly
-                      inputMode="decimal"
-                      title="Pickup latitude"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="pickupLongitude">
-                      {t("pickups.page.dialog.longitude")}
-                    </Label>
-                    <Input
-                      id="pickupLongitude"
-                      value={pickupLongitude}
-                      placeholder="e.g. 9.7679"
-                      disabled={!manualOverride}
-                      readOnly
-                      inputMode="decimal"
-                      title="Pickup longitude"
-                    />
-                  </div>
+                  <Button
+                    type="button"
+                    variant={locationMode === "MAP_PICK" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setIsLocationPickerOpen(true)}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {t("pickups.page.dialog.chooseOnMap", "Choose on Map")}
+                  </Button>
                 </div>
 
-                <div className="flex justify-between text-sm rounded-md border border-border bg-muted px-3 py-2">
-                  <span className="text-muted-foreground">
-                    {t("pickups.page.dialog.extraFee")}
-                  </span>
-                  <span className="font-medium">
-                    {extraPickupFeeXaf.toLocaleString()} XAF
-                  </span>
-                </div>
+                {pickupLatValue && pickupLngValue ? (
+                  <div className="flex items-center gap-2 rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm">
+                    <MapPin className="w-4 h-4 text-green-500 shrink-0" />
+                    <span className="text-green-400">
+                      {pickupLocationLabel || `${pickupLatValue.toFixed(4)}, ${pickupLngValue.toFixed(4)}`}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    {t("pickups.page.dialog.noLocationSelected", "No location selected — use GPS or pick on map")}
+                  </div>
+                )}
 
                 <Dialog
                   open={isLocationPickerOpen}
@@ -313,10 +290,10 @@ export default function Pickups() {
                   <DialogContent className="max-w-3xl">
                     <DialogHeader>
                       <DialogTitle>
-                        {t("pickups.page.dialog.locationPicker.title")}
+                        {t("pickups.page.dialog.locationPicker.title", "Choose Pickup Location")}
                       </DialogTitle>
                       <DialogDescription>
-                        {t("pickups.page.dialog.locationPicker.description")}
+                        {t("pickups.page.dialog.locationPicker.description", "Tap or drag the marker to set your pickup location")}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-2">
@@ -327,6 +304,15 @@ export default function Pickups() {
                         onLocationChange={(lat, lng) => {
                           setPickupLatitude(String(lat));
                           setPickupLongitude(String(lng));
+                          setLocationMode("MAP_PICK");
+                        }}
+                        onLocationResolved={(result) => {
+                          if (result.displayName) {
+                            const short = result.quarter
+                              ? `${result.quarter}, ${result.city || ""}`
+                              : result.city || result.displayName?.split(",").slice(0, 2).join(",") || "";
+                            setPickupLocationLabel(short);
+                          }
                         }}
                         onClose={() => setIsLocationPickerOpen(false)}
                         allowManualInput={false}
