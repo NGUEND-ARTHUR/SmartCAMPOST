@@ -13,7 +13,7 @@ import {
   Star,
   Loader2,
   Radio,
-  RadioOff,
+  CircleOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { httpClient } from "@/services/apiClient";
@@ -394,7 +394,7 @@ function DutyToggle() {
       disabled={toggling}
       className={onDuty ? "bg-emerald-600 hover:bg-emerald-700" : ""}
     >
-      {toggling ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : onDuty ? <Radio className="h-4 w-4 mr-2" /> : <RadioOff className="h-4 w-4 mr-2" />}
+      {toggling ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : onDuty ? <Radio className="h-4 w-4 mr-2" /> : <CircleOff className="h-4 w-4 mr-2" />}
       {onDuty ? t("courierDashboard.onDutyLabel", "On Duty") : t("courierDashboard.offDutyLabel", "Off Duty")}
     </Button>
   );
