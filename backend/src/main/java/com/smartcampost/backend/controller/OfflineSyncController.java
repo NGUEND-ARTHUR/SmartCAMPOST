@@ -6,6 +6,7 @@ import com.smartcampost.backend.service.ScanEventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/offline")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
 public class OfflineSyncController {
 
     private final ScanEventService scanEventService;

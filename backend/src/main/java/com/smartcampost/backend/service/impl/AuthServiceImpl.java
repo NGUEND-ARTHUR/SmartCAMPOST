@@ -19,6 +19,7 @@ import com.smartcampost.backend.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     // REGISTER CLIENT
     // ============================================================
     @Override
+    @Transactional
     public AuthResponse registerClient(RegisterClientRequest request) {
 
         Objects.requireNonNull(request, "request is required");
@@ -151,6 +153,9 @@ public class AuthServiceImpl implements AuthService {
                 return new AuthException(ErrorCode.AUTH_USER_NOT_FOUND, "Invalid credentials");
             });
 
+        // SECURITY: Block login for frozen accounts before password check
+        requireNotFrozen(user);
+
         if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
             // Record failed attempt
             boolean nowLocked = lockoutService.recordFailedAttempt(identifier);
@@ -162,9 +167,6 @@ public class AuthServiceImpl implements AuthService {
             }
             throw new AuthException(ErrorCode.AUTH_INVALID_CREDENTIALS, "Invalid credentials");
         }
-
-        // SECURITY: Block login for frozen accounts
-        requireNotFrozen(user);
 
         // SECURITY: Clear lockout on successful login
         lockoutService.clearLockout(identifier);
@@ -368,6 +370,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(ResetPasswordRequest request) {
 
         Objects.requireNonNull(request, "request is required");
@@ -381,6 +384,9 @@ public class AuthServiceImpl implements AuthService {
         if (!validOtp) {
             throw new OtpException(ErrorCode.OTP_INVALID, "Invalid or expired OTP");
         }
+
+        // Consume OTP to prevent replay attacks
+        otpService.consumeOtp(request.getPhone(), request.getOtp(), OtpPurpose.RESET_PASSWORD);
 
         UserAccount user = userAccountRepository.findByPhone(request.getPhone())
             .orElseThrow(() ->

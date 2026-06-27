@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -146,5 +147,23 @@ public class PaymentController {
     @PostMapping("/cod/{parcelId}/mark-paid")
     public ResponseEntity<PaymentResponse> markCodAsPaid(@PathVariable UUID parcelId) {
         return ResponseEntity.ok(paymentService.markCodAsPaid(parcelId));
+    }
+
+    /**
+     * Fapshi webhook callback. Unauthenticated (permitted in SecurityConfig).
+     * Fapshi sends: { "transId": "...", "status": "SUCCESSFUL"|"FAILED"|"EXPIRED", "amount": ..., "medium": "..." }
+     */
+    @PostMapping("/webhooks/fapshi")
+    public ResponseEntity<Void> handleFapshiWebhook(@RequestBody Map<String, Object> payload) {
+        String transId = payload.get("transId") != null ? payload.get("transId").toString() : null;
+        String status = payload.get("status") != null ? payload.get("status").toString() : null;
+        Double amount = null;
+        if (payload.get("amount") != null) {
+            try {
+                amount = Double.valueOf(payload.get("amount").toString());
+            } catch (NumberFormatException ignored) {}
+        }
+        paymentService.handleFapshiWebhook(transId, status, amount);
+        return ResponseEntity.ok().build();
     }
 }

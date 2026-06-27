@@ -11,5 +11,7 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
 
     List<Refund> findByPayment(Payment payment);
 
+    List<Refund> findByPayment_Id(UUID paymentId);
+
     List<Refund> findByStatus(RefundStatus status);
 }

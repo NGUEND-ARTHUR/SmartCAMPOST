@@ -75,6 +75,12 @@ public interface PaymentService {
     PaymentSummary getPaymentSummary(UUID parcelId);
 
     /**
+     * Handle Fapshi webhook callback.
+     * Looks up Payment by externalRef == transId, then updates status.
+     */
+    void handleFapshiWebhook(String transId, String status, Double amount);
+
+    /**
      * Payment summary with total due, paid, and balance.
      */
     record PaymentSummary(

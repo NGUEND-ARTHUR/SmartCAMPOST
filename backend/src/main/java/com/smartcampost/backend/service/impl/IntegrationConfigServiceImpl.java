@@ -89,7 +89,7 @@ public class IntegrationConfigServiceImpl implements IntegrationConfigService {
                 .type(cfg.getType())
                 .providerName(cfg.getProviderName())
                 .endpointUrl(cfg.getEndpointUrl())
-                .enabled(cfg.isEnabled())
+                .enabled(cfg.getEnabled() != null && cfg.getEnabled())
                 .createdAt(cfg.getCreatedAt())
                 .updatedAt(cfg.getUpdatedAt())
                 .build();

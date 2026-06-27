@@ -85,10 +85,14 @@ public class RefundServiceImpl implements RefundService {
             );
         }
 
-        // Basic amount check (no over-refund)
-        if (request.getAmount() > payment.getAmount()) {
+        // Over-refund check: sum all existing refunds for this payment
+        double existingRefundsTotal = refundRepository.findByPayment_Id(paymentId).stream()
+                .mapToDouble(Refund::getAmount)
+                .sum();
+        if (existingRefundsTotal + request.getAmount() > payment.getAmount()) {
             throw new ConflictException(
-                    "Refund amount cannot exceed original payment amount",
+                    "Total refunds (" + (existingRefundsTotal + request.getAmount())
+                            + ") would exceed original payment amount (" + payment.getAmount() + ")",
                     ErrorCode.REFUND_CONFLICT
             );
         }

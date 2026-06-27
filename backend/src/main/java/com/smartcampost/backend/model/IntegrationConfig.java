@@ -32,7 +32,7 @@ public class IntegrationConfig {
     private String endpointUrl;
 
     @Column(name = "active", nullable = false)
-    private boolean enabled;
+    private Boolean enabled;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -44,7 +44,7 @@ public class IntegrationConfig {
     void onCreate() {
         if (id == null) id = UUID.randomUUID();
         if (createdAt == null) createdAt = Instant.now();
-        if (!enabled) enabled = true;
+        if (enabled == null) enabled = true;
     }
 
     @PreUpdate

@@ -24,4 +24,12 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     // Avoids loading every payment into memory just to sum amounts (used by dashboard revenue metric)
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = :status")
     double sumAmountByStatus(@Param("status") PaymentStatus status);
+
+    long countByStatus(PaymentStatus status);
+
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status IN :statuses")
+    double sumAmountByStatusIn(@Param("statuses") List<PaymentStatus> statuses);
+
+    @Query("SELECT COUNT(p) FROM Payment p WHERE p.status IN :statuses")
+    long countByStatusIn(@Param("statuses") List<PaymentStatus> statuses);
 }

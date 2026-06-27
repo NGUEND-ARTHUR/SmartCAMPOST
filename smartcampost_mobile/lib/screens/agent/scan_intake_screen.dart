@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/scan_event.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
@@ -15,6 +18,8 @@ class ScanIntakeScreen extends StatefulWidget {
 }
 
 class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
+  static const String _scanQueueKey = 'scan_events_offline_queue';
+
   final MobileScannerController _scanner = MobileScannerController();
   bool _isProcessing = false;
   final List<ScanEvent> _scannedItems = [];
@@ -25,6 +30,45 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
   void dispose() {
     _scanner.dispose();
     super.dispose();
+  }
+
+  /// Cache a failed scan event payload to SharedPreferences for later retry.
+  Future<void> _cacheScanEvent(Map<String, dynamic> eventData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final queue = prefs.getStringList(_scanQueueKey) ?? [];
+      queue.add(jsonEncode(eventData));
+      await prefs.setStringList(_scanQueueKey, queue);
+      debugPrint('[ScanIntake] Cached scan event (queue: ${queue.length})');
+    } catch (e) {
+      debugPrint('[ScanIntake] Failed to cache scan event: $e');
+    }
+  }
+
+  /// Flush any cached scan events to the backend. Called after a successful scan.
+  Future<void> _flushCachedScanEvents() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final queue = prefs.getStringList(_scanQueueKey) ?? [];
+      if (queue.isEmpty) return;
+
+      final remaining = <String>[];
+      for (final entry in queue) {
+        try {
+          final data = jsonDecode(entry) as Map<String, dynamic>;
+          await ScanService().createScanEvent(data);
+        } catch (_) {
+          remaining.add(entry);
+        }
+      }
+      await prefs.setStringList(_scanQueueKey, remaining);
+      final flushed = queue.length - remaining.length;
+      if (flushed > 0) {
+        debugPrint('[ScanIntake] Flushed $flushed cached scan events');
+      }
+    } catch (e) {
+      debugPrint('[ScanIntake] Flush failed: $e');
+    }
   }
 
   Future<Position> _getCurrentPositionOrThrow() async {
@@ -73,23 +117,34 @@ class _ScanIntakeScreenState extends State<ScanIntakeScreen> {
 
       if (parcelId != null) {
         // Create scan event
-        final scanEvent = await ScanService().createScanEvent({
+        final eventData = {
           'parcelId': parcelId,
           'eventType': 'AGENT_SCAN_IN',
           'latitude': lat,
           'longitude': lng,
           'locationSource': 'GPS',
-        });
+        };
 
-        if (mounted) {
-          setState(() => _scannedItems.insert(0, scanEvent));
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Parcel #$parcelId scanned successfully'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 1),
-            ),
-          );
+        try {
+          final scanEvent = await ScanService().createScanEvent(eventData);
+
+          if (mounted) {
+            setState(() => _scannedItems.insert(0, scanEvent));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Parcel #$parcelId scanned successfully'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 1),
+              ),
+            );
+          }
+
+          // On success, try to flush any previously cached events
+          await _flushCachedScanEvents();
+        } catch (e) {
+          // Network failure — cache event for later retry
+          await _cacheScanEvent(eventData);
+          if (mounted) setState(() => _lastError = 'Offline — scan cached for retry');
         }
       }
     } catch (e) {

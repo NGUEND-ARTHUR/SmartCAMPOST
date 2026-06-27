@@ -52,27 +52,20 @@ public class FinanceServiceImpl implements FinanceService {
     @Override
     @Transactional(readOnly = true)
     public Map<String, Object> getStats() {
-        List<Payment> allPayments = paymentRepository.findAll();
-
-        double totalRevenue = allPayments.stream()
-                .filter(p -> p.getStatus() == PaymentStatus.SUCCESS)
-                .mapToDouble(Payment::getAmount)
-                .sum();
-
-        double pendingPayments = allPayments.stream()
-                .filter(p -> p.getStatus() == PaymentStatus.PENDING || p.getStatus() == PaymentStatus.INIT)
-                .mapToDouble(Payment::getAmount)
-                .sum();
-
+        // Use aggregate queries instead of loading all payments into memory
+        double totalRevenue = paymentRepository.sumAmountByStatus(PaymentStatus.SUCCESS);
+        double pendingPayments = paymentRepository.sumAmountByStatusIn(
+                List.of(PaymentStatus.PENDING, PaymentStatus.INIT));
         double completedPayments = totalRevenue;
 
         List<Refund> pendingRefunds = refundRepository.findByStatus(RefundStatus.REQUESTED);
         double refundsPending = pendingRefunds.stream().mapToDouble(Refund::getAmount).sum();
 
-        long totalPaymentCount = allPayments.size();
-        long successCount = allPayments.stream().filter(p -> p.getStatus() == PaymentStatus.SUCCESS).count();
-        long pendingCount = allPayments.stream().filter(p -> p.getStatus() == PaymentStatus.PENDING || p.getStatus() == PaymentStatus.INIT).count();
-        long failedCount = allPayments.stream().filter(p -> p.getStatus() == PaymentStatus.FAILED).count();
+        long successCount = paymentRepository.countByStatus(PaymentStatus.SUCCESS);
+        long pendingCount = paymentRepository.countByStatusIn(
+                List.of(PaymentStatus.PENDING, PaymentStatus.INIT));
+        long failedCount = paymentRepository.countByStatus(PaymentStatus.FAILED);
+        long totalPaymentCount = successCount + pendingCount + failedCount;
 
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("totalRevenue", totalRevenue);

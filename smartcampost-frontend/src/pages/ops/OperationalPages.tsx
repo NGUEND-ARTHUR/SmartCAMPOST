@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PageHeader from "@/components/PageHeader";
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import ErrorBanner from "@/components/ErrorBanner";
+import { toast } from "sonner";
 import { httpClient } from "@/services/apiClient";
 import { useAuthStore } from "@/store/authStore";
 import {
@@ -741,7 +742,7 @@ export function GpsTrackersPage() {
       setForm({ deviceId: "", imei: "", label: "", assignedType: "COURIER", assignedId: "", vehicleId: "" });
       void load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to register tracker");
+      toast.error(e instanceof Error ? e.message : "Failed to register tracker");
     }
     setSaving(false);
   };
@@ -825,13 +826,13 @@ export function GpsTrackersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {trackers.map((t: any) => (
-                    <tr key={t.id || t.deviceId} className="border-b">
-                      <td className="py-2 font-medium">{t.label || t.deviceId}</td>
-                      <td className="py-2 text-muted-foreground">{t.imei || "-"}</td>
-                      <td className="py-2">{t.assignedType ? `${t.assignedType}: ${(t.assignedId || "").slice(0, 8)}` : "-"}</td>
-                      <td className="py-2">{t.active ? "Active" : "Inactive"}</td>
-                      <td className="py-2 text-muted-foreground">{t.lastSeenAt ? new Date(t.lastSeenAt).toLocaleString() : "Never"}</td>
+                  {trackers.map((tracker: any) => (
+                    <tr key={tracker.id || tracker.deviceId} className="border-b">
+                      <td className="py-2 font-medium">{tracker.label || tracker.deviceId}</td>
+                      <td className="py-2 text-muted-foreground">{tracker.imei || "-"}</td>
+                      <td className="py-2">{tracker.assignedType ? `${tracker.assignedType}: ${(tracker.assignedId || "").slice(0, 8)}` : "-"}</td>
+                      <td className="py-2">{tracker.active ? "Active" : "Inactive"}</td>
+                      <td className="py-2 text-muted-foreground">{tracker.lastSeenAt ? new Date(tracker.lastSeenAt).toLocaleString() : "Never"}</td>
                     </tr>
                   ))}
                 </tbody>

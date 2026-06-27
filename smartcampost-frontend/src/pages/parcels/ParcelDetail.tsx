@@ -87,7 +87,11 @@ export default function ParcelDetail() {
       ? "/admin/parcels"
       : normalizedRole === "STAFF"
         ? "/staff/parcels"
-        : "/client/parcels";
+        : normalizedRole === "AGENT"
+          ? "/agent/parcels"
+          : normalizedRole === "COURIER"
+            ? "/courier/parcels"
+            : "/client/parcels";
 
   const canValidate = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(
     normalizedRole,
@@ -609,7 +613,7 @@ export default function ParcelDetail() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate(`/client/support?parcelId=${parcel.id}`)}
+              onClick={() => navigate(`/${normalizedRole.toLowerCase()}/support?parcelId=${parcel.id}`)}
             >
               {t("parcels.detail.actions.reportIssue")}
             </Button>
@@ -793,7 +797,7 @@ export default function ParcelDetail() {
           <CardContent>
             <Button
               className="w-full"
-              onClick={() => navigate(`/client/parcels/${parcel.id}/pay-momo`)}
+              onClick={() => navigate(`/${normalizedRole.toLowerCase()}/parcels/${parcel.id}/pay-momo`)}
             >
               {t("parcels.detail.actions.payWithMomo")}
             </Button>

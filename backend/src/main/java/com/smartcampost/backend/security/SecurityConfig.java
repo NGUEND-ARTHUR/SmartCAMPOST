@@ -39,8 +39,9 @@ public class SecurityConfig {
                         //                    PUBLIC AUTH ROUTES
                         // ===================================================
                         .requestMatchers(
-                            "/api/payments/mtn/**",
+                            "/api/payments/mtn/callback",
                             "/api/payments/webhooks/camerpay",
+                            "/api/payments/webhooks/fapshi",
                             "/api/track/**",
                             "/api/stream/tracking/**",
                             "/api/logistics/gps/iot",

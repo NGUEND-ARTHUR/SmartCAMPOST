@@ -100,6 +100,19 @@ public class DeliveryServiceImpl implements DeliveryService {
                     "Courier not found", ErrorCode.COURIER_NOT_FOUND));
         }
 
+        // Ownership warning: log when acting user does not match assigned courier
+        try {
+            UserAccount actingUser = getCurrentUser();
+            if (courier != null && actingUser.getEntityId() != null
+                    && !actingUser.getEntityId().equals(courier.getId())) {
+                log.warn("Delivery operation by user {} (entityId={}) on parcel {} but assigned courier is {} ({})",
+                        actingUser.getId(), actingUser.getEntityId(),
+                        parcel.getTrackingRef(), courier.getId(), courier.getFullName());
+            }
+        } catch (Exception ex) {
+            log.warn("Could not verify delivery ownership: {}", ex.getMessage());
+        }
+
         // Enforce: status transition must be backed by a ScanEvent (GPS required)
         if (request.getLatitude() == null || request.getLongitude() == null) {
             throw new AuthException(ErrorCode.VALIDATION_ERROR, "GPS latitude/longitude are required to start delivery");

@@ -504,10 +504,17 @@ public class ParcelServiceImpl implements ParcelService {
     }
 
     // ================== TRACKING REF ==================
+    private static final int MAX_TRACKING_REF_RETRIES = 10;
+
     private String generateTrackingRef() {
         // Ex: SCM-2025-123456
         String ref;
+        int attempts = 0;
         do {
+            if (attempts++ >= MAX_TRACKING_REF_RETRIES) {
+                throw new IllegalStateException(
+                        "Failed to generate unique tracking reference after " + MAX_TRACKING_REF_RETRIES + " attempts");
+            }
             int randomPart = random.nextInt(1_000_000); // 0–999999
             ref = "SCM-" + Instant.now().toString().substring(0, 10).replace("-", "")
                     + "-" + String.format("%06d", randomPart);

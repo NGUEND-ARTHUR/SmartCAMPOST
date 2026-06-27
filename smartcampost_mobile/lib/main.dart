@@ -900,7 +900,7 @@ class SmartCampostApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.system,
       routerConfig: router,
       builder: (context, child) => GlobalBackTrailOverlay(
         navigatorKey: _rootNavigatorKey,

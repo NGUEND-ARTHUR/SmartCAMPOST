@@ -67,8 +67,15 @@ class PushNotificationService {
     //
     //   _initialized = true;
 
-    debugPrint('[PushNotificationService] Stub initialized. '
-        'Configure Firebase to enable real push notifications.');
+    try {
+      debugPrint('[PushNotificationService] Stub initialized. '
+          'Configure Firebase to enable real push notifications.');
+    } catch (e) {
+      debugPrint('[PushNotificationService] Firebase init failed: $e');
+      debugPrint('[PushNotificationService] Ensure google-services.json (Android) '
+          'and GoogleService-Info.plist (iOS) are present. '
+          'Run `flutterfire configure` to generate them.');
+    }
   }
 
   /// Send the FCM device token to the SmartCAMPOST backend

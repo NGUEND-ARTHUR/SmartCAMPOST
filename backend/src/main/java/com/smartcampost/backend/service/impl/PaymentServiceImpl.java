@@ -24,6 +24,7 @@ import com.smartcampost.backend.service.NotificationService;
 import com.smartcampost.backend.service.PaymentGatewayService;
 import com.smartcampost.backend.service.PricingService;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.AuthException;
 import com.smartcampost.backend.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,15 @@ public class PaymentServiceImpl implements PaymentService {
         UUID parcelId = Objects.requireNonNull(request.getParcelId(), "parcelId is required");
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
+
+        // Idempotency: reject if a PENDING or SUCCESS payment already exists for this parcel
+        if (paymentRepository.existsByParcel_IdAndStatus(parcelId, PaymentStatus.PENDING)
+                || paymentRepository.existsByParcel_IdAndStatus(parcelId, PaymentStatus.SUCCESS)) {
+            throw new ConflictException(
+                    "A payment already exists for this parcel",
+                    ErrorCode.PAYMENT_ALREADY_PROCESSED
+            );
+        }
 
         // Server-side pricing: do not accept client-provided amounts
         var quote = pricingService.quotePrice(parcelId);
@@ -286,10 +296,13 @@ public class PaymentServiceImpl implements PaymentService {
         double amountDue;
         try {
             var quote = pricingService.quotePrice(id);
-            amountDue = quote != null ? quote.doubleValue() : 0.0;
+            if (quote == null || quote.doubleValue() <= 0) {
+                throw new IllegalStateException("Pricing returned zero or null for parcel " + id);
+            }
+            amountDue = quote.doubleValue();
         } catch (Exception ex) {
-            log.error("Pricing failed for parcel {} during payment validation; skipping amount check", id, ex);
-            amountDue = 0.0;
+            log.error("Pricing failed for parcel {} during payment validation", id, ex);
+            throw new IllegalStateException("Cannot process payment: pricing unavailable for parcel " + id, ex);
         }
         if (amount == null) {
             amount = amountDue;
@@ -349,6 +362,34 @@ public class PaymentServiceImpl implements PaymentService {
         String paymentOption = parcel.getPaymentOption() != null ? parcel.getPaymentOption().name() : "UNKNOWN";
         String trackingRef = parcel.getTrackingRef() != null ? parcel.getTrackingRef() : "";
         return new PaymentSummary(parcelId, trackingRef, totalDue, totalPaid, balance, paymentOption, status, payments);
+    }
+
+    @Override
+    public void handleFapshiWebhook(String transId, String status, Double amount) {
+        Objects.requireNonNull(transId, "transId is required");
+        Objects.requireNonNull(status, "status is required");
+
+        Payment payment = paymentRepository.findFirstByExternalRefOrderByTimestampDesc(transId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Payment not found for transId: " + transId, ErrorCode.PAYMENT_NOT_FOUND));
+
+        switch (status) {
+            case "SUCCESSFUL" -> {
+                payment.setStatus(PaymentStatus.SUCCESS);
+                paymentRepository.save(payment);
+                try {
+                    notificationService.notifyPaymentConfirmed(payment.getParcel(), payment.getAmount(), payment.getCurrency());
+                } catch (Exception ex) {
+                    log.warn("Notification failed during Fapshi webhook", ex);
+                }
+                invoiceService.issueInvoiceForPayment(payment.getId());
+            }
+            case "FAILED", "EXPIRED" -> {
+                payment.setStatus(PaymentStatus.FAILED);
+                paymentRepository.save(payment);
+            }
+            default -> log.warn("Unknown Fapshi status '{}' for transId {}", status, transId);
+        }
     }
 
     private PaymentResponse toDto(Payment p) {

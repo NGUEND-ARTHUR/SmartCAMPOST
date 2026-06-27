@@ -80,6 +80,25 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // ================== CONSTRAINT VIOLATION (Bean Validation) ==================
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(
+            jakarta.validation.ConstraintViolationException ex,
+            HttpServletRequest request
+    ) {
+        String msg = ex.getConstraintViolations().stream()
+                .findFirst()
+                .map(v -> v.getPropertyPath() + " " + v.getMessage())
+                .orElse("Validation error");
+
+        return buildErrorResponse(
+                msg,
+                ErrorCode.VALIDATION_ERROR,
+                request,
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     // ================== MISSING REQUIRED REQUEST PARAM ==================
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingParam(

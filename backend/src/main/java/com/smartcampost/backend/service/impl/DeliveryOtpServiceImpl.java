@@ -12,9 +12,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -25,7 +25,7 @@ public class DeliveryOtpServiceImpl implements DeliveryOtpService {
     private final ParcelRepository parcelRepository;
     private final NotificationService notificationService;
 
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
 
     @Override
     @Transactional

@@ -18,6 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/qr")
 @RequiredArgsConstructor
 @Tag(name = "QR Code", description = "QR code generation and validation endpoints")
+@PreAuthorize("isAuthenticated()")
 public class QrCodeController {
 
     private final QrCodeService qrCodeService;
@@ -54,6 +55,7 @@ public class QrCodeController {
     @Operation(summary = "Generate temporary QR for pickup request",
                description = "Client receives this QR after submitting pickup request. Agent scans to confirm pickup.")
     @PostMapping("/pickup/{pickupId}/temporary")
+    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
     public ResponseEntity<TemporaryQrData> generateTemporaryQr(@PathVariable UUID pickupId) {
         return ResponseEntity.ok(qrCodeService.generateTemporaryQrForPickup(pickupId));
     }
@@ -68,6 +70,7 @@ public class QrCodeController {
     @Operation(summary = "Convert temporary QR to permanent after pickup confirmation",
                description = "After agent validates pickup, generates permanent QR for the parcel")
     @PostMapping("/pickup/{pickupId}/convert")
+    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
     public ResponseEntity<QrCodeData> convertToPermanentQr(@PathVariable UUID pickupId) {
         return ResponseEntity.ok(qrCodeService.convertTemporaryToPermanent(pickupId));
     }

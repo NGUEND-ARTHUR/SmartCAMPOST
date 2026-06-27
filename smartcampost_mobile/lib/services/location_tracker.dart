@@ -37,6 +37,11 @@ class LocationTracker {
     _isTracking = true;
     _onDuty = true;
 
+    // NOTE: Timer.periodic does NOT run reliably when the app is backgrounded.
+    // For production background tracking, integrate a foreground service plugin
+    // (e.g. flutter_background_service) so GPS continues when the screen is off.
+    // The required Android permissions (FOREGROUND_SERVICE, FOREGROUND_SERVICE_LOCATION,
+    // ACCESS_BACKGROUND_LOCATION) have already been added to AndroidManifest.xml.
     _timer = Timer.periodic(const Duration(seconds: 20), (timer) async {
       if (!authProvider.isAuthenticated) return;
       final role = authProvider.userRole.toUpperCase();
