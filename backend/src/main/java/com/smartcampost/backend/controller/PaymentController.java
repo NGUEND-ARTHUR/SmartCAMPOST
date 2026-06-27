@@ -120,11 +120,11 @@ public class PaymentController {
     }
 
     /**
-     * Agent confirms cash payment received at agency.
+     * Agent or courier confirms cash payment received.
      * Creates a SUCCESS payment record + auto-generates invoice.
      */
     @PostMapping("/cash-confirm/{parcelId}")
-    @PreAuthorize("hasAnyRole('AGENT','STAFF','ADMIN')")
+    @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<PaymentResponse> confirmCashPayment(@PathVariable UUID parcelId) {
         return ResponseEntity.ok(paymentService.processPickupPayment(parcelId, "CASH", null));
     }
