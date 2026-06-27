@@ -663,7 +663,7 @@ export function CreateParcel() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={(e) => e.preventDefault()}>
             {currentStep === 0 && (
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -1130,7 +1130,9 @@ export function CreateParcel() {
                   Next
                 </Button>
               ) : (
-                <Button type="submit">Create Parcel</Button>
+                <Button type="button" onClick={handleSubmit(onSubmit)} disabled={createParcel.isPending}>
+                  {createParcel.isPending ? "Creating..." : "Create Parcel"}
+                </Button>
               )}
             </div>
           </form>
