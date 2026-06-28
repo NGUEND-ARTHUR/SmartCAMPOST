@@ -69,7 +69,7 @@ export function QRCodeScanner({
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onScanRef = useRef(onScan);
-  onScanRef.current = onScan;
+  useEffect(() => { onScanRef.current = onScan; }, [onScan]);
   const lastScanTimeRef = useRef<number>(0);
 
   const parseQRCode = useCallback((decodedText: string): ScanResult => {

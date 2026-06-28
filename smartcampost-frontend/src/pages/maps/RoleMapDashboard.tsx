@@ -144,7 +144,7 @@ export default function RoleMapDashboard() {
   const [trackedParcels, setTrackedParcels] = useState<TrackedParcelItem[]>([]);
   const [selectedParcelId, setSelectedParcelId] = useState<string>("");
   const selectedParcelIdRef = useRef(selectedParcelId);
-  selectedParcelIdRef.current = selectedParcelId;
+  useEffect(() => { selectedParcelIdRef.current = selectedParcelId; }, [selectedParcelId]);
   const [selectedParcelMap, setSelectedParcelMap] =
     useState<ParcelMapResponse | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
@@ -394,7 +394,6 @@ export default function RoleMapDashboard() {
     }
 
     return () => sseConnections.forEach((es) => es.close());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role, trackedIds]);
 
   // Load detailed tracking map when user selects a different parcel

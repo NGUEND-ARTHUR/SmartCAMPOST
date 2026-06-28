@@ -171,6 +171,7 @@ export function CreateParcel() {
     watch,
   } = useForm<ParcelFormData>();
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchedWeight = watch("weight");
 
   const steps = [
