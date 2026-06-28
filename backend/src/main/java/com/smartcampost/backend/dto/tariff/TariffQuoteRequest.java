@@ -18,11 +18,10 @@ public class TariffQuoteRequest {
     @NotBlank
     private String serviceType;       // "STANDARD" ou "EXPRESS"
 
-    @NotBlank
     private String originZone;
-
-    @NotBlank
     private String destinationZone;
+    private String originCity;
+    private String destinationCity;
 
     @Positive
     private double weight;

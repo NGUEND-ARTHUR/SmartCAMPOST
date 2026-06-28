@@ -141,7 +141,7 @@ smartcampost:
   pricing:
     home-delivery:
       enabled: ${HOME_DELIVERY_SURCHARGE_ENABLED:true}
-      per-km-fee-xaf: ${HOME_DELIVERY_PER_KM_FEE_XAF:0}
+      per-km-fee-xaf: ${HOME_DELIVERY_PER_KM_FEE_XAF:100}
 
   automation:
     delayed-parcel:

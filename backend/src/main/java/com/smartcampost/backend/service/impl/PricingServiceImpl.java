@@ -127,13 +127,13 @@ public class PricingServiceImpl implements PricingService {
         String destZone = getZoneFromAddress(parcel.getRecipientAddress());
         String weightBracket = getWeightBracket(weight);
 
-        // Find matching tariff
-                double basePrice = tariffRepository.findByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
-                parcel.getServiceType(),
-                originZone,
-                destZone,
-                weightBracket
+        // Find matching tariff — try exact zones first, fall back to NATIONAL
+        double basePrice = tariffRepository.findByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
+                parcel.getServiceType(), originZone, destZone, weightBracket
         ).map(t -> t.getPrice().doubleValue())
+         .or(() -> tariffRepository.findByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
+                parcel.getServiceType(), "NATIONAL", "NATIONAL", weightBracket
+         ).map(t -> t.getPrice().doubleValue()))
          .orElseThrow(() -> new ResourceNotFoundException(
                 "No tariff configured for " + parcel.getServiceType() + " " + originZone + " -> " + destZone + " (" + weightBracket + ")",
                 ErrorCode.PRICING_TARIFF_NOT_FOUND
@@ -241,11 +241,10 @@ public class PricingServiceImpl implements PricingService {
         String weightBracket = getWeightBracket(weight);
 
         return tariffRepository.findByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
-                parcel.getServiceType(),
-                originZone,
-                destZone,
-                weightBracket
-        ).orElseThrow(() -> new ResourceNotFoundException(
+                parcel.getServiceType(), originZone, destZone, weightBracket
+        ).or(() -> tariffRepository.findByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
+                parcel.getServiceType(), "NATIONAL", "NATIONAL", weightBracket
+        )).orElseThrow(() -> new ResourceNotFoundException(
                 "Pricing tariff not found",
                 ErrorCode.PRICING_TARIFF_NOT_FOUND
         ));

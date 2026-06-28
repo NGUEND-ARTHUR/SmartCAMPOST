@@ -32,6 +32,8 @@ export interface UpdateTariffRequest {
 export interface TariffQuoteRequest {
   serviceType: string;
   weight: number;
+  originZone?: string;
+  destinationZone?: string;
   originCity?: string;
   destinationCity?: string;
 }

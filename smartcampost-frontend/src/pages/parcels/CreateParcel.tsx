@@ -314,6 +314,8 @@ export function CreateParcel() {
         .quote({
           serviceType,
           weight: Number(weight),
+          originZone: senderAddr?.region ?? undefined,
+          destinationZone: recipientAddr?.region ?? undefined,
           originCity: senderAddr?.city ?? undefined,
           destinationCity: recipientAddr?.city ?? undefined,
         })

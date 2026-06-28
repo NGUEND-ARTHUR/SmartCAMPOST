@@ -34,31 +34,42 @@ public class TariffPricingServiceImpl implements TariffPricingService {
 
                 Objects.requireNonNull(request, "request is required");
                 Objects.requireNonNull(request.getServiceType(), "serviceType is required");
-                Objects.requireNonNull(request.getOriginZone(), "originZone is required");
-                Objects.requireNonNull(request.getDestinationZone(), "destinationZone is required");
 
-        // 1) Convertir serviceType en enum
+        // Resolve zones: use originZone/destinationZone if set, otherwise fall back to city, then NATIONAL
+        String originZone = request.getOriginZone();
+        if (originZone == null || originZone.isBlank()) {
+            originZone = request.getOriginCity() != null ? request.getOriginCity().toUpperCase() : "NATIONAL";
+        } else {
+            originZone = originZone.toUpperCase();
+        }
+        String destZone = request.getDestinationZone();
+        if (destZone == null || destZone.isBlank()) {
+            destZone = request.getDestinationCity() != null ? request.getDestinationCity().toUpperCase() : "NATIONAL";
+        } else {
+            destZone = destZone.toUpperCase();
+        }
+
         ServiceType serviceType;
         try {
             serviceType = ServiceType.valueOf(request.getServiceType().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            // handled par GlobalExceptionHandler (RuntimeException -> BUSINESS_ERROR)
             throw new RuntimeException("Invalid service type: " + request.getServiceType());
         }
 
-        // 2) Déterminer le weightBracket
         String weightBracket = WeightBracketResolver.resolve(request.getWeight());
 
-        // 3) Chercher le tarif correspondant
+        // Try exact zone match, then NATIONAL fallback
+        final String oz = originZone;
+        final String dz = destZone;
         Tariff tariff = tariffRepository
                 .findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
-                        serviceType,
-                        request.getOriginZone(),
-                        request.getDestinationZone(),
-                        weightBracket
+                        serviceType, oz, dz, weightBracket
                 )
+                .or(() -> tariffRepository.findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
+                        serviceType, "NATIONAL", "NATIONAL", weightBracket
+                ))
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "No matching tariff found",
+                        "No matching tariff found for " + oz + " -> " + dz + " (" + weightBracket + ")",
                         ErrorCode.TARIFF_NOT_FOUND
                 ));
 
