@@ -374,30 +374,66 @@ export default function ScanConsole() {
               {scanMode === "camera" ? (
                 /* Camera QR Scanner */
                 <div className="space-y-4">
-                  <div className="w-full max-w-md h-80 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
-                    <ErrorBoundary
-                      key={cameraBoundaryKey}
-                      fallback={
-                        <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center text-muted-foreground">
-                          <Camera className="w-12 h-12 text-destructive" />
-                          <p className="font-medium text-foreground">
-                            {t("scan.error.cameraFailed", "Camera failed to start")}
-                          </p>
-                          <p className="text-sm">
-                            {t("scan.error.cameraRetry", "Try reloading or switch to manual mode")}
-                          </p>
-                          <button
-                            onClick={() => setCameraBoundaryKey((k) => k + 1)}
-                            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                          >
-                            {t("scan.error.retryCamera", "Retry Camera")}
-                          </button>
-                        </div>
-                      }
-                    >
-                      <QRCodeScanner onScan={handleCameraScan} />
-                    </ErrorBoundary>
+                  {/* Primary: Take photo to scan (most reliable on mobile) */}
+                  <div className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5">
+                    <Camera className="w-10 h-10 text-primary" />
+                    <p className="text-sm font-medium text-center">
+                      Take a photo of the QR code or select from gallery
+                    </p>
+                    <label className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium cursor-pointer hover:bg-primary/90 transition-colors">
+                      <Camera className="w-5 h-5" />
+                      Open Camera
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const { Html5Qrcode } = await import("html5-qrcode");
+                            const scanner = new Html5Qrcode("qr-file-scan-temp");
+                            const decoded = await scanner.scanFile(file, true);
+                            scanner.clear();
+                            toast.success("QR code detected!");
+                            setBarcode(decoded);
+                            void handleScan(decoded);
+                          } catch {
+                            toast.error("No QR code found in the image. Please try again.");
+                          }
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                    <div id="qr-file-scan-temp" className="hidden" />
                   </div>
+
+                  {/* Secondary: Live camera scanner */}
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      Or use live camera scanner (may not work on all devices)
+                    </summary>
+                    <div className="mt-3 w-full max-w-md h-80 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
+                      <ErrorBoundary
+                        key={cameraBoundaryKey}
+                        fallback={
+                          <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center text-muted-foreground">
+                            <Camera className="w-12 h-12 text-destructive" />
+                            <p className="font-medium text-foreground">Camera failed</p>
+                            <button
+                              onClick={() => setCameraBoundaryKey((k) => k + 1)}
+                              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
+                            >
+                              Retry
+                            </button>
+                          </div>
+                        }
+                      >
+                        <QRCodeScanner onScan={handleCameraScan} />
+                      </ErrorBoundary>
+                    </div>
+                  </details>
 
                   {/* Status Selection for Camera Mode */}
 
