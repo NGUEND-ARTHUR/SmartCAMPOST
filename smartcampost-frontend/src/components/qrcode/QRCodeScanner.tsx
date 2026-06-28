@@ -13,13 +13,12 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/authStore";
+
 
 interface QRCodeData {
   trackingRef: string;
@@ -69,6 +68,8 @@ export function QRCodeScanner({
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
   const lastScanTimeRef = useRef<number>(0);
 
   const parseQRCode = useCallback((decodedText: string): ScanResult => {
@@ -170,21 +171,17 @@ export function QRCodeScanner({
           });
         } else {
           toast.error("Invalid QR", { description: result.error });
-          onError?.(result.error || "Unknown error");
         }
 
-        onScan(result);
-
-        if (!continuous && result.success) {
-          stopScanning().catch(() => {});
-        }
+        // Use ref to always call the latest onScan callback
+        onScanRef.current(result);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Scan processing error";
         toast.error(msg);
-        onError?.(msg);
       }
     },
-    [continuous, onScan, onError, parseQRCode, scanDelay, stopScanning],
+    // Only stable deps — parseQRCode has no deps, scanDelay is a prop constant
+    [parseQRCode, scanDelay],
   );
 
   const startScanning = useCallback(async () => {
@@ -401,29 +398,6 @@ export function QRCodeScanner({
             <FlipHorizontal className="h-4 w-4 mr-1" />
             Flip Camera
           </Button>
-          <label className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-input bg-background text-sm font-medium cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
-            <ImageIcon className="h-4 w-4" />
-            Scan from Image
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                try {
-                  const tempScanner = new Html5Qrcode("qr-reader-file-temp");
-                  const result = await tempScanner.scanFile(file, true);
-                  tempScanner.clear();
-                  handleScanSuccess(result);
-                } catch {
-                  toast.error("No QR code found in the image");
-                }
-                e.target.value = "";
-              }}
-            />
-          </label>
-          <div id="qr-reader-file-temp" className="hidden" />
         </div>
 
         {/* Last Scan Result */}
