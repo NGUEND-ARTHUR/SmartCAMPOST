@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,6 +143,8 @@ export default function RoleMapDashboard() {
   const [markers, setMarkers] = useState<MarkerItem[]>([]);
   const [trackedParcels, setTrackedParcels] = useState<TrackedParcelItem[]>([]);
   const [selectedParcelId, setSelectedParcelId] = useState<string>("");
+  const selectedParcelIdRef = useRef(selectedParcelId);
+  selectedParcelIdRef.current = selectedParcelId;
   const [selectedParcelMap, setSelectedParcelMap] =
     useState<ParcelMapResponse | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
@@ -179,9 +181,10 @@ export default function RoleMapDashboard() {
           const allItems = myParcels.content ?? [];
           const items = allItems.filter((p) => p.status !== "DELIVERED" && p.status !== "PICKED_UP_AT_AGENCY" && p.status !== "CANCELLED");
 
-          const selectedInList = items.some((p) => p.id === selectedParcelId);
+          const currentSelected = selectedParcelIdRef.current;
+          const selectedInList = items.some((p) => p.id === currentSelected);
           const candidateParcelId = selectedInList
-            ? selectedParcelId
+            ? currentSelected
             : (items[0]?.id ?? "");
 
           // Build markers directly from parcel data (fast — no extra API calls)
@@ -335,7 +338,7 @@ export default function RoleMapDashboard() {
         if (!silent) setLoading(false);
       }
     },
-    [role, selectedParcelId, t],
+    [role, t],
   );
 
   useEffect(() => {
@@ -353,21 +356,28 @@ export default function RoleMapDashboard() {
   }, [loadMapData]);
 
   // SSE: live GPS updates for client's parcels
+  // Use a stable key (comma-joined IDs) so SSE only reconnects when the actual parcel set changes
+  const trackedIds = useMemo(
+    () => trackedParcels.map((p) => p.id).sort().join(","),
+    [trackedParcels],
+  );
+
   useEffect(() => {
     if (role !== "CLIENT" || trackedParcels.length === 0) return;
 
     const sseConnections: EventSource[] = [];
-    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+    const base = (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8082/api";
+    const normalizedBase = base.replace(/\/+$/, "");
 
     for (const parcel of trackedParcels.slice(0, 5)) {
-      const url = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(parcel.trackingRef)}`;
+      const url = `${normalizedBase}/stream/tracking/${encodeURIComponent(parcel.trackingRef)}`;
       const es = new EventSource(url);
 
       es.addEventListener("gps-update", (event: MessageEvent) => {
         try {
           const payload = JSON.parse(event.data);
-          const parcels = payload.inheritedParcels || [];
-          const match = parcels.find((p: any) => p.trackingRef === parcel.trackingRef);
+          const inherited = payload.inheritedParcels || [];
+          const match = inherited.find((p: any) => p.trackingRef === parcel.trackingRef);
           if (match?.latitude && match?.longitude) {
             setMarkers((prev) =>
               prev.map((m) =>
@@ -377,15 +387,25 @@ export default function RoleMapDashboard() {
               )
             );
           }
-        } catch { /* ignore */ }
+        } catch { /* ignore parse errors */ }
       });
 
-      es.onerror = () => es.close();
       sseConnections.push(es);
     }
 
     return () => sseConnections.forEach((es) => es.close());
-  }, [role, trackedParcels]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role, trackedIds]);
+
+  // Load detailed tracking map when user selects a different parcel
+  useEffect(() => {
+    if (!selectedParcelId || role !== "CLIENT") return;
+    let cancelled = false;
+    mapService.getParcelMap(selectedParcelId)
+      .then((data) => { if (!cancelled) setSelectedParcelMap(data); })
+      .catch(() => { if (!cancelled) setSelectedParcelMap(null); });
+    return () => { cancelled = true; };
+  }, [selectedParcelId, role]);
 
   const title = useMemo(() => {
     if (role === "COURIER") return t("roleMap.title.courier");
