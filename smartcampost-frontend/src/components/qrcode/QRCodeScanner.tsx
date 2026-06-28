@@ -13,6 +13,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -153,41 +154,37 @@ export function QRCodeScanner({
   }, []);
 
   const handleScanSuccess = useCallback(
-    async (decodedText: string) => {
-      const now = Date.now();
+    (decodedText: string) => {
+      try {
+        const now = Date.now();
+        if (now - lastScanTimeRef.current < scanDelay) return;
+        lastScanTimeRef.current = now;
 
-      // Debounce scans
-      if (now - lastScanTimeRef.current < scanDelay) {
-        return;
-      }
-      lastScanTimeRef.current = now;
+        const result = parseQRCode(decodedText);
+        setLastScan(result);
+        setScanHistory((prev) => [result, ...prev].slice(0, 10));
 
-      const result = parseQRCode(decodedText);
+        if (result.success) {
+          toast.success("QR Scanned", {
+            description: result.data?.trackingRef || decodedText.slice(0, 30),
+          });
+        } else {
+          toast.error("Invalid QR", { description: result.error });
+          onError?.(result.error || "Unknown error");
+        }
 
-      setLastScan(result);
-      setScanHistory((prev) => [result, ...prev].slice(0, 10));
+        onScan(result);
 
-      if (result.success) {
-        toast.success(t("qrcode.scanner.toasts.scannedTitle"), {
-          description: t("qrcode.scanner.toasts.scannedDescription", {
-            trackingRef: result.data?.trackingRef,
-          }),
-        });
-      } else {
-        toast.error(t("qrcode.scanner.toasts.invalidTitle"), {
-          description: result.error,
-        });
-        onError?.(result.error || "Unknown error");
-      }
-
-      onScan(result);
-
-      // Stop scanning if not continuous mode
-      if (!continuous && result.success) {
-        stopScanning();
+        if (!continuous && result.success) {
+          stopScanning().catch(() => {});
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Scan processing error";
+        toast.error(msg);
+        onError?.(msg);
       }
     },
-    [continuous, onScan, onError, parseQRCode, scanDelay, stopScanning, t],
+    [continuous, onScan, onError, parseQRCode, scanDelay, stopScanning],
   );
 
   const startScanning = useCallback(async () => {
@@ -233,17 +230,18 @@ export function QRCodeScanner({
 
       scannerRef.current = scanner;
 
+      const containerWidth = container.clientWidth || 300;
+      const qrBoxSize = Math.min(250, Math.floor(containerWidth * 0.7));
+
       await scanner.start(
         { facingMode },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
+          fps: 15,
+          qrbox: { width: qrBoxSize, height: qrBoxSize },
           aspectRatio: 1,
         },
         handleScanSuccess,
-        () => {
-          // QR code scan error (no QR code found in frame) - this is expected
-        },
+        () => {},
       );
 
       setIsScanning(true);
@@ -403,6 +401,29 @@ export function QRCodeScanner({
             <FlipHorizontal className="h-4 w-4 mr-1" />
             Flip Camera
           </Button>
+          <label className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-input bg-background text-sm font-medium cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
+            <ImageIcon className="h-4 w-4" />
+            Scan from Image
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const tempScanner = new Html5Qrcode("qr-reader-file-temp");
+                  const result = await tempScanner.scanFile(file, true);
+                  tempScanner.clear();
+                  handleScanSuccess(result);
+                } catch {
+                  toast.error("No QR code found in the image");
+                }
+                e.target.value = "";
+              }}
+            />
+          </label>
+          <div id="qr-reader-file-temp" className="hidden" />
         </div>
 
         {/* Last Scan Result */}
