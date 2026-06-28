@@ -41,7 +41,7 @@ public class Parcel {
     @Builder.Default
     private QrStatus qrStatus = QrStatus.PARTIAL;
 
-    @Column(name = "is_locked", nullable = false)
+    @Column(name = "is_locked", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     @Builder.Default
     private boolean locked = false;
 

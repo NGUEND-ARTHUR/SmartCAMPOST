@@ -39,7 +39,7 @@ public class DefaultTariffBootstrap implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         long existing = tariffRepository.count();
-        if (existing > 0) {
+        if (existing >= 1000) {
             log.info("Tariff bootstrap skipped — {} tariffs already exist", existing);
             return;
         }
