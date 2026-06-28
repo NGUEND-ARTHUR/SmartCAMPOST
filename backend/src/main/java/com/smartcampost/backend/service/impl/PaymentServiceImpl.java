@@ -68,14 +68,14 @@ public class PaymentServiceImpl implements PaymentService {
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
-        // Idempotency: reject if a PENDING or SUCCESS payment already exists for this parcel
-        if (paymentRepository.existsByParcel_IdAndStatus(parcelId, PaymentStatus.PENDING)
-                || paymentRepository.existsByParcel_IdAndStatus(parcelId, PaymentStatus.SUCCESS)) {
-            throw new ConflictException(
-                    "A payment already exists for this parcel",
-                    ErrorCode.PAYMENT_ALREADY_PROCESSED
-            );
+        // Only block if already paid successfully
+        if (paymentRepository.existsByParcel_IdAndStatus(parcelId, PaymentStatus.SUCCESS)) {
+            throw new ConflictException("This parcel has already been paid", ErrorCode.PAYMENT_ALREADY_PROCESSED);
         }
+        // Cancel old PENDING payments so user can retry
+        paymentRepository.findByParcel_IdOrderByTimestampDesc(parcelId).stream()
+                .filter(pay -> pay.getStatus() == PaymentStatus.PENDING)
+                .forEach(pay -> { pay.setStatus(PaymentStatus.FAILED); paymentRepository.save(pay); });
 
         // Server-side pricing: do not accept client-provided amounts
         var quote = pricingService.quotePrice(parcelId);
