@@ -86,33 +86,35 @@ public class PaymentServiceImpl implements PaymentService {
 
         String currency = request.getCurrency() != null ? request.getCurrency() : "XAF";
         String gatewayRef = null;
+        PaymentStatus status = PaymentStatus.PENDING;
 
         if (request.getMethod() == PaymentMethod.MOBILE_MONEY) {
             String payerPhone = request.getPayerPhone();
             if (payerPhone == null || payerPhone.isBlank()) {
                 throw new IllegalArgumentException("payerPhone is required for MOBILE_MONEY");
             }
-            // Initiate the payment via configured gateway (MTN / ORANGE / MOCK)
-            gatewayRef = paymentGatewayService.initiatePayment(
-                    payerPhone,
-                    amount,
-                    currency,
-                    "PARCEL:" + parcel.getTrackingRef()
-            );
+            try {
+                gatewayRef = paymentGatewayService.initiatePayment(
+                        payerPhone, amount, currency,
+                        "PARCEL:" + parcel.getTrackingRef()
+                );
+            } catch (Exception e) {
+                log.error("Payment gateway failed for parcel {}: {}", parcel.getTrackingRef(), e.getMessage());
+                status = PaymentStatus.FAILED;
+            }
         }
 
         Payment p = Payment.builder()
                 .parcel(parcel)
-            .amount(amount)
+                .amount(amount)
                 .currency(currency)
                 .method(request.getMethod())
-                .status(PaymentStatus.PENDING)
+                .status(status)
                 .externalRef(gatewayRef)
                 .build();
 
         Payment saved = paymentRepository.save(p);
-        p = saved;
-        return toDto(p);
+        return toDto(saved);
     }
 
     @Override

@@ -211,14 +211,18 @@ export function CreateParcel() {
           if (paymentMethod === "MOBILE_MONEY" && momoPhone.trim()) {
             try {
               toast.info("Initiating mobile money payment...");
-              await paymentService.init({
+              const payResult = await paymentService.init({
                 parcelId: parcelResponse.id,
                 method: "MOBILE_MONEY",
                 payerPhone: momoPhone.trim(),
               });
-              toast.success("Payment request sent to your phone. Please confirm on your device.");
+              if (payResult.status === "FAILED") {
+                toast.warning("Parcel created! Payment gateway is temporarily unavailable. You can retry from parcel details.");
+              } else {
+                toast.success("Payment request sent to your phone. Please confirm on your device.");
+              }
             } catch {
-              toast.warning("Parcel created but payment initiation failed. You can pay later from the parcel details page.");
+              toast.success("Parcel created successfully! You can initiate payment from the parcel details page.");
             }
           } else {
             toast.success(t("parcels.create.toasts.created"));
