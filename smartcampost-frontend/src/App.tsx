@@ -171,6 +171,7 @@ function App() {
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
             <Route path="parcels/:parcelId/pay-momo" element={<MoMoPaymentPage />} />
             <Route path="pickups" element={<Pickups />} />
+            <Route path="pickups/:id" element={<PickupDetail />} />
             <Route path="payments" element={<ClientPayments />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="addresses" element={<Addresses />} />
@@ -240,6 +241,7 @@ function App() {
             <Route path="parcels" element={<ParcelManagement />} />
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="pickups" element={<AgentPickupsPage />} />
+            <Route path="pickups/:id" element={<PickupDetail />} />
             <Route path="delivery-tools" element={<FailedDeliveryReportPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
             <Route path="live-logistics" element={<LiveLogisticsPage />} />
@@ -261,6 +263,7 @@ function App() {
           >
             <Route index element={<StaffDashboard />} />
             <Route path="pickups" element={<PickupsManagement />} />
+            <Route path="pickups/:id" element={<PickupDetail />} />
             <Route path="deliveries" element={<StaffDeliveryMonitoringPage />} />
             <Route path="payments" element={<StaffPaymentsPage />} />
             <Route path="finance" element={<StaffFinanceOverviewPage />} />
@@ -310,6 +313,7 @@ function App() {
             <Route path="parcels/:id" element={<ParcelDetail />} />
             <Route path="parcels/:id/qr" element={<QRCodePage />} />
             <Route path="pickups" element={<PickupsManagement />} />
+            <Route path="pickups/:id" element={<PickupDetail />} />
             <Route path="deliveries" element={<StaffDeliveryMonitoringPage />} />
             <Route path="payments" element={<Payments />} />
             <Route path="support" element={<StaffSupportInboxPage />} />

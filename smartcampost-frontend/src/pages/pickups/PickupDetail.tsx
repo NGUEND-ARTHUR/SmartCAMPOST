@@ -20,6 +20,7 @@ export default function PickupDetail() {
   const { t } = useTranslation();
   const authUser = useAuthStore((s) => s.user);
   const normalizedRole = authUser?.role?.toUpperCase() || "CLIENT";
+  const rolePrefix = `/${(authUser?.role ?? "client").toLowerCase()}`;
   const canSeeCoordinates = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(normalizedRole);
   const [step, setStep] = useState<
     "details" | "photo" | "signature" | "complete"
@@ -66,7 +67,7 @@ export default function PickupDetail() {
         // ignore and continue to UI confirmation
       }
       setStep("complete");
-      setTimeout(() => navigate("/courier/pickups"), 2000);
+      setTimeout(() => navigate(`${rolePrefix}/pickups`), 2000);
     })();
   };
 
@@ -75,7 +76,7 @@ export default function PickupDetail() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
           <button
-            onClick={() => navigate("/courier/pickups")}
+            onClick={() => navigate(`${rolePrefix}/pickups`)}
             className="flex items-center text-muted-foreground hover:text-foreground mb-4"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />

@@ -33,6 +33,7 @@ import {
   useGeolocation,
   useUpdatePickupState,
 } from "@/hooks";
+import { useAuthStore } from "@/store/authStore";
 import LocationPicker from "@/components/maps/LocationPicker";
 
 const stateColors: Record<PickupState, string> = {
@@ -73,6 +74,8 @@ export default function Pickups() {
   const createPickup = useCreatePickup();
   const cancelPickup = useUpdatePickupState();
   const { getCurrent } = useGeolocation(false);
+  const { user } = useAuthStore();
+  const rolePrefix = `/${(user?.role ?? "client").toLowerCase()}`;
 
   const pickups = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -458,7 +461,7 @@ export default function Pickups() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate(`/courier/pickups/${pickup.id}`)}
+                      onClick={() => navigate(`${rolePrefix}/pickups/${pickup.id}`)}
                     >
                       {t("pickups.page.viewDetails")}
                     </Button>
