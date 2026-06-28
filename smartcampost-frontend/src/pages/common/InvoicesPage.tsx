@@ -41,9 +41,19 @@ export default function InvoicesPage() {
               {t("invoices.total")}: {inv.totalAmount}
             </div>
             <div>
-              <a className="text-blue-600" href={invoiceService.pdfUrl(inv.id)}>
+              <button
+                type="button"
+                className="text-blue-600 hover:underline"
+                onClick={async () => {
+                  try {
+                    await invoiceService.downloadPdf(inv.id);
+                  } catch {
+                    toast.error("Failed to download invoice PDF");
+                  }
+                }}
+              >
                 {t("invoices.downloadPdf")}
-              </a>
+              </button>
             </div>
           </li>
         ))}

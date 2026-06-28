@@ -599,7 +599,7 @@ export default function ParcelDetail() {
                     ? invoices[0]
                     : undefined;
                   if (latest?.id) {
-                    window.open(invoiceService.pdfUrl(latest.id), "_blank");
+                    await invoiceService.downloadPdf(latest.id);
                   } else {
                     toast.info(t("parcels.detail.actions.noReceiptAvailable"));
                   }
@@ -881,7 +881,7 @@ export default function ParcelDetail() {
                     ? invoices[0]
                     : undefined;
                   if (latest?.id) {
-                    window.open(invoiceService.pdfUrl(latest.id), "_blank");
+                    await invoiceService.downloadPdf(latest.id);
                   }
                 } catch (e) {
                   toast.error(

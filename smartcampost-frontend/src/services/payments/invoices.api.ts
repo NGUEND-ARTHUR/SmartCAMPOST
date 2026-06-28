@@ -2,6 +2,7 @@
  * Invoice API Service
  */
 import { httpClient } from "../apiClient";
+import { axiosInstance } from "@/lib/axiosClient";
 
 export interface InvoiceResponse {
   id: string;
@@ -27,8 +28,18 @@ export const invoiceService = {
     return httpClient.get(`/invoices/${invoiceId}`);
   },
 
-  pdfUrl(invoiceId: string): string {
-    // direct browser download should hit backend path
-    return `/api/invoices/${invoiceId}/pdf`;
+  async downloadPdf(invoiceId: string): Promise<void> {
+    const res = await axiosInstance.get(`/invoices/${invoiceId}/pdf`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([res.data], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice-${invoiceId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   },
 };
