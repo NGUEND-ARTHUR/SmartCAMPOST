@@ -125,6 +125,8 @@ public class SecurityConfig {
                         // ===================================================
                         //                 COURIER MODULE
                         // ===================================================
+                        .requestMatchers("/api/couriers/me/**")
+                        .hasAnyRole("COURIER", "AGENT", "ADMIN", "STAFF")
                         .requestMatchers("/api/couriers/**")
                         .hasAnyRole("ADMIN", "STAFF")
 
