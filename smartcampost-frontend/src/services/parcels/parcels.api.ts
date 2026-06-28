@@ -30,6 +30,10 @@ export interface ParcelResponse {
   recipientCity?: string;
   recipientRegion?: string;
   recipientCountry?: string;
+  // Current GPS location (real-time tracking)
+  currentLatitude?: number;
+  currentLongitude?: number;
+  locationUpdatedAt?: string;
   // Recipient GPS coordinates (for courier map navigation)
   recipientLatitude?: number;
   recipientLongitude?: number;

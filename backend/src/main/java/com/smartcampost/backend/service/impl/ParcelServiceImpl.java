@@ -571,6 +571,9 @@ public class ParcelServiceImpl implements ParcelService {
                 .locked(parcel.isLocked())
                 // -----------------------------
 
+                .currentLatitude(parcel.getCurrentLatitude())
+                .currentLongitude(parcel.getCurrentLongitude())
+                .locationUpdatedAt(parcel.getLocationUpdatedAt())
                 .createdAt(parcel.getCreatedAt())
                 .expectedDeliveryAt(parcel.getExpectedDeliveryAt())
                 .build();

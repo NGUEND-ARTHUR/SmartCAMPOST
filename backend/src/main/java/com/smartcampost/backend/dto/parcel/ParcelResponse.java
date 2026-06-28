@@ -35,6 +35,10 @@ public class ParcelResponse {
     private boolean locked;
     // -----------
 
+    private Double currentLatitude;
+    private Double currentLongitude;
+    private Instant locationUpdatedAt;
+
     private Instant createdAt;
     private Instant expectedDeliveryAt;
 }

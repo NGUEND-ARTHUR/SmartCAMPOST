@@ -80,7 +80,7 @@ type TrackedParcelItem = {
 const CLIENT_PARCEL_ROLES = new Set(["CLIENT"]);
 const COURIER_MAP_ROLES = new Set(["COURIER", "AGENT"]);
 const TRACKING_ROLES = new Set(["CLIENT", "COURIER", "AGENT"]);
-const REFRESH_INTERVAL_MS = 60000;
+const REFRESH_INTERVAL_MS = 30000;
 
 async function extractParcelMarker(
   parcelMap: ParcelMapResponse,
@@ -173,7 +173,7 @@ export default function RoleMapDashboard() {
           }
         } catch { /* agencies optional */ }
 
-        // ── CLIENT: list own parcels then fetch map data per parcel ──────────
+        // ── CLIENT: list own parcels, show on map with GPS or city fallback ──
         if (CLIENT_PARCEL_ROLES.has(role)) {
           const myParcels = await parcelService.listMyParcels(0, 50);
           const allItems = myParcels.content ?? [];
@@ -184,29 +184,32 @@ export default function RoleMapDashboard() {
             ? selectedParcelId
             : (items[0]?.id ?? "");
 
-          const mapResults = await Promise.allSettled(
-            items.slice(0, 20).map((p) => mapService.getParcelMap(p.id)),
-          );
-          const resolved = mapResults
-            .filter(
-              (r): r is PromiseFulfilledResult<ParcelMapResponse> =>
-                r.status === "fulfilled",
-            )
-            .map((r) => r.value);
-
-          const mapMarkers = (
-            await Promise.all(
-              resolved.map(async (parcelMap) => {
-                const parcel = items.find((p) => p.id === parcelMap.parcelId);
-                return await extractParcelMarker(parcelMap, {
-                  senderCity: parcel?.senderCity,
-                  recipientCity: parcel?.recipientCity,
+          // Build markers directly from parcel data (fast — no extra API calls)
+          const parcelMarkers: MarkerItem[] = [];
+          for (const p of items.slice(0, 20)) {
+            const lat = p.currentLatitude;
+            const lng = p.currentLongitude;
+            if (typeof lat === "number" && typeof lng === "number") {
+              parcelMarkers.push({
+                id: p.id,
+                position: [lat, lng],
+                label: `📦 ${p.trackingRef} • ${p.status}`,
+                type: "parcel",
+              });
+            } else if (p.senderCity) {
+              const coords = await geocodeCity(p.senderCity);
+              if (coords) {
+                parcelMarkers.push({
+                  id: p.id,
+                  position: [coords.lat, coords.lng],
+                  label: `📦 ${p.trackingRef} • ${p.status} (${p.senderCity})`,
+                  type: "parcel",
                 });
-              }),
-            )
-          ).filter((m): m is MarkerItem => m !== null);
+              }
+            }
+          }
 
-          setMarkers([...agencyMarkers, ...mapMarkers]);
+          setMarkers([...agencyMarkers, ...parcelMarkers]);
           setTrackedParcels(
             items.map((p) => ({
               id: p.id,
@@ -216,9 +219,14 @@ export default function RoleMapDashboard() {
               recipientCity: p.recipientCity,
             })),
           );
-          const selectedMap = candidateParcelId
-            ? (resolved.find((p) => p.parcelId === candidateParcelId) ?? null)
-            : null;
+
+          // Load detailed map for selected parcel
+          let selectedMap: ParcelMapResponse | null = null;
+          if (candidateParcelId) {
+            try {
+              selectedMap = await mapService.getParcelMap(candidateParcelId);
+            } catch { /* detail map optional */ }
+          }
           setSelectedParcelId(candidateParcelId);
           setSelectedParcelMap(selectedMap);
           setLastUpdatedAt(new Date());
@@ -343,6 +351,41 @@ export default function RoleMapDashboard() {
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [loadMapData]);
+
+  // SSE: live GPS updates for client's parcels
+  useEffect(() => {
+    if (role !== "CLIENT" || trackedParcels.length === 0) return;
+
+    const sseConnections: EventSource[] = [];
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+
+    for (const parcel of trackedParcels.slice(0, 5)) {
+      const url = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(parcel.trackingRef)}`;
+      const es = new EventSource(url);
+
+      es.addEventListener("gps-update", (event: MessageEvent) => {
+        try {
+          const payload = JSON.parse(event.data);
+          const parcels = payload.inheritedParcels || [];
+          const match = parcels.find((p: any) => p.trackingRef === parcel.trackingRef);
+          if (match?.latitude && match?.longitude) {
+            setMarkers((prev) =>
+              prev.map((m) =>
+                m.id === parcel.id
+                  ? { ...m, position: [match.latitude, match.longitude], label: `📦 ${parcel.trackingRef} • LIVE` }
+                  : m
+              )
+            );
+          }
+        } catch { /* ignore */ }
+      });
+
+      es.onerror = () => es.close();
+      sseConnections.push(es);
+    }
+
+    return () => sseConnections.forEach((es) => es.close());
+  }, [role, trackedParcels]);
 
   const title = useMemo(() => {
     if (role === "COURIER") return t("roleMap.title.courier");
