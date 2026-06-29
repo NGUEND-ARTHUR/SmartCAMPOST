@@ -218,7 +218,8 @@ export function CreateParcel() {
                 payerPhone: momoPhone.trim(),
               });
               if (payResult.status === "FAILED") {
-                toast.warning("Parcel created! Payment gateway is temporarily unavailable. You can retry from parcel details.");
+                const reason = (payResult as any).failureReason || "Payment gateway error";
+                toast.warning(`Parcel created but payment failed: ${reason}`);
               } else {
                 toast.success("Payment request sent to your phone. Please confirm on your device.");
               }

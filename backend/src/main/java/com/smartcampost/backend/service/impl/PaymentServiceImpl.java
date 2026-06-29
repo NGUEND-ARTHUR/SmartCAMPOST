@@ -87,6 +87,7 @@ public class PaymentServiceImpl implements PaymentService {
         String currency = request.getCurrency() != null ? request.getCurrency() : "XAF";
         String gatewayRef = null;
         PaymentStatus status = PaymentStatus.PENDING;
+        String failureReason = null;
 
         if (request.getMethod() == PaymentMethod.MOBILE_MONEY) {
             String payerPhone = request.getPayerPhone();
@@ -101,6 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
             } catch (Exception e) {
                 log.error("Payment gateway failed for parcel {}: {}", parcel.getTrackingRef(), e.getMessage());
                 status = PaymentStatus.FAILED;
+                failureReason = e.getMessage();
             }
         }
 
@@ -114,7 +116,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         Payment saved = paymentRepository.save(p);
-        return toDto(saved);
+        PaymentResponse dto = toDto(saved);
+        dto.setFailureReason(failureReason);
+        return dto;
     }
 
     @Override

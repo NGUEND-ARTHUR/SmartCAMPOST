@@ -32,4 +32,6 @@ public class PaymentResponse {
     private String externalRef;
 
     private Boolean reversed;
+
+    private String failureReason;
 }

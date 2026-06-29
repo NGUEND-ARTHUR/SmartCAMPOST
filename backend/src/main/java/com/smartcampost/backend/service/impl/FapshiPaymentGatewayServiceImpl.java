@@ -94,8 +94,14 @@ public class FapshiPaymentGatewayServiceImpl implements PaymentGatewayService {
             log.info("[FAPSHI] Payment initiated: transId={}", transId);
             return transId;
 
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            String responseBody = e.getResponseBodyAsString();
+            log.error("[FAPSHI] Direct-pay HTTP {}: {} | baseUrl={} | apiUser={}",
+                    e.getStatusCode(), responseBody, baseUrl,
+                    apiUser != null && apiUser.length() > 4 ? apiUser.substring(0, 4) + "***" : "(empty)");
+            throw new RuntimeException("Fapshi payment failed (" + e.getStatusCode() + "): " + responseBody, e);
         } catch (Exception e) {
-            log.error("[FAPSHI] Direct-pay failed: {}", e.getMessage());
+            log.error("[FAPSHI] Direct-pay failed: {} | baseUrl={}", e.getMessage(), baseUrl);
             throw new RuntimeException("Payment initiation failed: " + e.getMessage(), e);
         }
     }
