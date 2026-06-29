@@ -329,39 +329,9 @@ export default function RoleMapDashboard() {
       }
     }
 
-    // Admin/Staff: also subscribe to global scan stream for live updates
-    if (role === "ADMIN" || role === "STAFF") {
-      const token = useAuthStore.getState().token;
-      if (token) {
-        const scanUrl = `${normalizedBase}/stream/scans`;
-        const scanEs = new EventSource(scanUrl);
-        scanEs.addEventListener("scan-event", (event: MessageEvent) => {
-          try {
-            const scan = JSON.parse(event.data);
-            if (scan.latitude && scan.longitude && scan.parcelId) {
-              setMarkers((prev) => {
-                const existing = prev.find((m) => m.id === `parcel-${scan.parcelId}`);
-                if (existing) {
-                  return prev.map((m) =>
-                    m.id === `parcel-${scan.parcelId}`
-                      ? { ...m, position: [scan.latitude, scan.longitude], label: `📦 ${scan.trackingRef || scan.parcelId} • LIVE SCAN` }
-                      : m
-                  );
-                }
-                return [...prev, {
-                  id: `parcel-${scan.parcelId}`,
-                  position: [scan.latitude, scan.longitude] as [number, number],
-                  label: `📦 ${scan.trackingRef || scan.parcelId} • NEW SCAN`,
-                  type: "parcel" as MarkerType,
-                  status: scan.parcelStatusAfter,
-                }];
-              });
-            }
-          } catch { /* ignore */ }
-        });
-        sseConnections.push(scanEs);
-      }
-    }
+    // Admin/Staff map updates are handled by the 30-second polling interval.
+    // The /stream/scans SSE endpoint requires authentication which EventSource
+    // cannot provide (no header support); using it unauthenticated returns 401.
 
     return () => sseConnections.forEach((es) => es.close());
   }, [role, trackedIds]);

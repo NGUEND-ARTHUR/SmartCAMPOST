@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.smartcampost.backend.repository.AgentRepository;
 import com.smartcampost.backend.repository.CourierRepository;
+import com.smartcampost.backend.repository.PickupRequestRepository;
+import com.smartcampost.backend.model.enums.PickupRequestState;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -57,6 +59,7 @@ public class LogisticsRealtimeController {
     private final ScanEventRepository scanEventRepository;
     private final AgentRepository agentRepository;
     private final CourierRepository courierRepository;
+    private final PickupRequestRepository pickupRequestRepository;
     private final SseEmitters sseEmitters;
 
     @GetMapping("/trackers")
@@ -398,20 +401,44 @@ public class LogisticsRealtimeController {
 
     private List<Parcel> updateAssociatedParcels(String actorKey, Double latitude, Double longitude) {
         if (actorKey == null || actorKey.equals("anonymous")) return List.of();
-        List<Parcel> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES, PageRequest.of(0, 500)).getContent();
+
+        Set<UUID> parcelIds = new LinkedHashSet<>();
+
+        // Path 1: parcels whose last overall scan event was performed by this actor
+        List<ScanEvent> actorEvents = scanEventRepository.findByActorIdOrderByTimestampDesc(actorKey);
+        for (ScanEvent evt : actorEvents) {
+            if (evt.getParcel() == null) continue;
+            UUID pid = evt.getParcel().getId();
+            if (parcelIds.contains(pid)) continue;
+            // Accept only if this actor's event is still the LATEST for the parcel
+            scanEventRepository.findTopByParcel_IdOrderByTimestampDesc(pid)
+                    .filter(latest -> actorKey.equals(latest.getActorId()))
+                    .ifPresent(ignored -> parcelIds.add(pid));
+        }
+
+        // Path 2: parcels assigned to this actor via PickupRequest (pre-scan / just assigned)
+        try {
+            UUID courierId = UUID.fromString(actorKey);
+            pickupRequestRepository.findByCourier_Id(courierId, PageRequest.of(0, 50))
+                    .getContent().stream()
+                    .filter(pr -> pr.getState() == PickupRequestState.ASSIGNED
+                               && pr.getParcel() != null)
+                    .forEach(pr -> parcelIds.add(pr.getParcel().getId()));
+        } catch (IllegalArgumentException ignored) { /* actorKey is not a UUID */ }
+
+        if (parcelIds.isEmpty()) return List.of();
+
         Instant now = Instant.now();
         List<Parcel> updated = new ArrayList<>();
-        for (Parcel parcel : activeParcels) {
-            List<ScanEvent> events = scanEventRepository.findByParcel_IdOrderByTimestampAsc(parcel.getId());
-            if (!events.isEmpty()) {
-                ScanEvent latestEvent = events.get(events.size() - 1);
-                if (actorKey.equals(latestEvent.getActorId())) {
+        for (UUID pid : parcelIds) {
+            parcelRepository.findById(pid).ifPresent(parcel -> {
+                if (ACTIVE_STATUSES.contains(parcel.getStatus())) {
                     parcel.setCurrentLatitude(latitude);
                     parcel.setCurrentLongitude(longitude);
                     parcel.setLocationUpdatedAt(now);
                     updated.add(parcelRepository.save(parcel));
                 }
-            }
+            });
         }
         return updated;
     }

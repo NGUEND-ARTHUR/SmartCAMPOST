@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -222,33 +222,34 @@ export default function TrackingPage() {
     return () => window.clearTimeout(timer);
   }, [lookupByNumber, searchParams]);
 
-  // Listen for real-time tracking updates via public SSE stream
+  // SSE: subscribe to live tracking events for the current parcel.
+  // Depends ONLY on the tracking ref — not on the full result object —
+  // so updating result state (e.g. appending a scan event) does not
+  // close and reopen the connection every time.
+  const activeTrackingRef = result?.trackingRef || result?.trackingNumber || null;
   useEffect(() => {
-    if (!result) return;
-    const ref = result.trackingRef || result.trackingNumber;
-    if (!ref) return;
+    if (!activeTrackingRef) return;
+    const ref = activeTrackingRef;
 
     const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
-    const sseUrl = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
-    
+    const sseUrl = `${(base as string).replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+
     const es = new EventSource(sseUrl);
-    
-    const handleGpsUpdate = (event: MessageEvent) => {
+
+    es.addEventListener("gps-update", (event: MessageEvent) => {
       try {
         const payload = JSON.parse(event.data);
         const parcels = payload.inheritedParcels || [];
         const match = parcels.find(
-          (p: any) => p.trackingRef === ref || p.parcelId === result.parcelId
+          (p: any) => p.trackingRef === ref || p.parcelId === resultRef.current?.parcelId,
         );
-        if (match && match.latitude && match.longitude) {
+        if (match?.latitude && match?.longitude) {
           setResult((prev) => {
             if (!prev) return null;
             if (
               prev.currentLocation?.latitude === match.latitude &&
               prev.currentLocation?.longitude === match.longitude
-            ) {
-              return prev;
-            }
+            ) return prev;
             return {
               ...prev,
               currentLocation: {
@@ -264,11 +265,8 @@ export default function TrackingPage() {
       } catch (err) {
         console.warn("Failed to parse realtime tracking event", err);
       }
-    };
+    });
 
-    es.addEventListener("gps-update", handleGpsUpdate);
-
-    // Live scan events — update timeline without page refresh
     es.addEventListener("scan-event", (event: MessageEvent) => {
       try {
         const scan = JSON.parse(event.data);
@@ -290,24 +288,29 @@ export default function TrackingPage() {
             ...prev,
             status: scan.parcelStatusAfter || prev.status,
             timeline: [...existing, newEvent],
-            ...(scan.latitude && scan.longitude ? {
-              currentLocation: {
-                latitude: scan.latitude,
-                longitude: scan.longitude,
-                locationSource: "SCAN",
-                eventType: scan.eventType,
-                updatedAt: scan.timestamp || new Date().toISOString(),
-              },
-            } : {}),
+            ...(scan.latitude && scan.longitude
+              ? {
+                  currentLocation: {
+                    latitude: scan.latitude,
+                    longitude: scan.longitude,
+                    locationSource: "SCAN",
+                    eventType: scan.eventType,
+                    updatedAt: scan.timestamp || new Date().toISOString(),
+                  },
+                }
+              : {}),
           };
         });
       } catch { /* ignore */ }
     });
 
-    return () => {
-      es.close();
-    };
-  }, [result]);
+    return () => es.close();
+  }, [activeTrackingRef]);
+
+  // Keep a stable ref to the current result so SSE callbacks can read it
+  // without being listed as effect dependencies (avoids infinite reconnects).
+  const resultRef = useRef<TrackingResponse | null>(null);
+  useEffect(() => { resultRef.current = result; }, [result]);
 
   const liveActorsForMap = useMemo(() => {
     const actors = [];

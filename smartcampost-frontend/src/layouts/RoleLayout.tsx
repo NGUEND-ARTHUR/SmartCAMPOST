@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
@@ -20,6 +20,42 @@ import { LanguageSwitcher } from "@/components/ui/languageswitcher";
 import NotificationsDrawer from "@/components/NotificationsDrawer";
 import { useAuthStore } from "@/store/authStore";
 import { useTheme } from "@/theme/theme";
+
+/** Silently sends the courier/agent's GPS position to the backend every 30 s. */
+function CourierGpsBeacon() {
+  const token = useAuthStore((s) => s.token);
+  const lastSentRef = useRef(0);
+  const GPS_THROTTLE_MS = 30_000;
+  const base = ((import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8082/api").replace(/\/+$/, "");
+
+  useEffect(() => {
+    if (!token || !navigator?.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const now = Date.now();
+        if (now - lastSentRef.current < GPS_THROTTLE_MS) return;
+        lastSentRef.current = now;
+        fetch(`${base}/logistics/gps/mobile`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            speed: pos.coords.speed ?? null,
+            heading: pos.coords.heading ?? null,
+          }),
+        }).catch(() => {});
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10_000, timeout: 20_000 },
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [token, base]);
+
+  return null;
+}
 
 type NavItem = { to: string; labelKey: string };
 
@@ -247,6 +283,7 @@ export function RoleLayout({ role }: { role: AppRole }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {(role === "COURIER" || role === "AGENT") && <CourierGpsBeacon />}
       <div className="lg:flex">
         {/* Mobile header */}
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-xl lg:hidden">
