@@ -124,26 +124,38 @@ export default function ScanConsole() {
   );
   const [scanMode, setScanMode] = useState<"camera" | "manual">("manual");
   const [cameraBoundaryKey, setCameraBoundaryKey] = useState(0);
+  const [scannerKey, setScannerKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const gpsRef = useRef<{ latitude: number; longitude: number } | null>(null);
 
   const recordScan = useRecordScanEvent();
 
+  // Request GPS on page load so it's ready when a scan happens
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        gpsRef.current = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      },
+      () => { /* will retry on scan */ },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }, []);
+
   const getGpsOrThrow = async () => {
+    // Use cached GPS if fresh enough
+    if (gpsRef.current) return gpsRef.current;
     const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0,
+        maximumAge: 30000,
       });
     });
-    return {
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-    };
+    gpsRef.current = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+    return gpsRef.current;
   };
 
   useEffect(() => {
-    // Auto-focus the barcode input
     inputRef.current?.focus();
   }, []);
 
@@ -304,7 +316,10 @@ export default function ScanConsole() {
     if (raw) {
       setBarcode(raw);
       toast.info("QR code detected — processing...");
-      void handleScan(raw);
+      handleScan(raw).then(() => {
+        // Re-mount scanner after processing so it's ready for the next parcel
+        setTimeout(() => setScannerKey((k) => k + 1), 2000);
+      });
     }
   };
 
@@ -390,7 +405,7 @@ export default function ScanConsole() {
                       </div>
                     }
                   >
-                    <QRCodeScanner onScan={handleCameraScan} continuous />
+                    <QRCodeScanner key={scannerKey} onScan={handleCameraScan} continuous={false} />
                   </ErrorBoundary>
 
                   {/* Status Selection for Camera Mode */}
