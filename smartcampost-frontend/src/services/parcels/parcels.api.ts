@@ -128,6 +128,8 @@ export interface CreateParcelRequest {
   paymentOption: string;
   description?: string;
   photoUrl?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface UpdateParcelStatusRequest {

@@ -53,5 +53,9 @@ public class CreateParcelRequest {
     @JsonAlias("description")
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String descriptionComment;     // optional
+
+    // GPS coordinates of the device at parcel creation time (optional)
+    private Double latitude;
+    private Double longitude;
     // ------------------
 }

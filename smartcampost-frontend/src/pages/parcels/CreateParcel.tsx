@@ -194,6 +194,15 @@ export function CreateParcel() {
       toast.error("Please enter your mobile money phone number");
       return;
     }
+    // Best-effort GPS capture for parcel creation location
+    let gpsCoords: { latitude?: number; longitude?: number } = {};
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
+      );
+      gpsCoords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+    } catch { /* GPS optional */ }
+
     createParcel.mutate(
       {
         ...(isAgent ? { clientPhone: clientPhone.trim() } : {}),
@@ -206,6 +215,7 @@ export function CreateParcel() {
         paymentOption: paymentMethod === "CASH" ? "COD" : "PREPAID",
         description: data.descriptionComment,
         photoUrl: photoPreview || undefined,
+        ...gpsCoords,
       },
       {
         onSuccess: async (parcelResponse) => {

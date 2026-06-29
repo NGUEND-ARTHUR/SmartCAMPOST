@@ -23,6 +23,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import com.smartcampost.backend.repository.AgentRepository;
+import com.smartcampost.backend.repository.CourierRepository;
+
 import java.security.Principal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -52,6 +55,8 @@ public class LogisticsRealtimeController {
     private final ParcelRepository parcelRepository;
     private final UserAccountRepository userAccountRepository;
     private final ScanEventRepository scanEventRepository;
+    private final AgentRepository agentRepository;
+    private final CourierRepository courierRepository;
     private final SseEmitters sseEmitters;
 
     @GetMapping("/trackers")
@@ -206,7 +211,9 @@ public class LogisticsRealtimeController {
             @RequestParam(required = false) Double originLat,
             @RequestParam(required = false) Double originLng
     ) {
-        List<Map<String, Object>> stops = inheritedParcelLocations(null).stream().limit(25).toList();
+        boolean global = hasAnyRole("ROLE_ADMIN", "ROLE_STAFF", "ROLE_RISK");
+        String actorKey = global ? null : resolveActorKey(null);
+        List<Map<String, Object>> stops = inheritedParcelLocations(actorKey).stream().limit(25).toList();
         double totalKm = 0;
         Double prevLat = originLat;
         Double prevLng = originLng;
@@ -305,11 +312,66 @@ public class LogisticsRealtimeController {
             }
         }
 
-        return parcelRepository.findByStatusIn(ACTIVE_STATUSES, PageRequest.of(0, 250))
-                .stream()
+        List<Parcel> activeParcels = parcelRepository.findByStatusIn(ACTIVE_STATUSES, PageRequest.of(0, 250)).getContent();
+
+        // SECURITY FIX: when actorKey is set (COURIER/AGENT), only return parcels
+        // that belong to this user — either via the last scan event's actorId or
+        // via the parcel's origin agency matching the user's agency.
+        if (actorKey != null) {
+            UUID actorAgencyId = resolveActorAgencyId(actorKey);
+            activeParcels = activeParcels.stream()
+                    .filter(parcel -> isParcelVisibleToActor(parcel, actorKey, actorAgencyId))
+                    .toList();
+        }
+
+        return activeParcels.stream()
                 .map(parcel -> inheritedParcel(parcel, latestByActor))
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    /**
+     * Determines whether a parcel should be visible to the given actor.
+     * A parcel is visible if:
+     *   1. The parcel's most recent ScanEvent.actorId matches the actor's key, OR
+     *   2. The parcel's originAgency matches the actor's agency.
+     */
+    private boolean isParcelVisibleToActor(Parcel parcel, String actorKey, UUID actorAgencyId) {
+        // Check if the last scan event for this parcel was performed by this actor
+        Optional<ScanEvent> lastEvent = scanEventRepository.findTopByParcel_IdOrderByTimestampDesc(parcel.getId());
+        if (lastEvent.isPresent() && actorKey.equals(lastEvent.get().getActorId())) {
+            return true;
+        }
+
+        // Check if the parcel's origin agency matches the actor's agency
+        if (actorAgencyId != null && parcel.getOriginAgency() != null
+                && actorAgencyId.equals(parcel.getOriginAgency().getId())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Resolves the agency ID for a COURIER or AGENT entity.
+     * The actorKey is the entityId (Courier.id or Agent.id) resolved from the UserAccount.
+     */
+    private UUID resolveActorAgencyId(String actorKey) {
+        try {
+            UUID entityId = UUID.fromString(actorKey);
+
+            // Try as Agent first
+            return agentRepository.findById(entityId)
+                    .map(agent -> agent.getAgency() != null ? agent.getAgency().getId() : null)
+                    .orElseGet(() ->
+                        // Try as Courier
+                        courierRepository.findById(entityId)
+                                .map(courier -> courier.getAgency() != null ? courier.getAgency().getId() : null)
+                                .orElse(null)
+                    );
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Map<String, Object> inheritedParcel(Parcel parcel, Map<String, Location> latestByActor) {

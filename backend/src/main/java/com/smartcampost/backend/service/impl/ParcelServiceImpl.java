@@ -170,6 +170,9 @@ public class ParcelServiceImpl implements ParcelService {
             .partialQrCode(partialQrPayload)
                 .build();
 
+        if (request.getLatitude() != null) parcel.setCreationLatitude(request.getLatitude());
+        if (request.getLongitude() != null) parcel.setCreationLongitude(request.getLongitude());
+
         Parcel savedParcel = parcelRepository.save(parcel);
         parcel = savedParcel;
 

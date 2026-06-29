@@ -186,6 +186,26 @@ public class ScanEventServiceImpl implements ScanEventService {
             log.warn("Failed to emit SSE scan event", ex);
         }
 
+        // 📡 Emit to tracking-specific SSE so public tracking page timeline updates live
+        try {
+            String trackingRef = parcel.getTrackingRef();
+            if (trackingRef != null) {
+                java.util.Map<String, Object> scanPayload = new java.util.LinkedHashMap<>();
+                scanPayload.put("type", "scan-event");
+                scanPayload.put("parcelId", parcel.getId());
+                scanPayload.put("trackingRef", trackingRef);
+                scanPayload.put("eventType", event.getEventType() != null ? event.getEventType().name() : null);
+                scanPayload.put("timestamp", event.getTimestamp());
+                scanPayload.put("latitude", event.getLatitude());
+                scanPayload.put("longitude", event.getLongitude());
+                scanPayload.put("locationNote", event.getLocationNote());
+                scanPayload.put("parcelStatusAfter", parcel.getStatus() != null ? parcel.getStatus().name() : null);
+                sseEmitters.emitTrackingUpdate("scan-event", trackingRef, scanPayload);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to emit tracking SSE for scan event", ex);
+        }
+
         // mettre à jour le statut du colis selon l’event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
         // 📍 Update parcel's current location from scan event GPS

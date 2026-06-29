@@ -268,6 +268,42 @@ export default function TrackingPage() {
 
     es.addEventListener("gps-update", handleGpsUpdate);
 
+    // Live scan events — update timeline without page refresh
+    es.addEventListener("scan-event", (event: MessageEvent) => {
+      try {
+        const scan = JSON.parse(event.data);
+        if (!scan.eventType) return;
+        setResult((prev) => {
+          if (!prev) return null;
+          const existing = prev.timeline ?? [];
+          if (existing.some((e) => e.id === scan.id)) return prev;
+          const newEvent: ScanEventResponse = {
+            id: scan.id || `live-${Date.now()}`,
+            eventType: scan.eventType,
+            timestamp: scan.timestamp || new Date().toISOString(),
+            locationNote: scan.locationNote,
+            latitude: scan.latitude,
+            longitude: scan.longitude,
+            parcelStatusAfter: scan.parcelStatusAfter,
+          };
+          return {
+            ...prev,
+            status: scan.parcelStatusAfter || prev.status,
+            timeline: [...existing, newEvent],
+            ...(scan.latitude && scan.longitude ? {
+              currentLocation: {
+                latitude: scan.latitude,
+                longitude: scan.longitude,
+                locationSource: "SCAN",
+                eventType: scan.eventType,
+                updatedAt: scan.timestamp || new Date().toISOString(),
+              },
+            } : {}),
+          };
+        });
+      } catch { /* ignore */ }
+    });
+
     return () => {
       es.close();
     };
