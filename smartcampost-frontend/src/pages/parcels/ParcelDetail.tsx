@@ -662,20 +662,13 @@ export default function ParcelDetail() {
                 <Button
                   variant="outline"
                   onClick={async () => {
-                    const confirm = window.prompt(
-                      t("parcels.prompts.confirmDescription"),
-                    );
-                    if (!confirm || confirm.toLowerCase() !== "y") return;
-                    const photo = window.prompt(
-                      t("parcels.prompts.optionalPhotoUrl"),
-                    );
+                    if (!window.confirm("Confirm that the parcel description and contents are correct?")) return;
                     try {
                       const gps = await getGpsOrThrow();
                       await useValidate.mutateAsync({
                         id: parcel.id,
                         data: {
                           descriptionConfirmed: true,
-                          photoUrl: photo || undefined,
                           latitude: gps.latitude,
                           longitude: gps.longitude,
                           locationSource: "DEVICE_GPS",

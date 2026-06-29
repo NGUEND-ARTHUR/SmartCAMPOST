@@ -87,7 +87,7 @@ public class PickupRequestController {
 
     // US27 : mise à jour de l’état (REQUESTED → ASSIGNED → COMPLETED)
     @PatchMapping("/{pickupId}/state")
-    @PreAuthorize("isAuthenticated() and !hasRole('CLIENT')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PickupResponse> updatePickupState(
             @PathVariable UUID pickupId,
             @Valid @RequestBody UpdatePickupStateRequest request

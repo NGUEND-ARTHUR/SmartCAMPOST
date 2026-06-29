@@ -121,6 +121,7 @@ export default function Support() {
         subject: formData.subject,
         message: formData.description,
         category: formData.category,
+        ...(formData.parcelId ? { parcelId: formData.parcelId } : {}),
       },
       {
         onSuccess: () => {

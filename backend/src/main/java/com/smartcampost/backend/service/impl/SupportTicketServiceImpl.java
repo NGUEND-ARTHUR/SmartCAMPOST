@@ -9,12 +9,14 @@ import com.smartcampost.backend.exception.ConflictException;
 import com.smartcampost.backend.exception.ErrorCode;
 import com.smartcampost.backend.exception.ResourceNotFoundException;
 import com.smartcampost.backend.model.Client;
+import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.SupportTicket;
 import com.smartcampost.backend.model.UserAccount;
 import com.smartcampost.backend.model.enums.SupportTicketCategory;
 import com.smartcampost.backend.model.enums.TicketStatus;
 import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.repository.ClientRepository;
+import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.SupportTicketRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.service.NotificationService;
@@ -41,6 +43,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
     private final SupportTicketRepository supportTicketRepository;
     private final ClientRepository clientRepository;
+    private final ParcelRepository parcelRepository;
     private final UserAccountRepository userAccountRepository;
         private final NotificationService notificationService;
 
@@ -78,9 +81,20 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             );
         }
 
+        // Link to parcel if parcelId is provided
+        Parcel parcel = null;
+        if (request.getParcelId() != null) {
+            parcel = parcelRepository.findById(request.getParcelId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Parcel not found",
+                            ErrorCode.PARCEL_NOT_FOUND
+                    ));
+        }
+
         SupportTicket ticket = SupportTicket.builder()
                 .id(UUID.randomUUID())
                 .client(client)
+                .parcel(parcel)
                 .subject(request.getSubject())
                 .message(request.getMessage())
                 .category(parseCategory(request.getCategory()))
@@ -278,11 +292,14 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     // ================== MAPPER ==================
     private TicketResponse toResponse(SupportTicket ticket) {
         Client client = ticket.getClient();
+        Parcel parcel = ticket.getParcel();
 
         return TicketResponse.builder()
                 .id(ticket.getId())
                 .clientId(client != null ? client.getId() : null)
                 .clientName(client != null ? client.getFullName() : null)
+                .parcelId(parcel != null ? parcel.getId() : null)
+                .trackingRef(parcel != null ? parcel.getTrackingRef() : null)
                 .subject(ticket.getSubject())
                 .message(ticket.getMessage())
                                 .category(ticket.getCategory() != null ? ticket.getCategory().name() : null)

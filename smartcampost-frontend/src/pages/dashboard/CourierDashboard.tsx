@@ -7,10 +7,6 @@ import {
   MapPin,
   Clock,
   CheckCircle2,
-  Activity,
-  BellRing,
-  Route,
-  Star,
   Loader2,
   Radio,
   CircleOff,
@@ -41,8 +37,9 @@ export default function CourierDashboard() {
     (p) => p.status === "OUT_FOR_DELIVERY" || p.status === "IN_TRANSIT",
   );
 
-  // Calculate stats
+  // Calculate stats from real data only
   const stats = {
+    totalAssigned: pickups.length + parcels.length,
     pendingPickups: pickups.filter(
       (p) => p.state === "ASSIGNED" || p.state === "PENDING",
     ).length,
@@ -50,14 +47,7 @@ export default function CourierDashboard() {
     completedToday:
       pickups.filter((p) => p.state === "COMPLETED").length +
       parcels.filter((p) => p.status === "DELIVERED").length,
-    totalDistance: 0, // Estimated from completed deliveries; a dedicated analytics endpoint can improve this
   };
-
-  // Estimate total distance: ~5km average per completed delivery in urban Cameroon
-  stats.totalDistance = Math.round(stats.completedToday * 5.2 * 10) / 10;
-  const routeOptimizationScore = Math.min(96, 58 + stats.completedToday * 6 + deliveries.length * 4);
-  const performanceScore = Math.min(100, Math.max(40, 72 + stats.completedToday * 4 - stats.pendingDeliveries * 2));
-  const wismoShield = Math.min(90, 42 + deliveries.length * 8 + stats.completedToday * 5);
 
   // Create unified task list
   const tasks = [
@@ -75,8 +65,8 @@ export default function CourierDashboard() {
       id: d.id,
       type: "delivery" as const,
       trackingNumber: d.trackingRef || d.id.slice(0, 10),
-      address: "Delivery address",
-      customerName: "Recipient",
+      address: [d.recipientCity, d.recipientRegion].filter(Boolean).join(", ") || d.destinationAgencyName || "—",
+      customerName: d.clientName || "—",
       customerPhone: "",
       scheduledTime: d.createdAt || "",
       priority: "normal" as const,
@@ -99,9 +89,14 @@ export default function CourierDashboard() {
 
   const cards = [
     {
+      title: t("courierDashboard.stats.totalAssigned", "Total Assigned"),
+      value: stats.totalAssigned,
+      icon: Package,
+    },
+    {
       title: t("courierDashboard.stats.pendingPickups"),
       value: stats.pendingPickups,
-      icon: Package,
+      icon: MapPin,
     },
     {
       title: t("courierDashboard.stats.pendingDeliveries"),
@@ -112,11 +107,6 @@ export default function CourierDashboard() {
       title: t("courierDashboard.stats.completedToday"),
       value: stats.completedToday,
       icon: CheckCircle2,
-    },
-    {
-      title: t("courierDashboard.stats.distanceKm"),
-      value: stats.totalDistance,
-      icon: MapPin,
     },
   ];
 
@@ -144,46 +134,6 @@ export default function CourierDashboard() {
               <StatsCard icon={Truck} label={cards[1].title} value={cards[1].value} accentColor="bg-blue-500" />
               <StatsCard icon={CheckCircle2} label={cards[2].title} value={cards[2].value} accentColor="bg-emerald-500" />
               <StatsCard icon={MapPin} label={cards[3].title} value={cards[3].value} accentColor="bg-violet-500" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {[
-                {
-                  title: "AI route optimization",
-                  value: `${routeOptimizationScore}%`,
-                  description: "Prioritizes nearby stops, delivery urgency, and workload balance.",
-                  icon: Route,
-                },
-                {
-                  title: "Driver performance score",
-                  value: `${performanceScore}%`,
-                  description: "Combines completion pace, pending work, ratings, and delay exposure.",
-                  icon: Star,
-                },
-                {
-                  title: "WISMO reduction",
-                  value: `${wismoShield}%`,
-                  description: "Live updates and proactive alerts reduce customer support questions.",
-                  icon: BellRing,
-                },
-              ].map((item) => (
-                <div key={item.title} className="rounded-lg border bg-card p-5 shadow-sm sc-animate-fade-up">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{item.title}</p>
-                      <p className="mt-1 text-3xl font-semibold">{item.value}</p>
-                    </div>
-                    <div className="rounded-full bg-primary/10 p-3 text-primary">
-                      <item.icon className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-muted-foreground">{item.description}</p>
-                  <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600">
-                    <Activity className="h-3.5 w-3.5" />
-                    Updated from current assignment workload
-                  </div>
-                </div>
-              ))}
             </div>
 
             <div className="bg-card rounded-lg shadow mb-6">

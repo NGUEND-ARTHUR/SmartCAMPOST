@@ -73,7 +73,7 @@ public class ParcelController {
 
     // US21: update status
     @PatchMapping("/{parcelId}/status")
-    @PreAuthorize("hasAnyRole('AGENT','COURIER','STAFF','ADMIN')")
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN')")
     public ResponseEntity<ParcelResponse> updateParcelStatus(
             @PathVariable UUID parcelId,
             @Valid @RequestBody UpdateParcelStatusRequest request

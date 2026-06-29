@@ -43,15 +43,13 @@ i18n
       caches: ["localStorage"],
     },
     parseMissingKeyHandler: (key) => {
-      // In production don't reveal raw keys; return empty string.
-      if (process.env.NODE_ENV === "production") return "";
-      // Dev-friendly fallback: humanize dotted key -> "Agencies Form Name"
+      // Humanize the key as fallback instead of showing blank
       return key
         .split(".")
-        .map((s) => s.replace(/([a-z0-9])([A-Z])/g, "$1 $2"))
-        .map((w) => w.replace(/_/g, " "))
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
+        .pop()!
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/_/g, " ")
+        .replace(/^\w/, (c) => c.toUpperCase());
     },
   });
 

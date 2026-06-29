@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { BadgeCheck, MapPin, Package, Scan } from "lucide-react";
+import { MapPin, Package, Scan, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardSummary } from "@/hooks";
@@ -65,32 +65,32 @@ export default function AgentDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("dashboard.stats.activeCouriers")}
+                {t("dashboard.stats.activeUsers", "Active Users")}
               </CardTitle>
-              <BadgeCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {(metrics.activeCouriers as number) ?? 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t("dashboard.stats.onDutyToday")}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t("agentDashboard.deliveryRate", "Delivery Rate")}
-              </CardTitle>
-              <Scan className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {(metrics.activeUsers as number) ?? 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                {t("users.clients.subtitle", "Active users")}
+                {t("dashboard.stats.currentlyActive", "Currently active in the system")}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("dashboard.stats.pendingIssues", "Pending Issues")}
+              </CardTitle>
+              <Scan className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {(metrics.pendingIssues as number) ?? 0}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("dashboard.stats.issuesRequiringAttention", "Issues requiring attention")}
               </p>
             </CardContent>
           </Card>

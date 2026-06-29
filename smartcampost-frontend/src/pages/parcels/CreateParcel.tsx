@@ -209,6 +209,8 @@ export function CreateParcel() {
         senderAddressId,
         recipientAddressId,
         weight: data.weight,
+        dimensions: data.dimensions || undefined,
+        declaredValue: data.declaredValue || undefined,
         isFragile: isFragile,
         serviceType,
         deliveryOption,

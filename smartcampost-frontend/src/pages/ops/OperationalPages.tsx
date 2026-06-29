@@ -1142,16 +1142,12 @@ export function PublicQrVerificationPage() {
 export function ProfileSettingsPage() {
   const { user } = useAuthStore();
   const [form, setForm] = useState({
-    fullName: user?.name ?? "",
     email: user?.email ?? "",
     phone: user?.phone ?? "",
-    preferredLanguage: "",
-    notificationChannel: "",
     photoUrl: "",
   });
   const [preview, setPreview] = useState("");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
 
   const save = async () => {
@@ -1161,8 +1157,8 @@ export function ProfileSettingsPage() {
       const body = Object.fromEntries(
         Object.entries(form).filter(([, value]) => value.trim() !== ""),
       );
-      const res = await httpClient.patch("/auth/me/profile", body);
-      setResult(res);
+      await httpClient.patch("/auth/me/profile", body);
+      toast.success("Profile updated successfully");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Profile update failed");
     } finally {
@@ -1174,7 +1170,7 @@ export function ProfileSettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Profile and settings"
-        description="Manage your identity, visible profile photo, language, notifications, and account security."
+        description="Manage your email, phone, and profile photo."
         breadcrumbs={[{ label: "Settings" }]}
       />
       {error && <ErrorBanner message={error} />}
@@ -1194,7 +1190,7 @@ export function ProfileSettingsPage() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                (form.fullName || user?.name || "?").slice(0, 1).toUpperCase()
+                (user?.name || "?").slice(0, 1).toUpperCase()
               )}
             </div>
             <label className="block">
@@ -1236,18 +1232,14 @@ export function ProfileSettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               {[
-                ["fullName", "Full name"],
                 ["email", "Email"],
                 ["phone", "Phone"],
-                ["preferredLanguage", "Preferred language"],
-                ["notificationChannel", "Notification channel"],
               ].map(([name, label]) => (
                 <label key={name} className="space-y-2 text-sm font-medium">
                   <span>{label}</span>
                   <input
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                     value={form[name as keyof typeof form]}
-                    placeholder={name === "preferredLanguage" ? "fr or en" : undefined}
                     onChange={(event) =>
                       setForm((current) => ({
                         ...current,
@@ -1261,11 +1253,6 @@ export function ProfileSettingsPage() {
             <Button className="sc-interactive" onClick={save} disabled={busy}>
               {busy ? "Saving..." : "Save settings"}
             </Button>
-            {result !== null && (
-              <pre className="max-h-72 overflow-auto rounded-md bg-muted p-4 text-xs">
-                {JSON.stringify(result, null, 2)}
-              </pre>
-            )}
           </CardContent>
         </Card>
       </div>

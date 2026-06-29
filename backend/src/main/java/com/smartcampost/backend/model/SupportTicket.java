@@ -41,6 +41,14 @@ public class SupportTicket {
     @Column(name = "category", nullable = false)
     private SupportTicketCategory category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "parcel_id",
+            referencedColumnName = "parcel_id",
+            foreignKey = @ForeignKey(name = "fk_ticket_parcel")
+    )
+    private Parcel parcel;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

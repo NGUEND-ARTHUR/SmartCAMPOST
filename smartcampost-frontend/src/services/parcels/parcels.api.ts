@@ -122,6 +122,8 @@ export interface CreateParcelRequest {
   recipientAddressId?: string;
   recipientAddress?: Partial<AddressDto>;
   weight: number;
+  dimensions?: string;
+  declaredValue?: number;
   isFragile?: boolean;
   serviceType: string;
   deliveryOption: string;

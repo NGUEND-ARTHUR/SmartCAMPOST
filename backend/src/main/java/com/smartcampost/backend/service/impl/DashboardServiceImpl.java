@@ -9,10 +9,13 @@ import com.smartcampost.backend.repository.RiskAlertRepository;
 import com.smartcampost.backend.repository.SupportTicketRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.repository.ClientRepository;
+import com.smartcampost.backend.repository.CourierRepository;
 import com.smartcampost.backend.repository.IntegrationConfigRepository;
+import com.smartcampost.backend.model.enums.CourierStatus;
 import com.smartcampost.backend.model.enums.IntegrationType;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.PaymentStatus;
+import com.smartcampost.backend.model.enums.TicketStatus;
 import com.smartcampost.backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final RiskAlertRepository riskAlertRepository;
     private final UserAccountRepository userAccountRepository;
     private final ClientRepository clientRepository;
+    private final CourierRepository courierRepository;
     private final IntegrationConfigRepository integrationConfigRepository;
 
     @Override
@@ -73,6 +77,22 @@ public class DashboardServiceImpl implements DashboardService {
             // === NEW: registeredClients ===
             long registeredClients = clientRepository.count();
             metrics.put("registeredClients", registeredClients);
+
+            // ===============================
+            // Active couriers metric
+            // ===============================
+            long activeCouriers = courierRepository.countByStatusNotIn(
+                List.of(CourierStatus.OFFLINE, CourierStatus.INACTIVE)
+            );
+            metrics.put("activeCouriers", activeCouriers);
+
+            // ===============================
+            // Pending issues metric
+            // ===============================
+            long pendingIssues = supportTicketRepository.countByStatusIn(
+                List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS)
+            );
+            metrics.put("pendingIssues", pendingIssues);
 
             // ===============================
             // Delivered parcels metric

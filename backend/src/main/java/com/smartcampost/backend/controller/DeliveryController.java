@@ -4,8 +4,12 @@ import com.smartcampost.backend.dto.delivery.*;
 import com.smartcampost.backend.dto.parcel.ParcelResponse;
 import com.smartcampost.backend.dto.parcel.UpdateParcelStatusRequest;
 import com.smartcampost.backend.dto.scan.ScanEventCreateRequest;
+import com.smartcampost.backend.exception.ErrorCode;
+import com.smartcampost.backend.exception.ResourceNotFoundException;
+import com.smartcampost.backend.model.Parcel;
 import com.smartcampost.backend.model.enums.ParcelStatus;
 import com.smartcampost.backend.model.enums.ScanEventType;
+import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +35,7 @@ public class DeliveryController {
     private final ParcelService parcelService;
     private final PaymentService paymentService;
     private final DeliveryService deliveryService;
+    private final ParcelRepository parcelRepository;
 
     @PostMapping("/otp/send")
     public ResponseEntity<Void> sendDeliveryOtp(@RequestBody DeliveryOtpSendRequest request) {
@@ -181,7 +186,18 @@ public class DeliveryController {
     public ResponseEntity<DeliveryStatusResponse> markDeliveryFailedFromPayload(
             @RequestBody Map<String, Object> request
     ) {
-        UUID parcelId = UUID.fromString(String.valueOf(request.get("parcelId")));
+        String parcelIdRaw = String.valueOf(request.get("parcelId"));
+        UUID parcelId;
+        try {
+            parcelId = UUID.fromString(parcelIdRaw);
+        } catch (IllegalArgumentException ex) {
+            // Not a UUID -- treat as tracking ref and look up the parcel
+            Parcel parcel = parcelRepository.findByTrackingRef(parcelIdRaw)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Parcel not found for tracking ref: " + parcelIdRaw,
+                            ErrorCode.PARCEL_NOT_FOUND));
+            parcelId = parcel.getId();
+        }
         String reason = String.valueOf(request.getOrDefault("reason", "FAILED_DELIVERY"));
         Double latitude = Double.valueOf(String.valueOf(request.get("latitude")));
         Double longitude = Double.valueOf(String.valueOf(request.get("longitude")));

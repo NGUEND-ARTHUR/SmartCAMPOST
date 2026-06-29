@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Filter, Shield, User, Users, Loader2 } from "lucide-react";
+import { Download, Filter, User, Users, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,6 +76,23 @@ export default function StaffDashboard() {
     return { total, active, agents };
   }, [staffList]);
 
+  const exportCsv = useCallback(() => {
+    if (filtered.length === 0) return;
+    const header = "Name,Role,Status,Email";
+    const rows = filtered.map(
+      (s) =>
+        `"${(s.fullName || "").replace(/"/g, '""')}","${s.role}","${s.status}","${s.email || ""}"`,
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "staff-list.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [filtered]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -84,9 +101,9 @@ export default function StaffDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatsCard icon={Users} label={t("staffDashboard.totalParcels")} value={totals.total} subtitle={t("staffDashboard.totalParcelsDesc")} accentColor="bg-primary" />
-        <StatsCard icon={User} label={t("common.active")} value={totals.active} subtitle={t("staffDashboard.inTransitDesc")} accentColor="bg-emerald-500" />
-        <StatsCard icon={Users} label={t("roles.agent")} value={totals.agents} subtitle={t("staffDashboard.totalParcelsDesc")} accentColor="bg-violet-500" />
+        <StatsCard icon={Users} label={t("staffDashboard.totalStaff")} value={totals.total} subtitle={t("staffDashboard.allDepartments")} accentColor="bg-primary" />
+        <StatsCard icon={User} label={t("staffDashboard.active", "Active")} value={totals.active} subtitle={t("staffDashboard.currentlyOnDuty")} accentColor="bg-emerald-500" />
+        <StatsCard icon={Users} label={t("staffDashboard.agents", "Agents")} value={totals.agents} subtitle={t("staffDashboard.fieldOperations")} accentColor="bg-violet-500" />
       </div>
 
       <Card>
@@ -121,7 +138,10 @@ export default function StaffDashboard() {
                   <SelectItem value="ADMIN">{t("roles.admin")}</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline">{t("common.export")}</Button>
+              <Button variant="outline" onClick={exportCsv} disabled={filtered.length === 0}>
+                <Download className="mr-2 h-4 w-4" />
+                {t("common.export")}
+              </Button>
             </div>
           </div>
         </CardHeader>

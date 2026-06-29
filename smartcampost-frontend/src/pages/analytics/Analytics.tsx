@@ -275,7 +275,8 @@ export default function Analytics() {
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                         <div
-                          className={`h-2 rounded-full w-[${anomalyResult.riskScore}%] ${
+                          style={{ width: `${anomalyResult.riskScore}%` }}
+                          className={`h-2 rounded-full ${
                             anomalyResult.riskScore > 70
                               ? "bg-red-500"
                               : anomalyResult.riskScore > 40

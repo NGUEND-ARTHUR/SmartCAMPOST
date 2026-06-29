@@ -226,7 +226,13 @@ public class PickupRequestServiceImpl implements PickupRequestService {
                 throw new AuthException(ErrorCode.BUSINESS_ERROR, "This pickup is not assigned to you");
             }
         } else if (user.getRole() == UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.BUSINESS_ERROR, "Client cannot update pickup state");
+            // Clients can only cancel their own pickups
+            if (request.getState() != PickupRequestState.CANCELLED) {
+                throw new AuthException(ErrorCode.BUSINESS_ERROR, "Clients can only cancel pickups");
+            }
+            if (!pickup.getParcel().getClient().getId().equals(user.getEntityId())) {
+                throw new AuthException(ErrorCode.BUSINESS_ERROR, "You can only cancel your own pickups");
+            }
         }
 
         PickupRequestState current = pickup.getState();

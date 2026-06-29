@@ -13,6 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
 
 export default function PickupDetail() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function PickupDetail() {
   const normalizedRole = authUser?.role?.toUpperCase() || "CLIENT";
   const rolePrefix = `/${(authUser?.role ?? "client").toLowerCase()}`;
   const canSeeCoordinates = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(normalizedRole);
+  const canCompletePickup = ["AGENT", "COURIER", "STAFF", "ADMIN"].includes(normalizedRole);
   const [step, setStep] = useState<
     "details" | "photo" | "signature" | "complete"
   >("details");
@@ -63,11 +65,12 @@ export default function PickupDetail() {
           latitude,
           longitude,
         });
-      } catch {
-        // ignore and continue to UI confirmation
+        setStep("complete");
+        setTimeout(() => navigate(`${rolePrefix}/pickups`), 2000);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to confirm pickup";
+        toast.error(msg);
       }
-      setStep("complete");
-      setTimeout(() => navigate(`${rolePrefix}/pickups`), 2000);
     })();
   };
 
@@ -171,7 +174,7 @@ export default function PickupDetail() {
           </div>
         )}
 
-        {step === "details" && (
+        {step === "details" && canCompletePickup && (
           <div className="flex space-x-4 mb-6">
             <button
               onClick={() => setStep("photo")}

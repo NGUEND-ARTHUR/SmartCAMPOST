@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface SupportTicketRepository extends JpaRepository<SupportTicket, UUID> {
@@ -13,4 +14,6 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, UU
     Page<SupportTicket> findByClient(Client client, Pageable pageable);
 
     Page<SupportTicket> findByStatus(TicketStatus status, Pageable pageable);
+
+    long countByStatusIn(List<TicketStatus> statuses);
 }

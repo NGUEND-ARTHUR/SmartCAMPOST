@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
-import { useMyNotifications, useMarkAllAsRead } from "@/hooks";
+import { useMyNotifications, useMarkAllAsRead, useMarkAsRead } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { ErrorRetryWidget } from "@/components/ErrorRetryWidget";
@@ -24,6 +24,7 @@ export default function Notifications() {
     refetch,
   } = useMyNotifications();
   const markAllRead = useMarkAllAsRead();
+  const markOneRead = useMarkAsRead();
 
   const notifications = notificationsData?.content ?? [];
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -86,9 +87,14 @@ export default function Notifications() {
               {notifications.map((notification) => (
                 <li
                   key={notification.id}
-                  className={`flex items-start space-x-4 p-4 rounded-lg ${
+                  className={`flex items-start space-x-4 p-4 rounded-lg cursor-pointer transition-colors hover:bg-muted/70 ${
                     notification.read ? "bg-muted/50" : "bg-primary/10"
                   }`}
+                  onClick={() => {
+                    if (!notification.read) {
+                      markOneRead.mutate(notification.id, { onSuccess: () => refetch() });
+                    }
+                  }}
                 >
                   <div
                     className={`w-2 h-2 rounded-full mt-2 ${

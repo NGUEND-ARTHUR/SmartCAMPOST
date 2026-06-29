@@ -75,9 +75,9 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem("auth-storage");
           if (
             typeof window !== "undefined" &&
-            !window.location.pathname.startsWith("/login")
+            !window.location.pathname.startsWith("/auth")
           ) {
-            window.location.href = "/login";
+            window.location.href = "/auth/login";
           }
         }
       } catch {

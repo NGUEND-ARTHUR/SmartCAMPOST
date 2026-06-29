@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
-import { usePayments } from "@/hooks";
+import { usePayments, useConfirmPayment } from "@/hooks";
+import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   INIT: "bg-muted text-muted-foreground",
@@ -45,7 +46,8 @@ export default function Payments() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [page, setPage] = useState(0);
 
-  const { data, isLoading, error } = usePayments(page, 20);
+  const { data, isLoading, error, refetch } = usePayments(page, 20);
+  const confirmPayment = useConfirmPayment();
   const payments = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
@@ -64,6 +66,16 @@ export default function Payments() {
   const totalPending = payments
     .filter((p) => p.status === "PENDING")
     .reduce((sum, p) => sum + p.amount, 0);
+
+  const handleConfirm = (paymentId: string) => {
+    confirmPayment.mutate(
+      { paymentId, status: "SUCCESS" },
+      {
+        onSuccess: () => { toast.success("Payment confirmed"); refetch(); },
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to confirm"),
+      },
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -85,8 +97,7 @@ export default function Payments() {
               {totalPaid.toLocaleString()} XAF
             </div>
             <p className="text-xs text-muted-foreground">
-              {payments.filter((p) => p.status === "SUCCESS").length}{" "}
-              {t("payments.successfulPayments")}
+              {t("payments.successfulPayments")} (this page)
             </p>
           </CardContent>
         </Card>
@@ -205,6 +216,7 @@ export default function Payments() {
                     <TableHead>{t("payments.table.method")}</TableHead>
                     <TableHead>{t("common.status")}</TableHead>
                     <TableHead>{t("payments.table.date")}</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -240,6 +252,18 @@ export default function Payments() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(payment.timestamp).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {payment.status === "PENDING" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={confirmPayment.isPending}
+                            onClick={() => handleConfirm(payment.id)}
+                          >
+                            Confirm
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

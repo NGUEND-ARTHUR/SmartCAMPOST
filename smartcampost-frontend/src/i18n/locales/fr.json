@@ -608,7 +608,15 @@
       "deliveryAddress": "Adresse de livraison",
       "selectServiceType": "Sélectionner le type de service",
       "estimatedPrice": "Prix estimé",
-      "createParcel": "Créer le colis"
+      "createParcel": "Créer le colis",
+      "senderInfo": "Sender Information",
+      "recipientInfo": "Recipient Information",
+      "parcelInfo": "Parcel Information"
+    },
+    "serviceType": {
+      "standard": "Standard",
+      "express": "Express",
+      "economy": "Economy"
     }
   },
   "addresses": {
@@ -651,7 +659,16 @@
       "deleted": "Adresse supprimée avec succès"
     },
     "confirmDelete": "Supprimer cette adresse ? Cette action est irréversible.",
-    "loading": "Chargement des adresses..."
+    "loading": "Chargement des adresses...",
+    "card": {
+      "locationVerified": "Location verified",
+      "locationNotVerified": "Location not verified",
+      "coordinates": "Coordinates"
+    },
+    "tabs": {
+      "form": "Address Details",
+      "map": "Location on Map"
+    }
   },
   "pickups": {
     "title": "Collectes",
@@ -683,20 +700,31 @@
         "manualOverride": "Remplacer la localisation manuellement",
         "chooseOnMap": "Choisir sur la carte",
         "latitude": "Latitude",
-        "longitude": "Longitude"
+        "longitude": "Longitude",
+        "extraFee": "Extra pickup fee",
+        "locationPicker": {
+          "title": "Choose pickup location",
+          "description": "Search a place or click on the map to pick the exact pickup point"
+        }
       },
       "toasts": {
         "requiredFields": "Veuillez remplir tous les champs obligatoires",
         "requestSubmitted": "Demande de collecte soumise avec succès !",
         "createFailed": "Échec de la création de la collecte",
         "cancelled": "Collecte annulée avec succès",
-        "cancelFailed": "Échec de l'annulation de la collecte"
+        "cancelFailed": "Échec de l'annulation de la collecte",
+        "invalidLatLng": "Please provide valid latitude/longitude"
       },
       "submitRequest": "Soumettre la demande",
       "errorTitle": "Erreur de chargement des collectes",
       "noPickups": "Aucune demande de collecte",
       "noPickupsDescription": "Planifiez une collecte pour vos colis",
-      "requestedOn": "Demandé le"
+      "requestedOn": "Demandé le",
+      "pickupId": "Pickup #{{id}}",
+      "parcelLabel": "Parcel:",
+      "courierLabel": "Courier:",
+      "instructionsLabel": "Instructions:",
+      "viewDetails": "View Details"
     },
     "management": {
       "title": "Gestion des collectes",
@@ -722,6 +750,27 @@
         "selectCourier": "Veuillez sélectionner un coursier",
         "courierAssigned": "Coursier assigné",
         "assignFailed": "Échec de l'assignation du coursier"
+      },
+      "pagination": "Page {{page}} of {{totalPages}}",
+      "state": {
+        "requested": "Requested",
+        "assigned": "Assigned",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "states": {
+        "errorTitle": "Error loading pickups",
+        "emptyTitle": "No pickups found",
+        "emptyFiltered": "Try adjusting your search or filters",
+        "emptyDefault": "Pickup requests will appear here"
+      },
+      "table": {
+        "pickupId": "Pickup ID",
+        "client": "Client",
+        "parcel": "Parcel",
+        "state": "State",
+        "courier": "Courier",
+        "scheduled": "Scheduled"
       }
     },
     "status": {
@@ -754,7 +803,13 @@
       "toasts": {
         "markedComplete": "Livraison {{id}} marquée comme terminée",
         "completeFailed": "Échec de la complétion de la livraison"
-      }
+      },
+      "subtitle": "{{count}} delivery assigned to you",
+      "mapView": "Map View",
+      "listView": "List View",
+      "errorTitle": "Error loading deliveries",
+      "deliveryLocation": "Delivery location {{index}}",
+      "unknownDestination": "Unknown destination"
     },
     "workflow": {
       "instructions": "Instructions",
@@ -807,6 +862,21 @@
       "inProgress": "En cours",
       "completed": "Terminé",
       "failed": "Échoué"
+    },
+    "recipientSignature": "Recipient Signature",
+    "deliveryNotes": "Delivery Notes",
+    "proofOfDelivery": "Proof of Delivery",
+    "confirm": {
+      "title": "Confirm Delivery",
+      "subtitle": "Scan QR code, verify OTP, and capture proof of delivery",
+      "toasts": {
+        "confirmed": "Delivery confirmed successfully"
+      },
+      "errors": {
+        "sendOtpFailed": "Failed to send OTP",
+        "invalidOtp": "Invalid OTP code",
+        "confirmFailed": "Failed to confirm delivery"
+      }
     }
   },
   "payments": {
@@ -838,6 +908,24 @@
       "card": "Carte",
       "cash": "Espèces",
       "bankTransfer": "Virement bancaire"
+    },
+    "emptyDescription": "Payment transactions will appear here",
+    "table": {
+      "paymentId": "Payment ID",
+      "parcel": "Parcel",
+      "method": "Method",
+      "date": "Date"
+    },
+    "filters": {
+      "all": "All Status",
+      "success": "Success",
+      "pending": "Pending",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "errors": {
+      "missingParcelId": "Parcel ID missing",
+      "printWindowFailed": "Unable to open print window"
     }
   },
   "refunds": {
@@ -859,6 +947,21 @@
       "approved": "Approuvé",
       "rejected": "Rejeté",
       "processed": "Traité"
+    },
+    "requestsTitle": "Refund Requests",
+    "refundReason": "Refund Reason",
+    "refundAmount": "Refund Amount",
+    "pagination": "Page {{page}} of {{totalPages}}",
+    "table": {
+      "refundId": "Refund ID",
+      "paymentId": "Payment ID",
+      "reason": "Reason",
+      "created": "Created"
+    },
+    "states": {
+      "errorTitle": "Error loading refunds",
+      "emptyTitle": "No refunds",
+      "emptyDescription": "Refund requests will appear here"
     }
   },
   "support": {
@@ -876,7 +979,12 @@
       "damaged_goods": "Marchandises endommagées",
       "lost_parcel": "Colis perdu",
       "technical_support": "Support technique",
-      "general_inquiry": "Demande générale"
+      "general_inquiry": "Demande générale",
+      "delivery": "Delivery",
+      "payment": "Payment",
+      "damaged": "Damaged parcel",
+      "lost": "Lost parcel",
+      "other": "Other"
     },
     "create": {
       "title": "Créer un nouveau ticket de support",
@@ -921,6 +1029,13 @@
       "inProgress": "En cours",
       "resolved": "Résolu",
       "closed": "Fermé"
+    },
+    "filterByStatus": "Filter by status",
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
     }
   },
   "notifications": {
@@ -930,7 +1045,12 @@
     "noLogsDescription": "Nous vous informerons lorsque quelque chose d'important se produira.",
     "markAllRead": "Tout marquer comme lu",
     "markedAllRead": "Toutes les notifications marquées comme lues",
-    "errorLoading": "Erreur de chargement des notifications"
+    "errorLoading": "Erreur de chargement des notifications",
+    "subtitle_one": "You have 1 unread notification",
+    "subtitle_zero": "You have no unread notifications",
+    "logs": "Notification Logs",
+    "logsDescription": "A log of all notifications you have received.",
+    "markAllReadError": "Failed to mark all as read"
   },
   "staffManagement": {
     "title": "Gestion du personnel",
@@ -1095,6 +1215,10 @@
       "emptyTitle": "Aucune agence trouvée",
       "emptyFiltered": "Essayez d'ajuster votre recherche",
       "emptyDefault": "Ajoutez votre première agence pour commencer"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
     }
   },
   "courierManagement": {
@@ -1159,7 +1283,21 @@
       "email": "E-mail",
       "joined": "Inscrit",
       "actions": "Actions",
-      "view": "Voir"
+      "view": "Voir",
+      "language": "Language"
+    },
+    "registeredClientsAppearHere": "Registered clients will appear here",
+    "clientDetails": "Client Details",
+    "viewClientInformation": "View detailed client information",
+    "clientNotFound": "Client not found",
+    "detail": {
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "preferredLanguage": "Preferred Language",
+      "clientId": "Client ID",
+      "userId": "User ID",
+      "registeredOn": "Registered on"
     }
   },
   "tariffManagement": {
@@ -1182,7 +1320,25 @@
     "actions": "Actions",
     "editTitle": "Modifier le tarif",
     "priceXAF": "Prix (XAF)",
-    "saveChanges": "Enregistrer les modifications"
+    "saveChanges": "Enregistrer les modifications",
+    "createDescription": "Define a new pricing tariff for parcel services",
+    "tariffName": "Tariff Name",
+    "currency": "Currency",
+    "pricePerKg": "Price per Kg",
+    "namePlaceholder": "e.g., Standard Domestic",
+    "originPlaceholder": "e.g., YAOUNDE",
+    "destinationPlaceholder": "e.g., DOUALA",
+    "weight0_5": "0-5 kg",
+    "weight5_10": "5-10 kg",
+    "weight10_20": "10-20 kg",
+    "weight20_50": "20-50 kg",
+    "weight50plus": "50+ kg",
+    "allTypes": "All Types",
+    "noTariffsDescription": "Create your first tariff to get started",
+    "previous": "Previous",
+    "pageOf": "Page {{current}} of {{total}}",
+    "next": "Next",
+    "editDescription": "Update tariff price"
   },
   "userAccountManagement": {
     "title": "Gestion des comptes utilisateurs",
@@ -1201,7 +1357,16 @@
     "frozen": "Gelé",
     "activeStatus": "Actif",
     "unfreeze": "Dégeler",
-    "freeze": "Geler"
+    "freeze": "Geler",
+    "client": "Client",
+    "agent": "Agent",
+    "courier": "Courier",
+    "staff": "Staff",
+    "admin": "Admin",
+    "finance": "Finance",
+    "risk": "Risk",
+    "filterHint": "Try adjusting your filters",
+    "noAccountsYet": "No user accounts exist yet"
   },
   "roles": {
     "staff": "Personnel",
@@ -1220,6 +1385,37 @@
     "page": {
       "title": "Analytique",
       "subtitle": "Prédictions ETA alimentées par l'IA et détection d'anomalies de paiement"
+    },
+    "eta": {
+      "title": "ETA Prediction",
+      "description": "Get estimated delivery time for a parcel",
+      "parcelIdLabel": "Parcel ID",
+      "parcelIdPlaceholder": "Enter Parcel ID (e.g., PKG-12345)",
+      "estimatedDelivery": "Estimated Delivery",
+      "confidence": "Confidence",
+      "currentLocation": "Current Location:"
+    },
+    "anomaly": {
+      "title": "Anomaly Detection",
+      "description": "Check payment for suspicious activity",
+      "noDetails": "No details",
+      "recommendations": {
+        "manualReview": "Manual review recommended before processing",
+        "proceed": "Payment appears normal, proceed as usual"
+      },
+      "risk": {
+        "high": "High Risk",
+        "medium": "Medium Risk",
+        "low": "Low Risk"
+      }
+    },
+    "toasts": {
+      "enterParcelId": "Please enter a parcel ID",
+      "etaSuccess": "ETA retrieved successfully",
+      "etaFailed": "Failed to retrieve ETA",
+      "enterPaymentId": "Please enter a payment ID",
+      "anomalySuccess": "Anomaly check completed",
+      "anomalyFailed": "Failed to check payment anomaly"
     }
   },
   "trackingPage": {
@@ -1233,7 +1429,13 @@
     "tracking": "Suivi",
     "status": "Statut",
     "timeline": "Chronologie",
-    "map": "Carte"
+    "map": "Carte",
+    "lastNote": "Last note",
+    "audit": "Audit",
+    "toasts": {
+      "notFound": "Tracking not found",
+      "invalidQr": "Unable to track with this QR"
+    }
   },
   "scan": {
     "title": "Console de scan",
@@ -1268,11 +1470,15 @@
       "verificationError": "Erreur de vérification",
       "cameraFailed": "Échec du démarrage de la caméra",
       "cameraRetry": "Essayez de recharger ou passez en mode manuel",
-      "retryCamera": "Réessayer la caméra"
+      "retryCamera": "Réessayer la caméra",
+      "missingParcelId": "Missing parcelId in QR code",
+      "emptyQrContent": "QR code content is empty",
+      "invalidQrFormat": "Invalid QR code format"
     },
     "success": {
       "scanned": "Scanné : {{barcode}}",
-      "eventType": "Type d'événement : {{status}}"
+      "eventType": "Type d'événement : {{status}}",
+      "qrScanned": "QR scanned: {{trackingRef}}"
     },
     "quickScan": "Scan rapide",
     "trackingNumber": {
@@ -1307,6 +1513,13 @@
     "mode": {
       "camera": "Caméra",
       "manual": "Manuel"
+    },
+    "scanQR": "Scan QR Code",
+    "manualEntry": "Manual Entry",
+    "scanResult": "Scan Result",
+    "updateStatus": "Update Status",
+    "info": {
+      "historyCleared": "Scan history cleared"
     }
   },
   "approvals": {
@@ -1376,7 +1589,27 @@
     "failedLoadTasks": "Échec du chargement des tâches",
     "welcome": "Tableau de bord agent",
     "overview": "Gérez vos tâches et colis assignés",
-    "scanParcel": "Scanner un colis"
+    "scanParcel": "Scanner un colis",
+    "loadingTasks": "Loading your tasks...",
+    "pendingDesc": "Tasks awaiting start",
+    "inProgressDesc": "Active jobs",
+    "completedTodayDesc": "Done tasks",
+    "task": "Task",
+    "parcel": "Parcel",
+    "location": "Location",
+    "scheduled": "Scheduled",
+    "status": "Status",
+    "action": "Action",
+    "pendingTasks": "Pending Tasks",
+    "pendingTasksDesc": "Tasks awaiting start",
+    "avgDeliveryTimeDesc": "Currently active",
+    "deliveryRate": "Completed",
+    "deliveryRateDesc": "Tasks done today",
+    "recentAssignments": "Recent Assignments",
+    "parcelId": "Task Type",
+    "destination": "Location",
+    "assignedDate": "Scheduled Date",
+    "viewAll": "View"
   },
   "courierDashboard": {
     "title": "Tableau de bord coursier",
@@ -1387,6 +1620,20 @@
       "pendingDeliveries": "Livraisons en attente",
       "completedToday": "Terminées aujourd'hui",
       "distanceKm": "Distance (km)"
+    },
+    "scheduled": "Scheduled:",
+    "customer": "Customer",
+    "startTask": "Start Task",
+    "viewDetails": "View Details",
+    "noTasksMessage": "No {{filter}} tasks available right now",
+    "tabs": {
+      "allTasks": "All Tasks ({{count}})",
+      "pickups": "Pickups ({{count}})",
+      "deliveries": "Deliveries ({{count}})"
+    },
+    "actions": {
+      "goToPickups": "Go to Pickups",
+      "goToDeliveries": "Go to Deliveries"
     }
   },
   "staffDashboard": {
@@ -1519,7 +1766,12 @@
     "submit": "Créer l'alerte",
     "success": "Alerte de risque créée avec succès.",
     "requiredFields": "Tous les champs sont obligatoires.",
-    "createFailed": "Échec de la création de l'alerte de risque."
+    "createFailed": "Échec de la création de l'alerte de risque.",
+    "type": "Type",
+    "typePlaceholder": "e.g., FRAUD, COMPLIANCE",
+    "severityPlaceholder": "e.g., HIGH, MEDIUM, LOW",
+    "creating": "Creating...",
+    "create": "Create Risk Alert"
   },
   "riskAlerts": {
     "title": "Alertes de risque",
@@ -1536,6 +1788,18 @@
       "errorTitle": "Erreur de chargement des alertes",
       "emptyTitle": "Aucune alerte",
       "emptyDescription": "Les alertes de risque apparaîtront ici lorsqu'elles seront détectées."
+    },
+    "alertsDescription": "New and escalated alerts appear here.",
+    "status": {
+      "resolved": "RESOLVED",
+      "open": "OPEN"
+    },
+    "actions": {
+      "freeze": "Freeze"
+    },
+    "toasts": {
+      "userFrozen": "User account frozen",
+      "freezeFailed": "Failed to freeze user"
     }
   },
   "compliance": {
@@ -1545,7 +1809,28 @@
     "alertsTitle": "Alertes de conformité",
     "states": {
       "emptyTitle": "Aucune alerte de conformité",
-      "emptyDescription": "Tout est en ordre ! Aucun problème de conformité détecté."
+      "emptyDescription": "Tout est en ordre ! Aucun problème de conformité détecté.",
+      "errorTitle": "Error loading alerts"
+    },
+    "table": {
+      "alertId": "Alert ID",
+      "type": "Type",
+      "severity": "Severity",
+      "description": "Description",
+      "created": "Created"
+    },
+    "status": {
+      "resolved": "Resolved",
+      "open": "Open"
+    },
+    "actions": {
+      "resolve": "Resolve"
+    },
+    "toasts": {
+      "alertResolved": "Alert resolved",
+      "resolveFailed": "Failed to resolve",
+      "reportStarted": "Report generation started",
+      "reportFailed": "Failed to generate report"
     }
   },
   "errors": {
@@ -1567,7 +1852,29 @@
     "sessionExpired": "Session expirée. Veuillez vous reconnecter.",
     "USER_PHONE_EXISTS": "Ce numéro de téléphone est déjà enregistré. Veuillez vous connecter.",
     "PHONE_ALREADY_EXISTS": "Ce numéro de téléphone est déjà enregistré. Veuillez vous connecter.",
-    "USER_EMAIL_EXISTS": "Cet e-mail est déjà enregistré. Veuillez vous connecter."
+    "USER_EMAIL_EXISTS": "Cet e-mail est déjà enregistré. Veuillez vous connecter.",
+    "passwordMismatch": "Passwords do not match",
+    "accountDisabled": "Your account has been disabled. Please contact support.",
+    "invalidOtp": "Invalid OTP code. Please check and try again.",
+    "otpExpired": "OTP code has expired. Please request a new one.",
+    "validationError": "Please check your input and try again.",
+    "invalidInput": "Invalid input. Please check the form fields.",
+    "duplicateEntry": "This entry already exists.",
+    "conflict": "A conflict occurred. The resource may already exist.",
+    "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
+    "timeout": "Request timed out. Please try again.",
+    "tariffExists": "A tariff with this combination already exists.",
+    "loadingFailed": "Failed to load data. Please refresh the page.",
+    "saveFailed": "Failed to save. Please try again.",
+    "deleteFailed": "Failed to delete. Please try again.",
+    "otpRequired": "Please send and enter the OTP code first",
+    "googleSignInFailed": "Google sign-in failed. Please try again.",
+    "noRefreshToken": "No refresh token available. Please log in again.",
+    "gpsUnavailable": "GPS is not available in this environment",
+    "gpsPermissionDenied": "GPS permission denied. Please enable location access.",
+    "gpsPositionUnavailable": "GPS position unavailable. Please check your device settings.",
+    "gpsTimeout": "GPS request timed out. Please try again.",
+    "gpsError": "GPS error: {{message}}"
   },
   "messages": {
     "saveSuccess": "Enregistré avec succès",
@@ -1587,7 +1894,16 @@
       "checkpoint": "Point de contrôle",
       "currentPosition": "Position actuelle",
       "destination": "Destination"
-    }
+    },
+    "pause": "⏸ Pause",
+    "animate": "▶ Animate",
+    "checkpoints": "{{count}} checkpoint",
+    "checkpoints_one": "{{count}} checkpoint",
+    "checkpoints_other": "{{count}} checkpoints",
+    "checkpointLabel": "Checkpoint {{index}}",
+    "yourParcel": "Your Parcel",
+    "inTransit": "In Transit",
+    "currentLocation": "Current Location"
   },
   "invoices": {
     "title": "Mes factures",
@@ -1600,7 +1916,22 @@
       "outsideCameroon": "Votre position actuelle semble être hors du Cameroun",
       "selectWithinCameroon": "Veuillez sélectionner une localisation au Cameroun",
       "noResults": "Aucun résultat trouvé",
-      "searchFailed": "Échec de la recherche"
+      "searchFailed": "Échec de la recherche",
+      "resultOutsideCameroon": "Result is outside Cameroon"
+    },
+    "tracking": {
+      "title": "Parcel Tracking Map",
+      "subtitle": "Track parcels in real-time.",
+      "origin": "Origin",
+      "current": "Current"
+    },
+    "pickup": {
+      "title": "Pickup Map",
+      "subtitle": "Map for scheduling and assigning pickups."
+    },
+    "viewer": {
+      "title": "Map Viewer",
+      "subtitle": "OpenStreetMap powered map. Use it for pickup, tracking, and location."
     }
   },
   "session": {

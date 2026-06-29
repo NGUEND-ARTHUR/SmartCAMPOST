@@ -279,6 +279,19 @@ public class ParcelServiceImpl implements ParcelService {
                         ErrorCode.PARCEL_NOT_FOUND
                 ));
 
+        // CLIENT role restriction: can only cancel their own parcels
+        UserAccount currentUser = getCurrentUserAccount();
+        if (currentUser.getRole() == UserRole.CLIENT) {
+            if (request.getStatus() != ParcelStatus.CANCELLED) {
+                throw new AuthException(ErrorCode.AUTH_FORBIDDEN,
+                        "Clients can only cancel parcels");
+            }
+            if (!parcel.getClient().getId().equals(currentUser.getEntityId())) {
+                throw new AuthException(ErrorCode.AUTH_FORBIDDEN,
+                        "You can only cancel your own parcels");
+            }
+        }
+
         ParcelStatus current = parcel.getStatus();
         ParcelStatus next = request.getStatus();
 

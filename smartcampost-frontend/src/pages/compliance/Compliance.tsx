@@ -71,7 +71,23 @@ export default function Compliance() {
         endDate: new Date().toISOString(),
       },
       {
-        onSuccess: () => toast.success(t("compliance.toasts.reportStarted")),
+        onSuccess: (data) => {
+          toast.success(t("compliance.toasts.reportStarted"));
+          const w = window.open("", "_blank");
+          if (!w) return;
+          const json = JSON.stringify(data, null, 2);
+          w.document.open();
+          w.document.write(`<html><head><title>Compliance Report</title>
+            <style>body{font-family:Arial,sans-serif;padding:24px;max-width:800px;margin:0 auto}
+            pre{background:#f5f5f5;padding:16px;border-radius:8px;overflow:auto;font-size:13px}
+            h2{color:#1a1a2e}button{margin-top:16px;padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer}</style>
+            </head><body><h2>Compliance Report</h2>
+            <p>Period: Last 30 days</p><p>Generated: ${new Date().toLocaleString()}</p>
+            <pre>${json}</pre>
+            <button onclick="window.print()">Print / Save as PDF</button>
+            </body></html>`);
+          w.document.close();
+        },
         onError: (err) =>
           toast.error(
             err instanceof Error
