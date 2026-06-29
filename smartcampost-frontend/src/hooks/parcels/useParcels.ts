@@ -25,17 +25,19 @@ export const parcelKeys = {
   tracking: (ref: string) => [...parcelKeys.all, "tracking", ref] as const,
 };
 
-export function useMyParcels(page = 0, size = 20) {
+export function useMyParcels(page = 0, size = 20, enabled = true) {
   return useQuery({
     queryKey: parcelKeys.myList(page, size),
     queryFn: () => parcelService.listMyParcels(page, size),
+    enabled,
   });
 }
 
-export function useParcels(page = 0, size = 20) {
+export function useParcels(page = 0, size = 20, enabled = true) {
   return useQuery({
     queryKey: parcelKeys.list({ page, size }),
     queryFn: () => parcelService.listAll(page, size),
+    enabled,
   });
 }
 

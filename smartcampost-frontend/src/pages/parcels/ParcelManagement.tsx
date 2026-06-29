@@ -69,10 +69,10 @@ export default function ParcelManagement() {
     "ALL" | "EXPRESS" | "STANDARD"
   >("ALL");
 
-  const useAgentParcels = normalizedRole === "AGENT" || normalizedRole === "COURIER";
-  const allQuery = useParcels(page, 50);
-  const myQuery = useMyParcels(page, 50);
-  const { data, isLoading, error } = useAgentParcels ? myQuery : allQuery;
+  const isOperator = normalizedRole === "ADMIN" || normalizedRole === "STAFF";
+  const allQuery = useParcels(page, 50, isOperator);
+  const myQuery = useMyParcels(page, 50, !isOperator);
+  const { data, isLoading, error } = isOperator ? allQuery : myQuery;
   const createRiskAlert = useCreateRiskAlert();
   const parcels = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;
