@@ -112,6 +112,8 @@ export function QRCodeScanner({
   const html5ScannerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const stopScanRef = useRef<() => Promise<void>>(() => Promise.resolve());
+
   const handleDetection = useCallback(
     (decodedText: string) => {
       const now = Date.now();
@@ -131,8 +133,12 @@ export function QRCodeScanner({
       }
 
       onScanRef.current(result);
+
+      if (!continuous && result.success) {
+        stopScanRef.current().catch(() => {});
+      }
     },
-    [scanDelay],
+    [scanDelay, continuous],
   );
 
   const stopScanning = useCallback(async () => {
@@ -161,6 +167,8 @@ export function QRCodeScanner({
     }
     setIsScanning(false);
   }, []);
+
+  useEffect(() => { stopScanRef.current = stopScanning; }, [stopScanning]);
 
   const startNativeScanner = useCallback(async () => {
     const video = videoRef.current;

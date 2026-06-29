@@ -374,26 +374,24 @@ export default function ScanConsole() {
               {scanMode === "camera" ? (
                 /* Camera QR Scanner — live scanning */
                 <div className="space-y-4">
-                  <div className="w-full max-w-md h-80 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
-                    <ErrorBoundary
-                      key={cameraBoundaryKey}
-                      fallback={
-                        <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center text-muted-foreground">
-                          <Camera className="w-12 h-12 text-destructive" />
-                          <p className="font-medium text-foreground">Camera failed to start</p>
-                          <button
-                            type="button"
-                            onClick={() => setCameraBoundaryKey((k) => k + 1)}
-                            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
-                          >
-                            Retry
-                          </button>
-                        </div>
-                      }
-                    >
-                      <QRCodeScanner onScan={handleCameraScan} continuous />
-                    </ErrorBoundary>
-                  </div>
+                  <ErrorBoundary
+                    key={cameraBoundaryKey}
+                    fallback={
+                      <div className="flex flex-col items-center justify-center h-80 gap-3 p-6 text-center text-muted-foreground bg-muted rounded-lg">
+                        <Camera className="w-12 h-12 text-destructive" />
+                        <p className="font-medium text-foreground">Camera failed to start</p>
+                        <button
+                          type="button"
+                          onClick={() => setCameraBoundaryKey((k) => k + 1)}
+                          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    }
+                  >
+                    <QRCodeScanner onScan={handleCameraScan} continuous />
+                  </ErrorBoundary>
 
                   {/* Status Selection for Camera Mode */}
 
