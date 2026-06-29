@@ -50,6 +50,7 @@ public class ParcelServiceImpl implements ParcelService {
     private final AgencyRepository agencyRepository;
     private final PricingDetailRepository pricingDetailRepository;
     private final StaffRepository staffRepository;
+    private final AgentRepository agentRepository;
 
     // 🔥 SPRINT 14: services ajoutés
     private final NotificationService notificationService;
@@ -242,8 +243,19 @@ public class ParcelServiceImpl implements ParcelService {
                     .map(this::toResponse);
         }
 
-        // AGENT / COURIER: return empty page — they use dedicated map/scan endpoints
-        return Page.empty(PageRequest.of(page, size));
+        // AGENT: return parcels from their agency
+        if (user.getRole() == UserRole.AGENT && user.getEntityId() != null) {
+            return agentRepository.findById(user.getEntityId())
+                    .filter(agent -> agent.getAgency() != null)
+                    .map(agent -> parcelRepository.findByOriginAgency_Id(
+                            agent.getAgency().getId(), PageRequest.of(page, size))
+                            .map(this::toResponse))
+                    .orElse(Page.empty(PageRequest.of(page, size)));
+        }
+
+        // COURIER: return all parcels (they handle deliveries across the system)
+        return parcelRepository.findAll(PageRequest.of(page, size))
+                .map(this::toResponse);
     }
 
     // ================== LIST ALL (ADMIN/STAFF) ==================

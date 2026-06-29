@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
-import { useParcels, useCreateRiskAlert } from "@/hooks";
+import { useParcels, useMyParcels, useCreateRiskAlert } from "@/hooks";
 import { useAuthStore } from "@/store/authStore";
 
 type AdminParcelStatus =
@@ -69,7 +69,10 @@ export default function ParcelManagement() {
     "ALL" | "EXPRESS" | "STANDARD"
   >("ALL");
 
-  const { data, isLoading, error } = useParcels(page, 50);
+  const useAgentParcels = normalizedRole === "AGENT" || normalizedRole === "COURIER";
+  const allQuery = useParcels(page, 50);
+  const myQuery = useMyParcels(page, 50);
+  const { data, isLoading, error } = useAgentParcels ? myQuery : allQuery;
   const createRiskAlert = useCreateRiskAlert();
   const parcels = useMemo(() => data?.content ?? [], [data]);
   const totalPages = data?.totalPages ?? 0;

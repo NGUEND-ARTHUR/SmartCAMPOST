@@ -21,6 +21,8 @@ public interface ParcelRepository extends JpaRepository<Parcel, UUID> {
 
     Page<Parcel> findByClient_Id(UUID clientId, Pageable pageable);
 
+    Page<Parcel> findByOriginAgency_Id(UUID agencyId, Pageable pageable);
+
     // Self-healing: count parcels at agency by status
     long countByDestinationAgency_IdAndStatusIn(UUID agencyId, List<ParcelStatus> statuses);
 
