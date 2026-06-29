@@ -44,12 +44,29 @@ export default function InvoicesPage() {
               <button
                 type="button"
                 className="text-blue-600 hover:underline"
-                onClick={async () => {
-                  try {
-                    await invoiceService.downloadPdf(inv.id);
-                  } catch {
-                    toast.error("Failed to download invoice PDF");
-                  }
+                onClick={() => {
+                  const w = window.open("", "_blank");
+                  if (!w) { toast.error("Could not open print window"); return; }
+                  const html = `<html><head><title>Invoice ${inv.invoiceNumber}</title>
+                    <style>body{font-family:Arial,sans-serif;padding:24px;max-width:600px;margin:0 auto}
+                    h2{color:#1a1a2e}table{width:100%;border-collapse:collapse;margin:16px 0}
+                    td{padding:8px;border-bottom:1px solid #eee}td:first-child{color:#666;width:40%}
+                    .footer{margin-top:24px;padding-top:16px;border-top:2px solid #333;font-size:12px;color:#888}</style>
+                    </head><body>
+                    <h2>SmartCAMPOST - Invoice</h2>
+                    <table>
+                    <tr><td>Invoice #</td><td><strong>${inv.invoiceNumber}</strong></td></tr>
+                    <tr><td>Parcel</td><td>${inv.parcelTrackingRef || inv.parcelId || "N/A"}</td></tr>
+                    <tr><td>Amount</td><td><strong>${inv.totalAmount.toLocaleString()} XAF</strong></td></tr>
+                    <tr><td>Issued</td><td>${new Date(inv.issuedAt).toLocaleDateString()}</td></tr>
+                    </table>
+                    <div class="footer">Generated on ${new Date().toLocaleString()} — SmartCAMPOST</div>
+                    </body></html>`;
+                  w.document.open();
+                  w.document.write(html);
+                  w.document.close();
+                  w.focus();
+                  setTimeout(() => { try { w.print(); } catch {} }, 300);
                 }}
               >
                 {t("invoices.downloadPdf")}

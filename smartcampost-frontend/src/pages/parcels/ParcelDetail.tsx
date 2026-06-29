@@ -36,7 +36,7 @@ import { QRCodeDisplay, QRCodeViewerDialog } from "@/components/qrcode";
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
 import { EmptyState } from "@/components/EmptyState";
-import { invoiceService } from "@/services";
+// invoiceService removed — receipts are generated client-side
 import {
   useParcel,
   useScanEventsForParcel,
@@ -592,22 +592,36 @@ export default function ParcelDetail() {
             </Button>
             <Button
               variant="outline"
-              onClick={async () => {
-                try {
-                  const invoices = await invoiceService.listByParcel(parcel.id);
-                  const latest = Array.isArray(invoices)
-                    ? invoices[0]
-                    : undefined;
-                  if (latest?.id) {
-                    await invoiceService.downloadPdf(latest.id);
-                  } else {
-                    toast.info(t("parcels.detail.actions.noReceiptAvailable"));
-                  }
-                } catch {
-                  toast.error(
-                    t("parcels.detail.actions.receiptDownloadFailed"),
-                  );
-                }
+              onClick={() => {
+                const w = window.open("", "_blank");
+                if (!w) { toast.error("Could not open print window"); return; }
+                const price = quote.data?.totalPrice ?? quote.data?.basePrice ?? "N/A";
+                const html = `<html><head><title>Receipt - ${parcel.trackingRef}</title>
+                  <style>body{font-family:Arial,sans-serif;padding:24px;max-width:600px;margin:0 auto}
+                  h2{color:#1a1a2e}table{width:100%;border-collapse:collapse;margin:16px 0}
+                  td{padding:8px;border-bottom:1px solid #eee}td:first-child{color:#666;width:40%}
+                  .footer{margin-top:24px;padding-top:16px;border-top:2px solid #333;font-size:12px;color:#888}</style>
+                  </head><body>
+                  <h2>SmartCAMPOST - Receipt</h2>
+                  <table>
+                  <tr><td>Tracking Ref</td><td><strong>${parcel.trackingRef}</strong></td></tr>
+                  <tr><td>Status</td><td>${parcel.status}</td></tr>
+                  <tr><td>Weight</td><td>${parcel.weight} kg</td></tr>
+                  <tr><td>Service</td><td>${parcel.serviceType}</td></tr>
+                  <tr><td>Delivery</td><td>${parcel.deliveryOption}</td></tr>
+                  <tr><td>Payment</td><td>${parcel.paymentOption || "N/A"}</td></tr>
+                  <tr><td>From</td><td>${parcel.senderCity || ""}, ${parcel.senderCountry || ""}</td></tr>
+                  <tr><td>To</td><td>${parcel.recipientCity || ""}, ${parcel.recipientCountry || ""}</td></tr>
+                  <tr><td>Amount</td><td><strong>${price} XAF</strong></td></tr>
+                  <tr><td>Created</td><td>${new Date(parcel.createdAt).toLocaleDateString()}</td></tr>
+                  </table>
+                  <div class="footer">Generated on ${new Date().toLocaleString()} — SmartCAMPOST</div>
+                  </body></html>`;
+                w.document.open();
+                w.document.write(html);
+                w.document.close();
+                w.focus();
+                setTimeout(() => { try { w.print(); } catch {} }, 300);
               }}
             >
               {t("parcels.detail.actions.downloadReceipt")}
@@ -875,14 +889,7 @@ export default function ParcelDetail() {
                   await markCodPaid.mutateAsync(parcel.id);
                   toast.success(t("parcels.toasts.codMarkedPaid"));
 
-                  // Fetch latest invoice for this parcel and open PDF
-                  const invoices = await invoiceService.listByParcel(parcel.id);
-                  const latest = Array.isArray(invoices)
-                    ? invoices[0]
-                    : undefined;
-                  if (latest?.id) {
-                    await invoiceService.downloadPdf(latest.id);
-                  }
+                  // COD payment marked — no PDF to download
                 } catch (e) {
                   toast.error(
                     e instanceof Error
