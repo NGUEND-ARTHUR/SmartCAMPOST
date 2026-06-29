@@ -142,7 +142,8 @@ export function RoleLayout({ role }: { role: AppRole }) {
   const submitQuickTrack = () => {
     const ref = quickTrack.trim();
     if (!ref) return;
-    navigate(`/tracking?ref=${encodeURIComponent(ref)}`);
+    const rolePath = role.toLowerCase();
+    navigate(`/${rolePath}/tracking?ref=${encodeURIComponent(ref)}`);
     setQuickTrack("");
   };
 

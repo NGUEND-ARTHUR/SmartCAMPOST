@@ -233,12 +233,13 @@ export function QRCodeScanner({
       await scanner.start(
         { facingMode },
         {
-          fps: 15,
+          fps: 10,
           qrbox: { width: qrBoxSize, height: qrBoxSize },
-          aspectRatio: 1,
         },
-        handleScanSuccess,
-        () => {},
+        (decodedText: string) => {
+          handleScanSuccess(decodedText);
+        },
+        undefined,
       );
 
       setIsScanning(true);

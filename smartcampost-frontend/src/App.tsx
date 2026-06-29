@@ -201,6 +201,7 @@ function App() {
             <Route path="deliveries/:id/confirm" element={<ConfirmDelivery />} />
             <Route path="deliveries/confirm" element={<ConfirmDelivery />} />
             <Route path="deliveries/failed" element={<FailedDeliveryReportPage />} />
+            <Route path="tracking" element={<TrackingPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
             <Route path="live-logistics" element={<LiveLogisticsPage />} />
             <Route path="gps" element={<MobileGpsUpdatePage />} />
@@ -243,6 +244,7 @@ function App() {
             <Route path="pickups" element={<AgentPickupsPage />} />
             <Route path="pickups/:id" element={<PickupDetail />} />
             <Route path="delivery-tools" element={<FailedDeliveryReportPage />} />
+            <Route path="tracking" element={<TrackingPage />} />
             <Route path="map" element={<RoleMapDashboard />} />
             <Route path="live-logistics" element={<LiveLogisticsPage />} />
             <Route path="gps" element={<MobileGpsUpdatePage />} />
