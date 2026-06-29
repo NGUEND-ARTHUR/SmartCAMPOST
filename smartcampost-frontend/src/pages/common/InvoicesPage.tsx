@@ -66,7 +66,7 @@ export default function InvoicesPage() {
                   w.document.write(html);
                   w.document.close();
                   w.focus();
-                  setTimeout(() => { try { w.print(); } catch {} }, 300);
+                  setTimeout(() => { try { w.print(); } catch { /* ignore */ } }, 300);
                 }}
               >
                 {t("invoices.downloadPdf")}
