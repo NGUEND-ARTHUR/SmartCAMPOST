@@ -1,11 +1,10 @@
 /**
  * QR Code Scanner Component
- * Camera-based QR code scanning for agents to scan parcel QR codes
- * Uses html5-qrcode library for cross-platform camera access
+ * Uses native BarcodeDetector API (Chrome/Edge mobile) as primary engine,
+ * with html5-qrcode as fallback for browsers without native support.
  */
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import {
   Camera,
   CameraOff,
@@ -18,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-
 
 interface QRCodeData {
   trackingRef: string;
@@ -37,7 +35,6 @@ export interface ScanResult {
   longitude?: number;
 }
 
-
 interface QRCodeScannerProps {
   onScan: (result: ScanResult) => void;
   onError?: (error: string) => void;
@@ -45,6 +42,44 @@ interface QRCodeScannerProps {
   continuous?: boolean;
   scanDelay?: number;
   showHistory?: boolean;
+}
+
+function parseQRCode(decodedText: string): ScanResult {
+  if (decodedText?.startsWith("V1|")) {
+    const parts = decodedText.split("|");
+    if (parts.length === 6 && parts[3]) {
+      return {
+        success: true,
+        data: { trackingRef: parts[3], type: "SMARTCAMPOST_SECURE", version: 1 },
+        rawText: decodedText,
+        timestamp: new Date(),
+      };
+    }
+    return { success: false, rawText: decodedText, timestamp: new Date(), error: "Invalid secure QR payload" };
+  }
+
+  try {
+    const data = JSON.parse(decodedText) as QRCodeData;
+    if (data.type !== "SMARTCAMPOST_PARCEL") {
+      return { success: false, rawText: decodedText, timestamp: new Date(), error: "Invalid QR code type" };
+    }
+    return { success: true, data, rawText: decodedText, timestamp: new Date() };
+  } catch {
+    if (decodedText.length >= 6 && decodedText.length <= 100) {
+      return {
+        success: true,
+        data: { trackingRef: decodedText, type: "TRACKING_REF", version: 1 },
+        rawText: decodedText,
+        timestamp: new Date(),
+      };
+    }
+    return { success: false, rawText: decodedText, timestamp: new Date(), error: "Invalid QR code format" };
+  }
+}
+
+// Check if native BarcodeDetector is available
+function hasBarcodeDetector(): boolean {
+  return typeof globalThis !== "undefined" && "BarcodeDetector" in globalThis;
 }
 
 export function QRCodeScanner({
@@ -58,237 +93,196 @@ export function QRCodeScanner({
   const { t } = useTranslation();
   const [isScanning, setIsScanning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [facingMode, setFacingMode] = useState<"environment" | "user">(
-    "environment",
-  );
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [lastScan, setLastScan] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [hasCamera, setHasCamera] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [engineUsed, setEngineUsed] = useState<"native" | "html5-qrcode" | "">("");
 
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanLoopRef = useRef<number>(0);
   const onScanRef = useRef(onScan);
   useEffect(() => { onScanRef.current = onScan; }, [onScan]);
   const lastScanTimeRef = useRef<number>(0);
 
-  const parseQRCode = useCallback((decodedText: string): ScanResult => {
-    // Secure payload format: V1|P|TOKEN|REF|TS|SIG
-    // We don't trust it locally; we only extract trackingRef for UX.
-    if (decodedText?.startsWith("V1|")) {
-      const parts = decodedText.split("|");
-      if (parts.length === 6) {
-        const trackingRef = parts[3];
-        if (trackingRef) {
-          return {
-            success: true,
-            data: {
-              trackingRef,
-              type: "SMARTCAMPOST_SECURE",
-              version: 1,
-            },
-            rawText: decodedText,
-            timestamp: new Date(),
-          };
-        }
-      }
-      return {
-        success: false,
-        rawText: decodedText,
-        timestamp: new Date(),
-        error: "Invalid secure QR payload",
-      };
-    }
+  // html5-qrcode fallback refs
+  const html5ScannerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    try {
-      const data = JSON.parse(decodedText) as QRCodeData;
+  const handleDetection = useCallback(
+    (decodedText: string) => {
+      const now = Date.now();
+      if (now - lastScanTimeRef.current < scanDelay) return;
+      lastScanTimeRef.current = now;
 
-      // Validate it's a SmartCAMPOST QR code
-      if (data.type !== "SMARTCAMPOST_PARCEL") {
-        return {
-          success: false,
-          rawText: decodedText,
-          timestamp: new Date(),
-          error: "Invalid QR code type",
-        };
+      const result = parseQRCode(decodedText);
+      setLastScan(result);
+      setScanHistory((prev) => [result, ...prev].slice(0, 10));
+
+      if (result.success) {
+        toast.success("QR Scanned", {
+          description: result.data?.trackingRef || decodedText.slice(0, 30),
+        });
+      } else {
+        toast.error("Invalid QR", { description: result.error });
       }
 
-      return {
-        success: true,
-        data,
-        rawText: decodedText,
-        timestamp: new Date(),
-      };
-    } catch {
-      // If not JSON, treat as plain tracking reference
-      if (decodedText.length >= 6 && decodedText.length <= 50) {
-        return {
-          success: true,
-          data: {
-            trackingRef: decodedText,
-            type: "TRACKING_REF",
-            version: 1,
-          },
-          rawText: decodedText,
-          timestamp: new Date(),
-        };
-      }
+      onScanRef.current(result);
+    },
+    [scanDelay],
+  );
 
-      return {
-        success: false,
-        rawText: decodedText,
-        timestamp: new Date(),
-        error: "Invalid QR code format",
-      };
-    }
-  }, []);
   const stopScanning = useCallback(async () => {
-    if (scannerRef.current?.isScanning) {
+    // Stop native scan loop
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = 0;
+    }
+    // Stop camera stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    // Stop html5-qrcode fallback
+    if (html5ScannerRef.current) {
       try {
-        await scannerRef.current.stop();
-        await scannerRef.current.clear();
-      } catch (err) {
-        console.error("Error stopping scanner:", err);
-      }
+        if (html5ScannerRef.current.isScanning) {
+          await html5ScannerRef.current.stop();
+        }
+        await html5ScannerRef.current.clear();
+      } catch { /* ignore cleanup */ }
+      html5ScannerRef.current = null;
     }
     setIsScanning(false);
   }, []);
 
-  const handleScanSuccess = useCallback(
-    (decodedText: string) => {
-      try {
-        const now = Date.now();
-        if (now - lastScanTimeRef.current < scanDelay) return;
-        lastScanTimeRef.current = now;
+  const startNativeScanner = useCallback(async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) throw new Error("Video/canvas elements not ready");
 
-        const result = parseQRCode(decodedText);
-        setLastScan(result);
-        setScanHistory((prev) => [result, ...prev].slice(0, 10));
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+    });
+    streamRef.current = stream;
+    video.srcObject = stream;
+    await video.play();
 
-        if (result.success) {
-          toast.success("QR Scanned", {
-            description: result.data?.trackingRef || decodedText.slice(0, 30),
-          });
-        } else {
-          toast.error("Invalid QR", { description: result.error });
-        }
+    const detector = new (globalThis as any).BarcodeDetector({ formats: ["qr_code"] });
+    setEngineUsed("native");
 
-        // Use ref to always call the latest onScan callback
-        onScanRef.current(result);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Scan processing error";
-        toast.error(msg);
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) throw new Error("Canvas context unavailable");
+
+    const scan = async () => {
+      if (!streamRef.current || video.readyState < 2) {
+        scanLoopRef.current = requestAnimationFrame(scan);
+        return;
       }
-    },
-    // Only stable deps — parseQRCode has no deps, scanDelay is a prop constant
-    [parseQRCode, scanDelay],
-  );
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      try {
+        const barcodes = await detector.detect(canvas);
+        if (barcodes.length > 0) {
+          handleDetection(barcodes[0].rawValue);
+        }
+      } catch { /* detection frame error — skip */ }
+      scanLoopRef.current = requestAnimationFrame(scan);
+    };
+
+    scanLoopRef.current = requestAnimationFrame(scan);
+  }, [facingMode, handleDetection]);
+
+  const startHtml5Fallback = useCallback(async () => {
+    const container = document.getElementById("qr-reader-fallback");
+    if (!container) throw new Error("Fallback container not found");
+
+    const { Html5Qrcode } = await import("html5-qrcode");
+    const scanner = new Html5Qrcode("qr-reader-fallback", { verbose: false });
+    html5ScannerRef.current = scanner;
+    setEngineUsed("html5-qrcode");
+
+    const containerWidth = container.clientWidth || 300;
+    const qrBoxSize = Math.min(250, Math.floor(containerWidth * 0.7));
+
+    await scanner.start(
+      { facingMode },
+      { fps: 10, qrbox: { width: qrBoxSize, height: qrBoxSize } },
+      (decodedText: string) => handleDetection(decodedText),
+      undefined,
+    );
+  }, [facingMode, handleDetection]);
 
   const startScanning = useCallback(async () => {
-    if (!containerRef.current) return;
-
     setIsLoading(true);
     setCameraError(null);
 
     try {
-      // Check if container element exists
-      const container = document.getElementById("qr-reader");
-      if (!container) {
-        throw new Error("Scanner container not found");
-      }
-
-      // Check camera permission
-      const devices = await Html5Qrcode.getCameras();
-      if (devices.length === 0) {
+      // Check camera availability
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter((d) => d.kind === "videoinput");
+      if (cameras.length === 0) {
         setHasCamera(false);
-        setCameraError(t("qrcode.scanner.errors.noCameraDevice"));
-        toast.error(t("qrcode.scanner.toasts.noCamera"));
-        onError?.(t("qrcode.scanner.toasts.noCamera"));
+        setCameraError("No camera found on this device");
+        toast.error("No camera found");
         setIsLoading(false);
         return;
       }
 
-      // Stop any existing scanner instance
-      if (scannerRef.current) {
+      // Stop any previous instance
+      await stopScanning();
+
+      // Try native BarcodeDetector first (much more reliable on mobile)
+      if (hasBarcodeDetector()) {
         try {
-          if (scannerRef.current.isScanning) {
-            await scannerRef.current.stop();
-          }
-          await scannerRef.current.clear();
-        } catch {
-          // Ignore cleanup errors
+          await startNativeScanner();
+          setIsScanning(true);
+          setIsLoading(false);
+          return;
+        } catch (err) {
+          console.warn("Native BarcodeDetector failed, falling back to html5-qrcode:", err);
         }
       }
 
-      const scanner = new Html5Qrcode("qr-reader", {
-        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-        verbose: false,
-      });
-
-      scannerRef.current = scanner;
-
-      const containerWidth = container.clientWidth || 300;
-      const qrBoxSize = Math.min(250, Math.floor(containerWidth * 0.7));
-
-      await scanner.start(
-        { facingMode },
-        {
-          fps: 10,
-          qrbox: { width: qrBoxSize, height: qrBoxSize },
-        },
-        (decodedText: string) => {
-          handleScanSuccess(decodedText);
-        },
-        undefined,
-      );
-
+      // Fallback to html5-qrcode
+      await startHtml5Fallback();
       setIsScanning(true);
       setIsLoading(false);
     } catch (err) {
       console.error("Camera error:", err);
       setIsLoading(false);
       setIsScanning(false);
-      const errorMessage =
-        err instanceof Error ? err.message : "Camera access denied";
+      const errorMessage = err instanceof Error ? err.message : "Camera access denied";
       setCameraError(errorMessage);
-      toast.error(t("qrcode.scanner.toasts.cameraError"), {
-        description: errorMessage,
-      });
+      toast.error(t("qrcode.scanner.toasts.cameraError"), { description: errorMessage });
       onError?.(errorMessage);
     }
-  }, [facingMode, handleScanSuccess, onError, t]);
+  }, [facingMode, stopScanning, startNativeScanner, startHtml5Fallback, onError, t]);
 
   const toggleCamera = useCallback(async () => {
     await stopScanning();
     setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
-    setTimeout(() => {
-      startScanning();
-    }, 100);
+    setTimeout(() => { startScanning(); }, 200);
   }, [stopScanning, startScanning]);
 
-  // Auto-start scanning
+  // Auto-start
   useEffect(() => {
     let mounted = true;
-
-    if (autoStart && mounted) {
-      // Small delay to ensure DOM is ready
+    if (autoStart) {
       const timer = setTimeout(() => {
-        if (mounted) {
-          startScanning().catch(console.error);
-        }
+        if (mounted) startScanning().catch(console.error);
       }, 500);
-      return () => {
-        mounted = false;
-        clearTimeout(timer);
-        stopScanning();
-      };
+      return () => { mounted = false; clearTimeout(timer); stopScanning(); };
     }
-
-    return () => {
-      mounted = false;
-      stopScanning();
-    };
-     
+    return () => { mounted = false; stopScanning(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart]);
 
   const clearHistory = () => {
@@ -305,25 +299,43 @@ export function QRCodeScanner({
             <Camera className="h-5 w-5" />
             {t("qrcode.scanner.title")}
           </span>
-          <Badge variant={isScanning ? "default" : "secondary"}>
-            {isScanning
-              ? t("qrcode.scanner.status.scanning")
-              : t("qrcode.scanner.status.stopped")}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {engineUsed && (
+              <Badge variant="outline" className="text-[10px]">
+                {engineUsed === "native" ? "Native" : "JS"}
+              </Badge>
+            )}
+            <Badge variant={isScanning ? "default" : "secondary"}>
+              {isScanning
+                ? t("qrcode.scanner.status.scanning")
+                : t("qrcode.scanner.status.stopped")}
+            </Badge>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Scanner View */}
         <div className="relative">
-          {/* Keep #qr-reader free of React children — html5-qrcode directly mutates its DOM */}
+          {/* Native scanner: video + hidden canvas */}
+          <video
+            ref={videoRef}
+            className={`w-full aspect-square object-cover rounded-lg bg-muted ${engineUsed === "native" && isScanning ? "" : "hidden"}`}
+            playsInline
+            muted
+            autoPlay
+          />
+          <canvas ref={canvasRef} className="hidden" />
+
+          {/* html5-qrcode fallback container */}
           <div
-            id="qr-reader"
+            id="qr-reader-fallback"
             ref={containerRef}
-            className="w-full aspect-square bg-muted rounded-lg overflow-hidden min-h-75"
+            className={`w-full aspect-square bg-muted rounded-lg overflow-hidden ${engineUsed === "html5-qrcode" && isScanning ? "" : "hidden"}`}
           />
 
+          {/* Placeholder when not scanning */}
           {!isScanning && !isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground z-10 bg-muted rounded-lg">
+            <div className="w-full aspect-square flex flex-col items-center justify-center text-muted-foreground bg-muted rounded-lg">
               {cameraError ? (
                 <>
                   <XCircle className="h-12 w-12 mb-2 text-destructive" />
@@ -332,10 +344,7 @@ export function QRCodeScanner({
                     variant="outline"
                     size="sm"
                     className="mt-4"
-                    onClick={() => {
-                      setCameraError(null);
-                      startScanning();
-                    }}
+                    onClick={() => { setCameraError(null); startScanning(); }}
                   >
                     {t("common.tryAgain")}
                   </Button>
@@ -354,23 +363,21 @@ export function QRCodeScanner({
             </div>
           )}
           {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10 rounded-lg">
+            <div className="w-full aspect-square flex flex-col items-center justify-center bg-background/80 rounded-lg">
               <Loader2 className="h-8 w-8 animate-spin mb-2" />
               <p>{t("qrcode.scanner.activatingCamera")}</p>
             </div>
           )}
 
-          {/* Scan overlay */}
-          {isScanning && (
+          {/* Scan overlay for native scanner */}
+          {isScanning && engineUsed === "native" && (
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-64 h-64 border-2 border-primary rounded-lg relative">
-                  {/* Corner markers */}
                   <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-lg" />
                   <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-lg" />
                   <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-lg" />
                   <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-lg" />
-                  {/* Scanning line animation */}
                   <div className="absolute left-2 right-2 h-0.5 bg-primary animate-scan" />
                 </div>
               </div>
@@ -424,9 +431,7 @@ export function QRCodeScanner({
               <div className="text-sm space-y-1">
                 <p>
                   <span className="text-muted-foreground">{t("qrcode.scanner.trackingRef")}:</span>{" "}
-                  <span className="font-mono font-bold">
-                    {lastScan.data.trackingRef}
-                  </span>
+                  <span className="font-mono font-bold">{lastScan.data.trackingRef}</span>
                 </p>
                 {lastScan.data.parcelId && (
                   <p>
@@ -459,15 +464,15 @@ export function QRCodeScanner({
                 >
                   <div className="flex items-center gap-2">
                     {scan.success ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-3 w-3 text-green-600" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
+                      <XCircle className="h-3 w-3 text-red-600" />
                     )}
-                    <span className="font-mono">
+                    <span className="font-mono text-xs">
                       {scan.data?.trackingRef || scan.rawText.slice(0, 20)}
                     </span>
                   </div>
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-xs text-muted-foreground">
                     {scan.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
@@ -476,17 +481,6 @@ export function QRCodeScanner({
           </div>
         )}
       </CardContent>
-
-      {/* Custom CSS for scan animation */}
-      <style>{`
-        @keyframes scan {
-          0%, 100% { top: 10%; }
-          50% { top: 85%; }
-        }
-        .animate-scan {
-          animation: scan 2s ease-in-out infinite;
-        }
-      `}</style>
     </Card>
   );
 }
