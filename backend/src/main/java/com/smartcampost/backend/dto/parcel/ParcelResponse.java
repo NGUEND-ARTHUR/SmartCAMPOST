@@ -39,6 +39,16 @@ public class ParcelResponse {
     private Double currentLongitude;
     private Instant locationUpdatedAt;
 
+    private String senderCity;
+    private String senderRegion;
+    private String senderCountry;
+    private String recipientCity;
+    private String recipientRegion;
+    private String recipientCountry;
+
+    private Double creationLatitude;
+    private Double creationLongitude;
+
     private Instant createdAt;
     private Instant expectedDeliveryAt;
 }

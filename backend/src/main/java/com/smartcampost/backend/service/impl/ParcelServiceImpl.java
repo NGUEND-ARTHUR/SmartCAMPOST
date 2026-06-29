@@ -579,6 +579,9 @@ public class ParcelServiceImpl implements ParcelService {
 
     // ================== MAPPERS ==================
     private ParcelResponse toResponse(Parcel parcel) {
+        Address sender = parcel.getSenderAddress();
+        Address recipient = parcel.getRecipientAddress();
+
         return ParcelResponse.builder()
                 .id(parcel.getId())
                 .trackingRef(parcel.getTrackingRef())
@@ -588,17 +591,21 @@ public class ParcelServiceImpl implements ParcelService {
                 .deliveryOption(parcel.getDeliveryOption())
                 .weight(parcel.getWeight())
                 .clientId(parcel.getClient().getId())
-                .senderAddressId(parcel.getSenderAddress().getId())
-                .recipientAddressId(parcel.getRecipientAddress().getId())
-
-                // 🔥 SPRINT 14: nouveaux champs
+                .senderAddressId(sender.getId())
+                .recipientAddressId(recipient.getId())
                 .paymentOption(parcel.getPaymentOption())
                 .photoUrl(parcel.getPhotoUrl())
                 .descriptionComment(parcel.getDescriptionComment())
                 .qrStatus(parcel.getQrStatus())
                 .locked(parcel.isLocked())
-                // -----------------------------
-
+                .senderCity(sender.getCity())
+                .senderRegion(sender.getRegion())
+                .senderCountry(sender.getCountry())
+                .recipientCity(recipient.getCity())
+                .recipientRegion(recipient.getRegion())
+                .recipientCountry(recipient.getCountry())
+                .creationLatitude(parcel.getCreationLatitude())
+                .creationLongitude(parcel.getCreationLongitude())
                 .currentLatitude(parcel.getCurrentLatitude())
                 .currentLongitude(parcel.getCurrentLongitude())
                 .locationUpdatedAt(parcel.getLocationUpdatedAt())

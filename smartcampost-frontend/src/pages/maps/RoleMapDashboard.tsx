@@ -145,6 +145,15 @@ export default function RoleMapDashboard() {
                   type: "parcel", status: p.status,
                 });
               }
+            } else {
+              // Fallback: use creation GPS or default to Douala
+              const fallbackLat = (p as any).creationLatitude ?? 4.0511;
+              const fallbackLng = (p as any).creationLongitude ?? 9.7679;
+              parcelMarkers.push({
+                id: p.id, position: [fallbackLat, fallbackLng],
+                label: `📦 ${p.trackingRef} • ${p.status} (awaiting GPS)`,
+                type: "parcel", status: p.status,
+              });
             }
           }
 
