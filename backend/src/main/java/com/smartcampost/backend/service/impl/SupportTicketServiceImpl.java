@@ -132,8 +132,10 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     public Page<TicketResponse> listMyTickets(int page, int size) {
         UserAccount user = getCurrentUserAccount();
 
+        // AGENT/COURIER: see all tickets (operational access)
         if (user.getRole() != UserRole.CLIENT) {
-            throw new AuthException(ErrorCode.AUTH_FORBIDDEN, "Current user is not a client");
+            return supportTicketRepository.findAll(PageRequest.of(page, size))
+                    .map(this::toResponse);
         }
 
         UUID clientId = Objects.requireNonNull(user.getEntityId(), "user.entityId is required");

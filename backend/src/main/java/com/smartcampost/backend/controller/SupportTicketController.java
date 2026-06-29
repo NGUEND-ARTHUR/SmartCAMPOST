@@ -19,7 +19,7 @@ public class SupportTicketController {
     private final SupportTicketService supportTicketService;
 
     @PostMapping
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER')")
     public ResponseEntity<TicketResponse> createTicket(
             @Valid @RequestBody CreateTicketRequest request
     ) {
@@ -32,7 +32,7 @@ public class SupportTicketController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER')")
     public ResponseEntity<Page<TicketResponse>> listMyTickets(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
