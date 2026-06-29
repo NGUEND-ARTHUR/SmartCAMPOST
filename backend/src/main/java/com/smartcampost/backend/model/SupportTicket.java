@@ -30,8 +30,11 @@ public class SupportTicket {
     @Column(name = "subject", nullable = false, length = 200)
     private String subject;
 
-    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "message", nullable = false, length = 2000)
     private String message;
+
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)

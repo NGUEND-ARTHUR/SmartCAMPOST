@@ -180,7 +180,7 @@ public class SecurityConfig {
                         // ===================================================
                         //                 NOTIFICATION MODULE
                         // ===================================================
-                        .requestMatchers("/api/notifications/me")
+                        .requestMatchers("/api/notifications/me", "/api/notifications/read-all", "/api/notifications/*/read")
                         .authenticated()
                         .requestMatchers("/api/notifications/**")
                         .hasAnyRole("ADMIN", "STAFF")

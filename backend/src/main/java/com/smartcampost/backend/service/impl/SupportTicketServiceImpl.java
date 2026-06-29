@@ -97,6 +97,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                 .parcel(parcel)
                 .subject(request.getSubject())
                 .message(request.getMessage())
+                .description(request.getMessage())
                 .category(parseCategory(request.getCategory()))
                 .status(TicketStatus.OPEN)
                 .createdAt(Instant.now())
