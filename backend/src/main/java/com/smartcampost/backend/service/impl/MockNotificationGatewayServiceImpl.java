@@ -11,6 +11,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Slf4j
 public class MockNotificationGatewayServiceImpl implements NotificationGatewayService {
 
+    @jakarta.annotation.PostConstruct
+    public void warnMockActive() {
+        log.warn("[MOCK NOTIFICATION] SMS/Email gateway is MOCK — no messages will be sent. "
+                + "Set NOTIFICATION_GATEWAY=twilio for production.");
+    }
+
     @Override
     public void sendSms(String phone, String message) throws Exception {
         log.info("📲 [MOCK SMS] to={} | chars={}", maskPhone(phone), message != null ? message.length() : 0);

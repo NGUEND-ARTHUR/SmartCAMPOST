@@ -17,6 +17,8 @@ public class TicketResponse {
     private String message;
     private String category;
     private TicketStatus status;
+    private UUID parcelId;
+    private String trackingRef;
     private Instant createdAt;
     private Instant updatedAt;
 }
