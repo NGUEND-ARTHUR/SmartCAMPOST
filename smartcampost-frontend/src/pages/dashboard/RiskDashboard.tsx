@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { useRiskAlerts } from "@/hooks";
 import { StatsCard } from "@/components/StatsCard";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 
 type Severity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 type AlertState = "OPEN" | "INVESTIGATING" | "RESOLVED";
@@ -69,6 +70,8 @@ export default function RiskDashboard() {
         <StatsCard icon={Siren} label={t("riskDashboard.critical")} value={metrics.critical} subtitle={t("riskDashboard.high")} accentColor="bg-red-500" />
         <StatsCard icon={ShieldCheck} label={t("riskDashboard.noAlerts")} value={metrics.resolved} subtitle={t("riskDashboard.flaggedParcelsDesc")} accentColor="bg-emerald-500" />
       </div>
+
+      <AIInsightsWidget />
 
       <Card>
         <CardHeader>

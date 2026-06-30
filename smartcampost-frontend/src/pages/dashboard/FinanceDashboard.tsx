@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { usePayments } from "@/hooks";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 
 type PaymentStatusLocal =
   | "INIT"
@@ -67,6 +68,8 @@ export default function FinanceDashboard() {
         <StatsCard icon={Receipt} label={t("financeDashboard.completedTransactions")} value={totals.successCount} subtitle={t("financeDashboard.completedTransactionsDesc")} accentColor="bg-blue-500" />
         <StatsCard icon={CreditCard} label={t("common.failed")} value={totals.failedCount} subtitle={t("financeDashboard.averageValueDesc")} accentColor="bg-red-500" />
       </div>
+
+      <AIInsightsWidget />
 
       <Card>
         <CardHeader>

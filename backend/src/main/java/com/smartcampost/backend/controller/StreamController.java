@@ -1,5 +1,6 @@
 package com.smartcampost.backend.controller;
 
+import com.smartcampost.backend.security.ParcelAuthorizationService;
 import com.smartcampost.backend.sse.SseEmitters;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -20,8 +22,12 @@ import java.util.stream.Collectors;
 public class StreamController {
 
     private final SseEmitters sseEmitters;
+    private final ParcelAuthorizationService parcelAuthorizationService;
 
-    public StreamController(SseEmitters sseEmitters) { this.sseEmitters = sseEmitters; }
+    public StreamController(SseEmitters sseEmitters, ParcelAuthorizationService parcelAuthorizationService) {
+        this.sseEmitters = sseEmitters;
+        this.parcelAuthorizationService = parcelAuthorizationService;
+    }
 
     @GetMapping(value = "/scans", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN')")
@@ -46,5 +52,12 @@ public class StreamController {
     @GetMapping(value = "/tracking/{trackingRef}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamTracking(@PathVariable String trackingRef) {
         return sseEmitters.createTrackingEmitter(trackingRef);
+    }
+
+    @GetMapping(value = "/parcels/{parcelId}/messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public SseEmitter streamParcelMessages(@PathVariable UUID parcelId, Authentication authentication) {
+        parcelAuthorizationService.requireReadableParcel(parcelId, authentication);
+        return sseEmitters.createParcelMessageEmitter(parcelId);
     }
 }

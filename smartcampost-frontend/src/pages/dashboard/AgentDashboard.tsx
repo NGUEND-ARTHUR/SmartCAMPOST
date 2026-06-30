@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardSummary } from "@/hooks";
 import { getErrorMessage } from "@/lib/errorHandler";
 import { Loader2 } from "lucide-react";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 
 export default function AgentDashboard() {
   const { t } = useTranslation();
@@ -33,6 +34,8 @@ export default function AgentDashboard() {
           </Button>
         </div>
       </div>
+
+      <AIInsightsWidget />
 
       {isLoading ? (
         <div className="flex justify-center py-12">

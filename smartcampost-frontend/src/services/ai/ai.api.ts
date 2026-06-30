@@ -78,6 +78,23 @@ export interface DeliveryPredictionResponse {
   factors: string[];
 }
 
+export interface AgentRecommendationItem {
+  title: string;
+  description: string;
+  priority: "HIGH" | "MEDIUM" | "LOW" | string;
+  actionType: string;
+  payload?: unknown;
+  createdAt: number;
+}
+
+export interface AgentStatusResponse {
+  role: string;
+  recommendations: AgentRecommendationItem[];
+  agentHealth: "HEALTHY" | "DEGRADED" | "OFFLINE" | string;
+  summary: string;
+  lastActivityAt?: number;
+}
+
 // ---- Service ----
 export const aiService = {
   /**
@@ -114,5 +131,13 @@ export const aiService = {
     feedback: "positive" | "negative";
   }): Promise<void> {
     return httpClient.post("/ai/feedback", payload);
+  },
+
+  /**
+   * Get current AI agent status + role-tailored recommendations for the
+   * authenticated user (works for CLIENT, COURIER, AGENT, STAFF, ADMIN, RISK, FINANCE).
+   */
+  getAgentStatus(): Promise<AgentStatusResponse> {
+    return httpClient.get("/ai/agent/status");
   },
 };

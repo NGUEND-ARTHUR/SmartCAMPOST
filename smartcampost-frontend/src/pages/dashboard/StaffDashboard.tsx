@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/EmptyState";
 import { useStaffList } from "@/hooks";
 import { StatsCard } from "@/components/StatsCard";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 
 type StaffRole = "AGENT" | "SUPPORT" | "FINANCE" | "RISK" | "ADMIN";
 type StaffStatus = "ACTIVE" | "OFF_DUTY" | "SUSPENDED";
@@ -105,6 +106,8 @@ export default function StaffDashboard() {
         <StatsCard icon={User} label={t("staffDashboard.active", "Active")} value={totals.active} subtitle={t("staffDashboard.currentlyOnDuty")} accentColor="bg-emerald-500" />
         <StatsCard icon={Users} label={t("staffDashboard.agents", "Agents")} value={totals.agents} subtitle={t("staffDashboard.fieldOperations")} accentColor="bg-violet-500" />
       </div>
+
+      <AIInsightsWidget />
 
       <Card>
         <CardHeader>

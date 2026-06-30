@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useMyParcels } from "@/hooks";
 import { useMemo } from "react";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 
 export function ClientDashboard() {
   const { t } = useTranslation();
@@ -37,6 +38,8 @@ export function ClientDashboard() {
           {t("dashboard.client.createParcel")}
         </Button>
       </div>
+
+      <AIInsightsWidget />
 
       {isLoading ? (
         <div className="flex justify-center py-12">

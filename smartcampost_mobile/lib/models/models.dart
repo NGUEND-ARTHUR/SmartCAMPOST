@@ -5,3 +5,8 @@ export 'scan_event.dart';
 export 'address.dart';
 export 'common.dart';
 export 'paginated_response.dart';
+export 'parcel_message.dart';
+export 'agent_status.dart';
+export 'pricing_detail.dart';
+export 'route_optimization.dart';
+export 'demand_forecast.dart';

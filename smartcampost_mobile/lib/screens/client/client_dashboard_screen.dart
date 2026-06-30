@@ -6,6 +6,7 @@ import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
+import 'package:smartcampost_mobile/widgets/ai_insights_widget.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 import 'package:smartcampost_mobile/widgets/shimmer.dart';
 
@@ -106,7 +107,9 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
+            const AIInsightsWidget(),
+            const SizedBox(height: 12),
 
             // ─── Quick Actions Grid ───
             Padding(

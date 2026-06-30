@@ -36,6 +36,8 @@ import { QRCodeDisplay, QRCodeViewerDialog } from "@/components/qrcode";
 import { canTransition } from "@/lib/transitions";
 import { ActionButton } from "@/components/transitions/ActionButton";
 import { EmptyState } from "@/components/EmptyState";
+import ParcelChatPanel from "@/components/parcelMessages/ParcelChatPanel";
+import { normalizeApiBase } from "@/lib/axiosClient";
 // invoiceService removed — receipts are generated client-side
 import {
   useParcel,
@@ -140,8 +142,8 @@ export default function ParcelDetail() {
     const ref = parcel?.trackingRef;
     if (!ref) return;
 
-    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
-    const sseUrl = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+    const base = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
+    const sseUrl = `${base}/stream/tracking/${encodeURIComponent(ref)}`;
     const es = new EventSource(sseUrl);
 
     es.addEventListener("gps-update", (event: MessageEvent) => {
@@ -573,6 +575,8 @@ export default function ParcelDetail() {
           </div>
         </CardContent>
       </Card>
+
+      <ParcelChatPanel parcelId={parcel.id} />
 
       <Card>
         <CardContent className="pt-6">

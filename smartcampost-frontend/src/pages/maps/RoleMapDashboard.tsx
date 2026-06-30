@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, MapPin, Navigation, RefreshCw, Filter } from "lucide-react";
+import { Loader2, MapPin, Navigation, RefreshCw, Filter, Route } from "lucide-react";
 import LeafletMap from "@/components/maps/LeafletMap";
 import TrackingMap from "@/components/maps/TrackingMap";
 import { useAuthStore } from "@/store/authStore";
 import { parcelService } from "@/services/parcels";
-import { mapService, ParcelMapResponse } from "@/services/maps";
+import { mapService, ParcelMapResponse, RouteOptimizationResult } from "@/services/maps";
 import { geolocationService } from "@/services/common/geolocation.api";
 import { agencyService } from "@/services/users/agencies.api";
+import { normalizeApiBase } from "@/lib/axiosClient";
 
 const CITY_GEOCODE_CACHE: Record<string, { lat: number; lng: number }> = {
   douala: { lat: 4.0511, lng: 9.7679 },
@@ -90,6 +91,9 @@ export default function RoleMapDashboard() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [routeResult, setRouteResult] = useState<RouteOptimizationResult | null>(null);
+  const [routeError, setRouteError] = useState<string | null>(null);
 
   const loadMapData = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -214,7 +218,49 @@ export default function RoleMapDashboard() {
             }
           }
 
-          setMarkers([...agencyMarkers, ...locationMarkers, ...parcelMarkers]);
+          // Pickup stops — where to collect parcels from sender
+          const pickupMarkers: MarkerItem[] = [];
+          for (const stop of (courierData.pickupStops ?? [])) {
+            let lat = stop.latitude;
+            let lng = stop.longitude;
+            if (!lat || !lng) {
+              const c = await geocodeCity(stop.city, stop.country);
+              if (c) { lat = c.lat; lng = c.lng; }
+            }
+            if (lat && lng) {
+              pickupMarkers.push({
+                id: `pickup-${stop.parcelId}`,
+                position: [lat, lng],
+                label: `🏠 COLLECT: ${stop.trackingRef ?? stop.parcelId}${stop.address ? ` (${stop.address})` : ""}`,
+                type: "pickup",
+                color: "#10b981",
+                status: stop.status,
+              });
+            }
+          }
+
+          // Delivery stops — where to deposit parcels
+          const deliveryMarkers: MarkerItem[] = [];
+          for (const stop of (courierData.deliveryStops ?? [])) {
+            let lat = stop.latitude;
+            let lng = stop.longitude;
+            if (!lat || !lng) {
+              const c = await geocodeCity(stop.city, stop.country);
+              if (c) { lat = c.lat; lng = c.lng; }
+            }
+            if (lat && lng) {
+              deliveryMarkers.push({
+                id: `delivery-${stop.parcelId}`,
+                position: [lat, lng],
+                label: `📬 DELIVER: ${stop.trackingRef ?? stop.parcelId}${stop.address ? ` (${stop.address})` : ""}`,
+                type: "delivery",
+                color: "#f97316",
+                status: stop.status,
+              });
+            }
+          }
+
+          setMarkers([...agencyMarkers, ...locationMarkers, ...parcelMarkers, ...pickupMarkers, ...deliveryMarkers]);
           setTrackedParcels((myParcels.content ?? [])
             .filter((p) => p.status !== "DELIVERED" && p.status !== "CANCELLED")
             .map((p) => ({
@@ -281,6 +327,54 @@ export default function RoleMapDashboard() {
     [role, t],
   );
 
+  const handleOptimizeRoute = useCallback(async () => {
+    setIsOptimizing(true);
+    setRouteError(null);
+    setRouteResult(null);
+
+    const stopMarkers = markers.filter((m) => m.type === "pickup" || m.type === "delivery");
+    if (stopMarkers.length === 0) {
+      setRouteError("No pickup or delivery stops to optimize.");
+      setIsOptimizing(false);
+      return;
+    }
+
+    const getPosition = (): Promise<GeolocationPosition> =>
+      new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 10000 })
+      );
+
+    try {
+      let currentLat = 4.0511;
+      let currentLng = 9.7679;
+      try {
+        const pos = await getPosition();
+        currentLat = pos.coords.latitude;
+        currentLng = pos.coords.longitude;
+      } catch { /* use default Douala coords */ }
+
+      const stops = stopMarkers.map((m) => ({
+        id: m.id,
+        type: m.type === "pickup" ? ("PICKUP" as const) : ("DELIVERY" as const),
+        latitude: m.position[0],
+        longitude: m.position[1],
+        address: m.label,
+      }));
+
+      const result = await mapService.optimizeRoute({
+        currentLatitude: currentLat,
+        currentLongitude: currentLng,
+        stops,
+        optimizationStrategy: "BALANCED",
+      });
+      setRouteResult(result);
+    } catch (e) {
+      setRouteError(e instanceof Error ? e.message : "Route optimization failed.");
+    } finally {
+      setIsOptimizing(false);
+    }
+  }, [markers]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadMapData(); }, 0);
     return () => window.clearTimeout(timer);
@@ -300,8 +394,7 @@ export default function RoleMapDashboard() {
   useEffect(() => {
     if (trackedParcels.length === 0 && role !== "ADMIN" && role !== "STAFF") return;
 
-    const base = (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8082/api";
-    const normalizedBase = base.replace(/\/+$/, "");
+    const normalizedBase = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
     const sseConnections: EventSource[] = [];
 
     // Client/courier/agent: subscribe to individual parcel tracking streams
@@ -364,9 +457,12 @@ export default function RoleMapDashboard() {
 
   const canTrackParcels = CLIENT_PARCEL_ROLES.has(role) || COURIER_MAP_ROLES.has(role);
   const showFilters = role === "ADMIN" || role === "STAFF" || COURIER_MAP_ROLES.has(role);
+  const isCourierRole = COURIER_MAP_ROLES.has(role);
   const parcelCount = filteredMarkers.filter((m) => m.type === "parcel").length;
   const agencyCount = filteredMarkers.filter((m) => m.type === "agency").length;
   const locationCount = filteredMarkers.filter((m) => m.type === "location").length;
+  const pickupCount = filteredMarkers.filter((m) => m.type === "pickup").length;
+  const deliveryCount = filteredMarkers.filter((m) => m.type === "delivery").length;
 
   return (
     <div className="space-y-6">
@@ -384,6 +480,17 @@ export default function RoleMapDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {isCourierRole && (
+            <Button
+              variant="default"
+              onClick={() => void handleOptimizeRoute()}
+              disabled={isOptimizing}
+              className="gap-2"
+            >
+              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Route className="h-4 w-4" />}
+              Optimize Route
+            </Button>
+          )}
           <Button variant="outline" onClick={() => void loadMapData()} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             {t("common.refresh")}
@@ -478,10 +585,12 @@ export default function RoleMapDashboard() {
                 {t("roleMap.locationMap")}
               </CardTitle>
               <div className="flex items-center gap-3">
-                <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                   {parcelCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" />Parcels ({parcelCount})</span>}
                   {agencyCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" />Agencies ({agencyCount})</span>}
-                  {locationCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-500" />GPS Points ({locationCount})</span>}
+                  {locationCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-500" />GPS ({locationCount})</span>}
+                  {pickupCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10b981" }} />Collect ({pickupCount})</span>}
+                  {deliveryCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#f97316" }} />Deliver ({deliveryCount})</span>}
                 </div>
                 <Badge variant="secondary">{filteredMarkers.length} markers</Badge>
               </div>
@@ -521,6 +630,55 @@ export default function RoleMapDashboard() {
                   }))}
                   showAnimation={false}
                 />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Route optimization result panel */}
+          {isCourierRole && (routeResult || routeError) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Route className="h-5 w-5" />
+                  Optimized Route
+                  {routeResult && (
+                    <span className="ml-auto text-sm font-normal text-muted-foreground">
+                      {routeResult.totalDistanceKm.toFixed(1)} km · ~{routeResult.estimatedDurationMinutes} min · {routeResult.fuelSavingsPercent.toFixed(0)}% fuel saved
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {routeError && <p className="text-destructive text-sm">{routeError}</p>}
+                {routeResult && (
+                  <ol className="space-y-2">
+                    {routeResult.optimizedRoute.map((stop) => (
+                      <li key={stop.stopId} className="flex items-start gap-3 text-sm">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                          {stop.order}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge
+                              variant="outline"
+                              className="text-xs"
+                              style={{ borderColor: stop.type === "PICKUP" ? "#10b981" : "#f97316", color: stop.type === "PICKUP" ? "#10b981" : "#f97316" }}
+                            >
+                              {stop.type === "PICKUP" ? "🏠 COLLECT" : "📬 DELIVER"}
+                            </Badge>
+                            {stop.arrivalTime && (
+                              <span className="text-xs text-muted-foreground">ETA {stop.arrivalTime}</span>
+                            )}
+                            {stop.distanceFromPrevious != null && (
+                              <span className="text-xs text-muted-foreground">+{stop.distanceFromPrevious.toFixed(1)} km</span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground truncate mt-0.5">{stop.address ?? stop.stopId}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </CardContent>
             </Card>
           )}

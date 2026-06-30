@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 
 import DeliveryWorkflowStepper from "@/components/delivery/DeliveryWorkflowStepper";
+import ParcelChatPanel from "@/components/parcelMessages/ParcelChatPanel";
 import EmptyState from "@/components/EmptyState";
 import { useParcel } from "@/hooks";
 
@@ -99,6 +100,8 @@ export default function DeliveryDetail() {
         onExit={() => navigate("/courier/deliveries")}
         onComplete={() => navigate("/courier/deliveries")}
       />
+
+      <ParcelChatPanel parcelId={parcel.id} />
     </div>
   );
 }

@@ -2,7 +2,8 @@ import axios from "axios";
 
 const rawBase = import.meta.env.VITE_API_URL as string | undefined;
 
-function normalizeBase(url?: string) {
+/** Normalizes a configured API base URL, ensuring it always ends in `/api`. */
+export function normalizeApiBase(url?: string) {
   const fallback = "http://localhost:8082/api";
   if (!url) return fallback;
   const trimmed = url.replace(/\/+$/, "");
@@ -11,7 +12,7 @@ function normalizeBase(url?: string) {
 }
 
 export const axiosInstance = axios.create({
-  baseURL: normalizeBase(rawBase),
+  baseURL: normalizeApiBase(rawBase),
   timeout: 60_000,
   headers: {
     "Content-Type": "application/json",

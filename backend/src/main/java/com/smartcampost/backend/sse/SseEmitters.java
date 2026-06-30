@@ -36,6 +36,9 @@ public class SseEmitters {
     // or GPS data belonging to other parcels/actors.
     private final ConcurrentHashMap<SseEmitter, String> trackingEmitters = new ConcurrentHashMap<>();
 
+    // Emitters scoped to a single parcel's courier-client chat thread.
+    private final ConcurrentHashMap<SseEmitter, UUID> parcelMessageEmitters = new ConcurrentHashMap<>();
+
     // Prevent duplicate emits when the same ScanEvent is emitted from multiple code paths.
     private final ConcurrentHashMap<UUID, Instant> recentlyEmittedScanIds = new ConcurrentHashMap<>();
     private static final Duration DEDUP_WINDOW = Duration.ofSeconds(30);
@@ -66,6 +69,32 @@ public class SseEmitters {
         emitter.onTimeout(() -> trackingEmitters.remove(emitter));
         emitter.onError((e) -> trackingEmitters.remove(emitter));
         return emitter;
+    }
+
+    public SseEmitter createParcelMessageEmitter(UUID parcelId) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        SseEmitter emitter = new SseEmitter(0L); // never timeout; client should disconnect
+        parcelMessageEmitters.put(emitter, parcelId);
+        emitter.onCompletion(() -> parcelMessageEmitters.remove(emitter));
+        emitter.onTimeout(() -> parcelMessageEmitters.remove(emitter));
+        emitter.onError((e) -> parcelMessageEmitters.remove(emitter));
+        return emitter;
+    }
+
+    /** Sends a new chat message only to subscribers of this exact parcel's thread. */
+    public void emitParcelMessage(UUID parcelId, Object payload) {
+        Objects.requireNonNull(parcelId, "parcelId is required");
+        Objects.requireNonNull(payload, "payload is required");
+
+        parcelMessageEmitters.forEach((emitter, id) -> {
+            if (!parcelId.equals(id)) return;
+            try {
+                emitter.send(SseEmitter.event().name("parcel-message").data(payload));
+            } catch (IOException e) {
+                log.warn("Removing dead parcel-message emitter after IO error", e);
+                parcelMessageEmitters.remove(emitter);
+            }
+        });
     }
 
     /** Sends a payload only to public tracking-page clients subscribed to this exact trackingRef. */

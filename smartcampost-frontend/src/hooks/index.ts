@@ -13,6 +13,7 @@ export * from "./support";
 export * from "./notifications";
 export * from "./compliance";
 export * from "./ai";
+export * from "./messages";
 
 // Utility hooks
 export { default as useGeolocation } from "./useGeolocation";

@@ -9,6 +9,7 @@ import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/models/parcel.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/delivery_service.dart';
+import 'package:smartcampost_mobile/widgets/parcel_chat_widget.dart';
 import 'package:smartcampost_mobile/widgets/success_animation.dart';
 
 class DeliveryConfirmationScreen extends StatefulWidget {
@@ -245,7 +246,26 @@ class _DeliveryConfirmationScreenState
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Chat with client
+            Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Row(
+                  children: [
+                    const Icon(Icons.chat_bubble_outline, size: 18, color: AppTheme.primaryColor),
+                    const SizedBox(width: 8),
+                    Text(tr('parcel_chat'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  ],
+                ),
+                children: [
+                  ParcelChatWidget(parcelId: widget.parcel.id, margin: EdgeInsets.zero),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // OTP Flow
             Text(

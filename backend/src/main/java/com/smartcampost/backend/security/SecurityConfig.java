@@ -172,8 +172,12 @@ public class SecurityConfig {
 
                         // ===================================================
                         //                 SCAN EVENTS (Tracking)
-                        //   AGENT / COURIER / STAFF / ADMIN can scan
+                        //   AGENT / COURIER / STAFF / ADMIN can scan;
+                        //   CLIENT can read their own parcel's history
+                        //   (ownership enforced in ScanEventServiceImpl)
                         // ===================================================
+                        .requestMatchers(HttpMethod.GET, "/api/scan-events/parcel/**")
+                        .authenticated()
                         .requestMatchers("/api/scan-events/**")
                         .hasAnyRole("ADMIN", "STAFF", "AGENT", "COURIER")
 

@@ -47,6 +47,24 @@ export interface AdminMapOverviewResponse {
   }>;
 }
 
+export interface CourierStop {
+  parcelId: string;
+  trackingRef?: string;
+  status?: string;
+  type: "PICKUP" | "DELIVERY";
+  address?: string;
+  city?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  contactName?: string;
+  contactPhone?: string;
+  requestedDate?: string;
+  timeWindow?: string;
+  pickupRequestId?: string;
+  deliveryOption?: string;
+}
+
 export interface CourierMapResponse {
   locations?: Array<{
     id?: string | number;
@@ -65,6 +83,45 @@ export interface CourierMapResponse {
     currentEventType?: string;
     locationNote?: string;
   }>;
+  pickupStops?: CourierStop[];
+  deliveryStops?: CourierStop[];
+}
+
+export interface RouteOptimizationStop {
+  id: string;
+  type: "PICKUP" | "DELIVERY" | "DEPOT";
+  latitude: number;
+  longitude: number;
+  address?: string;
+  priority?: number;
+  timeWindow?: string;
+}
+
+export interface RouteOptimizationRequest {
+  currentLatitude: number;
+  currentLongitude: number;
+  stops: RouteOptimizationStop[];
+  optimizationStrategy?: "SHORTEST" | "BALANCED" | "FASTEST";
+}
+
+export interface OptimizedStopResponse {
+  order: number;
+  stopId: string;
+  type: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  etaMinutes?: number;
+  arrivalTime?: string;
+  distanceFromPrevious?: number;
+}
+
+export interface RouteOptimizationResult {
+  optimizedRoute: OptimizedStopResponse[];
+  totalDistanceKm: number;
+  estimatedDurationMinutes: number;
+  fuelSavingsPercent: number;
+  optimizationStrategy: string;
 }
 
 export const mapService = {
@@ -76,8 +133,11 @@ export const mapService = {
     return httpClient.get("/map/admin/overview");
   },
 
-  /** Courier / Agent personal map — uses /api/map/couriers/me (allowed for COURIER + AGENT) */
   getCourierMap(): Promise<CourierMapResponse> {
     return httpClient.get("/map/couriers/me");
+  },
+
+  optimizeRoute(request: RouteOptimizationRequest): Promise<RouteOptimizationResult> {
+    return httpClient.post("/logistics/route-optimization", request);
   },
 };

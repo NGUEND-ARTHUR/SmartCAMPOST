@@ -10,7 +10,7 @@ export type MapProps = {
   center?: [number, number];
   zoom?: number;
   height?: string;
-  markers?: Array<{ id: string; position: [number, number]; label?: string }>;
+  markers?: Array<{ id: string; position: [number, number]; label?: string; color?: string }>;
   showCircle?: { center: [number, number]; radius: number } | null;
   showSearch?: boolean;
   showControls?: boolean;
@@ -32,7 +32,7 @@ function markersToGeoJSON(
         type: "Point" as const,
         coordinates: [m.position[1], m.position[0]], // lng, lat
       },
-      properties: { id: m.id, label: m.label ?? m.id },
+      properties: { id: m.id, label: m.label ?? m.id, color: m.color ?? null },
     })),
   };
 }
@@ -199,7 +199,7 @@ function LeafletMapInner({
             type="circle"
             filter={["!", ["has", "point_count"]]}
             paint={{
-              "circle-color": LAYER_COLORS.primary,
+              "circle-color": ["coalesce", ["get", "color"], LAYER_COLORS.primary],
               "circle-radius": 8,
               "circle-stroke-width": 2,
               "circle-stroke-color": "#ffffff",

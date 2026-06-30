@@ -21,6 +21,7 @@ import { useDashboardSummary } from "@/hooks";
 import { getErrorMessage } from "@/lib/errorHandler";
 import useScanSSE from "@/hooks/useScanSSE";
 import useAiSSE from "@/hooks/useAiSSE";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 
 /* ─── Animated Counter ─── */
 function AnimatedCounter({ target, duration = 1200 }: { target: number; duration?: number }) {
@@ -177,6 +178,8 @@ export default function AdminDashboard() {
           />
         </div>
       )}
+
+      <AIInsightsWidget />
 
       {/* ─── Live Feeds ─── */}
       <div className="grid gap-4 lg:grid-cols-2">

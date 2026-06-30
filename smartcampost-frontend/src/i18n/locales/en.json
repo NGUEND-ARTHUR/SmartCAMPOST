@@ -630,6 +630,12 @@
       "selectServiceType": "Select Service Type",
       "estimatedPrice": "Estimated Price",
       "createParcel": "Create Parcel"
+    },
+    "chat": {
+      "title": "Delivery Chat",
+      "empty": "No messages yet. Say hello!",
+      "placeholder": "Type a message…",
+      "sendFailed": "Failed to send message"
     }
   },
   "addresses": {

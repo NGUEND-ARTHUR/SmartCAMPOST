@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import apiClient from "@/lib/api";
+import { normalizeApiBase } from "@/lib/axiosClient";
 import QRCodeDisplay from "@/components/qrcode/QRCodeDisplay";
 import TrackingMap from "@/components/maps/TrackingMap";
 
@@ -66,8 +67,8 @@ export default function ParcelTrackingPage() {
     const ref = data.trackingRef || data.trackingNumber;
     if (!ref) return;
 
-    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
-    const sseUrl = `${base.replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+    const base = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
+    const sseUrl = `${base}/stream/tracking/${encodeURIComponent(ref)}`;
     
     const es = new EventSource(sseUrl);
     

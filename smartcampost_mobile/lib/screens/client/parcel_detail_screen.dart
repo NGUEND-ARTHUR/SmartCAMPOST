@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/api_client.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
+import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/providers/parcel_provider.dart';
+import 'package:smartcampost_mobile/services/services.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
+import 'package:smartcampost_mobile/widgets/parcel_chat_widget.dart';
 
 class ParcelDetailScreen extends StatefulWidget {
   final String parcelId;
@@ -16,6 +19,10 @@ class ParcelDetailScreen extends StatefulWidget {
 }
 
 class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
+  final PricingDetailService _pricingService = PricingDetailService();
+  List<PricingDetail> _pricingDetails = [];
+  bool _pricingLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +30,17 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
     Future.microtask(() {
       provider.loadParcelDetail(widget.parcelId);
     });
+    _loadPricingDetails();
+  }
+
+  Future<void> _loadPricingDetails() async {
+    try {
+      final details = await _pricingService.getAllForParcel(widget.parcelId);
+      if (mounted) setState(() => _pricingDetails = details);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _pricingLoading = false);
+    }
   }
 
   @override
@@ -258,6 +276,44 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
                         ),
                       ),
                     ],
+
+                    // ─── Pricing Details ───
+                    if (_pricingLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                      )
+                    else if (_pricingDetails.isNotEmpty) ...[
+                      SectionTitle(title: tr('pricing_details')),
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: _pricingDetails.map((d) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      d.serviceType ?? tr('pricing'),
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
+                                  Text(
+                                    d.appliedPrice != null ? '${d.appliedPrice!.toStringAsFixed(0)} XAF' : '-',
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primaryColor),
+                                  ),
+                                ],
+                              ),
+                            )).toList(),
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    // ─── Parcel Chat ───
+                    ParcelChatWidget(parcelId: parcel.id),
 
                     const SizedBox(height: 32),
                   ],

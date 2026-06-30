@@ -6,9 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcampost_mobile/core/api_client.dart';
 import 'package:smartcampost_mobile/core/constants.dart';
-import 'package:smartcampost_mobile/models/address.dart';
-import 'package:smartcampost_mobile/models/common.dart';
-import 'package:smartcampost_mobile/models/payment.dart';
+import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/payment_service.dart';
 import 'package:smartcampost_mobile/services/pickup_service.dart';
@@ -434,11 +432,17 @@ class _CourierMapScreenState extends State<CourierMapScreen> {
     AppConstants.defaultLongitude,
   );
   bool _loading = true;
+  List<CourierStop> _stops = [];
+  bool _stopsLoading = true;
+  bool _optimizing = false;
+  RouteOptimizationResult? _result;
+  String? _optimizeError;
 
   @override
   void initState() {
     super.initState();
     _loadLocation();
+    _loadStops();
   }
 
   Future<void> _loadLocation() async {
@@ -461,38 +465,222 @@ class _CourierMapScreenState extends State<CourierMapScreen> {
     if (mounted) setState(() => _loading = false);
   }
 
+  Future<void> _loadStops() async {
+    try {
+      final map = await MapService().getCourierMap();
+      final stops = [...map.pickupStops, ...map.deliveryStops]
+          .where((s) => s.latitude != null && s.longitude != null)
+          .toList();
+      if (mounted) setState(() => _stops = stops);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _stopsLoading = false);
+    }
+  }
+
+  Future<void> _optimizeRoute() async {
+    setState(() {
+      _optimizing = true;
+      _optimizeError = null;
+      _result = null;
+    });
+    try {
+      final stops = _stops
+          .map(
+            (s) => RouteOptimizationStop(
+              id: s.parcelId,
+              type: s.type,
+              latitude: s.latitude!,
+              longitude: s.longitude!,
+              address: s.address ?? s.city,
+            ),
+          )
+          .toList();
+      final result = await RouteOptimizationService().optimizeRoute(
+        currentLatitude: _center.latitude,
+        currentLongitude: _center.longitude,
+        stops: stops,
+      );
+      if (mounted) setState(() => _result = result);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _optimizeError = e.toString().replaceAll('Exception: ', ''));
+      }
+    }
+    if (mounted) setState(() => _optimizing = false);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final tr = context.read<LocaleProvider>().tr;
+    final optimizedOrder = _result?.optimizedRoute ?? const [];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_tr(context, 'route_map')),
+        title: Text(tr('route_map')),
         actions: const [LanguageSwitchAction()],
       ),
       body: _loading
           ? const LoadingIndicator()
-          : FlutterMap(
-              options: MapOptions(initialCenter: _center, initialZoom: 13),
+          : Column(
               children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'cm.smartcampost.smartcampost_mobile',
-                ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _center,
-                      width: 48,
-                      height: 48,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.blue,
-                        size: 36,
+                SizedBox(
+                  height: 280,
+                  child: FlutterMap(
+                    options: MapOptions(initialCenter: _center, initialZoom: 13),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'cm.smartcampost.smartcampost_mobile',
                       ),
-                    ),
-                  ],
+                      if (optimizedOrder.isNotEmpty)
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: [
+                                _center,
+                                ...optimizedOrder
+                                    .where((s) => s.latitude != null && s.longitude != null)
+                                    .map((s) => LatLng(s.latitude!, s.longitude!)),
+                              ],
+                              color: Colors.blue,
+                              strokeWidth: 3,
+                            ),
+                          ],
+                        ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: _center,
+                            width: 48,
+                            height: 48,
+                            child: const Icon(
+                              Icons.my_location,
+                              color: Colors.blue,
+                              size: 36,
+                            ),
+                          ),
+                          for (final s in _stops)
+                            if (s.latitude != null && s.longitude != null)
+                              Marker(
+                                point: LatLng(s.latitude!, s.longitude!),
+                                width: 40,
+                                height: 40,
+                                child: Icon(
+                                  s.type == 'PICKUP' ? Icons.inventory_2 : Icons.home,
+                                  color: s.type == 'PICKUP' ? Colors.green : Colors.red,
+                                  size: 30,
+                                ),
+                              ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${_stops.length} ${tr('pickups')} / ${tr('deliveries')}',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: (_stopsLoading || _stops.isEmpty || _optimizing)
+                                ? null
+                                : _optimizeRoute,
+                            icon: _optimizing
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.route, size: 18),
+                            label: Text(tr('route_optimization')),
+                          ),
+                        ],
+                      ),
+                      if (_optimizeError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(_optimizeError!, style: const TextStyle(color: Colors.red)),
+                      ],
+                      if (_result != null) ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            if (_result!.totalDistanceKm != null)
+                              Expanded(
+                                child: _RouteStatChip(
+                                  icon: Icons.straighten,
+                                  label: '${_result!.totalDistanceKm!.toStringAsFixed(1)} km',
+                                ),
+                              ),
+                            if (_result!.estimatedDurationMinutes != null) ...[
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _RouteStatChip(
+                                  icon: Icons.schedule,
+                                  label: '${_result!.estimatedDurationMinutes!.toStringAsFixed(0)} min',
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ...optimizedOrder.map(
+                          (s) => Card(
+                            margin: const EdgeInsets.symmetric(vertical: 3),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.blue,
+                                child: Text(
+                                  '${s.order}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                                ),
+                              ),
+                              title: Text(s.address ?? s.type ?? '-', style: const TextStyle(fontSize: 13)),
+                              subtitle: s.etaMinutes != null
+                                  ? Text('${tr('eta')}: ${s.etaMinutes!.toStringAsFixed(0)} min', style: const TextStyle(fontSize: 12))
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _RouteStatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _RouteStatChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.blue.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: Colors.blue),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        ],
+      ),
     );
   }
 }

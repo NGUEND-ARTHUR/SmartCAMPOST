@@ -1,5 +1,7 @@
 package com.smartcampost.backend.controller;
 
+import com.smartcampost.backend.dto.ai.RouteOptimizationRequest;
+import com.smartcampost.backend.dto.ai.RouteOptimizationResponse;
 import com.smartcampost.backend.dto.logistics.GpsTrackerRequest;
 import com.smartcampost.backend.dto.logistics.GpsUpdateRequest;
 import com.smartcampost.backend.model.GpsTracker;
@@ -13,6 +15,7 @@ import com.smartcampost.backend.repository.LocationRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.ScanEventRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
+import com.smartcampost.backend.service.ai.agents.RouteOptimizationAgent;
 import com.smartcampost.backend.sse.SseEmitters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +64,7 @@ public class LogisticsRealtimeController {
     private final CourierRepository courierRepository;
     private final PickupRequestRepository pickupRequestRepository;
     private final SseEmitters sseEmitters;
+    private final RouteOptimizationAgent routeOptimizationAgent;
 
     @GetMapping("/trackers")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF','RISK')")
@@ -210,7 +214,7 @@ public class LogisticsRealtimeController {
 
     @GetMapping("/route-optimization")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF','COURIER','AGENT')")
-    public ResponseEntity<Map<String, Object>> routeOptimization(
+    public ResponseEntity<Map<String, Object>> routeOptimizationLegacy(
             @RequestParam(required = false) Double originLat,
             @RequestParam(required = false) Double originLng
     ) {
@@ -237,6 +241,30 @@ public class LogisticsRealtimeController {
                 "strategy", "Nearest-neighbor route using active inherited parcel locations",
                 "updatedAt", Instant.now()
         ));
+    }
+
+    /**
+     * Full route optimization: accepts explicit pickup + delivery stops with GPS coordinates
+     * from the frontend (already geocoded). Uses nearest-neighbor with strategy selection.
+     */
+    @PostMapping("/route-optimization")
+    @PreAuthorize("hasAnyRole('COURIER','AGENT','STAFF','ADMIN')")
+    public ResponseEntity<RouteOptimizationResponse> routeOptimization(
+            @RequestBody RouteOptimizationRequest request
+    ) {
+        if (request.getStops() == null || request.getStops().isEmpty()) {
+            return ResponseEntity.ok(RouteOptimizationResponse.builder()
+                    .optimizedRoute(List.of())
+                    .totalDistanceKm(0.0)
+                    .estimatedDurationMinutes(0L)
+                    .fuelSavingsPercent(0.0)
+                    .optimizationStrategy("SHORTEST")
+                    .build());
+        }
+        if (request.getOptimizationStrategy() == null) {
+            request.setOptimizationStrategy("BALANCED");
+        }
+        return ResponseEntity.ok(routeOptimizationAgent.optimize(request));
     }
 
     @PostMapping("/pricing/distance-quote")
@@ -447,8 +475,10 @@ public class LogisticsRealtimeController {
     private void notifyTrackingSubscribers(List<Parcel> updatedParcels) {
         for (Parcel parcel : updatedParcels) {
             if (parcel.getTrackingRef() == null) continue;
+            Map<String, Object> ip = inheritedParcel(parcel, Map.of());
+            if (ip == null) continue; // no coordinates yet — skip rather than send null
             Map<String, Object> scoped = new LinkedHashMap<>();
-            scoped.put("inheritedParcels", List.of(inheritedParcel(parcel, Map.of())));
+            scoped.put("inheritedParcels", List.of(ip));
             scoped.put("updatedAt", Instant.now());
             sseEmitters.emitTrackingUpdate("gps-update", parcel.getTrackingRef(), scoped);
         }

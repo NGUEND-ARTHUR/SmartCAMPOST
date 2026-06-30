@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { httpClient } from "@/services/apiClient";
 import { useCourierPickups, useMyParcels } from "@/hooks";
 import { StatsCard } from "@/components/StatsCard";
+import { AIInsightsWidget } from "@/components/ai/AIInsightsWidget";
 import { toast } from "sonner";
 
 export default function CourierDashboard() {
@@ -121,6 +122,10 @@ export default function CourierDashboard() {
             </p>
           </div>
           <DutyToggle />
+        </div>
+
+        <div className="mb-6">
+          <AIInsightsWidget />
         </div>
 
         {isLoading ? (

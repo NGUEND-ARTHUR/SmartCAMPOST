@@ -11,7 +11,7 @@ import QRCodeScanner from "@/components/qrcode/QRCodeScanner";
 import TrackingMap from "@/components/maps/TrackingMap";
 import AuditTrail from "@/components/delivery/AuditTrail";
 import { useAuthStore } from "@/store/authStore";
-import axiosInstance from "@/lib/axiosClient";
+import axiosInstance, { normalizeApiBase } from "@/lib/axiosClient";
 
 type ScanEventResponse = {
   id: string;
@@ -231,8 +231,8 @@ export default function TrackingPage() {
     if (!activeTrackingRef) return;
     const ref = activeTrackingRef;
 
-    const base = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
-    const sseUrl = `${(base as string).replace(/\/+$/, "")}/stream/tracking/${encodeURIComponent(ref)}`;
+    const base = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
+    const sseUrl = `${base}/stream/tracking/${encodeURIComponent(ref)}`;
 
     const es = new EventSource(sseUrl);
 

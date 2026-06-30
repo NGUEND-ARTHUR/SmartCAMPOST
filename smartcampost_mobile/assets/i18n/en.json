@@ -369,5 +369,30 @@
   "proof_ready": "Proof ready",
   "proactive_alerts": "Proactive alerts on",
   "ai_chat": "AI Assistant",
-  "ai_chat_placeholder": "Ask me anything..."
+  "ai_chat_placeholder": "Ask me anything...",
+
+  "parcel_chat": "Parcel chat",
+  "chat_load_error": "Failed to load messages",
+  "no_messages_yet": "No messages yet",
+  "type_a_message": "Type a message",
+  "pricing_details": "Pricing details",
+  "pricing": "Pricing",
+  "ai_insights": "AI Insights",
+  "ai_insights_none": "No AI insights available",
+  "eta": "ETA",
+  "optimize_route": "Optimize route",
+  "optimized_route": "Optimized route",
+  "stops": "Stops",
+  "distance": "Distance",
+  "duration": "Duration",
+
+  "demand_forecast": "Demand forecast",
+  "all_agencies": "All agencies",
+  "forecast_days": "Days",
+  "current_backlog": "Current Backlog",
+  "avg_daily_volume": "Avg Daily Volume",
+  "confidence": "Confidence",
+  "recommendation": "Recommendation",
+  "predicted_volume": "Predicted volume",
+  "trend": "Trend"
 }

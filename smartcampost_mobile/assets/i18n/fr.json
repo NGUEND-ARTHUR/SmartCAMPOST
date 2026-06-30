@@ -369,5 +369,30 @@
   "proof_ready": "Preuve prête",
   "proactive_alerts": "Alertes proactives actives",
   "ai_chat": "Assistant IA",
-  "ai_chat_placeholder": "Posez-moi une question..."
+  "ai_chat_placeholder": "Posez-moi une question...",
+
+  "parcel_chat": "Discussion sur le colis",
+  "chat_load_error": "Échec du chargement des messages",
+  "no_messages_yet": "Aucun message pour le moment",
+  "type_a_message": "Écrire un message",
+  "pricing_details": "Détails du tarif",
+  "pricing": "Tarification",
+  "ai_insights": "Analyses IA",
+  "ai_insights_none": "Aucune analyse IA disponible",
+  "eta": "Arrivée estimée",
+  "optimize_route": "Optimiser l'itinéraire",
+  "optimized_route": "Itinéraire optimisé",
+  "stops": "Arrêts",
+  "distance": "Distance",
+  "duration": "Durée",
+
+  "demand_forecast": "Prévision de la demande",
+  "all_agencies": "Toutes les agences",
+  "forecast_days": "Jours",
+  "current_backlog": "Arriéré actuel",
+  "avg_daily_volume": "Volume quotidien moyen",
+  "confidence": "Confiance",
+  "recommendation": "Recommandation",
+  "predicted_volume": "Volume prévu",
+  "trend": "Tendance"
 }

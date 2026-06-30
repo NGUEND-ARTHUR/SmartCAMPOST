@@ -5,6 +5,7 @@ import 'package:smartcampost_mobile/core/theme.dart';
 import 'package:smartcampost_mobile/providers/auth_provider.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
+import 'package:smartcampost_mobile/widgets/ai_insights_widget.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
 
 class StaffDashboardScreen extends StatefulWidget {
@@ -75,6 +76,9 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  const AIInsightsWidget(margin: EdgeInsets.zero),
+                  const SizedBox(height: 16),
 
                   // Overview stats
                   Row(

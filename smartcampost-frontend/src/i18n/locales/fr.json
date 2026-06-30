@@ -617,6 +617,12 @@
       "standard": "Standard",
       "express": "Express",
       "economy": "Economy"
+    },
+    "chat": {
+      "title": "Discussion livraison",
+      "empty": "Aucun message pour l'instant. Dites bonjour !",
+      "placeholder": "Écrire un message…",
+      "sendFailed": "Échec de l'envoi du message"
     }
   },
   "addresses": {

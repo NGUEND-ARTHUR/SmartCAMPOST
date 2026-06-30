@@ -21,9 +21,11 @@ import {
   CreditCard,
   TrendingUp,
   MapPin,
+  BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { analyticsService } from "@/services";
+import type { DemandForecastResponse } from "@/services/analytics/analytics.api";
 
 interface ETAResult {
   parcelId: string;
@@ -51,6 +53,11 @@ export default function Analytics() {
   const [anomalyResult, setAnomalyResult] = useState<AnomalyResult | null>(
     null,
   );
+  const [forecastRegion, setForecastRegion] = useState("");
+  const [forecastDays, setForecastDays] = useState("7");
+  const [forecastLoading, setForecastLoading] = useState(false);
+  const [forecastResult, setForecastResult] =
+    useState<DemandForecastResponse | null>(null);
 
   const handleEtaSearch = async () => {
     if (!parcelId.trim()) {
@@ -114,6 +121,51 @@ export default function Analytics() {
       );
     } finally {
       setAnomalyLoading(false);
+    }
+  };
+
+  const handleForecast = async () => {
+    setForecastLoading(true);
+    setForecastResult(null);
+    try {
+      const days = Math.max(1, Math.min(30, parseInt(forecastDays, 10) || 7));
+      const resp = await analyticsService.forecastDemand({
+        region: forecastRegion.trim() || undefined,
+        forecastDays: days,
+      });
+      setForecastResult(resp);
+      toast.success(
+        t("analytics.toasts.forecastSuccess", "Forecast generated"),
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t("analytics.toasts.forecastFailed", "Failed to generate forecast"),
+      );
+    } finally {
+      setForecastLoading(false);
+    }
+  };
+
+  const getTrendBadge = (trend: string) => {
+    if (trend === "INCREASING")
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+    if (trend === "DECREASING")
+      return "bg-muted text-muted-foreground";
+    return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400";
+  };
+
+  const getDemandLevelBadge = (level: string) => {
+    switch (level) {
+      case "PEAK":
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+      case "HIGH":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
+      case "LOW":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+      default:
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -309,6 +361,128 @@ export default function Analytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Demand Forecast Panel */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-violet-600" />
+            <CardTitle>
+              {t("analytics.forecast.title", "Demand Forecast")}
+            </CardTitle>
+          </div>
+          <CardDescription>
+            {t(
+              "analytics.forecast.description",
+              "Predict parcel volume for an agency or region over the coming days.",
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <div className="flex-1 min-w-[180px]">
+              <Label htmlFor="forecastRegion" className="sr-only">
+                {t("analytics.forecast.regionLabel", "Region")}
+              </Label>
+              <Input
+                id="forecastRegion"
+                placeholder={t(
+                  "analytics.forecast.regionPlaceholder",
+                  "Region (e.g., Littoral) — leave blank for all",
+                )}
+                value={forecastRegion}
+                onChange={(e) => setForecastRegion(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleForecast()}
+              />
+            </div>
+            <div className="w-24">
+              <Label htmlFor="forecastDays" className="sr-only">
+                {t("analytics.forecast.daysLabel", "Days")}
+              </Label>
+              <Input
+                id="forecastDays"
+                type="number"
+                min={1}
+                max={30}
+                placeholder="7"
+                value={forecastDays}
+                onChange={(e) => setForecastDays(e.target.value)}
+              />
+            </div>
+            <Button onClick={handleForecast} disabled={forecastLoading}>
+              {forecastLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          {forecastResult && (
+            <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-medium">
+                  {forecastResult.agencyName ||
+                    forecastResult.region ||
+                    t("analytics.forecast.allAgencies", "All agencies")}
+                </span>
+                <Badge className={getTrendBadge(forecastResult.trend)}>
+                  {forecastResult.trend}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+                <div>
+                  <p className="text-muted-foreground">
+                    {t("analytics.forecast.backlog", "Current Backlog")}
+                  </p>
+                  <p className="font-medium">
+                    {forecastResult.currentBacklog}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">
+                    {t("analytics.forecast.avgDaily", "Avg Daily Volume")}
+                  </p>
+                  <p className="font-medium">
+                    {forecastResult.averageDailyVolume}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">
+                    {t("analytics.forecast.confidence", "Confidence")}
+                  </p>
+                  <p className="font-medium">
+                    {Math.round(forecastResult.confidenceScore * 100)}%
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 p-2 rounded bg-background">
+                <TrendingUp className="h-4 w-4 mt-0.5 text-blue-600" />
+                <p className="text-sm text-muted-foreground">
+                  {forecastResult.recommendation}
+                </p>
+              </div>
+              <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                {forecastResult.forecasts.map((f) => (
+                  <div
+                    key={f.date}
+                    className="flex items-center justify-between rounded-lg bg-background px-3 py-2 text-sm"
+                  >
+                    <span>{new Date(f.date).toLocaleDateString()}</span>
+                    <span className="font-medium">
+                      {f.predictedVolume}{" "}
+                      {t("analytics.forecast.parcels", "parcels")}
+                    </span>
+                    <Badge className={getDemandLevelBadge(f.demandLevel)}>
+                      {f.demandLevel}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

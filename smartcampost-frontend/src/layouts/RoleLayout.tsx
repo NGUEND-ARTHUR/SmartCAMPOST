@@ -20,13 +20,14 @@ import { LanguageSwitcher } from "@/components/ui/languageswitcher";
 import NotificationsDrawer from "@/components/NotificationsDrawer";
 import { useAuthStore } from "@/store/authStore";
 import { useTheme } from "@/theme/theme";
+import { normalizeApiBase } from "@/lib/axiosClient";
 
 /** Silently sends the courier/agent's GPS position to the backend every 30 s. */
 function CourierGpsBeacon() {
   const token = useAuthStore((s) => s.token);
   const lastSentRef = useRef(0);
   const GPS_THROTTLE_MS = 30_000;
-  const base = ((import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8082/api").replace(/\/+$/, "");
+  const base = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
 
   useEffect(() => {
     if (!token || !navigator?.geolocation) return;

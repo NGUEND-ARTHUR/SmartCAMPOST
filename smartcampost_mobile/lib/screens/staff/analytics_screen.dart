@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:smartcampost_mobile/core/theme.dart';
+import 'package:smartcampost_mobile/models/models.dart';
 import 'package:smartcampost_mobile/providers/locale_provider.dart';
 import 'package:smartcampost_mobile/services/services.dart';
 import 'package:smartcampost_mobile/widgets/common_widgets.dart';
@@ -18,10 +19,57 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   bool _isLoading = true;
   String? _error;
 
+  final _regionController = TextEditingController();
+  final _daysController = TextEditingController(text: '7');
+  bool _forecastLoading = false;
+  String? _forecastError;
+  DemandForecastResponse? _forecastResult;
+
   @override
   void initState() {
     super.initState();
     _loadAnalytics();
+  }
+
+  @override
+  void dispose() {
+    _regionController.dispose();
+    _daysController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _runForecast() async {
+    setState(() {
+      _forecastLoading = true;
+      _forecastError = null;
+      _forecastResult = null;
+    });
+    try {
+      final days = int.tryParse(_daysController.text.trim()) ?? 7;
+      final clampedDays = days.clamp(1, 30);
+      final result = await DemandForecastService().forecastDemand(
+        region: _regionController.text.trim().isEmpty ? null : _regionController.text.trim(),
+        forecastDays: clampedDays,
+      );
+      if (mounted) setState(() => _forecastResult = result);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _forecastError = e.toString().replaceAll('Exception: ', ''));
+      }
+    }
+    if (mounted) setState(() => _forecastLoading = false);
+  }
+
+  Color _demandLevelColor(String level) {
+    switch (level.toUpperCase()) {
+      case 'HIGH':
+      case 'CRITICAL':
+        return Colors.red;
+      case 'MEDIUM':
+        return Colors.orange;
+      default:
+        return Colors.green;
+    }
   }
 
   Future<void> _loadAnalytics() async {
@@ -97,9 +145,157 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   SectionTitle(title: tr('monthly_trend')),
                   const SizedBox(height: 8),
                   SizedBox(height: 220, child: _buildBarChart()),
+                  const SizedBox(height: 24),
+
+                  // Demand forecast
+                  SectionTitle(title: tr('demand_forecast')),
+                  const SizedBox(height: 8),
+                  _buildForecastSection(tr),
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _buildForecastSection(String Function(String) tr) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _regionController,
+                decoration: InputDecoration(
+                  labelText: tr('region'),
+                  hintText: tr('all_agencies'),
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 90,
+              child: TextField(
+                controller: _daysController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: tr('forecast_days'),
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _forecastLoading ? null : _runForecast,
+            icon: _forecastLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.query_stats),
+            label: Text(tr('search')),
+          ),
+        ),
+        if (_forecastError != null) ...[
+          const SizedBox(height: 10),
+          Text(_forecastError!, style: const TextStyle(color: Colors.red)),
+        ],
+        if (_forecastResult != null) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _forecastResult!.agencyName ?? _forecastResult!.region ?? tr('all_agencies'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _forecastResult!.trend,
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _MetricCard(
+                label: tr('current_backlog'),
+                value: _forecastResult!.currentBacklog.toStringAsFixed(0),
+                color: AppTheme.primaryColor,
+              ),
+              const SizedBox(width: 12),
+              _MetricCard(
+                label: tr('avg_daily_volume'),
+                value: _forecastResult!.averageDailyVolume.toStringAsFixed(0),
+                color: AppTheme.accentColor,
+              ),
+              const SizedBox(width: 12),
+              _MetricCard(
+                label: tr('confidence'),
+                value: '${(_forecastResult!.confidenceScore * 100).round()}%',
+                color: Colors.green,
+              ),
+            ],
+          ),
+          if (_forecastResult!.recommendation != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.infoColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(_forecastResult!.recommendation!),
+            ),
+          ],
+          const SizedBox(height: 12),
+          ...(_forecastResult!.forecasts.map(
+            (f) => Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                title: Text(f.date),
+                subtitle: Text('${tr('predicted_volume')}: ${f.predictedVolume.toStringAsFixed(0)}'),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _demandLevelColor(f.demandLevel).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    f.demandLevel,
+                    style: TextStyle(
+                      color: _demandLevelColor(f.demandLevel),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )),
+        ],
+      ],
     );
   }
 

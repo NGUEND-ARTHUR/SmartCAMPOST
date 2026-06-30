@@ -179,6 +179,96 @@ class AiService {
       },
     );
   }
+
+  Future<AgentStatusResponse> getAgentStatus() async {
+    return _api.get<AgentStatusResponse>(
+      '/ai/agent/status',
+      fromJson: (d) => AgentStatusResponse.fromJson(d as Map<String, dynamic>),
+    );
+  }
+}
+
+class ParcelMessageService {
+  final ApiClient _api = ApiClient();
+
+  Future<List<ParcelMessage>> list(String parcelId) async {
+    final data = await _api.get<List<dynamic>>('/parcels/$parcelId/messages');
+    return data.map((e) => ParcelMessage.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<ParcelMessage> send(String parcelId, String content) async {
+    return _api.post(
+      '/parcels/$parcelId/messages',
+      data: {'content': content},
+      fromJson: (d) => ParcelMessage.fromJson(d),
+    );
+  }
+
+  Future<void> markRead(String parcelId) async {
+    await _api.post('/parcels/$parcelId/messages/read');
+  }
+}
+
+class PricingDetailService {
+  final ApiClient _api = ApiClient();
+
+  Future<List<PricingDetail>> getAllForParcel(String parcelId) async {
+    final data = await _api.get<List<dynamic>>('/pricing-details/parcel/$parcelId/all');
+    return data.map((e) => PricingDetail.fromJson(e as Map<String, dynamic>)).toList();
+  }
+}
+
+class MapService {
+  final ApiClient _api = ApiClient();
+
+  Future<CourierMapResponse> getCourierMap() async {
+    return _api.get<CourierMapResponse>(
+      '/map/couriers/me',
+      fromJson: (d) => CourierMapResponse.fromJson(d as Map<String, dynamic>),
+    );
+  }
+}
+
+class RouteOptimizationService {
+  final ApiClient _api = ApiClient();
+
+  Future<RouteOptimizationResult> optimizeRoute({
+    required double currentLatitude,
+    required double currentLongitude,
+    required List<RouteOptimizationStop> stops,
+    String optimizationStrategy = 'BALANCED',
+  }) async {
+    return _api.post<RouteOptimizationResult>(
+      '/logistics/route-optimization',
+      data: {
+        'currentLatitude': currentLatitude,
+        'currentLongitude': currentLongitude,
+        'stops': stops.map((s) => s.toJson()).toList(),
+        'optimizationStrategy': optimizationStrategy,
+      },
+      fromJson: (d) => RouteOptimizationResult.fromJson(d as Map<String, dynamic>),
+    );
+  }
+}
+
+class DemandForecastService {
+  final ApiClient _api = ApiClient();
+
+  Future<DemandForecastResponse> forecastDemand({
+    String? agencyId,
+    String? region,
+    int forecastDays = 7,
+  }) async {
+    return _api.post<DemandForecastResponse>(
+      '/analytics/demand-forecast',
+      data: {
+        if (agencyId != null) 'agencyId': agencyId,
+        if (region != null) 'region': region,
+        'forecastDays': forecastDays,
+      },
+      fromJson: (d) => DemandForecastResponse.fromJson(d as Map<String, dynamic>),
+    );
+  }
 }
 
 class ComplianceService {
