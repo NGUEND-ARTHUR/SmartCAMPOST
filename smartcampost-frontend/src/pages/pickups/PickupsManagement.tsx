@@ -179,6 +179,7 @@ export default function PickupsManagement() {
             />
           ) : (
             <>
+              <div className="table-responsive">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -251,6 +252,7 @@ export default function PickupsManagement() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-4">
                   <Button

@@ -63,6 +63,10 @@ export function useMyNotifications(page = 0, size = 20) {
   return useQuery({
     queryKey: [...notificationKeys.all, "my", { page, size }] as const,
     queryFn: () => notificationService.listMy(page, size),
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 }
 

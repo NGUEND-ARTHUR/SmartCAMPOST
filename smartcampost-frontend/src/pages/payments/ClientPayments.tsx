@@ -107,6 +107,7 @@ export default function ClientPayments() {
                   description="Try adjusting your search"
                 />
               ) : (
+                <div className="table-responsive">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -248,6 +249,7 @@ export default function ClientPayments() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </>
           )}

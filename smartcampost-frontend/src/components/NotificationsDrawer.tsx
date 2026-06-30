@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,14 +21,33 @@ interface NotificationItem {
 export default function NotificationsDrawer() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useMyNotifications(0, 20);
+  const { data, isLoading, refetch } = useMyNotifications(0, 20);
   const { data: unreadCount } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Refetch when the drawer opens so we always show fresh data
+  const handleToggle = () => {
+    if (!open) refetch();
+    setOpen((s) => !s);
+  };
+
+  // Close when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
 
   return (
-    <div className="relative">
-      <Button variant="ghost" onClick={() => setOpen((s) => !s)}>
+    <div className="relative" ref={containerRef}>
+      <Button variant="ghost" onClick={handleToggle}>
         <Bell className="w-5 h-5" />
         {typeof unreadCount === "number" && unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -37,7 +56,7 @@ export default function NotificationsDrawer() {
         )}
       </Button>
       {open && (
-        <div className="absolute right-0 mt-2 w-96 z-50">
+        <div className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-1rem))] z-50">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle>{t("notifications.title")}</CardTitle>
@@ -58,8 +77,8 @@ export default function NotificationsDrawer() {
                   {t("common.loading")}
                 </div>
               ) : (
-                <ul className="space-y-2 max-h-64 overflow-auto">
-                  {data?.content?.length === 0 && (
+                <ul className="space-y-2 max-h-80 overflow-auto">
+                  {(!data?.content || data.content.length === 0) && (
                     <li className="text-sm text-muted-foreground">
                       {t("notifications.noNotifications")}
                     </li>
@@ -82,7 +101,7 @@ export default function NotificationsDrawer() {
                           {n.subject || "Notification"}
                         </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground line-clamp-2">
                         {n.message}
                       </div>
                       <div className="text-xs text-muted-foreground">

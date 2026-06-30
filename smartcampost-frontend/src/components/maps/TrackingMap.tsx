@@ -371,7 +371,7 @@ export default function TrackingMap({
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="h-100 relative">
+          <div className="relative h-[600px]">
             <CameroonMap
               center={safeCenter}
               zoom={safeZoom}
@@ -558,7 +558,7 @@ export default function TrackingMap({
           </CameroonMap>
 
           {/* Legend overlay */}
-          <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-2 text-xs border border-border">
+          <div className="absolute bottom-4 left-4 bg-popover/90 text-popover-foreground backdrop-blur-sm rounded-lg p-3 shadow-lg z-[50] text-xs border border-border">
             <div className="font-semibold mb-2">
               {t("trackingMap.legend.title", "Legend")}
             </div>

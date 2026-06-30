@@ -218,6 +218,7 @@ export function ParcelList() {
             />
           ) : (
             <>
+              <div className="table-responsive">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -297,6 +298,7 @@ export function ParcelList() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-4">
                   <Button

@@ -75,8 +75,8 @@ public class TrackingController {
                     // page doesn't show a stale position before the next SSE push arrives.
                     boolean liveGpsIsNewer = p.getCurrentLatitude() != null && p.getCurrentLongitude() != null
                             && (last == null || last.getTimestamp() == null
-                                || p.getLocationUpdatedAt() == null
-                                || p.getLocationUpdatedAt().isAfter(last.getTimestamp()));
+                                || (p.getLocationUpdatedAt() != null
+                                    && p.getLocationUpdatedAt().isAfter(last.getTimestamp())));
 
                     if (liveGpsIsNewer) {
                         TrackingResponse.CurrentLocation loc = new TrackingResponse.CurrentLocation();

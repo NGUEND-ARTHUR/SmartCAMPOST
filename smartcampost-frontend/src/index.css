@@ -278,6 +278,22 @@
   min-height: 300px;
 }
 
+/* Responsive tables — scroll horizontally on small screens */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Ensure page content never overflows viewport horizontally */
+@layer base {
+  main {
+    overflow-x: hidden;
+  }
+  table {
+    min-width: 0;
+  }
+}
+
 /* QR preview image size */
 .qr-image {
   width: 120px;

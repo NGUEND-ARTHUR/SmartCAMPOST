@@ -177,8 +177,15 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public com.smartcampost.backend.dto.common.PageResponse<NotificationResponse> listMyNotifications(int page, int size) {
         UserAccount user = getCurrentUser();
-        Page<Notification> notifPage = notificationRepository
-                .findByRecipientPhoneOrderByCreatedAtDesc(user.getPhone(), PageRequest.of(page, size));
+        Page<Notification> notifPage;
+        // For CLIENT role, also match via the parcel's client ID to handle phone-format variations
+        if (user.getRole() == UserRole.CLIENT && user.getEntityId() != null) {
+            notifPage = notificationRepository.findByPhoneOrClientId(
+                    user.getPhone(), user.getEntityId(), PageRequest.of(page, size));
+        } else {
+            notifPage = notificationRepository
+                    .findByRecipientPhoneOrderByCreatedAtDesc(user.getPhone(), PageRequest.of(page, size));
+        }
         List<NotificationResponse> content = notifPage.getContent().stream()
                 .map(this::toResponse).collect(Collectors.toList());
         return com.smartcampost.backend.dto.common.PageResponse.<NotificationResponse>builder()
@@ -283,8 +290,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAllAsRead() {
         UserAccount user = getCurrentUser();
-        List<Notification> unread = notificationRepository
-                .findByRecipientPhoneAndReadAtIsNull(user.getPhone());
+        List<Notification> unread;
+        if (user.getRole() == UserRole.CLIENT && user.getEntityId() != null) {
+            unread = notificationRepository.findUnreadByPhoneOrClientId(user.getPhone(), user.getEntityId());
+        } else {
+            unread = notificationRepository.findByRecipientPhoneAndReadAtIsNull(user.getPhone());
+        }
 
         Instant now = Instant.now();
         for (Notification n : unread) {
@@ -297,6 +308,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public long getUnreadCount() {
         UserAccount user = getCurrentUser();
+        if (user.getRole() == UserRole.CLIENT && user.getEntityId() != null) {
+            return notificationRepository.countUnreadByPhoneOrClientId(user.getPhone(), user.getEntityId());
+        }
         return notificationRepository.countByRecipientPhoneAndReadAtIsNull(user.getPhone());
     }
 
