@@ -214,13 +214,15 @@ public class ScanEventServiceImpl implements ScanEventService {
         // 📍 Update parcel’s current location from scan event GPS
         updateParcelLocation(parcel, event);
         // 📍 Update courier’s live position when they perform a scan
+        // `event` was reassigned above so it’s not effectively-final — capture it here
+        final ScanEvent savedScanEvent = event;
         if (UserRole.COURIER.name().equals(actorRole) && actorId != null) {
             try {
                 UUID courierId = UUID.fromString(actorId);
                 courierRepository.findById(courierId).ifPresent(courier -> {
-                    courier.setCurrentLatitude(event.getLatitude());
-                    courier.setCurrentLongitude(event.getLongitude());
-                    courier.setLastLocationAt(event.getTimestamp());
+                    courier.setCurrentLatitude(savedScanEvent.getLatitude());
+                    courier.setCurrentLongitude(savedScanEvent.getLongitude());
+                    courier.setLastLocationAt(savedScanEvent.getTimestamp());
                     courierRepository.save(courier);
                 });
             } catch (IllegalArgumentException ignored) { /* actorId not a UUID */ }
