@@ -163,6 +163,8 @@ export function CreateParcel() {
     null,
   );
   const [priceLoading, setPriceLoading] = useState(false);
+  const [priceError, setPriceError] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
   const {
     register,
     handleSubmit,
@@ -319,15 +321,15 @@ export function CreateParcel() {
   useEffect(() => {
     const weight = getValues("weight");
     if (!weight || weight <= 0) {
-      const timer = window.setTimeout(() => {
-        setPriceQuote(null);
-      }, 0);
-      return () => window.clearTimeout(timer);
+      setPriceQuote(null);
+      setPriceError(false);
+      return;
     }
 
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setPriceLoading(true);
+      setPriceError(false);
       tariffService
         .quote({
           serviceType,
@@ -338,10 +340,16 @@ export function CreateParcel() {
           destinationCity: recipientAddr?.city ?? undefined,
         })
         .then((q) => {
-          if (!controller.signal.aborted) setPriceQuote(q);
+          if (!controller.signal.aborted) {
+            setPriceQuote(q);
+            setPriceError(false);
+          }
         })
         .catch(() => {
-          if (!controller.signal.aborted) setPriceQuote(null);
+          if (!controller.signal.aborted) {
+            setPriceQuote(null);
+            setPriceError(true);
+          }
         })
         .finally(() => {
           if (!controller.signal.aborted) setPriceLoading(false);
@@ -352,7 +360,7 @@ export function CreateParcel() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [getValues, recipientAddr?.city, senderAddr?.city, serviceType, watchedWeight]);
+  }, [getValues, recipientAddr?.city, recipientAddr?.region, senderAddr?.city, senderAddr?.region, serviceType, watchedWeight, retryTick]);
 
   const handleCreateAddress = async () => {
     if (!canSaveAddress) {
@@ -397,6 +405,184 @@ export function CreateParcel() {
     } finally {
       setIsSavingAddress(false);
     }
+  };
+
+  const renderPriceContent = () => {
+    if (priceLoading) {
+      return (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Calculating price…
+        </div>
+      );
+    }
+
+    if (priceQuote) {
+      const weight = Number(watchedWeight ?? getValues("weight") ?? 0);
+      const perKg =
+        weight > 0 &&
+        priceQuote.breakdown &&
+        priceQuote.breakdown.weightCharge > 0
+          ? Math.round(priceQuote.breakdown.weightCharge / weight)
+          : null;
+
+      return (
+        <div className="space-y-2 text-sm">
+          <div className="text-xs text-muted-foreground space-y-1 pb-2 border-b mb-2">
+            {(senderAddr || recipientAddr) && (
+              <div className="flex justify-between">
+                <span>Route</span>
+                <span className="font-medium">
+                  {senderAddr?.city ?? "?"} → {recipientAddr?.city ?? "?"}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Service</span>
+              <span className="font-medium">
+                {serviceType === "EXPRESS"
+                  ? "EXPRESS (1–2 days)"
+                  : "STANDARD (3–5 days)"}
+              </span>
+            </div>
+            {weight > 0 && (
+              <div className="flex justify-between">
+                <span>Weight</span>
+                <span className="font-medium">{weight} kg</span>
+              </div>
+            )}
+          </div>
+
+          {priceQuote.breakdown ? (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Base rate
+                  {senderAddr?.region && recipientAddr?.region && (
+                    <span className="text-xs ml-1 opacity-70">
+                      ({senderAddr.region} → {recipientAddr.region})
+                    </span>
+                  )}
+                </span>
+                <span>
+                  {priceQuote.breakdown.basePrice.toLocaleString()}{" "}
+                  {priceQuote.currency}
+                </span>
+              </div>
+              {priceQuote.breakdown.weightCharge > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    Weight charge
+                    {perKg !== null && (
+                      <span className="text-xs ml-1 opacity-70">
+                        ({weight} kg × {perKg.toLocaleString()}/kg)
+                      </span>
+                    )}
+                  </span>
+                  <span>
+                    + {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
+                    {priceQuote.currency}
+                  </span>
+                </div>
+              )}
+              {(priceQuote.breakdown.extras ?? 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {serviceType === "EXPRESS"
+                      ? "Express surcharge"
+                      : isFragile
+                        ? "Fragile handling"
+                        : "Extras"}
+                  </span>
+                  <span>
+                    + {priceQuote.breakdown.extras!.toLocaleString()}{" "}
+                    {priceQuote.currency}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">
+              Detailed breakdown not available
+            </p>
+          )}
+
+          {deliveryOption === "HOME" && (
+            <div className="flex justify-between text-muted-foreground text-xs">
+              <span>Home delivery fee</span>
+              <span>Calculated at delivery</span>
+            </div>
+          )}
+
+          <div className="flex justify-between font-semibold text-base pt-2 border-t">
+            <span>Estimated Total</span>
+            <span className="text-primary">
+              {priceQuote.estimatedPrice.toLocaleString()} {priceQuote.currency}
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    if (priceError) {
+      const weight = Number(watchedWeight ?? getValues("weight") ?? 0);
+      return (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+            Could not load price estimate
+          </p>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>The price for this route is calculated as:</p>
+            <ul className="ml-2 space-y-0.5">
+              <li>
+                • Zone-to-zone base rate (
+                {senderAddr?.region ?? "origin region"} →{" "}
+                {recipientAddr?.region ?? "destination region"})
+              </li>
+              {weight > 0 && (
+                <li>• Weight charge ({weight} kg × tariff rate per kg)</li>
+              )}
+              {serviceType === "EXPRESS" && (
+                <li>• Express service surcharge</li>
+              )}
+              {isFragile && <li>• Fragile item handling fee</li>}
+              {deliveryOption === "HOME" && (
+                <li>• Home delivery fee (confirmed at delivery)</li>
+              )}
+            </ul>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            onClick={() => setRetryTick((prev) => prev + 1)}
+          >
+            Retry estimate
+          </Button>
+        </div>
+      );
+    }
+
+    const weight = Number(watchedWeight ?? getValues("weight") ?? 0);
+    if (!senderAddressId || !recipientAddressId) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          Select both a sender and recipient address to see a price estimate.
+        </p>
+      );
+    }
+    if (!weight || weight <= 0) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          Enter the parcel weight to see an estimated price.
+        </p>
+      );
+    }
+    return (
+      <p className="text-sm text-muted-foreground">
+        Price will be calculated based on weight, distance and service type.
+      </p>
+    );
   };
 
   return (
@@ -873,6 +1059,20 @@ export function CreateParcel() {
                     </p>
                   </div>
                 </div>
+
+                {(priceLoading || priceQuote !== null || priceError) && (
+                  <Card className="bg-muted border-primary/20">
+                    <CardHeader className="pb-2 pt-4">
+                      <CardTitle className="text-base">Price Estimate</CardTitle>
+                      <CardDescription>
+                        Live estimate based on current inputs
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      {renderPriceContent()}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
 
@@ -934,66 +1134,11 @@ export function CreateParcel() {
                   <CardHeader>
                     <CardTitle className="text-lg">Delivery rates</CardTitle>
                     <CardDescription>
-                      Pricing is calculated by the system based on weight,
-                      distance, and service type.
+                      Price breakdown based on route, weight, and service type.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {priceLoading ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Calculating price…
-                      </div>
-                    ) : priceQuote ? (
-                      <div className="space-y-2 text-sm">
-                        {priceQuote.breakdown && (
-                          <>
-                            <div className="flex justify-between">
-                              <span>Base price</span>
-                              <span>
-                                {priceQuote.breakdown.basePrice.toLocaleString()}{" "}
-                                {priceQuote.currency}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Weight charge</span>
-                              <span>
-                                {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
-                                {priceQuote.currency}
-                              </span>
-                            </div>
-                            {(priceQuote.breakdown.extras ?? 0) > 0 && (
-                              <div className="flex justify-between">
-                                <span>Extras</span>
-                                <span>
-                                  +{" "}
-                                  {priceQuote.breakdown.extras!.toLocaleString()}{" "}
-                                  {priceQuote.currency}
-                                </span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                        {deliveryOption === "HOME" && (
-                          <div className="flex justify-between text-muted-foreground">
-                            <span>Home delivery surcharge</span>
-                            <span>Calculated at delivery</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between font-semibold text-base pt-2 border-t">
-                          <span>Estimated total</span>
-                          <span>
-                            {priceQuote.estimatedPrice.toLocaleString()}{" "}
-                            {priceQuote.currency}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Enter parcel weight and select addresses to get a price
-                        estimate.
-                      </p>
-                    )}
+                    {renderPriceContent()}
                   </CardContent>
                 </Card>
               </div>
@@ -1079,57 +1224,12 @@ export function CreateParcel() {
                 <Card className="bg-muted">
                   <CardHeader>
                     <CardTitle className="text-lg">Estimated Cost</CardTitle>
+                    <CardDescription>
+                      How this price is calculated
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {priceLoading ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Calculating…
-                      </div>
-                    ) : priceQuote ? (
-                      <div className="space-y-2 text-sm">
-                        {priceQuote.breakdown && (
-                          <>
-                            <div className="flex justify-between">
-                              <span>Base shipping</span>
-                              <span>
-                                {priceQuote.breakdown.basePrice.toLocaleString()}{" "}
-                                {priceQuote.currency}
-                              </span>
-                            </div>
-                            {priceQuote.breakdown.weightCharge > 0 && (
-                              <div className="flex justify-between">
-                                <span>Weight charge</span>
-                                <span>
-                                  + {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
-                                  {priceQuote.currency}
-                                </span>
-                              </div>
-                            )}
-                            {(priceQuote.breakdown.extras ?? 0) > 0 && (
-                              <div className="flex justify-between">
-                                <span>{serviceType === "EXPRESS" ? "Express service" : "Extras"}</span>
-                                <span>
-                                  + {priceQuote.breakdown.extras!.toLocaleString()}{" "}
-                                  {priceQuote.currency}
-                                </span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                        <div className="flex justify-between font-semibold text-base pt-2 border-t">
-                          <span>Total</span>
-                          <span>
-                            {priceQuote.estimatedPrice.toLocaleString()}{" "}
-                            {priceQuote.currency}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Price will be calculated based on weight, distance and service type.
-                      </p>
-                    )}
+                    {renderPriceContent()}
                   </CardContent>
                 </Card>
               </div>
