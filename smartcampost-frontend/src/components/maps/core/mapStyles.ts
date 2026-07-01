@@ -32,12 +32,12 @@ export const MAP_STYLES = {
     version: 8,
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     sources: {
-      "carto-dark-tiles": {
+      "carto-voyager-tiles": {
         type: "raster",
         tiles: [
-          "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-          "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-          "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+          "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
         ],
         tileSize: 256,
         attribution: "© CARTO © OpenStreetMap contributors",
@@ -46,9 +46,9 @@ export const MAP_STYLES = {
     },
     layers: [
       {
-        id: "carto-dark-layer",
+        id: "carto-voyager-layer",
         type: "raster",
-        source: "carto-dark-tiles",
+        source: "carto-voyager-tiles",
         minzoom: 0,
         maxzoom: 19,
       },

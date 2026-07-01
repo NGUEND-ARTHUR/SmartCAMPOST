@@ -218,8 +218,8 @@ function LeafletMapInner({
               "text-max-width": 15,
             }}
             paint={{
-              "text-color": "#e2e8f0",
-              "text-halo-color": "#0f172a",
+              "text-color": "#1e293b",
+              "text-halo-color": "#ffffff",
               "text-halo-width": 1.5,
             }}
           />

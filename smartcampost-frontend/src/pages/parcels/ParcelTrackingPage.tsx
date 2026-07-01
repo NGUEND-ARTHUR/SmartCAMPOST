@@ -196,22 +196,41 @@ export default function ParcelTrackingPage() {
                 <div className="font-semibold mb-2">
                   {t("tracking.timeline")}
                 </div>
-                <ul className="text-xs space-y-1">
-                  {data.timeline.map((item, idx) => (
-                    <li key={idx}>
-                      <span className="font-medium">{item.eventType}</span> -{" "}
-                      {new Date(item.timestamp).toLocaleString()}
-                      {item.locationNote ? ` — ${item.locationNote}` : ""}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {data.timeline?.length > 0 && (
-                <div className="mt-6">
-                  <div className="font-semibold mb-2">
-                    {t("tracking.mapTitle")}
+                {data.timeline.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4 text-center text-xs text-muted-foreground space-y-1">
+                    <p className="font-medium text-sm">
+                      {data.status === "CREATED"
+                        ? "Awaiting agency pickup"
+                        : "No scan checkpoints yet"}
+                    </p>
+                    <p>
+                      {data.status === "CREATED"
+                        ? "Your parcel has been registered. Tracking updates will appear here once an agency agent scans it at drop-off."
+                        : "Tracking events will appear here as your parcel moves through the network."}
+                    </p>
                   </div>
-                   <TrackingMap
+                ) : (
+                  <ul className="text-xs space-y-1">
+                    {data.timeline.map((item, idx) => (
+                      <li key={idx}>
+                        <span className="font-medium">{item.eventType}</span> -{" "}
+                        {new Date(item.timestamp).toLocaleString()}
+                        {item.locationNote ? ` — ${item.locationNote}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="mt-6">
+                <div className="font-semibold mb-2">
+                  {t("tracking.mapTitle")}
+                </div>
+                {data.timeline.length === 0 && !data.currentLocation ? (
+                  <div className="rounded-lg border border-dashed border-muted-foreground/30 p-6 text-center text-xs text-muted-foreground">
+                    <p>Map tracking will appear here once your parcel is scanned at pickup.</p>
+                  </div>
+                ) : (
+                  <TrackingMap
                     trackingId={data.trackingRef}
                     currentStatus={data.status}
                     scanEvents={data.timeline.map((e) => ({
@@ -226,8 +245,8 @@ export default function ParcelTrackingPage() {
                     showAnimation={true}
                     liveActors={liveActorsForMap}
                   />
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </CardContent>
