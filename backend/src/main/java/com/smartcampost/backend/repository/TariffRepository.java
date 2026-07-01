@@ -33,4 +33,12 @@ public interface TariffRepository extends JpaRepository<Tariff, UUID> {
     );
 
     Page<Tariff> findByServiceType(ServiceType serviceType, Pageable pageable);
+
+    Optional<Tariff> findFirstByServiceTypeAndOriginZoneAndDestinationZone(
+            ServiceType serviceType,
+            String originZone,
+            String destinationZone
+    );
+
+    Optional<Tariff> findFirstByServiceType(ServiceType serviceType);
 }

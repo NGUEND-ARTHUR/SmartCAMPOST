@@ -466,7 +466,7 @@ export function CreateParcel() {
                 </span>
                 <span>
                   {priceQuote.breakdown.basePrice.toLocaleString()}{" "}
-                  {priceQuote.currency}
+                  {priceQuote.currency ?? "XAF"}
                 </span>
               </div>
               {priceQuote.breakdown.weightCharge > 0 && (
@@ -481,7 +481,7 @@ export function CreateParcel() {
                   </span>
                   <span>
                     + {priceQuote.breakdown.weightCharge.toLocaleString()}{" "}
-                    {priceQuote.currency}
+                    {priceQuote.currency ?? "XAF"}
                   </span>
                 </div>
               )}
@@ -496,7 +496,7 @@ export function CreateParcel() {
                   </span>
                   <span>
                     + {priceQuote.breakdown.extras!.toLocaleString()}{" "}
-                    {priceQuote.currency}
+                    {priceQuote.currency ?? "XAF"}
                   </span>
                 </div>
               )}
@@ -517,7 +517,8 @@ export function CreateParcel() {
           <div className="flex justify-between font-semibold text-base pt-2 border-t">
             <span>Estimated Total</span>
             <span className="text-primary">
-              {priceQuote.estimatedPrice.toLocaleString()} {priceQuote.currency}
+              {(priceQuote.estimatedPrice ?? priceQuote.basePrice ?? 0).toLocaleString()}{" "}
+              {priceQuote.currency ?? "XAF"}
             </span>
           </div>
         </div>

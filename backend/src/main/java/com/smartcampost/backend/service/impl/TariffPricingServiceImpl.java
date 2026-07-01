@@ -32,22 +32,14 @@ public class TariffPricingServiceImpl implements TariffPricingService {
     @Override
     public TariffQuoteResponse quotePrice(TariffQuoteRequest request) {
 
-                Objects.requireNonNull(request, "request is required");
-                Objects.requireNonNull(request.getServiceType(), "serviceType is required");
+        Objects.requireNonNull(request, "request is required");
+        Objects.requireNonNull(request.getServiceType(), "serviceType is required");
 
-        // Resolve zones: use originZone/destinationZone if set, otherwise fall back to city, then NATIONAL
-        String originZone = request.getOriginZone();
-        if (originZone == null || originZone.isBlank()) {
-            originZone = request.getOriginCity() != null ? request.getOriginCity().toUpperCase() : "NATIONAL";
-        } else {
-            originZone = originZone.toUpperCase();
-        }
-        String destZone = request.getDestinationZone();
-        if (destZone == null || destZone.isBlank()) {
-            destZone = request.getDestinationCity() != null ? request.getDestinationCity().toUpperCase() : "NATIONAL";
-        } else {
-            destZone = destZone.toUpperCase();
-        }
+        // Resolve and normalise zones
+        String originZone = normaliseZone(
+                request.getOriginZone() != null ? request.getOriginZone() : request.getOriginCity());
+        String destZone = normaliseZone(
+                request.getDestinationZone() != null ? request.getDestinationZone() : request.getDestinationCity());
 
         ServiceType serviceType;
         try {
@@ -58,55 +50,87 @@ public class TariffPricingServiceImpl implements TariffPricingService {
 
         String weightBracket = WeightBracketResolver.resolve(request.getWeight());
 
-        // Try exact zone match, then NATIONAL fallback
         final String oz = originZone;
         final String dz = destZone;
-        Tariff tariff = tariffRepository
-                .findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
-                        serviceType, oz, dz, weightBracket
-                )
-                .or(() -> tariffRepository.findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
-                        serviceType, "NATIONAL", "NATIONAL", weightBracket
-                ))
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No matching tariff found for " + oz + " -> " + dz + " (" + weightBracket + ")",
-                        ErrorCode.TARIFF_NOT_FOUND
-                ));
 
-        Double basePrice = tariff.getPrice().doubleValue();
+        // 1) Exact zone match
+        // 2) NATIONAL/NATIONAL same bracket
+        // 3) Any tariff for this service type (broadest fallback)
+        Tariff tariff = tariffRepository
+                .findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(serviceType, oz, dz, weightBracket)
+                .or(() -> tariffRepository.findFirstByServiceTypeAndOriginZoneAndDestinationZoneAndWeightBracket(
+                        serviceType, "NATIONAL", "NATIONAL", weightBracket))
+                .or(() -> tariffRepository.findFirstByServiceTypeAndOriginZoneAndDestinationZone(
+                        serviceType, "NATIONAL", "NATIONAL"))
+                .or(() -> tariffRepository.findFirstByServiceType(serviceType))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No tariff configured for service type " + serviceType,
+                        ErrorCode.TARIFF_NOT_FOUND));
+
+        double basePrice = tariff.getPrice().doubleValue();
+        // Weight surcharge: +5% per kg above 5 kg to reward correct weight entry
+        double weightCharge = request.getWeight() > 5.0
+                ? Math.round((request.getWeight() - 5.0) * basePrice * 0.05) : 0.0;
+        double total = basePrice + weightCharge;
 
         UUID parcelId = request.getParcelId();
         boolean applied = false;
 
-        // 4) Si on a un parcelId, on applique et on sauvegarde un PricingDetail
         if (parcelId != null) {
             Parcel parcel = parcelRepository.findById(parcelId)
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Parcel not found",
-                            ErrorCode.PARCEL_NOT_FOUND
-                    ));
+                    .orElseThrow(() -> new ResourceNotFoundException("Parcel not found", ErrorCode.PARCEL_NOT_FOUND));
 
             PricingDetail detail = PricingDetail.builder()
                     .parcel(parcel)
                     .tariff(tariff)
-                    .appliedPrice(basePrice)
+                    .appliedPrice(total)
                     .appliedAt(Instant.now())
                     .build();
-
-                        pricingDetailRepository.save(detail);
+            pricingDetailRepository.save(detail);
             applied = true;
         }
 
-        // 5) Réponse du quote
         return TariffQuoteResponse.builder()
                 .tariffId(tariff.getId())
                 .parcelId(parcelId)
                 .serviceType(tariff.getServiceType().name())
-                .originZone(tariff.getOriginZone())
-                .destinationZone(tariff.getDestinationZone())
-                .weightBracket(tariff.getWeightBracket())
+                .originZone(oz)
+                .destinationZone(dz)
+                .weightBracket(weightBracket)
                 .basePrice(basePrice)
+                .estimatedPrice(total)
+                .currency("XAF")
+                .breakdown(TariffQuoteResponse.Breakdown.builder()
+                        .basePrice(basePrice)
+                        .weightCharge(weightCharge)
+                        .extras(0.0)
+                        .build())
                 .applied(applied)
                 .build();
+    }
+
+    /**
+     * Normalises a region/zone string to a consistent UPPERCASE key.
+     * Maps common French Cameroonian region names to their English equivalents
+     * so that "Centre" and "CENTER" both resolve to the same tariff zone.
+     */
+    private static final java.util.Map<String, String> ZONE_ALIASES = java.util.Map.ofEntries(
+            java.util.Map.entry("CENTRE", "CENTER"),
+            java.util.Map.entry("LITTORAL", "LITTORAL"),
+            java.util.Map.entry("OUEST", "WEST"),
+            java.util.Map.entry("NORD OUEST", "NORTHWEST"),
+            java.util.Map.entry("NORDOUEST", "NORTHWEST"),
+            java.util.Map.entry("SUD OUEST", "SOUTHWEST"),
+            java.util.Map.entry("SUDOUEST", "SOUTHWEST"),
+            java.util.Map.entry("ADAMAOUA", "ADAMAWA"),
+            java.util.Map.entry("EXTRÊME NORD", "FAR NORTH"),
+            java.util.Map.entry("EXTREME NORD", "FAR NORTH"),
+            java.util.Map.entry("FAR-NORTH", "FAR NORTH")
+    );
+
+    private String normaliseZone(String raw) {
+        if (raw == null || raw.isBlank()) return "NATIONAL";
+        String upper = raw.trim().toUpperCase(Locale.ROOT);
+        return ZONE_ALIASES.getOrDefault(upper, upper);
     }
 }

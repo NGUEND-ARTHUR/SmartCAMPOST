@@ -14,14 +14,29 @@ import java.util.UUID;
 public class TariffQuoteResponse {
 
     private UUID tariffId;
-    private UUID parcelId;          // null si c'était juste un quote
+    private UUID parcelId;
 
     private String serviceType;
     private String originZone;
     private String destinationZone;
     private String weightBracket;
 
-    private Double basePrice;       // prix du tarif sélectionné
+    private Double basePrice;
 
-    private boolean applied;        // true si PricingDetail a été créé
+    // Frontend-facing fields expected by the UI
+    private Double estimatedPrice;
+    private String currency;
+    private Breakdown breakdown;
+
+    private boolean applied;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Breakdown {
+        private Double basePrice;
+        private Double weightCharge;
+        private Double extras;
+    }
 }

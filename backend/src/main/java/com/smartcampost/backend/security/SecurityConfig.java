@@ -155,6 +155,11 @@ public class SecurityConfig {
                         // ===================================================
                         //                 TARIFF & PRICING
                         // ===================================================
+                        // Price quote is needed by all roles (client, agent, courier)
+                        .requestMatchers(HttpMethod.POST, "/api/tariffs/quote")
+                        .authenticated()
+
+                        // CRUD operations remain restricted to admin/staff
                         .requestMatchers("/api/tariffs/**")
                         .hasAnyRole("ADMIN", "STAFF")
 

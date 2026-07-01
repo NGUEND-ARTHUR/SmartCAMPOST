@@ -39,13 +39,18 @@ export interface TariffQuoteRequest {
 }
 
 export interface TariffQuoteResponse {
-  estimatedPrice: number;
-  currency: string;
+  // Primary fields (populated by fixed backend)
+  estimatedPrice?: number;
+  currency?: string;
   breakdown?: {
     basePrice: number;
     weightCharge: number;
     extras?: number;
   };
+  // Also present in response for backward compat
+  basePrice?: number;
+  originZone?: string;
+  destinationZone?: string;
 }
 
 // ---- Service ----
