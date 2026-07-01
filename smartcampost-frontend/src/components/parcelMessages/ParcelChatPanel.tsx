@@ -49,7 +49,6 @@ export default function ParcelChatPanel({ parcelId }: { parcelId: string }) {
 
   useEffect(() => {
     if (parcelId) markRead.mutate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parcelId, messagesQuery.data?.length]);
 
   useEffect(() => {
