@@ -38,19 +38,18 @@ public class MonitoringAgent {
             }
 
             String subject = auth.getName();
-            UUID userId;
+            // Principal is either a UUID (userId) or a phone number, depending on JWT claims
+            Optional<com.smartcampost.backend.model.UserAccount> userOpt = Optional.empty();
             try {
-                userId = UUID.fromString(subject);
-            } catch (IllegalArgumentException ex) {
-                return AgentStatusResponse.builder()
-                        .role("GUEST")
-                        .agentHealth("OFFLINE")
-                        .summary("Invalid user ID")
-                        .recommendations(Collections.emptyList())
-                        .build();
+                UUID userId = UUID.fromString(subject);
+                userOpt = userAccountRepository.findById(userId);
+            } catch (IllegalArgumentException ignored) {
+                // principal is phone number — look up by phone, then email
+                userOpt = userAccountRepository.findByPhone(subject);
+                if (userOpt.isEmpty()) {
+                    userOpt = userAccountRepository.findByEmail(subject);
+                }
             }
-
-            var userOpt = userAccountRepository.findById(userId);
             if (userOpt.isEmpty()) {
                 return AgentStatusResponse.builder()
                         .role("GUEST")

@@ -379,7 +379,7 @@
       "manageStaff": "Manage Staff",
       "approvals": "Approvals",
       "liveScans": "Live Scans",
-      "waitingForScans": "Waiting for scan events\u2026",
+      "waitingForScans": "Waiting for scan events…",
       "aiRuntimeEvents": "AI Runtime Events",
       "noAiEvents": "No AI events yet"
     },
@@ -808,7 +808,7 @@
     }
   },
   "pickupDetail": {
-    "backToPickups": "\u2190 Back to Pickups",
+    "backToPickups": "← Back to Pickups",
     "title": "Pickup Detail",
     "loading": "Loading pickup details...",
     "loadFailed": "Failed to load pickup details",
@@ -819,8 +819,8 @@
     "instructions": "Instructions",
     "itemsToPickup": "Items to Pick Up",
     "parcel": "Parcel",
-    "capturePhoto": "\ud83d\udcf7 Capture Photo",
-    "addSignature": "\u270d\ufe0f Add Signature",
+    "capturePhoto": "📷 Capture Photo",
+    "addSignature": "✍️ Add Signature",
     "photoProof": "Photo Proof",
     "retakePhoto": "Retake Photo",
     "takePhoto": "Take Photo",
@@ -828,7 +828,7 @@
     "customerNamePlaceholder": "Customer Name",
     "askCustomerToSign": "Ask the customer to sign below",
     "completePickup": "Complete Pickup",
-    "pickupConfirmed": "\u2705 Pickup Confirmed",
+    "pickupConfirmed": "✅ Pickup Confirmed",
     "pickupRecordedSuccess": "Pickup has been recorded successfully.",
     "returningToList": "Returning to pickup list..."
   },
@@ -1019,12 +1019,11 @@
     "resolved": "Resolved",
     "closed": "Closed",
     "category": {
-      "delivery_issue": "Delivery Issue",
-      "payment_issue": "Payment Issue",
-      "damaged_goods": "Damaged Goods",
-      "lost_parcel": "Lost Parcel",
-      "technical_support": "Technical Support",
-      "general_inquiry": "General Inquiry"
+      "delivery": "Delivery",
+      "payment": "Payment",
+      "damaged": "Damaged parcel",
+      "lost": "Lost parcel",
+      "other": "Other"
     },
     "create": {
       "title": "Create New Support Ticket",
@@ -1034,7 +1033,6 @@
       "success": "Ticket created",
       "error": "Failed to create ticket"
     },
-
     "form": {
       "requiredFields": "Please fill in all required fields.",
       "category": "Category",
@@ -1046,22 +1044,12 @@
       "description": "Description",
       "descriptionPlaceholder": "Explain your issue with as much detail as possible"
     },
-
-    "category": {
-      "delivery": "Delivery",
-      "payment": "Payment",
-      "damaged": "Damaged parcel",
-      "lost": "Lost parcel",
-      "other": "Other"
-    },
-
     "stats": {
       "open": "Open",
       "inProgress": "In Progress",
       "resolved": "Resolved",
       "total": "Total"
     },
-
     "list": {
       "searchPlaceholder": "Search by subject or ticket ID...",
       "statusPlaceholder": "Status",
@@ -1074,7 +1062,6 @@
       "created": "Created",
       "viewDetails": "View details"
     },
-
     "status": {
       "all": "All",
       "open": "Open",
@@ -2233,21 +2220,25 @@
     "copyFailed": "Failed to copy link",
     "shareTracking": "Share Tracking Link"
   },
+  "aiInsights": {
+    "title": "AI Insights",
+    "none": "No active recommendations right now."
+  },
   "chatbot": {
     "title": "SmartBot",
     "subtitle": "AI Assistant • Online",
     "inputPlaceholder": "Type your message...",
     "disclaimer": "Powered by SmartCAMPOST AI • Responses may not always be accurate",
     "welcome": {
-      "guest": "Hello! \uD83D\uDC4B I'm SmartBot, your AI assistant.\n\nI can help you with:\n- \uD83D\uDCE6 Tracking parcels\n- \uD83D\uDCB0 Pricing & payments\n- \uD83D\uDE9A Delivery information\n- \uD83D\uDCCD Agency locations\n\nHow can I assist you today?",
-      "client": "Hello {{name}}! \uD83D\uDC4B Welcome to SmartCAMPOST.\n\nI can help you with:\n- \uD83D\uDCE6 Track your parcels in real-time\n- \uD83D\uDCB0 Get instant shipping quotes\n- \uD83D\uDE9A Schedule pickups and deliveries\n- \uD83D\uDCCD Find our agency locations\n\nWhat do you need help with today?",
-      "courier": "Welcome back, {{name}}! \uD83D\uDE9A\n\nI'm here to help you with:\n- \uD83D\uDCCD Optimize your delivery route\n- \uD83D\uDCE6 View your assigned parcels\n- \uD83D\uDCB0 Cash collection support\n- \uD83D\uDCCA Performance analytics\n- \uD83C\uDFAB Support ticket management\n\nWhat do you need?",
-      "agencyAdmin": "Welcome, Agency Manager \uD83C\uDFE2\n\nI can assist you with:\n- \uD83D\uDCE6 Parcel inventory management\n- \uD83D\uDC65 Staff and courier management\n- \uD83D\uDCCA Performance analytics & reports\n- \u26A0\uFE0F Alert management\n\nWhat do you need today?",
-      "admin": "Welcome, System Administrator \u2699\uFE0F\n\nI can help you with:\n- \uD83C\uDF10 System-wide analytics & monitoring\n- \uD83D\uDC65 User account management\n- \uD83C\uDFE2 Agency management\n- \uD83D\uDCB0 Tariff & pricing configuration\n- \uD83D\uDCCB Compliance & risk reports\n- \uD83D\uDD27 System status & health checks\n\nWhat do you need?",
-      "staff": "Welcome, {{name}}! \uD83C\uDFE2\n\nI can help you with:\n- \uD83D\uDCE6 Parcel processing & management\n- \uD83D\uDE9A Delivery coordination\n- \uD83D\uDCCA Performance analytics\n- \uD83D\uDCB3 Invoice & payment oversight\n- \uD83C\uDFAB Support ticket management\n\nWhat do you need today?",
-      "finance": "Welcome, Finance Manager \uD83D\uDCB0\n\nI can help you with:\n- \uD83D\uDCCA Revenue analytics & trends\n- \uD83D\uDCB0 Tariff & pricing management\n- \uD83E\uDDFE Invoice oversight & reconciliation\n- \uD83D\uDCCB Financial reports & exports\n- \uD83D\uDCB3 Payment tracking\n\nWhat can I help you with?",
-      "risk": "Welcome, Risk Analyst \uD83D\uDEE1\uFE0F\n\nI can help you with:\n- \u26A0\uFE0F Fraud detection & alerts\n- \uD83D\uDCCA Risk scoring & analytics\n- \uD83D\uDD0D Anomaly monitoring\n- \uD83D\uDCCB Compliance audits\n- \uD83D\uDD12 Security assessments\n\nWhat do you need?",
-      "default": "Hello! \uD83D\uDC4B I'm SmartBot, your AI assistant.\n\nI can help you with:\n- \uD83D\uDCE6 Tracking parcels\n- \uD83D\uDCB0 Pricing & payments\n- \uD83D\uDE9A Delivery information\n\nWhat can I help you with?"
+      "guest": "Hello! 👋 I'm SmartBot, your AI assistant.\n\nI can help you with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery information\n- 📍 Agency locations\n\nHow can I assist you today?",
+      "client": "Hello {{name}}! 👋 Welcome to SmartCAMPOST.\n\nI can help you with:\n- 📦 Track your parcels in real-time\n- 💰 Get instant shipping quotes\n- 🚚 Schedule pickups and deliveries\n- 📍 Find our agency locations\n\nWhat do you need help with today?",
+      "courier": "Welcome back, {{name}}! 🚚\n\nI'm here to help you with:\n- 📍 Optimize your delivery route\n- 📦 View your assigned parcels\n- 💰 Cash collection support\n- 📊 Performance analytics\n- 🎫 Support ticket management\n\nWhat do you need?",
+      "agencyAdmin": "Welcome, Agency Manager 🏢\n\nI can assist you with:\n- 📦 Parcel inventory management\n- 👥 Staff and courier management\n- 📊 Performance analytics & reports\n- ⚠️ Alert management\n\nWhat do you need today?",
+      "admin": "Welcome, System Administrator ⚙️\n\nI can help you with:\n- 🌐 System-wide analytics & monitoring\n- 👥 User account management\n- 🏢 Agency management\n- 💰 Tariff & pricing configuration\n- 📋 Compliance & risk reports\n- 🔧 System status & health checks\n\nWhat do you need?",
+      "staff": "Welcome, {{name}}! 🏢\n\nI can help you with:\n- 📦 Parcel processing & management\n- 🚚 Delivery coordination\n- 📊 Performance analytics\n- 💳 Invoice & payment oversight\n- 🎫 Support ticket management\n\nWhat do you need today?",
+      "finance": "Welcome, Finance Manager 💰\n\nI can help you with:\n- 📊 Revenue analytics & trends\n- 💰 Tariff & pricing management\n- 🧾 Invoice oversight & reconciliation\n- 📋 Financial reports & exports\n- 💳 Payment tracking\n\nWhat can I help you with?",
+      "risk": "Welcome, Risk Analyst 🛡️\n\nI can help you with:\n- ⚠️ Fraud detection & alerts\n- 📊 Risk scoring & analytics\n- 🔍 Anomaly monitoring\n- 📋 Compliance audits\n- 🔒 Security assessments\n\nWhat do you need?",
+      "default": "Hello! 👋 I'm SmartBot, your AI assistant.\n\nI can help you with:\n- 📦 Tracking parcels\n- 💰 Pricing & payments\n- 🚚 Delivery information\n\nWhat can I help you with?"
     },
     "suggestions": {
       "trackParcel": "Track my parcel",

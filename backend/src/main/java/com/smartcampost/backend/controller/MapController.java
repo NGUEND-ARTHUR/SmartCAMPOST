@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,7 @@ public class MapController {
 
     @GetMapping("/parcels/{parcelId}")
     @PreAuthorize("hasAnyRole('CLIENT','AGENT','COURIER','STAFF','ADMIN','RISK')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> parcelMap(@PathVariable String parcelId, Authentication authentication) {
         UUID pid;
         try { pid = UUID.fromString(parcelId); } catch (Exception e) { return ResponseEntity.badRequest().build(); }
@@ -101,6 +103,7 @@ public class MapController {
 
     @GetMapping("/couriers/me")
     @PreAuthorize("hasAnyRole('COURIER','AGENT')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> courierPersonalMap(java.security.Principal principal) {
         String uid = principal.getName();
         if (uid == null || uid.isBlank()) return ResponseEntity.badRequest().build();
@@ -174,6 +177,7 @@ public class MapController {
 
     @GetMapping("/admin/overview")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> adminOverview() {
         Map<String, Object> out = new HashMap<>();
         out.put("recentLocations", locationService.getRecentAll());

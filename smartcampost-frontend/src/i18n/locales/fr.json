@@ -2312,6 +2312,10 @@
     "copyFailed": "Échec de la copie du lien",
     "shareTracking": "Partager le lien de suivi"
   },
+  "aiInsights": {
+    "title": "Insights IA",
+    "none": "Aucune recommandation active pour le moment."
+  },
   "chatbot": {
     "title": "SmartBot",
     "subtitle": "Assistant IA • En ligne",
