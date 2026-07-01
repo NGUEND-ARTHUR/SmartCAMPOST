@@ -397,33 +397,50 @@ export default function RoleMapDashboard() {
     const normalizedBase = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
     const sseConnections: EventSource[] = [];
 
-    // Client/courier/agent: subscribe to individual parcel tracking streams
-    // Backend emits event name "scan-event" with flat payload:
-    // { trackingRef, latitude, longitude, parcelStatusAfter, eventType, ... }
+    // Client/courier/agent: subscribe to individual parcel tracking streams.
+    // Two event types arrive on the same stream:
+    //   "scan-event"  — QR code scanned; flat payload { trackingRef, latitude, longitude, parcelStatusAfter }
+    //   "gps-update"  — courier GPS heartbeat; nested { inheritedParcels: [{trackingRef, latitude, longitude, status}] }
     if (trackedParcels.length > 0) {
       for (const parcel of trackedParcels.slice(0, 8)) {
         const url = `${normalizedBase}/stream/tracking/${encodeURIComponent(parcel.trackingRef)}`;
         const es = new EventSource(url);
+
+        const applyPosition = (lat: number, lng: number, status?: string) => {
+          const newStatus = status || parcel.status || "IN_TRANSIT";
+          setMarkers((prev) =>
+            prev.map((m) =>
+              m.id === parcel.id || m.id === `parcel-${parcel.id}`
+                ? {
+                    ...m,
+                    position: [lat, lng] as [number, number],
+                    label: `📦 ${parcel.trackingRef} • ${newStatus.replace(/_/g, " ")} (LIVE)`,
+                    status: newStatus,
+                  }
+                : m,
+            ),
+          );
+        };
+
+        // QR scan: flat payload
         es.addEventListener("scan-event", (event: MessageEvent) => {
           try {
-            const payload = JSON.parse(event.data);
-            if (payload.trackingRef !== parcel.trackingRef) return;
-            if (!payload.latitude || !payload.longitude) return;
-            const newStatus: string = payload.parcelStatusAfter || parcel.status || "IN_TRANSIT";
-            setMarkers((prev) =>
-              prev.map((m) =>
-                m.id === parcel.id || m.id === `parcel-${parcel.id}`
-                  ? {
-                      ...m,
-                      position: [payload.latitude as number, payload.longitude as number],
-                      label: `📦 ${parcel.trackingRef} • ${newStatus.replace(/_/g, " ")} (LIVE)`,
-                      status: newStatus,
-                    }
-                  : m
-              )
-            );
+            const p = JSON.parse(event.data);
+            if (p.trackingRef !== parcel.trackingRef) return;
+            if (p.latitude && p.longitude) applyPosition(p.latitude, p.longitude, p.parcelStatusAfter);
           } catch { /* ignore */ }
         });
+
+        // Continuous GPS heartbeat: nested inheritedParcels[]
+        es.addEventListener("gps-update", (event: MessageEvent) => {
+          try {
+            const payload = JSON.parse(event.data);
+            const inherited: any[] = payload.inheritedParcels || [];
+            const match = inherited.find((ip) => ip.trackingRef === parcel.trackingRef);
+            if (match?.latitude && match?.longitude) applyPosition(match.latitude, match.longitude, match.status);
+          } catch { /* ignore */ }
+        });
+
         sseConnections.push(es);
       }
     }

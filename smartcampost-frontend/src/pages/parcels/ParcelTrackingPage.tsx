@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,45 +62,48 @@ export default function ParcelTrackingPage() {
       .finally(() => setLoading(false));
   };
 
-  // Listen for real-time tracking updates via public SSE stream
+  // Stable ref so SSE handlers always see the latest data without triggering re-subscription
+  const dataRef = useRef<ParcelTrackingData | null>(null);
+  useEffect(() => { dataRef.current = data; }, [data]);
+
+  // Derive the stable tracking ref — SSE reconnects only when this value changes
+  const sseTrackingRef = data?.trackingRef || data?.trackingNumber || null;
+
   useEffect(() => {
-    if (!data) return;
-    const ref = data.trackingRef || data.trackingNumber;
-    if (!ref) return;
+    if (!sseTrackingRef) return;
 
     const base = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
-    const sseUrl = `${base}/stream/tracking/${encodeURIComponent(ref)}`;
-
+    const sseUrl = `${base}/stream/tracking/${encodeURIComponent(sseTrackingRef)}`;
     const es = new EventSource(sseUrl);
 
-    // Backend emits event name "scan-event" with payload:
-    // { type, parcelId, trackingRef, eventType, timestamp, latitude, longitude,
-    //   locationNote, parcelStatusAfter }
-    const handleScanEvent = (event: MessageEvent) => {
+    // "scan-event" — QR code was scanned; flat payload:
+    // { parcelId, trackingRef, eventType, timestamp, latitude, longitude, parcelStatusAfter, locationNote }
+    es.addEventListener("scan-event", (event: MessageEvent) => {
       try {
         const payload = JSON.parse(event.data);
-        const matchesThis =
-          payload.trackingRef === ref ||
-          String(payload.parcelId) === String(data.parcelId);
-        if (!matchesThis) return;
+        const current = dataRef.current;
+        if (!current) return;
+        if (
+          payload.trackingRef !== sseTrackingRef &&
+          String(payload.parcelId) !== String(current.parcelId)
+        ) return;
+
+        const newScan: ScanEventResponse | null =
+          payload.eventType && payload.timestamp
+            ? {
+                id: String(payload.scanEventId || `sse-${payload.timestamp}`),
+                eventType: payload.eventType,
+                timestamp: payload.timestamp,
+                latitude: payload.latitude ?? undefined,
+                longitude: payload.longitude ?? undefined,
+                locationNote: payload.locationNote ?? undefined,
+                parcelStatusAfter: payload.parcelStatusAfter ?? undefined,
+              }
+            : null;
 
         setData((prev) => {
           if (!prev) return null;
-          const newEvent: ScanEventResponse | null =
-            payload.eventType && payload.timestamp
-              ? {
-                  id: String(payload.scanEventId || `sse-${payload.timestamp}`),
-                  eventType: payload.eventType,
-                  timestamp: payload.timestamp,
-                  latitude: payload.latitude ?? undefined,
-                  longitude: payload.longitude ?? undefined,
-                  locationNote: payload.locationNote ?? undefined,
-                  parcelStatusAfter: payload.parcelStatusAfter ?? undefined,
-                }
-              : null;
-          const alreadyHas =
-            newEvent != null &&
-            prev.timeline.some((e) => e.id === newEvent.id);
+          const alreadyHas = newScan != null && prev.timeline.some((e) => e.id === newScan.id);
           return {
             ...prev,
             status: payload.parcelStatusAfter || prev.status,
@@ -110,27 +113,56 @@ export default function ParcelTrackingPage() {
                     latitude: payload.latitude,
                     longitude: payload.longitude,
                     locationSource: "GPS",
-                    eventType: "LIVE_UPDATE",
+                    eventType: "SCAN",
                     updatedAt: new Date().toISOString(),
                   }
                 : prev.currentLocation,
-            timeline:
-              newEvent && !alreadyHas
-                ? [...prev.timeline, newEvent]
-                : prev.timeline,
+            timeline: newScan && !alreadyHas ? [...prev.timeline, newScan] : prev.timeline,
           };
         });
       } catch (err) {
-        console.warn("Failed to parse realtime tracking event", err);
+        console.warn("Failed to parse scan-event", err);
       }
-    };
+    });
 
-    es.addEventListener("scan-event", handleScanEvent);
+    // "gps-update" — courier phone/IoT GPS heartbeat; nested payload:
+    // { inheritedParcels: [{ parcelId, trackingRef, latitude, longitude, status, source }], updatedAt }
+    es.addEventListener("gps-update", (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data);
+        const inherited: any[] = payload.inheritedParcels || [];
+        const match = inherited.find(
+          (p) =>
+            p.trackingRef === sseTrackingRef ||
+            String(p.parcelId) === String(dataRef.current?.parcelId),
+        );
+        if (!match?.latitude || !match?.longitude) return;
 
-    return () => {
-      es.close();
-    };
-  }, [data]);
+        setData((prev) => {
+          if (!prev) return null;
+          if (
+            prev.currentLocation?.latitude === match.latitude &&
+            prev.currentLocation?.longitude === match.longitude
+          ) return prev;
+          return {
+            ...prev,
+            status: match.status || prev.status,
+            currentLocation: {
+              latitude: match.latitude,
+              longitude: match.longitude,
+              locationSource: match.source || "GPS",
+              eventType: "LIVE_GPS",
+              updatedAt: new Date().toISOString(),
+            },
+          };
+        });
+      } catch (err) {
+        console.warn("Failed to parse gps-update", err);
+      }
+    });
+
+    return () => { es.close(); };
+  }, [sseTrackingRef]); // Only reconnect when the tracking ref itself changes
 
   const liveActorsForMap = useMemo(() => {
     const actors = [];
