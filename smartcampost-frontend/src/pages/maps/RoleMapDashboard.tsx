@@ -201,18 +201,26 @@ export default function RoleMapDashboard() {
               status: p.status,
             }));
 
-          // Also show parcels without GPS via city fallback
-          const myParcels = await parcelService.listMyParcels(0, 50);
-          const noGpsParcels = (myParcels.content ?? [])
-            .filter((p) => !p.currentLatitude && p.senderCity && p.status !== "DELIVERED" && p.status !== "CANCELLED");
-          for (const p of noGpsParcels.slice(0, 20)) {
-            if (parcelMarkers.some((m) => m.id === `parcel-${p.id}`)) continue;
-            const coords = await geocodeCity(p.senderCity);
+          // Show active parcels without GPS via city fallback using pickup stop cities
+          const parcelMarkerIds = new Set(parcelMarkers.map((m) => m.id));
+          for (const p of (courierData.activeParcels ?? []).slice(0, 20)) {
+            if (parcelMarkerIds.has(`parcel-${p.id}`)) continue;
+            if (p.status === "DELIVERED" || p.status === "CANCELLED") continue;
+            const stop = (courierData.pickupStops ?? []).find((s) => s.parcelId === p.id);
+            const city = stop?.city;
+            const coords = city ? await geocodeCity(city, stop?.country) : null;
             if (coords) {
               parcelMarkers.push({
                 id: `parcel-${p.id}`,
                 position: [coords.lat, coords.lng],
-                label: `📦 ${p.trackingRef} • ${p.status} (${p.senderCity})`,
+                label: `📦 ${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"} (${city})`,
+                type: "parcel", status: p.status,
+              });
+            } else {
+              parcelMarkers.push({
+                id: `parcel-${p.id}`,
+                position: [4.0511, 9.7679],
+                label: `📦 ${p.trackingRef ?? p.id} • ${p.status ?? "UNKNOWN"} (awaiting GPS)`,
                 type: "parcel", status: p.status,
               });
             }
@@ -261,11 +269,11 @@ export default function RoleMapDashboard() {
           }
 
           setMarkers([...agencyMarkers, ...locationMarkers, ...parcelMarkers, ...pickupMarkers, ...deliveryMarkers]);
-          setTrackedParcels((myParcels.content ?? [])
+          // Use activeParcels from courier map API — listMyParcels is CLIENT-only and returns nothing for couriers
+          setTrackedParcels((courierData.activeParcels ?? [])
             .filter((p) => p.status !== "DELIVERED" && p.status !== "CANCELLED")
             .map((p) => ({
-              id: p.id, trackingRef: p.trackingRef, status: p.status,
-              senderCity: p.senderCity, recipientCity: p.recipientCity,
+              id: p.id, trackingRef: p.trackingRef ?? "", status: p.status,
             })));
           setSelectedParcelMap(null);
           setSelectedParcelId("");
