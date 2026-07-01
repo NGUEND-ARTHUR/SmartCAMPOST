@@ -398,24 +398,30 @@ export default function RoleMapDashboard() {
     const sseConnections: EventSource[] = [];
 
     // Client/courier/agent: subscribe to individual parcel tracking streams
+    // Backend emits event name "scan-event" with flat payload:
+    // { trackingRef, latitude, longitude, parcelStatusAfter, eventType, ... }
     if (trackedParcels.length > 0) {
       for (const parcel of trackedParcels.slice(0, 8)) {
         const url = `${normalizedBase}/stream/tracking/${encodeURIComponent(parcel.trackingRef)}`;
         const es = new EventSource(url);
-        es.addEventListener("gps-update", (event: MessageEvent) => {
+        es.addEventListener("scan-event", (event: MessageEvent) => {
           try {
             const payload = JSON.parse(event.data);
-            const inherited = payload.inheritedParcels || [];
-            const match = inherited.find((p: any) => p.trackingRef === parcel.trackingRef);
-            if (match?.latitude && match?.longitude) {
-              setMarkers((prev) =>
-                prev.map((m) =>
-                  m.id === parcel.id || m.id === `parcel-${parcel.id}`
-                    ? { ...m, position: [match.latitude, match.longitude], label: `📦 ${parcel.trackingRef} • LIVE` }
-                    : m
-                )
-              );
-            }
+            if (payload.trackingRef !== parcel.trackingRef) return;
+            if (!payload.latitude || !payload.longitude) return;
+            const newStatus: string = payload.parcelStatusAfter || parcel.status || "IN_TRANSIT";
+            setMarkers((prev) =>
+              prev.map((m) =>
+                m.id === parcel.id || m.id === `parcel-${parcel.id}`
+                  ? {
+                      ...m,
+                      position: [payload.latitude as number, payload.longitude as number],
+                      label: `📦 ${parcel.trackingRef} • ${newStatus.replace(/_/g, " ")} (LIVE)`,
+                      status: newStatus,
+                    }
+                  : m
+              )
+            );
           } catch { /* ignore */ }
         });
         sseConnections.push(es);

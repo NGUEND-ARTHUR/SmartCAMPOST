@@ -17,11 +17,13 @@ import com.smartcampost.backend.model.enums.UserRole;
 import com.smartcampost.backend.model.Payment;
 import com.smartcampost.backend.model.enums.PaymentOption;
 import com.smartcampost.backend.model.enums.PaymentStatus;
+import com.smartcampost.backend.model.Courier;
 import com.smartcampost.backend.repository.ScanEventRepository;
 import com.smartcampost.backend.repository.ParcelRepository;
 import com.smartcampost.backend.repository.PaymentRepository;
 import com.smartcampost.backend.repository.AgencyRepository;
 import com.smartcampost.backend.repository.AgentRepository;
+import com.smartcampost.backend.repository.CourierRepository;
 import com.smartcampost.backend.repository.UserAccountRepository;
 import com.smartcampost.backend.sse.SseEmitters;
 import com.smartcampost.backend.service.NotificationService;
@@ -56,6 +58,7 @@ public class ScanEventServiceImpl implements ScanEventService {
     private final PaymentRepository paymentRepository;
     private final AgencyRepository agencyRepository;
     private final AgentRepository agentRepository;
+    private final CourierRepository courierRepository;
     private final UserAccountRepository userAccountRepository;
     private final NotificationService notificationService; // 🔔
     private final SseEmitters sseEmitters; // 📡
@@ -208,10 +211,20 @@ public class ScanEventServiceImpl implements ScanEventService {
 
         // mettre à jour le statut du colis selon l’event
         ParcelStatus newStatus = applyParcelStatusFromEvent(parcel, type);
-        // 📍 Update parcel's current location from scan event GPS
-        // Every scan event carries the GPS of the scanning device — this becomes
-        // the parcel's last known location for map tracking
+        // 📍 Update parcel’s current location from scan event GPS
         updateParcelLocation(parcel, event);
+        // 📍 Update courier’s live position when they perform a scan
+        if (UserRole.COURIER.name().equals(actorRole) && actorId != null) {
+            try {
+                UUID courierId = UUID.fromString(actorId);
+                courierRepository.findById(courierId).ifPresent(courier -> {
+                    courier.setCurrentLatitude(event.getLatitude());
+                    courier.setCurrentLongitude(event.getLongitude());
+                    courier.setLastLocationAt(event.getTimestamp());
+                    courierRepository.save(courier);
+                });
+            } catch (IllegalArgumentException ignored) { /* actorId not a UUID */ }
+        }
         if (newStatus != null) {
             ParcelStatus oldStatus = parcel.getStatus();
             validateStatusTransition(oldStatus, newStatus);

@@ -70,43 +70,62 @@ export default function ParcelTrackingPage() {
 
     const base = normalizeApiBase(import.meta.env.VITE_API_URL as string | undefined);
     const sseUrl = `${base}/stream/tracking/${encodeURIComponent(ref)}`;
-    
+
     const es = new EventSource(sseUrl);
-    
-    const handleGpsUpdate = (event: MessageEvent) => {
+
+    // Backend emits event name "scan-event" with payload:
+    // { type, parcelId, trackingRef, eventType, timestamp, latitude, longitude,
+    //   locationNote, parcelStatusAfter }
+    const handleScanEvent = (event: MessageEvent) => {
       try {
         const payload = JSON.parse(event.data);
-        const parcels = payload.inheritedParcels || [];
-        const match = parcels.find(
-          (p: any) => p.trackingRef === ref || p.parcelId === data.parcelId
-        );
-        if (match && match.latitude && match.longitude) {
-          setData((prev) => {
-            if (!prev) return null;
-            if (
-              prev.currentLocation?.latitude === match.latitude &&
-              prev.currentLocation?.longitude === match.longitude
-            ) {
-              return prev;
-            }
-            return {
-              ...prev,
-              currentLocation: {
-                latitude: match.latitude,
-                longitude: match.longitude,
-                locationSource: match.source || "GPS",
-                eventType: "LIVE_UPDATE",
-                updatedAt: new Date().toISOString(),
-              },
-            };
-          });
-        }
+        const matchesThis =
+          payload.trackingRef === ref ||
+          String(payload.parcelId) === String(data.parcelId);
+        if (!matchesThis) return;
+
+        setData((prev) => {
+          if (!prev) return null;
+          const newEvent: ScanEventResponse | null =
+            payload.eventType && payload.timestamp
+              ? {
+                  id: String(payload.scanEventId || `sse-${payload.timestamp}`),
+                  eventType: payload.eventType,
+                  timestamp: payload.timestamp,
+                  latitude: payload.latitude ?? undefined,
+                  longitude: payload.longitude ?? undefined,
+                  locationNote: payload.locationNote ?? undefined,
+                  parcelStatusAfter: payload.parcelStatusAfter ?? undefined,
+                }
+              : null;
+          const alreadyHas =
+            newEvent != null &&
+            prev.timeline.some((e) => e.id === newEvent.id);
+          return {
+            ...prev,
+            status: payload.parcelStatusAfter || prev.status,
+            currentLocation:
+              payload.latitude && payload.longitude
+                ? {
+                    latitude: payload.latitude,
+                    longitude: payload.longitude,
+                    locationSource: "GPS",
+                    eventType: "LIVE_UPDATE",
+                    updatedAt: new Date().toISOString(),
+                  }
+                : prev.currentLocation,
+            timeline:
+              newEvent && !alreadyHas
+                ? [...prev.timeline, newEvent]
+                : prev.timeline,
+          };
+        });
       } catch (err) {
         console.warn("Failed to parse realtime tracking event", err);
       }
     };
 
-    es.addEventListener("gps-update", handleGpsUpdate);
+    es.addEventListener("scan-event", handleScanEvent);
 
     return () => {
       es.close();
