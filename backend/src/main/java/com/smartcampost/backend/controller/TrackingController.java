@@ -104,6 +104,9 @@ public class TrackingController {
                             ? OffsetDateTime.ofInstant(last.getTimestamp(), ZoneOffset.UTC)
                             : null;
                     r.timeline = List.copyOf(events);
+                    r.expectedDeliveryAt = p.getExpectedDeliveryAt() != null
+                            ? OffsetDateTime.ofInstant(p.getExpectedDeliveryAt(), ZoneOffset.UTC)
+                            : null;
                     return ResponseEntity.ok(r);
                 }).orElse(ResponseEntity.notFound().build());
     }

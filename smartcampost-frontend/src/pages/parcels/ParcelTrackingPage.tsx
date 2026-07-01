@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Clock, CheckCircle2, Truck, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import apiClient from "@/lib/api";
 import { normalizeApiBase } from "@/lib/axiosClient";
@@ -30,6 +30,7 @@ interface ParcelTrackingData {
   status: string;
   lastLocationNote?: string;
   updatedAt?: string;
+  expectedDeliveryAt?: string;
   timeline: ScanEventResponse[];
   currentLocation?: {
     latitude?: number;
@@ -54,7 +55,7 @@ export default function ParcelTrackingPage() {
     setLoading(true);
     apiClient
       .get<ParcelTrackingData>(
-        `/api/track/parcel/${encodeURIComponent(trackingRef.trim())}`,
+        `/track/parcel/${encodeURIComponent(trackingRef.trim())}`,
       )
       .then((res) => setData(res))
       .catch(() => toast.error(t("tracking.notFound")))
@@ -151,6 +152,41 @@ export default function ParcelTrackingPage() {
           </div>
           {data && (
             <>
+              {/* Status + ETA summary bar */}
+              <div className="flex flex-wrap gap-3 mb-4 p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  {data.status === "DELIVERED" ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  ) : data.status === "IN_TRANSIT" || data.status === "OUT_FOR_DELIVERY" ? (
+                    <Truck className="w-4 h-4 text-blue-500" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                  )}
+                  <span className="text-sm font-semibold">{data.status.replace(/_/g, " ")}</span>
+                </div>
+                {data.expectedDeliveryAt && data.status !== "DELIVERED" && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      ETA:{" "}
+                      <span className="font-semibold">
+                        {new Date(data.expectedDeliveryAt).toLocaleDateString(undefined, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {data.lastLocationNote && (
+                  <div className="text-sm text-muted-foreground">
+                    Last seen: {data.lastLocationNote}
+                  </div>
+                )}
+              </div>
+
               <QRCodeDisplay
                 trackingRef={data.trackingRef}
                 showLabel={true}

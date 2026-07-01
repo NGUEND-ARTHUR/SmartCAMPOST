@@ -129,12 +129,12 @@ public class AIServiceImpl implements AIService {
         // 3) Persist user message
         persistMessage(conversation, ConversationRole.USER, request.getMessage(), null);
 
-        // 4) Build RAG context
+        // 4) Build RAG context with real DB data
         StringBuilder rag = buildRagContext(userRole, userId, request);
 
-        // 5) If no OpenAI key, use local KB fallback
+        // 5) If no OpenAI key, use context-aware local fallback
         if (openAiApiKey == null || openAiApiKey.isBlank()) {
-            ChatResponse response = fallbackLocalResponse(request, sessionId, userRole);
+            ChatResponse response = fallbackLocalResponse(request, sessionId, userRole, rag.toString());
             persistMessage(conversation, ConversationRole.ASSISTANT, response.getMessage(),
                     (int) (System.currentTimeMillis() - startMs));
             return response;
@@ -171,7 +171,7 @@ public class AIServiceImpl implements AIService {
             var responseMono = openAIClient.createChatCompletion(model, messages, 800, 0.25);
             String aiText = responseMono.block();
             if (aiText == null || aiText.isBlank()) {
-                ChatResponse response = fallbackLocalResponse(request, sessionId, userRole);
+                ChatResponse response = fallbackLocalResponse(request, sessionId, userRole, rag.toString());
                 persistMessage(conversation, ConversationRole.ASSISTANT, response.getMessage(),
                         (int) (System.currentTimeMillis() - startMs));
                 return response;
@@ -189,7 +189,7 @@ public class AIServiceImpl implements AIService {
                     .build();
         } catch (Exception e) {
             log.error("AI chat failed: {}", e.getMessage());
-            ChatResponse response = fallbackLocalResponse(request, sessionId, userRole);
+            ChatResponse response = fallbackLocalResponse(request, sessionId, userRole, rag.toString());
             persistMessage(conversation, ConversationRole.ASSISTANT, response.getMessage(),
                     (int) (System.currentTimeMillis() - startMs));
             return response;
@@ -331,18 +331,60 @@ public class AIServiceImpl implements AIService {
         StringBuilder rag = new StringBuilder();
         if (userRole != null) rag.append("USER_ROLE: ").append(userRole.name()).append("\n");
 
+        // Include raw frontend context (role knowledge, navigation paths, etc.)
         if (request.getContext() != null && !request.getContext().isBlank()) {
-            var parcelOpt = parcelRepository.findByTrackingRef(request.getContext().trim());
-            if (parcelOpt.isPresent()) {
-                var parcel = parcelOpt.get();
-                rag.append("PARCEL: ").append(parcel.getTrackingRef()).append("\n");
-                rag.append("STATUS: ").append(parcel.getStatus()).append("\n");
-                if (parcel.getExpectedDeliveryAt() != null) {
-                    rag.append("EXPECTED_DELIVERY: ").append(parcel.getExpectedDeliveryAt()).append("\n");
+            String ctx = request.getContext().trim();
+            // If it looks like a tracking ref (short, alphanumeric), try parcel lookup
+            if (ctx.length() < 30 && ctx.matches("[A-Za-z0-9_\\-]+")) {
+                var parcelOpt = parcelRepository.findByTrackingRef(ctx);
+                if (parcelOpt.isPresent()) {
+                    var parcel = parcelOpt.get();
+                    rag.append("PARCEL_CONTEXT:\n");
+                    rag.append("  Tracking: ").append(parcel.getTrackingRef()).append("\n");
+                    rag.append("  Status: ").append(parcel.getStatus()).append("\n");
+                    if (parcel.getExpectedDeliveryAt() != null) {
+                        rag.append("  Expected delivery: ").append(parcel.getExpectedDeliveryAt()).append("\n");
+                    }
+                    if (parcel.getDestinationAgency() != null) {
+                        rag.append("  Destination agency: ").append(parcel.getDestinationAgency().getAgencyName()).append("\n");
+                    }
                 }
-                if (parcel.getDestinationAgency() != null) {
-                    rag.append("DESTINATION_AGENCY: ").append(parcel.getDestinationAgency().getAgencyName()).append("\n");
+            } else {
+                // Long context = role knowledge from frontend, include as-is
+                rag.append("SYSTEM_CONTEXT:\n").append(ctx, 0, Math.min(ctx.length(), 2000)).append("\n");
+            }
+        }
+
+        // Load real user data from DB
+        if (userId != null) {
+            try {
+                var userOpt = userAccountRepository.findById(userId);
+                userOpt.ifPresent(u -> {
+                    if (u.getEmail() != null) rag.append("USER_EMAIL: ").append(u.getEmail()).append("\n");
+                    if (u.getPhone() != null) rag.append("USER_PHONE: ").append(u.getPhone()).append("\n");
+                });
+
+                // Load recent parcels for CLIENT
+                if (userRole == UserRole.CLIENT) {
+                    var page = parcelRepository.findByClient_Id(userId,
+                            org.springframework.data.domain.PageRequest.of(0, 5));
+                    if (page.hasContent()) {
+                        rag.append("USER_PARCELS (latest 5):\n");
+                        for (var p : page.getContent()) {
+                            rag.append("  - ").append(p.getTrackingRef())
+                                    .append(" | Status: ").append(p.getStatus());
+                            if (p.getExpectedDeliveryAt() != null) {
+                                rag.append(" | ETA: ").append(p.getExpectedDeliveryAt());
+                            }
+                            if (p.getDestinationAgency() != null) {
+                                rag.append(" | To: ").append(p.getDestinationAgency().getAgencyName());
+                            }
+                            rag.append("\n");
+                        }
+                    }
                 }
+            } catch (Exception e) {
+                log.debug("Could not load user DB context: {}", e.getMessage());
             }
         }
 
@@ -352,35 +394,173 @@ public class AIServiceImpl implements AIService {
 
     // ==================== FALLBACK + SUGGESTIONS ====================
 
-    private ChatResponse fallbackLocalResponse(ChatRequest request, String sessionId, UserRole userRole) {
+    private ChatResponse fallbackLocalResponse(ChatRequest request, String sessionId, UserRole userRole, String ragContext) {
         String message = request.getMessage().toLowerCase();
+
+        // ── Intent: parcel list request ──
+        if (message.contains("my parcel") || message.contains("my order") || message.contains("mes colis")
+                || (message.contains("parcel") && (message.contains("list") || message.contains("all") || message.contains("show")))
+                || message.contains("shipment") && message.contains("my")) {
+            String parcelsSection = extractSection(ragContext, "USER_PARCELS");
+            if (parcelsSection != null) {
+                String userName = extractValue(ragContext, "USER_NAME");
+                String greeting = userName != null ? "Hi " + userName + "! " : "";
+                return ChatResponse.builder()
+                        .message(greeting + "Here are your recent parcels:\n\n" + parcelsSection.trim())
+                        .sessionId(sessionId)
+                        .suggestions(List.of("Track a specific parcel", "Create new shipment", "Check delivery rates"))
+                        .intent("PARCEL_LIST")
+                        .confidence(0.9)
+                        .build();
+            }
+        }
+
+        // ── Intent: track specific parcel ──
+        if (message.contains("track") || message.contains("where is") || message.contains("status")
+                || message.contains("localisation") || message.contains("suivi")) {
+            // Try to extract a tracking ref from the message (uppercase alphanumeric)
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("\\b([A-Z]{2,4}[-_]?\\d{4,}|[A-Z0-9]{8,20})\\b").matcher(request.getMessage());
+            if (m.find()) {
+                String ref = m.group(1);
+                try {
+                    var parcelOpt = parcelRepository.findByTrackingRef(ref);
+                    if (parcelOpt.isPresent()) {
+                        var p = parcelOpt.get();
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("Parcel **").append(ref).append("**\n");
+                        sb.append("Status: **").append(p.getStatus()).append("**\n");
+                        if (p.getExpectedDeliveryAt() != null) {
+                            sb.append("Estimated delivery: ").append(
+                                    java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy")
+                                            .format(p.getExpectedDeliveryAt().atZone(java.time.ZoneOffset.UTC))).append("\n");
+                        }
+                        if (p.getDestinationAgency() != null) {
+                            sb.append("Destination: ").append(p.getDestinationAgency().getAgencyName()).append("\n");
+                        }
+                        return ChatResponse.builder()
+                                .message(sb.toString())
+                                .sessionId(sessionId)
+                                .suggestions(List.of("What does " + p.getStatus() + " mean?", "File a support ticket", "View on map"))
+                                .intent("TRACK_PARCEL")
+                                .confidence(0.95)
+                                .build();
+                    }
+                } catch (Exception e) {
+                    log.debug("Parcel lookup failed for ref {}: {}", ref, e.getMessage());
+                }
+            }
+
+            // No specific ref — show user's parcels if available
+            String parcelsSection = extractSection(ragContext, "USER_PARCELS");
+            if (parcelsSection != null) {
+                return ChatResponse.builder()
+                        .message("Here are your current parcels and their statuses:\n\n" + parcelsSection.trim()
+                                + "\n\nTo track a specific parcel, share the tracking reference (e.g. SCM-12345).")
+                        .sessionId(sessionId)
+                        .suggestions(List.of("Show parcel on map", "Report delivery issue", "Check ETA"))
+                        .intent("TRACK_PARCEL")
+                        .confidence(0.8)
+                        .build();
+            }
+        }
+
+        // ── Intent: ETA / delivery date ──
+        if (message.contains("eta") || message.contains("when") || message.contains("arrive")
+                || message.contains("delivery date") || message.contains("quand")) {
+            String parcelsSection = extractSection(ragContext, "USER_PARCELS");
+            if (parcelsSection != null && parcelsSection.contains("ETA:")) {
+                return ChatResponse.builder()
+                        .message("Here are the estimated delivery dates for your parcels:\n\n" + parcelsSection.trim()
+                                + "\n\nETAs are updated automatically every 5 minutes based on parcel location.")
+                        .sessionId(sessionId)
+                        .suggestions(List.of("Track parcel on map", "Reschedule delivery", "Contact support"))
+                        .intent("ETA_QUERY")
+                        .confidence(0.85)
+                        .build();
+            }
+        }
+
+        // ── Intent: route optimization (courier) ──
+        if (userRole == UserRole.COURIER && (message.contains("route") || message.contains("optimize")
+                || message.contains("optimise") || message.contains("order") || message.contains("efficient"))) {
+            return ChatResponse.builder()
+                    .message("To optimize your delivery route:\n\n" +
+                            "1. Go to **Deliveries** → tap the **Map** view\n" +
+                            "2. Your stops are automatically ordered by nearest-neighbor algorithm\n" +
+                            "3. Tap **AI Route** button to apply priority-weighted optimization from the server\n" +
+                            "4. Each stop shows an estimated arrival time based on 30 km/h average speed\n\n" +
+                            "The algorithm minimizes total distance while giving priority to urgent deliveries.")
+                    .sessionId(sessionId)
+                    .suggestions(List.of("Open route map", "View my assignments", "Tips for faster delivery"))
+                    .intent("ROUTE_OPTIMIZATION")
+                    .confidence(0.9)
+                    .build();
+        }
+
+        // ── Keyword KB fallback ──
         KnowledgeEntry bestMatch = null;
+        int bestScore = 0;
         for (Map.Entry<String, KnowledgeEntry> entry : KNOWLEDGE_BASE.entrySet()) {
             if (message.contains(entry.getKey())) {
-                bestMatch = entry.getValue();
-                break;
+                int score = entry.getKey().length();
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = entry.getValue();
+                }
             }
         }
 
         if (bestMatch != null) {
+            String userName = extractValue(ragContext, "USER_NAME");
+            String responseText = (userName != null && (message.contains("hello") || message.contains("hi") || message.contains("bonjour")))
+                    ? "Hello " + userName + "! " + bestMatch.response
+                    : bestMatch.response;
             return ChatResponse.builder()
-                    .message(bestMatch.response)
+                    .message(responseText)
                     .sessionId(sessionId)
                     .suggestions(bestMatch.suggestions)
                     .intent(bestMatch.intent)
-                    .confidence(0.85)
+                    .confidence(0.75)
                     .build();
         }
 
+        String roleHint = userRole != null ? " as a " + userRole.name().toLowerCase() : "";
         return ChatResponse.builder()
-                .message("I'm not sure I understand. Could you rephrase your question? " +
-                        (userRole != null ? "I'm here to help " + userRole.name().toLowerCase() + "s with " : "") +
-                        "parcels, tracking, and deliveries.")
+                .message("I'm SmartCAMPOST AI" + roleHint + ". I can help you with:\n\n" +
+                        "• **Tracking** — ask \"where is my parcel SCM-12345?\"\n" +
+                        "• **Pricing** — ask \"how much to send 2kg to Yaoundé?\"\n" +
+                        "• **Delivery times** — ask \"when will my parcel arrive?\"\n" +
+                        "• **Payments** — ask \"what payment methods do you accept?\"\n" +
+                        "• **Support** — ask \"how do I file a complaint?\"\n\n" +
+                        "What would you like to know?")
                 .sessionId(sessionId)
                 .suggestions(generateSuggestionsForRole(userRole, message))
-                .intent("UNKNOWN")
-                .confidence(0.3)
+                .intent("HELP")
+                .confidence(0.5)
                 .build();
+    }
+
+    /** Extract a named section from the RAG context string. */
+    private String extractSection(String rag, String sectionKey) {
+        if (rag == null) return null;
+        int start = rag.indexOf(sectionKey + ":");
+        if (start < 0) return null;
+        start = rag.indexOf('\n', start) + 1;
+        int end = rag.indexOf("\n\n", start);
+        if (end < 0) end = rag.length();
+        String section = rag.substring(start, end).trim();
+        return section.isEmpty() ? null : section;
+    }
+
+    /** Extract a single-line value from the RAG context string. */
+    private String extractValue(String rag, String key) {
+        if (rag == null) return null;
+        int idx = rag.indexOf(key + ": ");
+        if (idx < 0) return null;
+        int end = rag.indexOf('\n', idx);
+        String val = rag.substring(idx + key.length() + 2, end < 0 ? rag.length() : end).trim();
+        return val.isEmpty() ? null : val;
     }
 
     private List<String> generateSuggestionsForRole(UserRole role, String context) {

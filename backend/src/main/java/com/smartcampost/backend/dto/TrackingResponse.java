@@ -21,6 +21,9 @@ public class TrackingResponse {
 
     public OffsetDateTime updatedAt;
 
+    // Estimated delivery date from scheduler/AI prediction
+    public OffsetDateTime expectedDeliveryAt;
+
     // Full audit timeline (chronological)
     public List<ScanEventResponse> timeline;
 
